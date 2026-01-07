@@ -4,30 +4,26 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>$PHAT — Planet Fatness</title>
-  <meta name="description" content="$PHAT — Planet Fatness. Premium degen chaos. Connect wallet, play mini-games, burn calories, climb the leaderboard, earn airdrops." />
+  <meta name="description" content="$PHAT — Planet Fatness Gym. Snack-first. Couch-certified. Treadmill rage runner. Stack calories, climb ranks, earn rewards." />
 
   <meta name="theme-color" content="#5b2cff" />
   <meta name="color-scheme" content="dark" />
 
   <meta property="og:title" content="$PHAT — Planet Fatness" />
-  <meta property="og:description" content="Snack-first. Couch-certified. Treadmill rage runner. Burn calories. Earn airdrops." />
+  <meta property="og:description" content="Snack-first. Couch-certified. Treadmill rage runner. Stack calories. Climb ranks. Get rewarded." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
-  <!-- Optional later: <meta property="og:image" content="https://planetfatness.fit/og.png" /> -->
 
   <style>
     :root{
       --bg0:#07050c;
       --bg1:#0b0716;
       --card: rgba(255,255,255,.06);
-      --card2: rgba(255,255,255,.08);
       --stroke: rgba(255,255,255,.12);
-      --stroke2: rgba(255,255,255,.18);
       --text: rgba(255,255,255,.92);
       --muted: rgba(255,255,255,.68);
 
       --purple:#5b2cff;
-      --purple2:#a278ff;
       --yellow:#ffd400;
       --yellow2:#ffe566;
 
@@ -36,7 +32,6 @@
 
       --radius: 24px;
       --radius2: 18px;
-
       --max: 1120px;
     }
 
@@ -48,7 +43,7 @@
       background:
         radial-gradient(1100px 650px at 20% 10%, rgba(91,44,255,.35), transparent 55%),
         radial-gradient(900px 560px at 85% 20%, rgba(255,212,0,.22), transparent 60%),
-        radial-gradient(900px 560px at 55% 120%, rgba(162,120,255,.22), transparent 60%),
+        radial-gradient(900px 560px at 55% 120%, rgba(255,212,0,.10), transparent 60%),
         linear-gradient(180deg, var(--bg1), var(--bg0));
       color:var(--text);
       overflow-x:hidden;
@@ -57,7 +52,7 @@
     .wrap{ width:100%; display:flex; justify-content:center; }
     .container{ width:min(var(--max), calc(100% - 40px)); margin:0 auto; }
 
-    /* Grain */
+    /* subtle grain */
     .grain{
       pointer-events:none;
       position:fixed; inset:0;
@@ -112,7 +107,7 @@
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.05);
       color: rgba(255,255,255,.82);
-      font-weight:800;
+      font-weight:900;
       font-size:13px;
       transition: transform .12s ease, border-color .12s ease, background .12s ease;
     }
@@ -121,7 +116,7 @@
     .cta{
       padding:10px 14px;
       border-radius:999px;
-      font-weight:980;
+      font-weight:1000;
       font-size:13px;
       color:#1a1400;
       background: linear-gradient(180deg, var(--yellow), #ffbf00);
@@ -132,7 +127,7 @@
     }
     .cta:hover{ transform: translateY(-2px); box-shadow: 0 18px 46px rgba(255,212,0,.38); filter: saturate(1.08); }
 
-    /* Panels / cards */
+    /* Panels */
     .panel{
       border-radius: var(--radius);
       background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
@@ -168,7 +163,7 @@
       background: rgba(91,44,255,.22);
       border:1px solid rgba(255,255,255,.10);
       color: rgba(255,255,255,.86);
-      font-weight:900;
+      font-weight:1000;
       font-size:12px;
       letter-spacing:.4px;
       text-transform: uppercase;
@@ -192,7 +187,7 @@
       margin:0 0 14px;
       font-size: clamp(15px, 2.5vw, 18px);
       color: rgba(255,255,255,.78);
-      max-width: 70ch;
+      max-width: 72ch;
       line-height:1.50;
     }
     .subtitle b{ color: rgba(255,255,255,.92); }
@@ -205,7 +200,7 @@
       border: 1px solid rgba(255,255,255,.12);
       background: rgba(0,0,0,.18);
       color: rgba(255,255,255,.92);
-      font-weight: 950;
+      font-weight: 1000;
       box-shadow: var(--shadow2);
       transition: transform .12s ease, border-color .12s ease, background .12s ease;
       user-select:none;
@@ -223,7 +218,7 @@
     .miniRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; color: rgba(255,255,255,.70); font-size: 13px; }
     .miniRow span{ padding: 8px 10px; border-radius: 999px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.04); }
 
-    /* Logo frame */
+    /* Logo */
     .logoFrame{ display:flex; align-items:center; justify-content:center; padding: 14px; min-height: 360px; }
     .logoCard{
       width:100%;
@@ -262,7 +257,7 @@
       border-radius: 999px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.04);
-      font-weight: 900;
+      font-weight: 1000;
     }
 
     /* Sections */
@@ -312,16 +307,14 @@
     .stat .v{ position:relative; font-size:22px; font-weight:1000; letter-spacing:-.4px; }
     .stat .s{ position:relative; font-size:12px; color: rgba(255,255,255,.62); margin-top:4px; }
 
-    /* Table leaderboard */
     table{ width:100%; border-collapse:collapse; }
     th,td{ padding:10px 10px; text-align:left; font-size:13px; }
-    th{ color: rgba(255,255,255,.68); font-weight:900; border-bottom:1px solid rgba(255,255,255,.10); }
+    th{ color: rgba(255,255,255,.68); font-weight:1000; border-bottom:1px solid rgba(255,255,255,.10); }
     td{ border-bottom:1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.86); }
-    .rank{ width:54px; color: rgba(255,255,255,.70); font-weight:900; }
+    .rank{ width:54px; color: rgba(255,255,255,.70); font-weight:1000; }
     .addr{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size:12px; color: rgba(255,255,255,.80); }
     .muted{ color: rgba(255,255,255,.68); }
 
-    /* Footer */
     footer{ padding: 18px 0 34px; color: rgba(255,255,255,.62); font-size: 12px; }
     .footRow{
       display:flex; align-items:center; justify-content:space-between;
@@ -336,11 +329,10 @@
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.04);
       color: rgba(255,255,255,.78);
-      font-weight: 900;
+      font-weight: 1000;
     }
     .link:hover{ border-color: rgba(255,255,255,.18); }
 
-    /* Toast */
     .toast{
       position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
       background: rgba(0,0,0,.55);
@@ -348,7 +340,7 @@
       border-radius: 999px;
       padding: 10px 14px;
       color: rgba(255,255,255,.9);
-      font-weight: 900;
+      font-weight: 1000;
       font-size: 13px;
       box-shadow: var(--shadow2);
       display:none;
@@ -362,22 +354,21 @@
   <div class="grain"></div>
   <div class="toast" id="toast"></div>
 
-  <!-- Topbar -->
   <div class="topbar">
     <div class="wrap">
       <div class="container inner">
         <div class="brand">
           <div class="logoMark"></div>
           <div>
-            <h3>$PHAT — Planet Fatness</h3>
-            <p>burn calories • earn airdrops • stay snack-first</p>
+            <h3>$PHAT — Planet Fatness Gym</h3>
+            <p>snack-first • couch-certified • rewards for grinders</p>
           </div>
         </div>
 
         <div class="nav">
           <a class="chip" href="#gym">Gym</a>
           <a class="chip" href="#leaderboard">Leaderboard</a>
-          <a class="chip" href="#airdrop">Airdrops</a>
+          <a class="chip" href="#rewards">Rewards</a>
           <a class="chip" href="#manifesto">Manifesto</a>
           <button class="cta" id="playBtn">Play</button>
         </div>
@@ -385,23 +376,22 @@
     </div>
   </div>
 
-  <!-- Hero -->
   <header class="hero">
     <div class="wrap">
       <div class="container heroGrid">
         <div class="panel">
           <div class="pad">
-            <div class="kicker"><span class="dot"></span> billion-dollar polish • degen lingo • product-first</div>
+            <div class="kicker"><span class="dot"></span> snack-first • couch-certified • treadmill-hostile</div>
 
             <div class="title">Planet <span class="grad">Fatness</span></div>
 
             <p class="subtitle">
-              Shoutout to the real ones who don’t want to live in a gym.
+              This is for the real ones who don’t want to live in a gym.
               The ones who pick snacks over suffering, naps over neck veins,
               and “I’ll start Monday” as a <b>lifestyle</b>.
               <br><br>
-              Connect your wallet, run the treadmill rage runner, stack <b>Total Calories Burned</b>,
-              climb the leaderboard, and get rewarded like a true member of the Planet Fatness Gym.
+              Connect your wallet, hit the treadmill rage runner, stack <b>Lifetime Calories</b>,
+              climb the ranks, and get rewarded like a certified Planet Fatness Gym member.
             </p>
 
             <div class="heroActions">
@@ -414,7 +404,7 @@
               <span>🍕 Snack-first philosophy</span>
               <span>🛋️ Couch cardio certified</span>
               <span>🏃‍♂️ Rage runner mini-game</span>
-              <span>💸 Airdrops for grinders</span>
+              <span>💸 Rewards for grinders</span>
             </div>
           </div>
         </div>
@@ -425,8 +415,8 @@
               <div class="inner">
                 <img class="logoImg" src="assets/phat-logo.png" alt="Planet Fatness logo" />
                 <div class="logoCaption">
-                  <span class="tag">Official Mark</span>
-                  <span class="muted">purple planet • yellow thumbs down • chaos certified</span>
+                  <span class="tag">$PHAT Logo</span>
+                  <span class="muted">official mark • Planet Fatness Gym • snack-first energy</span>
                 </div>
               </div>
             </div>
@@ -437,63 +427,62 @@
     </div>
   </header>
 
-  <!-- Gym / Stats -->
   <section id="gym">
     <div class="wrap">
       <div class="container">
         <div class="sectionTitle">
           <h2>Planet Fatness Gym</h2>
-          <p>Connect → play → your calories persist forever (server-tracked).</p>
+          <p>Welcome to the only gym where tapping counts as cardio.</p>
         </div>
 
         <div class="grid3">
           <div class="card">
-            <h3>Wallet Verification (Solana)</h3>
-            <p>We use a sign-message login. No fees. No transactions. Just proof you own the wallet.</p>
+            <h3>Gym Membership</h3>
+            <p>Connect Phantom to lock your membership. Your stats follow your wallet like a shadow.</p>
           </div>
           <div class="card">
-            <h3>Activity → Calories</h3>
-            <p>Mini-games submit results to the backend. Your Total Calories Burned lives on-chain-adjacent… forever.</p>
+            <h3>Lifetime Calories</h3>
+            <p>Play the mini-games and stack calories forever. This is the “number go up” we actually respect.</p>
           </div>
           <div class="card">
-            <h3>Airdrop Incentives</h3>
-            <p>Weekly/monthly rewards for the most active Planet Fatness gym members. Grind smart, not hard.</p>
+            <h3>Rank = Reward</h3>
+            <p>We reward activity. If you’re grinding, you’re eating. Simple.</p>
           </div>
         </div>
 
         <div style="margin-top:12px" class="panel">
           <div class="pad">
             <div class="sectionTitle" style="margin-top:0">
-              <h2>Your Member Stats</h2>
-              <p id="authStatus" class="muted">Not connected.</p>
+              <h2>Your Gym Card</h2>
+              <p id="authStatus" class="muted">Not connected yet — connect Phantom to start stacking.</p>
             </div>
 
             <div class="statGrid">
               <div class="stat">
-                <div class="k">Wallet</div>
+                <div class="k">Member Wallet</div>
                 <div class="v" id="meWallet">—</div>
-                <div class="s">your gym membership ID</div>
+                <div class="s">your gym identity</div>
               </div>
               <div class="stat">
-                <div class="k">Total Calories Burned</div>
+                <div class="k">Lifetime Calories</div>
                 <div class="v" id="meCalories">—</div>
-                <div class="s">persistent server total</div>
+                <div class="s">stacked across all mini-games</div>
               </div>
               <div class="stat">
-                <div class="k">Best Treadmill Time</div>
+                <div class="k">Best Treadmill Run</div>
                 <div class="v" id="meBest">—</div>
-                <div class="s">seconds survived</div>
+                <div class="s">survive longer = flex harder</div>
               </div>
               <div class="stat">
-                <div class="k">Status</div>
+                <div class="k">Gym Status</div>
                 <div class="v" id="meRankHint">—</div>
-                <div class="s">get on the leaderboard</div>
+                <div class="s">climb the ranks for rewards</div>
               </div>
             </div>
 
             <div class="heroActions" style="margin-top:14px">
               <a class="btn btnPrimary" href="https://planetfatness.fit/runner/">🏃‍♂️ Go burn calories</a>
-              <button class="btn" id="refreshMeBtn">Refresh stats</button>
+              <button class="btn" id="refreshMeBtn">Refresh</button>
               <button class="btn" id="logoutBtn">Logout</button>
             </div>
           </div>
@@ -503,19 +492,18 @@
     </div>
   </section>
 
-  <!-- Leaderboard -->
   <section id="leaderboard">
     <div class="wrap">
       <div class="container">
         <div class="sectionTitle">
           <h2>Leaderboard</h2>
-          <p>Top gym members by Total Calories Burned. Updated live.</p>
+          <p>Top gym members by Lifetime Calories. If you’re not here, you’re not tapping hard enough.</p>
         </div>
 
         <div class="panel">
           <div class="pad">
             <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center;">
-              <div class="muted">If you don’t see your name, it’s because you haven’t flown off the treadmill enough times yet.</div>
+              <div class="muted">Pro tip: rage-runner is the fastest way to stack calories and ego.</div>
               <button class="btn" id="refreshLbBtn">Refresh</button>
             </div>
 
@@ -525,8 +513,8 @@
                   <tr>
                     <th class="rank">#</th>
                     <th>Wallet</th>
-                    <th>Total Calories</th>
-                    <th>Best Time</th>
+                    <th>Lifetime Calories</th>
+                    <th>Best Run</th>
                   </tr>
                 </thead>
                 <tbody id="lbBody">
@@ -542,48 +530,47 @@
     </div>
   </section>
 
-  <!-- Airdrop incentives -->
-  <section id="airdrop">
+  <section id="rewards">
     <div class="wrap">
       <div class="container">
         <div class="sectionTitle">
-          <h2>Airdrop Incentives</h2>
-          <p>We reward activity. Most projects reward vibes.</p>
+          <h2>Rewards</h2>
+          <p>We don’t reward promises. We reward reps (the lazy version).</p>
         </div>
 
         <div class="grid3">
           <div class="card">
-            <h3>Weekly “Gym Rats”</h3>
-            <p>Top burners get rewarded. You don’t need abs — you need consistency and a fast thumb.</p>
+            <h3>Weekly Gym Rats</h3>
+            <p>Top burners get rewarded. No abs required — just a fast thumb and zero shame.</p>
           </div>
           <div class="card">
-            <h3>Season resets</h3>
-            <p>Leaderboards reset on a schedule so new members can climb. No whales camping #1 forever.</p>
+            <h3>Season Resets</h3>
+            <p>New members can climb. The leaderboard stays spicy. The grind stays fair.</p>
           </div>
           <div class="card">
-            <h3>Mini-game expansions</h3>
-            <p>Runner today. More chaotic mini-games tomorrow. All feeding the same calorie system.</p>
+            <h3>More Mini-Games</h3>
+            <p>Runner is just the beginning. New chaos drops and all of it feeds the same calorie stack.</p>
           </div>
         </div>
 
         <div style="margin-top:14px" class="panel">
           <div class="pad">
             <div class="sectionTitle" style="margin-top:0">
-              <h2>How rewards work (simple)</h2>
-              <p class="muted">You play → server logs calories → leaderboard updates → rewards for the most active.</p>
+              <h2>How it goes down</h2>
+              <p class="muted">You show up → you tap → you stack → you get rewarded.</p>
             </div>
             <div class="grid3">
               <div class="card">
-                <h3>Step 1</h3>
-                <p>Connect Phantom. Sign the message. You’re verified.</p>
+                <h3>1) Connect</h3>
+                <p>Connect Phantom and lock in your gym card.</p>
               </div>
               <div class="card">
-                <h3>Step 2</h3>
-                <p>Play the treadmill game. Your run gets submitted to the backend.</p>
+                <h3>2) Grind</h3>
+                <p>Play the treadmill rage runner and stack lifetime calories.</p>
               </div>
               <div class="card">
-                <h3>Step 3</h3>
-                <p>Top activity wins. Airdrops go to the most active gym members.</p>
+                <h3>3) Claim</h3>
+                <p>Top activity gets rewarded. The gym pays the grinders.</p>
               </div>
             </div>
           </div>
@@ -593,27 +580,26 @@
     </div>
   </section>
 
-  <!-- Manifesto -->
   <section id="manifesto">
     <div class="wrap">
       <div class="container">
         <div class="sectionTitle">
-          <h2>The Planet Fatness Manifesto</h2>
+          <h2>Manifesto</h2>
           <p>Respect the indulge. Honor the nap. Protect the vibe.</p>
         </div>
 
         <div class="grid3">
           <div class="card">
-            <h3>We don’t chase pain</h3>
-            <p>We chase dopamine. If it burns, it’s probably a scam.</p>
+            <h3>Snack-first</h3>
+            <p>We don’t chase pain. We chase dopamine. That’s the whole program.</p>
           </div>
           <div class="card">
-            <h3>We respect “tomorrow”</h3>
-            <p>Starting Monday is tradition. Quitting Wednesday is culture.</p>
+            <h3>Consistency &gt; delusion</h3>
+            <p>Starting Monday is tradition. Quitting Wednesday is culture. We keep it honest.</p>
           </div>
           <div class="card">
-            <h3>We do cardio the PHAT way</h3>
-            <p>Tap the treadmill, survive the incline, and fly off with honor.</p>
+            <h3>Tap counts as cardio</h3>
+            <p>Survive the treadmill. Fly off with honor. Come back and run it again.</p>
           </div>
         </div>
       </div>
@@ -624,11 +610,11 @@
     <div class="wrap">
       <div class="container">
         <div class="footRow">
-          <div>© <span id="yr"></span> Planet Fatness • $PHAT • couch-certified</div>
+          <div>© <span id="yr"></span> Planet Fatness • $PHAT • snack-first</div>
           <div class="links">
             <a class="link" href="https://planetfatness.fit/runner/">Play</a>
             <a class="link" href="#leaderboard">Leaderboard</a>
-            <a class="link" href="#airdrop">Airdrops</a>
+            <a class="link" href="#rewards">Rewards</a>
           </div>
         </div>
       </div>
@@ -641,11 +627,9 @@
     // ==========================
     const API_BASE = "https://YOUR-RENDER-BACKEND.onrender.com"; // <-- set this
 
-    // Keys
     const TOKEN_KEY = "phat_token";
     const ADDR_KEY  = "phat_address";
 
-    // UI
     const toastEl = document.getElementById("toast");
     const authStatusEl = document.getElementById("authStatus");
     const meWalletEl = document.getElementById("meWallet");
@@ -694,9 +678,9 @@
       const addr = getAddr();
       const token = getToken();
       if (addr && token){
-        authStatusEl.textContent = "Verified: " + shortAddr(addr) + " • server-tracked stats enabled";
+        authStatusEl.textContent = "Verified gym member: " + shortAddr(addr) + " ✅";
       } else {
-        authStatusEl.textContent = "Not connected.";
+        authStatusEl.textContent = "Not connected yet — connect Phantom to start stacking.";
         meWalletEl.textContent = "—";
         meCaloriesEl.textContent = "—";
         meBestEl.textContent = "—";
@@ -715,9 +699,8 @@
         const resp = await provider.connect();
         const address = resp.publicKey.toString();
 
-        toast("Connected: " + shortAddr(address) + " • requesting signature…");
+        toast("Connected " + shortAddr(address) + " • sign to lock membership…");
 
-        // challenge
         const ch = await fetch(API_BASE + "/auth/challenge", {
           method:"POST",
           headers:{ "Content-Type":"application/json" },
@@ -726,14 +709,11 @@
 
         if (ch.error) { toast(ch.error); return; }
 
-        // sign
         const msgBytes = new TextEncoder().encode(ch.message);
         const signed = await provider.signMessage(msgBytes, "utf8");
 
-        // send signature as base64
         const sigB64 = btoa(String.fromCharCode(...signed.signature));
 
-        // verify
         const v = await fetch(API_BASE + "/auth/verify", {
           method:"POST",
           headers:{ "Content-Type":"application/json" },
@@ -746,7 +726,7 @@
         }
 
         setSession(address, v.token);
-        toast("Verified ✅ " + shortAddr(address));
+        toast("Membership locked ✅ " + shortAddr(address));
         setAuthUI();
         await loadMe();
         await loadLeaderboard();
@@ -772,11 +752,11 @@
         meWalletEl.textContent = shortAddr(me.address);
         meCaloriesEl.textContent = Number(me.totalCalories || "0").toLocaleString();
         meBestEl.textContent = (me.bestSeconds || 0).toFixed(1) + "s";
-        meRankHintEl.textContent = "Grind = rewards. Tap faster.";
+        meRankHintEl.textContent = "Stack calories. Climb ranks. Earn rewards.";
 
       } catch(e){
         console.error(e);
-        toast("Couldn’t load stats (API issue).");
+        toast("Couldn’t load your gym card.");
       }
     }
 
@@ -786,7 +766,7 @@
         if (!Array.isArray(top)) throw new Error("Bad leaderboard");
 
         if (top.length === 0){
-          lbBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet. Be the first to get launched off the treadmill.</td></tr>`;
+          lbBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet. Be the first gym rat.</td></tr>`;
           return;
         }
 
@@ -806,7 +786,7 @@
 
       } catch(e){
         console.error(e);
-        lbBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard failed to load. Check backend URL.</td></tr>`;
+        lbBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load. Check your API link.</td></tr>`;
       }
     }
 
