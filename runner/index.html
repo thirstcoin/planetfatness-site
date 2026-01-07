@@ -2,30 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-  <title>$PHAT — Treadmill Run</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>$PHAT — Treadmill Rage Runner</title>
+  <meta name="theme-color" content="#5b2cff" />
+  <meta name="color-scheme" content="dark" />
 
   <style>
-    :root {
+    :root{
       --purple:#5b2cff;
+      --purple2:#a278ff;
       --yellow:#ffd400;
-      --bg:#0b0716;
+      --yellow2:#ffe566;
+
+      --bg0:#07050c;
+      --bg1:#0b0716;
+
       --panel:rgba(255,255,255,.08);
+      --panel2:rgba(255,255,255,.06);
       --stroke:rgba(255,255,255,.12);
-      --text:rgba(255,255,255,.95);
+      --stroke2:rgba(255,255,255,.18);
+
+      --text:rgba(255,255,255,.94);
       --muted:rgba(255,255,255,.70);
+
+      --shadow:0 30px 90px rgba(0,0,0,.55);
+      --shadow2:0 18px 50px rgba(0,0,0,.45);
     }
 
-    html,body{
-      margin:0;
-      height:100%;
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; margin:0; }
+    body{
       background:
-        radial-gradient(900px 500px at 50% 0%, rgba(91,44,255,.35), transparent 60%),
-        radial-gradient(700px 400px at 50% 100%, rgba(255,212,0,.25), transparent 60%),
-        linear-gradient(180deg, #140b2b, #07050c);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        radial-gradient(1100px 650px at 20% 10%, rgba(91,44,255,.35), transparent 55%),
+        radial-gradient(900px 560px at 85% 20%, rgba(255,212,0,.22), transparent 60%),
+        radial-gradient(900px 560px at 55% 120%, rgba(162,120,255,.18), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
       overflow:hidden;
+    }
+
+    /* grain */
+    .grain{
+      pointer-events:none;
+      position:fixed; inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+      opacity:.08;
     }
 
     #wrap{
@@ -34,60 +57,109 @@
       flex-direction:column;
       align-items:center;
       justify-content:center;
-      gap:12px;
+      gap:10px;
       padding:14px;
     }
 
-    canvas{
-      width:min(920px, 100%);
-      border-radius:20px;
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border:1px solid var(--stroke);
-      box-shadow:0 30px 90px rgba(0,0,0,.55);
-      touch-action:manipulation;
-    }
-
-    .row{
-      width:min(920px,100%);
+    .hud{
+      width:min(980px, 100%);
       display:flex;
       justify-content:space-between;
       align-items:center;
       gap:10px;
       flex-wrap:wrap;
+      margin-bottom:6px;
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      border-radius:999px;
+      background:rgba(0,0,0,.20);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow2);
+      backdrop-filter: blur(10px);
+    }
+    .mark{
+      width:28px; height:28px; border-radius:10px;
+      background: radial-gradient(circle at 30% 30%, var(--yellow), var(--purple));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 16px 40px rgba(91,44,255,.25);
+      position:relative;
+      overflow:hidden;
+    }
+    .mark:after{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(circle at 20% 10%, rgba(255,255,255,.55), transparent 42%);
+      opacity:.65;
+    }
+    .brand .t1{ font-weight:1000; letter-spacing:.2px; font-size:13px; }
+    .brand .t2{ color:var(--muted); font-size:12px; font-weight:800; }
+
+    .pills{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      margin-left:auto;
     }
 
     .pill{
-      padding:8px 14px;
+      padding:10px 12px;
       border-radius:999px;
-      background:var(--panel);
-      border:1px solid var(--stroke);
-      font-size:13px;
-      font-weight:800;
-      color:var(--muted);
-      display:flex;
-      align-items:center;
-      gap:10px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      font-size:12px;
+      font-weight:950;
+      color:rgba(255,255,255,.82);
+      box-shadow: var(--shadow2);
+      backdrop-filter: blur(10px);
+      display:flex; align-items:center; gap:8px;
+      user-select:none;
       white-space:nowrap;
     }
 
+    .dot{ width:8px; height:8px; border-radius:999px; background:var(--yellow); box-shadow:0 0 0 6px rgba(255,212,0,.12); }
+
     .btn{
-      padding:10px 16px;
+      padding:10px 14px;
       border-radius:14px;
-      font-weight:950;
-      background:linear-gradient(180deg, var(--yellow), #ffbf00);
-      color:#1b1400;
-      border:none;
-      box-shadow:0 14px 30px rgba(255,212,0,.45);
-      cursor:pointer;
-    }
-    .btn.secondary{
-      background:rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.14);
+      font-weight:1000;
+      font-size:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.22);
       color:rgba(255,255,255,.92);
-      box-shadow:0 18px 50px rgba(0,0,0,.35);
+      box-shadow: var(--shadow2);
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.06); }
+    .btn.primary{
+      background: linear-gradient(180deg, var(--yellow), #ffbf00);
+      color:#1b1400;
+      border-color: rgba(0,0,0,.18);
+      box-shadow:0 18px 44px rgba(255,212,0,.22);
     }
 
-    .btn:active{ transform:scale(.98); }
+    canvas{
+      width:min(980px, 100%);
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      touch-action:manipulation;
+    }
+
+    .bottom{
+      width:min(980px,100%);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:6px;
+    }
 
     .toast{
       position:fixed;
@@ -99,405 +171,865 @@
       border-radius: 999px;
       padding: 10px 14px;
       color: rgba(255,255,255,.92);
-      font-weight: 950;
+      font-weight: 1000;
       font-size: 13px;
-      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      box-shadow: var(--shadow2);
       backdrop-filter: blur(12px);
       display:none;
       z-index:50;
+      max-width: calc(100% - 24px);
+      text-align:center;
     }
 
-    .dot{
-      width:8px; height:8px; border-radius:999px;
-      background: var(--yellow);
-      box-shadow: 0 0 0 6px rgba(255,212,0,.12);
-      flex:0 0 auto;
-    }
-
-    .rightActions{
-      display:flex;
-      gap:10px;
+    .overlay{
+      position:fixed; inset:0;
+      display:none;
       align-items:center;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-      margin-left:auto;
+      justify-content:center;
+      padding:18px;
+      z-index:40;
+      background: radial-gradient(800px 400px at 50% 30%, rgba(91,44,255,.25), rgba(0,0,0,.55));
+      backdrop-filter: blur(10px);
     }
+    .modal{
+      width:min(620px, 100%);
+      border-radius:24px;
+      background: rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .modal:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(640px 340px at 18% 0%, rgba(91,44,255,.35), transparent 60%),
+        radial-gradient(640px 340px at 88% 30%, rgba(255,212,0,.22), transparent 62%);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .modal .pad{ position:relative; padding:18px; }
+    .modal h2{ margin:0 0 6px; font-size:18px; letter-spacing:.2px; }
+    .modal p{ margin:0 0 12px; color:rgba(255,255,255,.72); line-height:1.45; font-weight:800; font-size:13px; }
+    .modalGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+    @media (max-width:560px){ .modalGrid{ grid-template-columns:1fr; } }
+
+    .statCard{
+      border-radius:16px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      padding:12px;
+      position:relative;
+      overflow:hidden;
+    }
+    .statCard:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(260px 160px at 20% 0%, rgba(91,44,255,.22), transparent 65%),
+        radial-gradient(260px 160px at 90% 30%, rgba(255,212,0,.14), transparent 65%);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .statCard .k{ position:relative; color:rgba(255,255,255,.70); font-size:12px; font-weight:900; margin-bottom:6px; }
+    .statCard .v{ position:relative; font-size:22px; font-weight:1000; letter-spacing:-.4px; }
+    .statCard .s{ position:relative; color:rgba(255,255,255,.64); font-size:12px; font-weight:850; margin-top:4px; }
+
+    .modalActions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
   </style>
 </head>
 
 <body>
-<div id="wrap">
+  <div class="grain"></div>
   <div class="toast" id="toast"></div>
 
-  <div class="row">
-    <div class="pill"><span class="dot"></span>$PHAT — Treadmill Runner</div>
-    <div class="pill" id="status">Tap to start</div>
+  <div id="wrap">
+    <div class="hud">
+      <div class="brand">
+        <div class="mark"></div>
+        <div>
+          <div class="t1">$PHAT — Treadmill Rage Runner</div>
+          <div class="t2">tap to survive • stack calories • fly off with honor</div>
+        </div>
+      </div>
 
-    <div class="rightActions">
-      <button class="btn secondary" id="backBtn">← Site</button>
-      <button class="btn secondary" id="connectBtn">🟣 Connect</button>
-      <button class="btn" onclick="resetGame()">Restart</button>
+      <div class="pills">
+        <div class="pill" id="memberPill"><span class="dot"></span>Guest Mode</div>
+        <div class="pill" id="statePill">Ready</div>
+        <button class="btn" id="pauseBtn">Pause</button>
+        <button class="btn" id="restartBtn">Restart</button>
+        <button class="btn primary" id="siteBtn">Site</button>
+      </div>
+    </div>
+
+    <canvas id="c" width="960" height="540"></canvas>
+
+    <div class="bottom">
+      <div class="pill">Controls: Tap / Click / Space</div>
+      <div class="pill">Best Run: <span id="best">0.0s</span></div>
+      <div class="pill" id="tipPill">Tip: Tap in rhythm. Panic taps waste stamina.</div>
     </div>
   </div>
 
-  <div class="row">
-    <div class="pill" id="walletPill">Wallet: —</div>
-    <div class="pill">Controls: Tap / Click / Space</div>
-    <div class="pill">Best: <span id="best">0.0s</span></div>
-  </div>
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <div class="pad">
+        <h2 id="overTitle">You flew off 💥</h2>
+        <p id="overSub">Respect. Your treadmill didn’t win… it just got lucky.</p>
 
-  <canvas id="c" width="900" height="520"></canvas>
+        <div class="modalGrid">
+          <div class="statCard">
+            <div class="k">Run Time</div>
+            <div class="v" id="mTime">0.0s</div>
+            <div class="s" id="mRank">Rank: —</div>
+          </div>
+          <div class="statCard">
+            <div class="k">Calories (this run)</div>
+            <div class="v" id="mCals">0</div>
+            <div class="s" id="mCalsSub">Stacked to your profile when connected</div>
+          </div>
+          <div class="statCard">
+            <div class="k">Cadence</div>
+            <div class="v" id="mCad">0.0/s</div>
+            <div class="s" id="mCadSub">Smooth > spam</div>
+          </div>
+          <div class="statCard">
+            <div class="k">Incline Peak</div>
+            <div class="v" id="mInc">0.0%</div>
+            <div class="s">The belt was disrespectful</div>
+          </div>
+        </div>
 
-  <div class="row">
-    <div class="pill" id="serverPill">Server calories: connect wallet to save</div>
-    <div class="pill" id="lastRunPill">Last run: —</div>
+        <div class="modalActions">
+          <button class="btn primary" id="playAgainBtn">Run it back</button>
+          <button class="btn" id="closeBtn">Close</button>
+          <a class="btn" href="https://planetfatness.fit/#leaderboard">Leaderboard</a>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
 
 <script>
 /**
- * ==========================
- * CONFIG (CHANGE THIS ONE)
- * ==========================
+ * Single-file premium runner.
+ * Change HOME_URL if you ever move domains.
  */
-const API_BASE = "https://YOUR-RENDER-BACKEND.onrender.com"; // <-- set this
+const HOME_URL = "https://planetfatness.fit/";
 
 /**
- * Session keys (shared with homepage)
+ * Optional session awareness (no dev talk).
+ * If you used the homepage connect flow, token/address will already be stored.
  */
 const TOKEN_KEY = "phat_token";
 const ADDR_KEY  = "phat_address";
 
 /**
- * Local best time (still useful even offline)
+ * Local best time (always works)
  */
 const BEST_KEY = "phat_treadmill_best_seconds";
 
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
-const statusEl = document.getElementById('status');
-const bestEl = document.getElementById('best');
-const walletPill = document.getElementById('walletPill');
-const serverPill = document.getElementById('serverPill');
-const lastRunPill = document.getElementById('lastRunPill');
-const toastEl = document.getElementById('toast');
+/**
+ * Canvas / UI
+ */
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
 
-document.getElementById("backBtn").addEventListener("click", () => {
-  window.location.href = "https://planetfatness.fit/";
-});
+const toastEl = document.getElementById("toast");
+const overlay = document.getElementById("overlay");
 
-document.getElementById("connectBtn").addEventListener("click", connectAndLogin);
+const statePill = document.getElementById("statePill");
+const memberPill = document.getElementById("memberPill");
+const tipPill = document.getElementById("tipPill");
 
+const bestEl = document.getElementById("best");
+
+const pauseBtn = document.getElementById("pauseBtn");
+const restartBtn = document.getElementById("restartBtn");
+const siteBtn = document.getElementById("siteBtn");
+
+const playAgainBtn = document.getElementById("playAgainBtn");
+const closeBtn = document.getElementById("closeBtn");
+
+// modal stats
+const mTime = document.getElementById("mTime");
+const mRank = document.getElementById("mRank");
+const mCals = document.getElementById("mCals");
+const mCalsSub = document.getElementById("mCalsSub");
+const mCad = document.getElementById("mCad");
+const mCadSub = document.getElementById("mCadSub");
+const mInc = document.getElementById("mInc");
+
+/**
+ * Tiny audio engine (mobile-friendly after first gesture)
+ */
+let audioOn = true;
+let ac = null;
+function audioInit(){
+  if (ac) return;
+  try{
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+  }catch{ ac = null; }
+}
+function beep(freq=240, dur=0.06, type="sine", gain=0.06){
+  if (!audioOn) return;
+  if (!ac) return;
+  const t0 = ac.currentTime;
+  const o = ac.createOscillator();
+  const g = ac.createGain();
+  o.type = type;
+  o.frequency.value = freq;
+  g.gain.value = gain;
+  o.connect(g);
+  g.connect(ac.destination);
+  o.start(t0);
+  o.stop(t0 + dur);
+}
+function thump(){
+  // low clicky thump
+  beep(120, 0.03, "sine", 0.05);
+  beep(70, 0.05, "sine", 0.03);
+}
+function warn(){
+  beep(520, 0.05, "square", 0.03);
+}
+function crash(){
+  beep(90, 0.12, "sawtooth", 0.06);
+  beep(55, 0.18, "sine", 0.05);
+}
+
+/**
+ * Toast
+ */
 function toast(msg){
   toastEl.textContent = msg;
   toastEl.style.display = "block";
   clearTimeout(window.__toastT);
-  window.__toastT = setTimeout(() => toastEl.style.display = "none", 2400);
+  window.__toastT = setTimeout(() => toastEl.style.display = "none", 2500);
 }
 
-function shortAddr(a){
-  if (!a) return "—";
-  return a.slice(0,4) + "…" + a.slice(-4);
-}
-
+/**
+ * Member pill
+ */
+function shortAddr(a){ return a ? (a.slice(0,4)+"…"+a.slice(-4)) : ""; }
 function getToken(){ return localStorage.getItem(TOKEN_KEY) || ""; }
 function getAddr(){ return localStorage.getItem(ADDR_KEY) || ""; }
-function setSession(addr, token){
-  localStorage.setItem(ADDR_KEY, addr);
-  localStorage.setItem(TOKEN_KEY, token);
-}
-
-function setWalletUI(){
+function setMemberUI(){
   const addr = getAddr();
-  const token = getToken();
-  walletPill.textContent = "Wallet: " + (addr ? shortAddr(addr) : "—");
-  serverPill.textContent = token
-    ? "Server calories: enabled ✅"
-    : "Server calories: connect wallet to save";
+  const tok = getToken();
+  if (addr && tok){
+    memberPill.innerHTML = `<span class="dot"></span>Member: ${shortAddr(addr)}`;
+    mCalsSub.textContent = "This run stacks to your lifetime calories";
+  }else{
+    memberPill.innerHTML = `<span class="dot"></span>Guest Mode`;
+    mCalsSub.textContent = "Connect on the site to stack lifetime calories";
+  }
 }
+setMemberUI();
 
+/**
+ * Buttons
+ */
+siteBtn.addEventListener("click", () => window.location.href = HOME_URL);
+restartBtn.addEventListener("click", () => { resetGame(); toast("Reset. Tap to start."); });
+pauseBtn.addEventListener("click", () => togglePause());
+
+playAgainBtn.addEventListener("click", () => { overlay.style.display="none"; resetGame(); startRunNow(); });
+closeBtn.addEventListener("click", () => overlay.style.display="none");
+
+/**
+ * Game state
+ */
 let best = Number(localStorage.getItem(BEST_KEY) || 0);
-bestEl.textContent = best.toFixed(1) + 's';
+bestEl.textContent = best.toFixed(1) + "s";
 
-let running=false, gameOver=false;
-let t=0, last=performance.now();
-let speed=.35, stamina=1, incline=0, required=.35;
-let tapPulse=0, wobble=0, legPhase=0;
+let running = false;
+let paused = false;
+let gameOver = false;
 
-// Track taps for backend stats (anti-cheat cadence)
-let taps=0;
+let t = 0;
+let last = performance.now();
 
-// Prevent double-submit on same game over
-let submittedThisRun=false;
+// mechanics
+let speed = 0.34;
+let stamina = 1;
+let incline = 0;
+let required = 0.32;
 
-// Track max incline over the run for backend
-let maxInclineSeen=0;
+let tapPulse = 0;
+let wobble = 0;
+let legPhase = 0;
+
+// “feel”
+let shake = 0;        // screen shake amplitude
+let flash = 0;        // impact flash
+let slowMo = 1;       // slowmo scalar
+let grace = 0;        // warmup seconds
+let warnTimer = 0;    // warning beep limiter
+
+// stats
+let taps = 0;
+let maxInclineSeen = 0;
+let lastTapAt = 0;
+let cadenceSmooth = 0;  // smoothed taps/sec
+let combo = 0;          // rewards rhythm
+let comboSmooth = 0;
+
+// particles
+const sweat = [];
+const sparks = [];
+const streaks = [];
+
+function rand(a,b){ return a + Math.random()*(b-a); }
 
 function resetGame(){
-  running=false; gameOver=false;
-  t=0; speed=.35; stamina=1; incline=0; required=.35;
-  tapPulse=0; wobble=0; legPhase=0;
-  taps=0;
-  submittedThisRun=false;
-  maxInclineSeen=0;
+  running = false;
+  paused = false;
+  gameOver = false;
 
-  statusEl.textContent='Tap to start';
-  lastRunPill.textContent='Last run: —';
+  t = 0;
+  speed = 0.34;
+  stamina = 1;
+  incline = 0;
+  required = 0.30;
+
+  tapPulse = 0;
+  wobble = 0;
+  legPhase = 0;
+
+  shake = 0;
+  flash = 0;
+  slowMo = 1;
+  grace = 1.35;
+  warnTimer = 0;
+
+  taps = 0;
+  maxInclineSeen = 0;
+  lastTapAt = performance.now();
+  cadenceSmooth = 0;
+  combo = 0;
+  comboSmooth = 0;
+
+  sweat.length = 0;
+  sparks.length = 0;
+  streaks.length = 0;
+
+  overlay.style.display = "none";
+  statePill.textContent = "Ready";
+  tipPill.textContent = "Tip: Tap in rhythm. Panic taps waste stamina.";
+  last = performance.now();
+}
+
+function startRunNow(){
+  running = true;
+  paused = false;
+  gameOver = false;
+
+  // reset frame clock to avoid dt spike
+  last = performance.now();
+
+  // initial juice
+  tapPulse = Math.max(tapPulse, 0.62);
+  flash = 0.35;
+  shake = 6;
+
+  statePill.textContent = "RUN";
+  tipPill.textContent = "Tap to keep the belt under you. Don’t let speed drop.";
+}
+
+function togglePause(){
+  if (!running && !gameOver) return;
+  paused = !paused;
+  if (paused){
+    statePill.textContent = "Paused";
+    tipPill.textContent = "Paused. Tap Pause again to resume.";
+  }else{
+    last = performance.now();
+    statePill.textContent = running ? "RUN" : "Ready";
+    tipPill.textContent = "Back at it. Rhythm > spam.";
+  }
+}
+
+function rankForTime(seconds){
+  if (seconds >= 120) return "CHAD GOD";
+  if (seconds >= 75)  return "PLANET BOSS";
+  if (seconds >= 45)  return "GYM RAT";
+  if (seconds >= 25)  return "SWEATY DEGEN";
+  if (seconds >= 12)  return "NEW YEAR SIGNUP";
+  return "TREADMILL VICTIM";
+}
+
+function caloriesEstimate(seconds, maxInc, taps){
+  // memorable but fair: time matters most, incline adds spice, cadence adds bonus
+  const tapsPerSec = taps / Math.max(1, seconds);
+  const incMult = 1 + Math.min(1.2, maxInc / 12);  // 1..2.2
+  const cadMult = 1 + Math.min(0.8, tapsPerSec / 12); // 1..1.8
+  const base = seconds * 2.2;
+  return Math.max(1, Math.round(base * incMult * cadMult));
 }
 
 function tap(){
-  if(gameOver){
-    resetGame();
-    running=true;
-    statusEl.textContent='RUN';
+  // init audio on first user gesture
+  audioInit();
+  if (ac && ac.state === "suspended") ac.resume().catch(()=>{});
+
+  if (paused){
+    togglePause();
     return;
   }
-  if(!running){
-    running=true;
-    statusEl.textContent='RUN';
+
+  if (gameOver){
+    resetGame();
+    startRunNow();
+    // count this tap too
+    tapPulse = Math.min(1.85, tapPulse + 0.22);
+    taps++;
+    thump();
+    spawnTapJuice();
+    return;
   }
-  tapPulse=Math.min(1.8, tapPulse+.18);
+
+  if (!running){
+    startRunNow();
+  }
+
+  // rhythm bonus: reward taps ~140–180 bpm feeling (every 0.33–0.43s-ish)
+  const now = performance.now();
+  const delta = (now - lastTapAt) / 1000;
+  lastTapAt = now;
+
+  const rhythm = 1 - Math.min(1, Math.abs(delta - 0.36) / 0.28); // 0..1
+  if (rhythm > 0.35) combo = Math.min(25, combo + 1);
+  else combo = Math.max(0, combo - 1);
+
+  tapPulse = Math.min(1.85, tapPulse + (0.16 + 0.05 * Math.min(1, combo/12)));
   taps++;
+
+  // feel
+  shake = Math.min(10, shake + 1.4);
+  flash = Math.min(0.8, flash + 0.12);
+
+  thump();
+  spawnTapJuice();
 }
 
-window.addEventListener('pointerdown', tap);
-window.addEventListener('keydown', e=>{ if(e.code==='Space') tap(); });
+window.addEventListener("pointerdown", tap);
+window.addEventListener("keydown", e => { if (e.code === "Space") tap(); if (e.code === "KeyP") togglePause(); });
 
-function update(dt){
-  if(!running) return;
+function spawnTapJuice(){
+  // sweat droplets
+  for (let i=0;i<2;i++){
+    sweat.push({
+      x: rand(340, 420),
+      y: rand(210, 240),
+      vx: rand(-30, 30),
+      vy: rand(-120, -60),
+      life: rand(0.4, 0.8)
+    });
+  }
+  // belt sparks
+  for (let i=0;i<3;i++){
+    sparks.push({
+      x: rand(280, 760),
+      y: rand(395, 418),
+      vx: rand(-180, -60),
+      vy: rand(-40, 10),
+      life: rand(0.25, 0.5)
+    });
+  }
+}
 
-  t+=dt;
+function update(dtRaw){
+  if (!running) return;
+  if (paused) return;
 
-  const ramp=1-Math.exp(-t/35);
-  incline=.05+.85*ramp;
-  required=.33+.55*ramp;
+  // hard clamp; also allow subtle slow-mo on fail
+  let dt = Math.min(0.02, dtRaw) * slowMo;
 
-  // store max incline "percent-ish" for backend
-  // (just scale to 0..12ish for now so it reads like a treadmill)
-  const inclinePct = (incline * 12.5);
-  if (inclinePct > maxInclineSeen) maxInclineSeen = inclinePct;
+  t += dt;
+  grace = Math.max(0, grace - dt);
 
-  tapPulse=Math.max(0, tapPulse-(.9+.9*incline)*dt);
-  const target=.2+.7*(tapPulse/1.2)*(0.6+0.4*stamina);
-  speed+= (target-speed)*3*dt;
-  speed=Math.max(0, speed-(.22+.55*incline)*dt);
+  // difficulty ramp (smoother + longer)
+  const ramp = 1 - Math.exp(-t/48);
 
-  stamina=Math.max(0, stamina-(.06+.22*incline+.1*speed)*dt);
-  if(tapPulse>.6) stamina=Math.min(1, stamina+.04*dt);
+  // incline 0..1
+  incline = 0.04 + 0.84 * ramp;
+  required = 0.30 + 0.55 * ramp;
 
-  legPhase=(legPhase+dt*(1.5+5*speed))%1;
+  // incline in % feel (0..12ish)
+  const incPct = incline * 12.5;
+  if (incPct > maxInclineSeen) maxInclineSeen = incPct;
 
-  if(speed<required-.02 || stamina<=0){
-    wobble+=dt*3;
-    if(wobble>1){
-      triggerGameOver();
+  // tap pulse decays faster with incline
+  tapPulse = Math.max(0, tapPulse - (0.86 + 1.02*incline) * dt);
+
+  // cadence smoothing
+  const tapsPerSec = taps / Math.max(1, t);
+  cadenceSmooth += (tapsPerSec - cadenceSmooth) * 0.08;
+
+  // combo smoothing for HUD
+  comboSmooth += (combo - comboSmooth) * 0.10;
+
+  // speed target based on pulse + stamina, with combo nudge
+  const comboBoost = 0.02 * Math.min(1, comboSmooth/16);
+  const target = 0.22 + 0.74*(tapPulse/1.2) * (0.66 + 0.34*stamina) + comboBoost;
+
+  speed += (target - speed) * 3.2 * dt;
+
+  // belt drag
+  speed = Math.max(0, speed - (0.20 + 0.52*incline) * dt);
+
+  // stamina drain (eases in)
+  const early = t < 7 ? 0.68 : 1.0;
+  stamina = Math.max(0, stamina - early*(0.05 + 0.22*incline + 0.10*speed) * dt);
+
+  // recover if you’re really tapping
+  if (tapPulse > 0.70) stamina = Math.min(1, stamina + 0.05 * dt);
+
+  // legs animate
+  legPhase = (legPhase + dt*(1.6 + 5.2*speed)) % 1;
+
+  // warning wobble
+  const danger = (speed < required + 0.01) || (stamina < 0.12);
+  if (grace <= 0){
+    if (speed < required - 0.02 || stamina <= 0){
+      wobble += dt * 3.2;
+      shake = Math.min(14, shake + dt * 18);
+
+      warnTimer += dt;
+      if (warnTimer > 0.25){
+        warnTimer = 0;
+        warn();
+      }
+
+      if (wobble > 1){
+        triggerGameOver();
+      }
+    } else {
+      wobble = Math.max(0, wobble - dt*2.4);
+      warnTimer = Math.max(0, warnTimer - dt*2);
     }
   } else {
-    wobble=Math.max(0, wobble-dt*2);
+    wobble = Math.max(0, wobble - dt*3.0);
   }
+
+  // tip text
+  if (danger && !gameOver) tipPill.textContent = "WARNING: keep speed up or you’re getting launched.";
+  else if (grace > 0) tipPill.textContent = "Warm-up… build rhythm and speed.";
+  else tipPill.textContent = "Rhythm > spam. Combo boosts your run.";
+
+  // screen shake decay + flash decay
+  shake = Math.max(0, shake - dt * 14);
+  flash = Math.max(0, flash - dt * 1.5);
+
+  // particles update
+  updateParticles(dt);
 }
 
 function triggerGameOver(){
   if (gameOver) return;
+  gameOver = true;
+  running = false;
 
-  gameOver=true; running=false;
-  statusEl.textContent='Flew off 💥';
+  crash();
+  flash = 1;
+  shake = 18;
 
-  // Local best
-  if(t>best){
-    best=t;
-    localStorage.setItem(BEST_KEY,best);
-    bestEl.textContent=best.toFixed(1)+'s';
+  // tiny slow-mo for impact
+  slowMo = 0.5;
+  setTimeout(() => { slowMo = 1; }, 220);
+
+  // save best
+  if (t > best){
+    best = t;
+    localStorage.setItem(BEST_KEY, best);
+    bestEl.textContent = best.toFixed(1) + "s";
   }
 
-  // UI for last run
-  lastRunPill.textContent = `Last run: ${t.toFixed(1)}s • incline ${maxInclineSeen.toFixed(1)}% • taps ${taps}`;
+  // modal stats
+  const runCals = caloriesEstimate(t, maxInclineSeen, taps);
+  const rank = rankForTime(t);
+  const tps = taps / Math.max(1, t);
 
-  // Submit to server (once)
-  if (!submittedThisRun) {
-    submittedThisRun = true;
-    submitRunToServer(t, maxInclineSeen, taps);
+  mTime.textContent = t.toFixed(1) + "s";
+  mRank.textContent = "Rank: " + rank;
+  mCals.textContent = runCals.toLocaleString();
+  mCad.textContent = tps.toFixed(1) + "/s";
+  mInc.textContent = maxInclineSeen.toFixed(1) + "%";
+
+  // cadence flavor
+  if (tps >= 8) mCadSub.textContent = "Certified menace cadence";
+  else if (tps >= 5) mCadSub.textContent = "Solid rhythm. Respect.";
+  else mCadSub.textContent = "Needs more panic taps (just kidding… kinda)";
+
+  // show overlay
+  overlay.style.display = "flex";
+  statePill.textContent = "Flew off 💥";
+
+  // fun title/sub
+  const titles = [
+    ["You flew off 💥", "The treadmill chose violence."],
+    ["Ejected 💥", "Snack-first doesn’t mean speed-last."],
+    ["Treadmill W", "You’ll get it back in blood (and taps)."],
+    ["Launched 💥", "Respect the belt. Fear the incline."]
+  ];
+  const pick = titles[Math.floor(Math.random()*titles.length)];
+  document.getElementById("overTitle").textContent = pick[0];
+  document.getElementById("overSub").textContent = pick[1];
+
+  // reward hint (no dev talk)
+  if (getToken() && getAddr()){
+    toast("Run saved. Keep stacking lifetime calories.");
+  }else{
+    toast("Guest run complete. Connect on the site to stack lifetime calories.");
   }
 }
 
-async function submitRunToServer(seconds, maxIncline, taps){
-  const token = getToken();
-  const addr = getAddr();
-
-  if (!token || !addr) {
-    toast("Connect wallet to save calories + leaderboard.");
-    return;
+function updateParticles(dt){
+  // sweat
+  for (let i=sweat.length-1;i>=0;i--){
+    const p = sweat[i];
+    p.life -= dt;
+    p.vy += 260 * dt;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    if (p.life <= 0) sweat.splice(i,1);
   }
 
-  // idempotency
-  const runId = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + "-" + Math.random());
+  // sparks
+  for (let i=sparks.length-1;i>=0;i--){
+    const p = sparks[i];
+    p.life -= dt;
+    p.vy += 220 * dt;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    if (p.life <= 0) sparks.splice(i,1);
+  }
 
-  try{
-    const r = await fetch(API_BASE + "/activity/runner", {
-      method: "POST",
-      headers: {
-        "Content-Type":"application/json",
-        "Authorization":"Bearer " + token
-      },
-      body: JSON.stringify({
-        runId,
-        seconds: Number(seconds),
-        maxIncline: Number(maxIncline),
-        taps: Math.floor(Number(taps))
-      })
+  // streaks (ambient wind)
+  if (running && Math.random() < 0.08 + 0.20*speed){
+    streaks.push({
+      x: rand(120, 960),
+      y: rand(60, 330),
+      vx: rand(-900, -450),
+      life: rand(0.18, 0.35),
+      w: rand(40, 90)
     });
-
-    const data = await r.json();
-    if (!r.ok || data.error){
-      toast(data.error || "Run submit failed.");
-      return;
-    }
-
-    const earned = Number(data.caloriesEarned || 0);
-    const total = String(data.totalCalories || "0");
-    const bestSeconds = Number(data.bestSeconds || 0);
-
-    toast(`+${earned.toLocaleString()} calories 🔥`);
-    serverPill.textContent = `Server calories: ${Number(total).toLocaleString()} • best ${bestSeconds.toFixed(1)}s`;
-
-  } catch(e){
-    console.error(e);
-    toast("Backend unreachable. Run not saved.");
   }
-}
-
-/**
- * Optional: let runner also do login (same as homepage)
- * This keeps the runner standalone if someone lands here first.
- */
-async function connectAndLogin(){
-  const provider = window.solana;
-  if (!provider?.isPhantom) {
-    toast("Phantom not found. Install Phantom.");
-    return;
-  }
-
-  try{
-    const resp = await provider.connect();
-    const address = resp.publicKey.toString();
-
-    toast("Connected " + shortAddr(address) + " • sign to verify…");
-
-    // challenge
-    const ch = await fetch(API_BASE + "/auth/challenge", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ address })
-    }).then(r => r.json());
-
-    if (ch.error) { toast(ch.error); return; }
-
-    // sign message
-    const msgBytes = new TextEncoder().encode(ch.message);
-    const signed = await provider.signMessage(msgBytes, "utf8");
-
-    // signature as base64
-    const sigB64 = btoa(String.fromCharCode(...signed.signature));
-
-    // verify
-    const v = await fetch(API_BASE + "/auth/verify", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ address, nonce: ch.nonce, signature: sigB64 })
-    }).then(r => r.json());
-
-    if (!v.token) {
-      toast(v.error || "Verify failed");
-      return;
-    }
-
-    setSession(address, v.token);
-    setWalletUI();
-    toast("Verified ✅ " + shortAddr(address));
-
-    // pull current totals for pill
-    try{
-      const me = await fetch(API_BASE + "/activity/me", {
-        headers:{ "Authorization":"Bearer " + v.token }
-      }).then(r => r.json());
-
-      if (me?.totalCalories !== undefined){
-        serverPill.textContent = `Server calories: ${Number(me.totalCalories).toLocaleString()} • best ${(Number(me.bestSeconds)||0).toFixed(1)}s`;
-      } else {
-        serverPill.textContent = "Server calories: enabled ✅";
-      }
-    } catch {}
-  } catch(e){
-    console.error(e);
-    toast("Wallet connect/sign cancelled.");
+  for (let i=streaks.length-1;i>=0;i--){
+    const s = streaks[i];
+    s.life -= dt;
+    s.x += s.vx * dt;
+    if (s.life <= 0) streaks.splice(i,1);
   }
 }
 
 function draw(){
-  ctx.clearRect(0,0,900,520);
+  const W = 960, H = 540;
+  ctx.clearRect(0,0,W,H);
 
-  // time
-  ctx.fillStyle='rgba(255,255,255,.9)';
-  ctx.font='800 28px system-ui';
-  ctx.fillText(t.toFixed(1)+'s', 40, 46);
-
-  // treadmill
-  ctx.fillStyle='rgba(0,0,0,.4)';
-  ctx.fillRect(140,360,620,60);
-
-  // runner body
+  // camera shake
+  const sx = (Math.random()*2-1) * shake;
+  const sy = (Math.random()*2-1) * shake;
   ctx.save();
-  ctx.translate(320+wobble*8,300-wobble*15);
+  ctx.translate(sx, sy);
 
-  ctx.fillStyle='rgba(255,255,255,.9)';
+  // subtle vignette back glow
+  ctx.fillStyle = "rgba(0,0,0,.12)";
+  ctx.fillRect(0,0,W,H);
+
+  // ambient streaks
+  for (const s of streaks){
+    ctx.globalAlpha = Math.max(0, Math.min(1, s.life*3));
+    ctx.strokeStyle = "rgba(255,255,255,.18)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(s.x, s.y);
+    ctx.lineTo(s.x + s.w, s.y);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // scoreboard text
+  ctx.fillStyle = "rgba(255,255,255,.92)";
+  ctx.font = "1000 30px system-ui";
+  ctx.fillText(t.toFixed(1) + "s", 40, 54);
+
+  // cadence + combo
+  ctx.font = "900 14px system-ui";
+  ctx.fillStyle = "rgba(255,255,255,.70)";
+  const tps = (t>0) ? (taps/t) : 0;
+  ctx.fillText("Cadence: " + tps.toFixed(1) + "/s", 40, 82);
+
+  const comboText = comboSmooth >= 6 ? ("Combo: " + Math.round(comboSmooth)) : "Combo: —";
+  ctx.fillText(comboText, 200, 82);
+
+  // treadmill belt
+  ctx.fillStyle = "rgba(0,0,0,.42)";
+  ctx.fillRect(160, 380, 640, 70);
+
+  // belt motion stripes
+  const stripeCount = 18;
+  const beltY = 415;
+  const beltX0 = 180, beltX1 = 780;
+  const beltW = beltX1 - beltX0;
+  const beltPhase = (t * (180 + 520*speed)) % (beltW/stripeCount);
+  ctx.strokeStyle = "rgba(255,255,255,.10)";
+  ctx.lineWidth = 3;
+  for (let i=0;i<stripeCount;i++){
+    const x = beltX0 + i*(beltW/stripeCount) - beltPhase;
+    ctx.beginPath();
+    ctx.moveTo(x, beltY);
+    ctx.lineTo(x+22, beltY+10);
+    ctx.stroke();
+  }
+
+  // treadmill base highlight
+  ctx.fillStyle = "rgba(255,255,255,.08)";
+  ctx.fillRect(160, 380, 640, 6);
+
+  // runner
+  const bodyX = 350 + wobble*10;
+  const bodyY = 305 - wobble*18;
+
+  ctx.save();
+  ctx.translate(bodyX, bodyY);
+
+  // body
+  ctx.fillStyle = "rgba(255,255,255,.92)";
   ctx.beginPath();
-  ctx.ellipse(160,10,90,70,0,0,Math.PI*2);
+  ctx.ellipse(170, 16, 98, 76, 0, 0, Math.PI*2);
   ctx.fill();
 
+  // head
   ctx.beginPath();
-  ctx.ellipse(165,-80,50,46,0,0,Math.PI*2);
+  ctx.ellipse(176, -84, 52, 48, 0, 0, Math.PI*2);
   ctx.fill();
 
   // heart glasses
-  ctx.fillStyle='#ff4d6d';
-  drawHeart(140,-90,14);
-  drawHeart(188,-90,14);
+  ctx.fillStyle = "#ff4d6d";
+  drawHeart(150, -92, 15);
+  drawHeart(202, -92, 15);
+
+  // mouth line (tiny expression)
+  ctx.strokeStyle = "rgba(0,0,0,.35)";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(170, -66);
+  ctx.lineTo(190, -66);
+  ctx.stroke();
 
   // legs
-  drawLeg(140,70,Math.sin(legPhase*6.28));
-  drawLeg(190,70,Math.sin(legPhase*6.28+Math.PI));
+  drawLeg(150, 86, Math.sin(legPhase*6.283));
+  drawLeg(205, 86, Math.sin(legPhase*6.283 + Math.PI));
 
   ctx.restore();
 
-  // bars
-  drawBar(40,420,380,22,speed,'Speed');
-  drawBar(480,420,380,22,stamina,'Stamina');
+  // particles: sweat
+  for (const p of sweat){
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = "rgba(162,120,255,.70)";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 
-  // little hint when not connected
-  if (!getToken()) {
-    ctx.fillStyle='rgba(255,255,255,.65)';
-    ctx.font='700 14px system-ui';
-    ctx.fillText('Connect wallet to save calories + leaderboard', 40, 86);
+  // particles: sparks
+  for (const p of sparks){
+    ctx.globalAlpha = Math.max(0, p.life*2);
+    ctx.fillStyle = "rgba(255,212,0,.85)";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 2.3, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // bars (speed & stamina) + warning glow
+  const danger = (grace<=0) && (speed < required+0.01 || stamina < 0.12);
+  drawBar(40, 452, 410, 24, speed, "Speed", true, danger);
+  drawBar(510, 452, 410, 24, stamina, "Stamina", false, danger);
+
+  // warm-up hint
+  if (running && grace > 0){
+    ctx.fillStyle = "rgba(255,255,255,.68)";
+    ctx.font = "900 14px system-ui";
+    ctx.fillText("Warm-up… build rhythm", 40, 110);
+  }
+
+  // impact flash overlay
+  if (flash > 0){
+    ctx.globalAlpha = Math.min(0.55, flash);
+    ctx.fillStyle = "rgba(255,212,0,.35)";
+    ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+
+  // corner hint
+  ctx.fillStyle = "rgba(255,255,255,.10)";
+  ctx.font = "900 12px system-ui";
+  ctx.fillText("P = Pause", 890, 28);
+}
+
+function drawBar(x,y,w,h,p,label,isSpeed,danger){
+  // back
+  ctx.fillStyle = "rgba(255,255,255,.14)";
+  ctx.fillRect(x,y,w,h);
+
+  const val = Math.max(0, Math.min(1, p));
+  // fill
+  ctx.fillStyle = isSpeed ? "#ffd400" : "#7fff7f";
+  ctx.fillRect(x,y,w*val,h);
+
+  // label
+  ctx.fillStyle = "rgba(0,0,0,.78)";
+  ctx.font = "1000 12px system-ui";
+  ctx.fillText(label, x+8, y+16);
+
+  // requirement line for speed
+  if (isSpeed){
+    const req = Math.max(0, Math.min(1, required));
+    ctx.strokeStyle = "rgba(255,255,255,.45)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + w*req, y);
+    ctx.lineTo(x + w*req, y+h);
+    ctx.stroke();
+  }
+
+  // danger glow
+  if (danger){
+    ctx.globalAlpha = 0.25;
+    ctx.strokeStyle = "rgba(255,75,109,.8)";
+    ctx.lineWidth = 6;
+    ctx.strokeRect(x+1, y+1, w-2, h-2);
+    ctx.globalAlpha = 1;
   }
 }
 
-function drawBar(x,y,w,h,p,label){
-  ctx.fillStyle='rgba(255,255,255,.15)';
-  ctx.fillRect(x,y,w,h);
-  ctx.fillStyle=label==='Speed'?'#ffd400':'#7fff7f';
-  ctx.fillRect(x,y,w*Math.max(0,Math.min(1,p)),h);
-  ctx.fillStyle='rgba(0,0,0,.8)';
-  ctx.font='700 12px system-ui';
-  ctx.fillText(label,x+6,y+15);
-}
-
 function drawLeg(x,y,p){
-  ctx.strokeStyle='rgba(255,255,255,.9)';
-  ctx.lineWidth=18;
-  ctx.lineCap='round';
+  ctx.strokeStyle = "rgba(255,255,255,.92)";
+  ctx.lineWidth = 18;
+  ctx.lineCap = "round";
   ctx.beginPath();
   ctx.moveTo(x,y);
-  ctx.lineTo(x+10+p*20,y+70-Math.max(0,p)*30);
+  ctx.lineTo(x + 12 + p*24, y + 78 - Math.max(0,p)*34);
+  ctx.stroke();
+
+  // shoe highlight
+  ctx.strokeStyle = "rgba(0,0,0,.28)";
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(x + 12 + p*24, y + 78 - Math.max(0,p)*34);
+  ctx.lineTo(x + 34 + p*24, y + 80 - Math.max(0,p)*34);
   ctx.stroke();
 }
 
@@ -509,17 +1041,27 @@ function drawHeart(cx,cy,s){
   ctx.fill();
 }
 
+/**
+ * Main loop
+ */
 function loop(now){
-  const dt=Math.min(.05,(now-last)/1000);
-  last=now;
-  update(dt);
+  const dt = (now - last) / 1000;
+  last = now;
+
+  if (running && !paused && !gameOver){
+    update(dt);
+  }
   draw();
+
   requestAnimationFrame(loop);
 }
 
-setWalletUI();
+// Start
 resetGame();
 requestAnimationFrame(loop);
+
+// Little onboarding toast
+setTimeout(() => toast("Tap to start. Rhythm beats spam."), 600);
 </script>
 </body>
 </html>
