@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>$PHAT — Treadmill Run</title>
+
+  <style>
+    :root {
+      --purple:#5b2cff;
+      --yellow:#ffd400;
+      --bg:#0b0716;
+      --panel:rgba(255,255,255,.08);
+      --stroke:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.95);
+      --muted:rgba(255,255,255,.65);
+    }
+
+    html,body{
+      margin:0;
+      height:100%;
+      background:
+        radial-gradient(900px 500px at 50% 0%, rgba(91,44,255,.35), transparent 60%),
+        radial-gradient(700px 400px at 50% 100%, rgba(255,212,0,.25), transparent 60%),
+        linear-gradient(180deg, #140b2b, #07050c);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      overflow:hidden;
+    }
+
+    #wrap{
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      padding:14px;
+    }
+
+    canvas{
+      width:min(920px, 100%);
+      border-radius:20px;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid var(--stroke);
+      box-shadow:0 30px 90px rgba(0,0,0,.55);
+      touch-action:manipulation;
+    }
+
+    .row{
+      width:min(920px,100%);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+
+    .pill{
+      padding:8px 14px;
+      border-radius:999px;
+      background:var(--panel);
+      border:1px solid var(--stroke);
+      font-size:13px;
+      font-weight:700;
+      color:var(--muted);
+    }
+
+    .btn{
+      padding:10px 16px;
+      border-radius:14px;
+      font-weight:900;
+      background:linear-gradient(180deg, var(--yellow), #ffbf00);
+      color:#1b1400;
+      border:none;
+      box-shadow:0 14px 30px rgba(255,212,0,.45);
+    }
+
+    .btn:active{ transform:scale(.98); }
+  </style>
+</head>
+
+<body>
+<div id="wrap">
+
+  <div class="row">
+    <div class="pill">$PHAT — Treadmill Runner</div>
+    <div class="pill" id="status">Tap to start</div>
+    <button class="btn" onclick="resetGame()">Restart</button>
+  </div>
+
+  <canvas id="c" width="900" height="520"></canvas>
+
+  <div class="row">
+    <div class="pill">Controls: Tap / Click / Space</div>
+    <div class="pill">Best: <span id="best">0.0s</span></div>
+  </div>
+
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const statusEl = document.getElementById('status');
+const bestEl = document.getElementById('best');
+
+const BEST_KEY = 'phat_treadmill_best_seconds';
+let best = Number(localStorage.getItem(BEST_KEY) || 0);
+bestEl.textContent = best.toFixed(1)+'s';
+
+let running=false, gameOver=false;
+let t=0, last=performance.now();
+let speed=.35, stamina=1, incline=0, required=.35;
+let tapPulse=0, wobble=0, legPhase=0;
+
+function resetGame(){
+  running=false; gameOver=false;
+  t=0; speed=.35; stamina=1; incline=0; required=.35;
+  tapPulse=0; wobble=0; legPhase=0;
+  statusEl.textContent='Tap to start';
+}
+
+function tap(){
+  if(gameOver){ resetGame(); running=true; return; }
+  if(!running){ running=true; statusEl.textContent='RUN'; }
+  tapPulse=Math.min(1.8, tapPulse+.18);
+}
+
+window.addEventListener('pointerdown', tap);
+window.addEventListener('keydown', e=>{ if(e.code==='Space') tap(); });
+
+function update(dt){
+  if(!running) return;
+
+  t+=dt;
+  const ramp=1-Math.exp(-t/35);
+  incline=.05+.85*ramp;
+  required=.33+.55*ramp;
+
+  tapPulse=Math.max(0, tapPulse-(.9+.9*incline)*dt);
+  const target=.2+.7*(tapPulse/1.2)*(0.6+0.4*stamina);
+  speed+= (target-speed)*3*dt;
+  speed=Math.max(0, speed-(.22+.55*incline)*dt);
+
+  stamina=Math.max(0, stamina-(.06+.22*incline+.1*speed)*dt);
+  if(tapPulse>.6) stamina=Math.min(1, stamina+.04*dt);
+
+  legPhase=(legPhase+dt*(1.5+5*speed))%1;
+
+  if(speed<required-.02 || stamina<=0){
+    wobble+=dt*3;
+    if(wobble>1){
+      gameOver=true; running=false;
+      statusEl.textContent='Flew off 💥';
+      if(t>best){ best=t; localStorage.setItem(BEST_KEY,best); bestEl.textContent=best.toFixed(1)+'s'; }
+    }
+  } else wobble=Math.max(0, wobble-dt*2);
+}
+
+function draw(){
+  ctx.clearRect(0,0,900,520);
+
+  ctx.fillStyle='rgba(255,255,255,.9)';
+  ctx.font='800 28px system-ui';
+  ctx.fillText(t.toFixed(1)+'s', 40, 46);
+
+  // treadmill
+  ctx.fillStyle='rgba(0,0,0,.4)';
+  ctx.fillRect(140,360,620,60);
+
+  // runner body
+  ctx.save();
+  ctx.translate(320+wobble*8,300-wobble*15);
+
+  ctx.fillStyle='rgba(255,255,255,.9)';
+  ctx.beginPath();
+  ctx.ellipse(160,10,90,70,0,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.ellipse(165,-80,50,46,0,0,Math.PI*2);
+  ctx.fill();
+
+  // heart glasses
+  ctx.fillStyle='#ff4d6d';
+  drawHeart(140,-90,14);
+  drawHeart(188,-90,14);
+
+  // legs
+  drawLeg(140,70,Math.sin(legPhase*6.28));
+  drawLeg(190,70,Math.sin(legPhase*6.28+Math.PI));
+
+  ctx.restore();
+
+  // bars
+  drawBar(40,420,380,22,speed,'Speed');
+  drawBar(480,420,380,22,stamina,'Stamina');
+}
+
+function drawBar(x,y,w,h,p,label){
+  ctx.fillStyle='rgba(255,255,255,.15)';
+  ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=label==='Speed'?'#ffd400':'#7fff7f';
+  ctx.fillRect(x,y,w*p,h);
+  ctx.fillStyle='rgba(0,0,0,.8)';
+  ctx.font='700 12px system-ui';
+  ctx.fillText(label,x+6,y+15);
+}
+
+function drawLeg(x,y,p){
+  ctx.strokeStyle='rgba(255,255,255,.9)';
+  ctx.lineWidth=18;
+  ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(x,y);
+  ctx.lineTo(x+10+p*20,y+70-Math.max(0,p)*30);
+  ctx.stroke();
+}
+
+function drawHeart(cx,cy,s){
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.bezierCurveTo(cx-s,cy-s,cx-2*s,cy+s*.4,cx,cy+2*s);
+  ctx.bezierCurveTo(cx+2*s,cy+s*.4,cx+s,cy-s,cx,cy);
+  ctx.fill();
+}
+
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000);
+  last=now;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+resetGame();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
