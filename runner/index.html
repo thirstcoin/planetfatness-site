@@ -13,7 +13,7 @@
       --panel:rgba(255,255,255,.08);
       --stroke:rgba(255,255,255,.12);
       --text:rgba(255,255,255,.95);
-      --muted:rgba(255,255,255,.65);
+      --muted:rgba(255,255,255,.70);
     }
 
     html,body{
@@ -53,6 +53,7 @@
       justify-content:space-between;
       align-items:center;
       gap:10px;
+      flex-wrap:wrap;
     }
 
     .pill{
@@ -61,68 +62,202 @@
       background:var(--panel);
       border:1px solid var(--stroke);
       font-size:13px;
-      font-weight:700;
+      font-weight:800;
       color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:10px;
+      white-space:nowrap;
     }
 
     .btn{
       padding:10px 16px;
       border-radius:14px;
-      font-weight:900;
+      font-weight:950;
       background:linear-gradient(180deg, var(--yellow), #ffbf00);
       color:#1b1400;
       border:none;
       box-shadow:0 14px 30px rgba(255,212,0,.45);
+      cursor:pointer;
+    }
+    .btn.secondary{
+      background:rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.14);
+      color:rgba(255,255,255,.92);
+      box-shadow:0 18px 50px rgba(0,0,0,.35);
     }
 
     .btn:active{ transform:scale(.98); }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      background: rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      padding: 10px 14px;
+      color: rgba(255,255,255,.92);
+      font-weight: 950;
+      font-size: 13px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      backdrop-filter: blur(12px);
+      display:none;
+      z-index:50;
+    }
+
+    .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: var(--yellow);
+      box-shadow: 0 0 0 6px rgba(255,212,0,.12);
+      flex:0 0 auto;
+    }
+
+    .rightActions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      margin-left:auto;
+    }
   </style>
 </head>
 
 <body>
 <div id="wrap">
+  <div class="toast" id="toast"></div>
 
   <div class="row">
-    <div class="pill">$PHAT — Treadmill Runner</div>
+    <div class="pill"><span class="dot"></span>$PHAT — Treadmill Runner</div>
     <div class="pill" id="status">Tap to start</div>
-    <button class="btn" onclick="resetGame()">Restart</button>
+
+    <div class="rightActions">
+      <button class="btn secondary" id="backBtn">← Site</button>
+      <button class="btn secondary" id="connectBtn">🟣 Connect</button>
+      <button class="btn" onclick="resetGame()">Restart</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="pill" id="walletPill">Wallet: —</div>
+    <div class="pill">Controls: Tap / Click / Space</div>
+    <div class="pill">Best: <span id="best">0.0s</span></div>
   </div>
 
   <canvas id="c" width="900" height="520"></canvas>
 
   <div class="row">
-    <div class="pill">Controls: Tap / Click / Space</div>
-    <div class="pill">Best: <span id="best">0.0s</span></div>
+    <div class="pill" id="serverPill">Server calories: connect wallet to save</div>
+    <div class="pill" id="lastRunPill">Last run: —</div>
   </div>
-
 </div>
 
 <script>
+/**
+ * ==========================
+ * CONFIG (CHANGE THIS ONE)
+ * ==========================
+ */
+const API_BASE = "https://YOUR-RENDER-BACKEND.onrender.com"; // <-- set this
+
+/**
+ * Session keys (shared with homepage)
+ */
+const TOKEN_KEY = "phat_token";
+const ADDR_KEY  = "phat_address";
+
+/**
+ * Local best time (still useful even offline)
+ */
+const BEST_KEY = "phat_treadmill_best_seconds";
+
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 const statusEl = document.getElementById('status');
 const bestEl = document.getElementById('best');
+const walletPill = document.getElementById('walletPill');
+const serverPill = document.getElementById('serverPill');
+const lastRunPill = document.getElementById('lastRunPill');
+const toastEl = document.getElementById('toast');
 
-const BEST_KEY = 'phat_treadmill_best_seconds';
+document.getElementById("backBtn").addEventListener("click", () => {
+  window.location.href = "https://planetfatness.fit/";
+});
+
+document.getElementById("connectBtn").addEventListener("click", connectAndLogin);
+
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.style.display = "block";
+  clearTimeout(window.__toastT);
+  window.__toastT = setTimeout(() => toastEl.style.display = "none", 2400);
+}
+
+function shortAddr(a){
+  if (!a) return "—";
+  return a.slice(0,4) + "…" + a.slice(-4);
+}
+
+function getToken(){ return localStorage.getItem(TOKEN_KEY) || ""; }
+function getAddr(){ return localStorage.getItem(ADDR_KEY) || ""; }
+function setSession(addr, token){
+  localStorage.setItem(ADDR_KEY, addr);
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+function setWalletUI(){
+  const addr = getAddr();
+  const token = getToken();
+  walletPill.textContent = "Wallet: " + (addr ? shortAddr(addr) : "—");
+  serverPill.textContent = token
+    ? "Server calories: enabled ✅"
+    : "Server calories: connect wallet to save";
+}
+
 let best = Number(localStorage.getItem(BEST_KEY) || 0);
-bestEl.textContent = best.toFixed(1)+'s';
+bestEl.textContent = best.toFixed(1) + 's';
 
 let running=false, gameOver=false;
 let t=0, last=performance.now();
 let speed=.35, stamina=1, incline=0, required=.35;
 let tapPulse=0, wobble=0, legPhase=0;
 
+// Track taps for backend stats (anti-cheat cadence)
+let taps=0;
+
+// Prevent double-submit on same game over
+let submittedThisRun=false;
+
+// Track max incline over the run for backend
+let maxInclineSeen=0;
+
 function resetGame(){
   running=false; gameOver=false;
   t=0; speed=.35; stamina=1; incline=0; required=.35;
   tapPulse=0; wobble=0; legPhase=0;
+  taps=0;
+  submittedThisRun=false;
+  maxInclineSeen=0;
+
   statusEl.textContent='Tap to start';
+  lastRunPill.textContent='Last run: —';
 }
 
 function tap(){
-  if(gameOver){ resetGame(); running=true; return; }
-  if(!running){ running=true; statusEl.textContent='RUN'; }
+  if(gameOver){
+    resetGame();
+    running=true;
+    statusEl.textContent='RUN';
+    return;
+  }
+  if(!running){
+    running=true;
+    statusEl.textContent='RUN';
+  }
   tapPulse=Math.min(1.8, tapPulse+.18);
+  taps++;
 }
 
 window.addEventListener('pointerdown', tap);
@@ -132,9 +267,15 @@ function update(dt){
   if(!running) return;
 
   t+=dt;
+
   const ramp=1-Math.exp(-t/35);
   incline=.05+.85*ramp;
   required=.33+.55*ramp;
+
+  // store max incline "percent-ish" for backend
+  // (just scale to 0..12ish for now so it reads like a treadmill)
+  const inclinePct = (incline * 12.5);
+  if (inclinePct > maxInclineSeen) maxInclineSeen = inclinePct;
 
   tapPulse=Math.max(0, tapPulse-(.9+.9*incline)*dt);
   const target=.2+.7*(tapPulse/1.2)*(0.6+0.4*stamina);
@@ -149,16 +290,153 @@ function update(dt){
   if(speed<required-.02 || stamina<=0){
     wobble+=dt*3;
     if(wobble>1){
-      gameOver=true; running=false;
-      statusEl.textContent='Flew off 💥';
-      if(t>best){ best=t; localStorage.setItem(BEST_KEY,best); bestEl.textContent=best.toFixed(1)+'s'; }
+      triggerGameOver();
     }
-  } else wobble=Math.max(0, wobble-dt*2);
+  } else {
+    wobble=Math.max(0, wobble-dt*2);
+  }
+}
+
+function triggerGameOver(){
+  if (gameOver) return;
+
+  gameOver=true; running=false;
+  statusEl.textContent='Flew off 💥';
+
+  // Local best
+  if(t>best){
+    best=t;
+    localStorage.setItem(BEST_KEY,best);
+    bestEl.textContent=best.toFixed(1)+'s';
+  }
+
+  // UI for last run
+  lastRunPill.textContent = `Last run: ${t.toFixed(1)}s • incline ${maxInclineSeen.toFixed(1)}% • taps ${taps}`;
+
+  // Submit to server (once)
+  if (!submittedThisRun) {
+    submittedThisRun = true;
+    submitRunToServer(t, maxInclineSeen, taps);
+  }
+}
+
+async function submitRunToServer(seconds, maxIncline, taps){
+  const token = getToken();
+  const addr = getAddr();
+
+  if (!token || !addr) {
+    toast("Connect wallet to save calories + leaderboard.");
+    return;
+  }
+
+  // idempotency
+  const runId = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + "-" + Math.random());
+
+  try{
+    const r = await fetch(API_BASE + "/activity/runner", {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + token
+      },
+      body: JSON.stringify({
+        runId,
+        seconds: Number(seconds),
+        maxIncline: Number(maxIncline),
+        taps: Math.floor(Number(taps))
+      })
+    });
+
+    const data = await r.json();
+    if (!r.ok || data.error){
+      toast(data.error || "Run submit failed.");
+      return;
+    }
+
+    const earned = Number(data.caloriesEarned || 0);
+    const total = String(data.totalCalories || "0");
+    const bestSeconds = Number(data.bestSeconds || 0);
+
+    toast(`+${earned.toLocaleString()} calories 🔥`);
+    serverPill.textContent = `Server calories: ${Number(total).toLocaleString()} • best ${bestSeconds.toFixed(1)}s`;
+
+  } catch(e){
+    console.error(e);
+    toast("Backend unreachable. Run not saved.");
+  }
+}
+
+/**
+ * Optional: let runner also do login (same as homepage)
+ * This keeps the runner standalone if someone lands here first.
+ */
+async function connectAndLogin(){
+  const provider = window.solana;
+  if (!provider?.isPhantom) {
+    toast("Phantom not found. Install Phantom.");
+    return;
+  }
+
+  try{
+    const resp = await provider.connect();
+    const address = resp.publicKey.toString();
+
+    toast("Connected " + shortAddr(address) + " • sign to verify…");
+
+    // challenge
+    const ch = await fetch(API_BASE + "/auth/challenge", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ address })
+    }).then(r => r.json());
+
+    if (ch.error) { toast(ch.error); return; }
+
+    // sign message
+    const msgBytes = new TextEncoder().encode(ch.message);
+    const signed = await provider.signMessage(msgBytes, "utf8");
+
+    // signature as base64
+    const sigB64 = btoa(String.fromCharCode(...signed.signature));
+
+    // verify
+    const v = await fetch(API_BASE + "/auth/verify", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ address, nonce: ch.nonce, signature: sigB64 })
+    }).then(r => r.json());
+
+    if (!v.token) {
+      toast(v.error || "Verify failed");
+      return;
+    }
+
+    setSession(address, v.token);
+    setWalletUI();
+    toast("Verified ✅ " + shortAddr(address));
+
+    // pull current totals for pill
+    try{
+      const me = await fetch(API_BASE + "/activity/me", {
+        headers:{ "Authorization":"Bearer " + v.token }
+      }).then(r => r.json());
+
+      if (me?.totalCalories !== undefined){
+        serverPill.textContent = `Server calories: ${Number(me.totalCalories).toLocaleString()} • best ${(Number(me.bestSeconds)||0).toFixed(1)}s`;
+      } else {
+        serverPill.textContent = "Server calories: enabled ✅";
+      }
+    } catch {}
+  } catch(e){
+    console.error(e);
+    toast("Wallet connect/sign cancelled.");
+  }
 }
 
 function draw(){
   ctx.clearRect(0,0,900,520);
 
+  // time
   ctx.fillStyle='rgba(255,255,255,.9)';
   ctx.font='800 28px system-ui';
   ctx.fillText(t.toFixed(1)+'s', 40, 46);
@@ -194,13 +472,20 @@ function draw(){
   // bars
   drawBar(40,420,380,22,speed,'Speed');
   drawBar(480,420,380,22,stamina,'Stamina');
+
+  // little hint when not connected
+  if (!getToken()) {
+    ctx.fillStyle='rgba(255,255,255,.65)';
+    ctx.font='700 14px system-ui';
+    ctx.fillText('Connect wallet to save calories + leaderboard', 40, 86);
+  }
 }
 
 function drawBar(x,y,w,h,p,label){
   ctx.fillStyle='rgba(255,255,255,.15)';
   ctx.fillRect(x,y,w,h);
   ctx.fillStyle=label==='Speed'?'#ffd400':'#7fff7f';
-  ctx.fillRect(x,y,w*p,h);
+  ctx.fillRect(x,y,w*Math.max(0,Math.min(1,p)),h);
   ctx.fillStyle='rgba(0,0,0,.8)';
   ctx.font='700 12px system-ui';
   ctx.fillText(label,x+6,y+15);
@@ -232,6 +517,7 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 
+setWalletUI();
 resetGame();
 requestAnimationFrame(loop);
 </script>
