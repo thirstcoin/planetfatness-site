@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>$PHAT — Planet Fatness</title>
+  <meta name="description" content="$PHAT — Planet Fatness. A premium meme brand with real product energy. Tap in. Run the treadmill. Don’t fall off." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="$PHAT — Planet Fatness" />
+  <meta property="og:description" content="Premium meme energy. Real product polish. Run the treadmill. Don’t fall off." />
+  <meta property="og:type" content="website" />
+
+  <!-- Theme colors -->
+  <meta name="theme-color" content="#5b2cff" />
+  <meta name="color-scheme" content="dark" />
+
+  <!-- Tiny inline favicon (SVG) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='30%25' cy='30%25'%3E%3Cstop offset='0' stop-color='%23ffd400'/%3E%3Cstop offset='1' stop-color='%235b2cff'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect rx='14' width='64' height='64' fill='url(%23g)'/%3E%3Cpath d='M18 40c6-14 22-14 28 0' fill='none' stroke='%230b0716' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='27' r='4' fill='%230b0716'/%3E%3Ccircle cx='40' cy='27' r='4' fill='%230b0716'/%3E%3C/svg%3E" />
+
+  <style>
+    :root{
+      --bg0:#07050c;
+      --bg1:#0b0716;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.12);
+      --stroke2: rgba(255,255,255,.18);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+
+      --purple:#5b2cff;
+      --purple2:#a278ff;
+      --yellow:#ffd400;
+      --yellow2:#ffe566;
+
+      --shadow: 0 30px 90px rgba(0,0,0,.55);
+      --shadow2: 0 18px 50px rgba(0,0,0,.45);
+
+      --radius: 22px;
+      --radius2: 16px;
+
+      --max: 1120px;
+    }
+
+    * { box-sizing:border-box; }
+    html,body { height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1100px 650px at 25% 10%, rgba(91,44,255,.35), transparent 55%),
+        radial-gradient(900px 560px at 85% 20%, rgba(255,212,0,.22), transparent 60%),
+        radial-gradient(900px 560px at 55% 120%, rgba(162,120,255,.22), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+      color: var(--text);
+      overflow-x:hidden;
+    }
+
+    /* Subtle film grain (premium feel) */
+    .grain{
+      pointer-events:none;
+      position:fixed; inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+      opacity:.08;
+    }
+
+    a { color:inherit; text-decoration:none; }
+    .wrap { width:100%; display:flex; justify-content:center; }
+    .container { width:min(var(--max), calc(100% - 40px)); margin: 0 auto; }
+
+    /* Top bar */
+    .topbar{
+      position:sticky; top:0;
+      z-index:20;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(180deg, rgba(8,6,14,.72), rgba(8,6,14,.30));
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .topbar .inner{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 14px 0;
+      gap:14px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      min-width: 220px;
+    }
+    .logo{
+      width:38px; height:38px; border-radius:12px;
+      background: radial-gradient(circle at 30% 30%, var(--yellow), var(--purple));
+      box-shadow: 0 18px 40px rgba(91,44,255,.35);
+      border:1px solid rgba(255,255,255,.12);
+      position:relative;
+    }
+    .logo::after{
+      content:"";
+      position:absolute; inset:0;
+      border-radius:12px;
+      background: radial-gradient(circle at 20% 10%, rgba(255,255,255,.45), transparent 40%);
+      opacity:.6;
+    }
+    .brand h3{ margin:0; font-size:14px; letter-spacing:.3px; }
+    .brand p{ margin:0; font-size:12px; color:var(--muted); }
+
+    .nav{
+      display:flex; align-items:center; gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .chip{
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.82);
+      font-weight:650;
+      font-size:13px;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .chip:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.18);
+      background: rgba(255,255,255,.07);
+    }
+
+    .cta{
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:13px;
+      color:#1a1400;
+      background: linear-gradient(180deg, var(--yellow), #ffbf00);
+      border:1px solid rgba(0,0,0,.18);
+      box-shadow: 0 14px 30px rgba(255,212,0,.28);
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+    }
+    .cta:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 18px 46px rgba(255,212,0,.38);
+      filter: saturate(1.08);
+    }
+
+    /* Hero */
+    .hero{
+      padding: 54px 0 26px;
+      position:relative;
+    }
+    .heroGrid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 22px;
+      align-items:stretch;
+    }
+    @media (max-width: 940px){
+      .heroGrid{ grid-template-columns: 1fr; }
+      .brand{ min-width:auto; }
+    }
+
+    .heroCard{
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .heroCard::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(800px 400px at 20% 0%, rgba(91,44,255,.35), transparent 55%),
+        radial-gradient(800px 400px at 90% 30%, rgba(255,212,0,.20), transparent 60%);
+      filter: blur(0px);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .heroCard .pad{
+      position:relative;
+      padding: 30px 28px 26px;
+    }
+    .kicker{
+      display:inline-flex; align-items:center; gap:10px;
+      padding: 8px 12px;
+      border-radius:999px;
+      background: rgba(91,44,255,.22);
+      border:1px solid rgba(255,255,255,.10);
+      color: rgba(255,255,255,.86);
+      font-weight:750;
+      font-size:12px;
+      letter-spacing:.4px;
+      text-transform: uppercase;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: var(--yellow);
+      box-shadow: 0 0 0 6px rgba(255,212,0,.12);
+    }
+
+    .title{
+      margin: 16px 0 10px;
+      font-size: clamp(38px, 5.6vw, 66px);
+      line-height: 1.02;
+      letter-spacing: -1.2px;
+      font-weight: 950;
+    }
+    .title .grad{
+      background: linear-gradient(90deg, var(--yellow), #fff 38%, var(--yellow));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      text-shadow: 0 18px 60px rgba(255,212,0,.06);
+    }
+
+    .subtitle{
+      margin:0 0 18px;
+      font-size: clamp(15px, 2.5vw, 18px);
+      color: rgba(255,255,255,.78);
+      max-width: 62ch;
+      line-height:1.45;
+    }
+
+    .heroActions{
+      display:flex; gap:12px; flex-wrap:wrap;
+      margin-top: 18px;
+    }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.92);
+      font-weight: 850;
+      box-shadow: var(--shadow2);
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+      user-select:none;
+    }
+    .btn:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+    }
+    .btnPrimary{
+      color:#1a1400;
+      background: linear-gradient(180deg, var(--yellow), #ffbf00);
+      border-color: rgba(0,0,0,.18);
+      box-shadow: 0 18px 44px rgba(255,212,0,.22);
+    }
+    .btnPrimary:hover{
+      background: linear-gradient(180deg, #ffe566, var(--yellow));
+    }
+
+    .miniRow{
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-top: 16px;
+      color: rgba(255,255,255,.70);
+      font-size: 13px;
+    }
+    .miniRow span{
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+    }
+
+    /* Right side panel (stats) */
+    .side{
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .side .pad{ padding: 22px; position:relative; }
+    .side h4{
+      margin:0 0 10px;
+      font-size: 14px;
+      letter-spacing:.4px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.74);
+    }
+
+    .statGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .stat{
+      padding: 14px 14px;
+      border-radius: 16px;
+      background: rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.10);
+      position:relative;
+      overflow:hidden;
+    }
+    .stat::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(280px 180px at 30% 10%, rgba(91,44,255,.22), transparent 60%),
+                  radial-gradient(260px 180px at 90% 20%, rgba(255,212,0,.14), transparent 65%);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .stat .k{ position:relative; font-size:12px; color: rgba(255,255,255,.68); margin-bottom:6px; }
+    .stat .v{ position:relative; font-size:20px; font-weight:950; letter-spacing:-.4px; }
+    .stat .s{ position:relative; font-size:12px; color: rgba(255,255,255,.62); margin-top:4px; }
+
+    .divider{
+      height:1px;
+      background: rgba(255,255,255,.08);
+      margin: 16px 0;
+    }
+
+    .smallNote{
+      font-size: 13px;
+      color: rgba(255,255,255,.70);
+      line-height: 1.45;
+    }
+    .smallNote b{ color: rgba(255,255,255,.90); }
+
+    /* Section */
+    section{ padding: 26px 0; }
+    .sectionTitle{
+      display:flex; align-items:flex-end; justify-content:space-between; gap:14px; flex-wrap:wrap;
+      margin-bottom: 14px;
+    }
+    .sectionTitle h2{
+      margin:0;
+      font-size: 18px;
+      letter-spacing:.2px;
+    }
+    .sectionTitle p{
+      margin:0;
+      color: rgba(255,255,255,.66);
+      font-size: 13px;
+    }
+
+    .grid3{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 940px){
+      .grid3{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      border-radius: var(--radius2);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      box-shadow: var(--shadow2);
+      padding: 16px 16px;
+      overflow:hidden;
+      position:relative;
+    }
+    .card::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(260px 160px at 20% 0%, rgba(91,44,255,.18), transparent 65%),
+                  radial-gradient(260px 160px at 90% 30%, rgba(255,212,0,.10), transparent 65%);
+      opacity:.85;
+      pointer-events:none;
+    }
+    .card h3{ position:relative; margin:0 0 6px; font-size:16px; }
+    .card p{ position:relative; margin:0; color: rgba(255,255,255,.72); font-size: 13px; line-height:1.45; }
+
+    /* Footer */
+    footer{
+      padding: 26px 0 38px;
+      color: rgba(255,255,255,.62);
+      font-size: 12px;
+    }
+    .footRow{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; flex-wrap:wrap;
+      border-top:1px solid rgba(255,255,255,.08);
+      padding-top: 18px;
+    }
+    .links{ display:flex; gap:10px; flex-wrap:wrap; }
+    .link{
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color: rgba(255,255,255,.78);
+      font-weight: 750;
+    }
+    .link:hover{ border-color: rgba(255,255,255,.18); }
+
+    /* Motion – respects reduced motion */
+    @media (prefers-reduced-motion: no-preference){
+      .floaty{
+        animation: floaty 5.2s ease-in-out infinite;
+      }
+      @keyframes floaty{
+        0%,100% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+      }
+      .shine{
+        position:absolute; inset:-2px;
+        background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,.10) 45%, transparent 60%);
+        transform: translateX(-60%);
+        animation: shine 5.8s ease-in-out infinite;
+        opacity:.55;
+        pointer-events:none;
+      }
+      @keyframes shine{
+        0%, 45% { transform: translateX(-65%); }
+        55%, 100% { transform: translateX(65%); }
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="wrap">
+      <div class="container inner">
+        <div class="brand">
+          <div class="logo"></div>
+          <div>
+            <h3>$PHAT — Planet Fatness</h3>
+            <p>purple & yellow. gym parody. premium polish.</p>
+          </div>
+        </div>
+
+        <div class="nav">
+          <a class="chip" href="#about">About</a>
+          <a class="chip" href="#game">Game</a>
+          <a class="chip" href="#build">Build</a>
+          <!-- Replace # with real links later -->
+          <a class="chip" href="#" onclick="alert('Add your socials here (X / Telegram).'); return false;">Socials</a>
+          <a class="cta" href="/runner/">Play</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="wrap">
+      <div class="container heroGrid">
+        <div class="heroCard floaty">
+          <div class="shine"></div>
+          <div class="pad">
+            <div class="kicker"><span class="dot"></span> product-first meme coin energy</div>
+
+            <div class="title">
+              Planet <span class="grad">Fatness</span>
+            </div>
+
+            <p class="subtitle">
+              A gym parody for people who want the outcome without the work.
+              Real site polish, real mini-game hooks, and a brand that feels bigger than “just a ticker.”
+            </p>
+
+            <div class="heroActions">
+              <a class="btn btnPrimary" href="/runner/">🏃‍♂️ Run the Treadmill</a>
+              <a class="btn" href="#game">See how the game works</a>
+              <a class="btn" href="#build">What we’re building</a>
+            </div>
+
+            <div class="miniRow">
+              <span>⚡ Fast to load</span>
+              <span>📱 Mobile-first</span>
+              <span>🎮 Mini-game ecosystem</span>
+              <span>🟣🟡 Brand locked</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="side" aria-label="Live stats panel">
+          <div class="pad">
+            <h4>Launch panel</h4>
+
+            <div class="statGrid">
+              <div class="stat">
+                <div class="k">Best treadmill time</div>
+                <div class="v" id="bestTime">0.0s</div>
+                <div class="s">local record on this device</div>
+              </div>
+              <div class="stat">
+                <div class="k">Incline level</div>
+                <div class="v" id="inclinePreview">0.0%</div>
+                <div class="s">ramps as you survive</div>
+              </div>
+              <div class="stat">
+                <div class="k">Vibe</div>
+                <div class="v">Premium</div>
+                <div class="s">details not skipped</div>
+              </div>
+              <div class="stat">
+                <div class="k">Status</div>
+                <div class="v">Warming up</div>
+                <div class="s">site + runner ready</div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <p class="smallNote">
+              This page is built to feel <b>above the noise</b>: real UI, real spacing, real motion,
+              and a clean path to product (the treadmill runner) from the first second.
+            </p>
+
+            <div class="heroActions" style="margin-top:14px">
+              <a class="btn btnPrimary" href="/runner/">Play now</a>
+              <a class="btn" href="#about">Why this works</a>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </header>
+
+  <!-- About -->
+  <section id="about">
+    <div class="wrap">
+      <div class="container">
+        <div class="sectionTitle">
+          <h2>Why people instantly “get it”</h2>
+          <p>It’s not just a meme — it’s a vibe + a product.</p>
+        </div>
+
+        <div class="grid3">
+          <div class="card">
+            <h3>Brand-first, not chart-first</h3>
+            <p>Most projects ship a ticker and a dream. This ships a look, a feel, and a reason to come back.</p>
+          </div>
+          <div class="card">
+            <h3>Mini-game hook</h3>
+            <p>One tap = one session. The treadmill game turns curiosity into retention. That’s how memes stick.</p>
+          </div>
+          <div class="card">
+            <h3>Details signal seriousness</h3>
+            <p>Spacing, motion, micro-interactions, and performance — the “expensive” stuff that screams quality.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Game -->
+  <section id="game">
+    <div class="wrap">
+      <div class="container">
+        <div class="sectionTitle">
+          <h2>The treadmill runner</h2>
+          <p>Single lane. Tap to survive. Speed + incline ramp up.</p>
+        </div>
+
+        <div class="grid3">
+          <div class="card">
+            <h3>Tap cadence → speed</h3>
+            <p>Tap/click/space to keep the legs moving. Miss the rhythm and your speed drops.</p>
+          </div>
+          <div class="card">
+            <h3>Incline adds pressure</h3>
+            <p>As the timer grows, incline rises and stamina drains faster. Survive longer = flex harder.</p>
+          </div>
+          <div class="card">
+            <h3>Simple, addictive fail state</h3>
+            <p>Too slow? You fly off. Quick restart. Instant replay loop. Perfect for sharing.</p>
+          </div>
+        </div>
+
+        <div style="margin-top:14px; display:flex; gap:12px; flex-wrap:wrap;">
+          <a class="btn btnPrimary" href="/runner/">🏃‍♂️ Play the game</a>
+          <a class="btn" href="#" onclick="alert('Later: wire this to X share with screenshot + time.'); return false;">Share best time (soon)</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Build -->
+  <section id="build">
+    <div class="wrap">
+      <div class="container">
+        <div class="sectionTitle">
+          <h2>What we’re building next</h2>
+          <p>Small upgrades that compound into a “real ecosystem” feel.</p>
+        </div>
+
+        <div class="grid3">
+          <div class="card">
+            <h3>Global leaderboard</h3>
+            <p>Weekly highscores + season resets. Make it competitive. Make it sticky.</p>
+          </div>
+          <div class="card">
+            <h3>Telegram Mini App mode</h3>
+            <p>Instant play inside Telegram. Contests run themselves. Engagement stays in the chat.</p>
+          </div>
+          <div class="card">
+            <h3>Cosmetics + upgrades</h3>
+            <p>Skins, treadmill themes, “snack buffs,” and meme achievements. All optional — all fun.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="container">
+        <div class="footRow">
+          <div>© <span id="yr"></span> Planet Fatness • $PHAT</div>
+          <div class="links">
+            <!-- Replace with real URLs when ready -->
+            <a class="link" href="#" onclick="alert('Add X link'); return false;">X</a>
+            <a class="link" href="#" onclick="alert('Add Telegram link'); return false;">Telegram</a>
+            <a class="link" href="/runner/">Play</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Year
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    // Pull best time from the treadmill game localStorage key if present
+    // (Matches the earlier game file key)
+    const bestKey = 'phat_treadmill_best_seconds';
+    const best = Number(localStorage.getItem(bestKey) || '0');
+    document.getElementById('bestTime').textContent = (best || 0).toFixed(1) + 's';
+
+    // Light “preview” animation on the incline stat (just to feel alive)
+    const el = document.getElementById('inclinePreview');
+    let start = performance.now();
+    function tick(now){
+      const t = (now - start) / 1000;
+      const v = (Math.sin(t*0.9)*0.5 + 0.5) * 12.5; // 0..12.5
+      el.textContent = v.toFixed(1) + '%';
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
