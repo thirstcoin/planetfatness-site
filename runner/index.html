@@ -72,10 +72,7 @@
     }
     .btn:active{ transform: scale(.98); }
 
-    #stage{
-      position:relative;
-      width:min(920px,100%);
-    }
+    #stage{ position:relative; width:min(920px,100%); }
 
     /* ===== Scene (GIF) ===== */
     #runnerWrap{
@@ -88,7 +85,6 @@
       justify-content:center;
     }
 
-    /* ✅ Your baked treadmill+runner GIF as the whole scene */
     #runnerGif{
       height: 430px;
       width:auto;
@@ -98,7 +94,6 @@
       filter: drop-shadow(0 26px 42px rgba(0,0,0,.55));
     }
 
-    /* Belt motion overlay (fake belt movement on top of baked treadmill) */
     #beltFx{
       position:absolute;
       z-index:2;
@@ -153,7 +148,6 @@
       mix-blend-mode: screen;
     }
 
-    /* ===== HUD (Canvas) ===== */
     canvas{
       position:relative;
       z-index:5;
@@ -186,7 +180,6 @@
       padding:16px;
       z-index:50;
     }
-
     #modal{
       width:min(760px, 100%);
       border-radius:24px;
@@ -198,22 +191,9 @@
       box-shadow:0 40px 140px rgba(0,0,0,.65);
       overflow:hidden;
     }
-
-    #modal .top{
-      padding:18px 18px 8px;
-    }
-
-    #modal .title{
-      font-size:20px;
-      font-weight:1000;
-      letter-spacing:.2px;
-    }
-
-    #modal .sub{
-      margin-top:6px;
-      color:rgba(255,255,255,.75);
-      font-weight:800;
-    }
+    #modal .top{ padding:18px 18px 8px; }
+    #modal .title{ font-size:20px; font-weight:1000; letter-spacing:.2px; }
+    #modal .sub{ margin-top:6px; color:rgba(255,255,255,.75); font-weight:800; }
 
     #cards{
       padding:14px 18px 8px;
@@ -221,33 +201,15 @@
       grid-template-columns: 1fr;
       gap:12px;
     }
-
     .card{
       border-radius:18px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(0,0,0,.20);
       padding:14px;
     }
-
-    .card .k{
-      font-weight:900;
-      color:rgba(255,255,255,.72);
-      font-size:13px;
-      margin-bottom:6px;
-    }
-
-    .card .v{
-      font-weight:1100;
-      font-size:34px;
-      letter-spacing:-.5px;
-    }
-
-    .card .note{
-      margin-top:6px;
-      color:rgba(255,255,255,.70);
-      font-weight:800;
-      font-size:13px;
-    }
+    .card .k{ font-weight:900; color:rgba(255,255,255,.72); font-size:13px; margin-bottom:6px; }
+    .card .v{ font-weight:1100; font-size:34px; letter-spacing:-.5px; }
+    .card .note{ margin-top:6px; color:rgba(255,255,255,.70); font-weight:800; font-size:13px; }
 
     #actions{
       padding:14px 18px 18px;
@@ -256,7 +218,6 @@
       flex-wrap:wrap;
       justify-content:flex-start;
     }
-
     .btnGhost{
       padding:10px 14px;
       border-radius:14px;
@@ -287,7 +248,6 @@
 
     <div id="stage">
       <div id="runnerWrap">
-        <!-- Put your baked treadmill+runner GIF here: /assets/runner.gif -->
         <img id="runnerGif" src="../assets/runner.gif" alt="Planet Fatness Treadmill Scene" />
         <div id="beltFx"></div>
         <div id="speedLines"></div>
@@ -297,17 +257,16 @@
     </div>
 
     <div class="hint">
-      <div class="pill">Controls: Tap / Click / Space</div>
+      <div class="pill">Controls: Tap / Click / Space • Hold = auto-run (mobile)</div>
       <div class="pill">Best: <span id="best">0.0s</span></div>
     </div>
   </div>
 
-  <!-- Results Modal -->
   <div id="modalBack" role="dialog" aria-modal="true">
     <div id="modal">
       <div class="top">
         <div class="title">Ejected 💥</div>
-        <div class="sub" id="modalSub">Snack-first doesn’t mean speed-last.</div>
+        <div class="sub">Snack-first doesn’t mean speed-last.</div>
       </div>
 
       <div id="cards">
@@ -360,7 +319,6 @@ const beltFx = document.getElementById('beltFx');
 const speedLines = document.getElementById('speedLines');
 const vignette = document.getElementById('vignette');
 
-/* Modal DOM */
 const modalBack = document.getElementById('modalBack');
 const mTime = document.getElementById('mTime');
 const mRank = document.getElementById('mRank');
@@ -377,12 +335,26 @@ const BEST_KEY = 'phat_treadmill_best_seconds';
 let best = Number(localStorage.getItem(BEST_KEY) || 0);
 bestEl.textContent = best.toFixed(1) + 's';
 
+/* ===== INPUT TUNING ===== */
+const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+const TAP_BOOST = isTouch ? 0.26 : 0.18;
+
+let holding=false;
+let holdAccumulator=0;
+const HOLD_TAPS_PER_SEC = 8.5;
+
+/* ✅ NEW: results lock so spam can’t skip stats */
+let resultsOpen = false;
+let inputLockedUntil = 0; // ms timestamp for a short cooldown
+
+function nowMs(){ return performance.now(); }
+
 /* ===== GAME STATE ===== */
 let running=false, gameOver=false;
 let t=0, last=performance.now();
 
 let speed=0.34, stamina=1, incline=0, required=0.32;
-let tapPulse=0, wobble=0, grace=1.25;
+let tapPulse=0, wobble=0, grace=2.35;
 
 let taps=0;
 let beltPhase=0;
@@ -391,10 +363,11 @@ let inclinePeak=0;
 let caloriesThisRun=0;
 
 function showModal(){
+  resultsOpen = true;
   modalBack.style.display = 'flex';
 }
-
 function hideModal(){
+  resultsOpen = false;
   modalBack.style.display = 'none';
 }
 
@@ -410,18 +383,22 @@ function rankFromTime(sec){
 function resetGame(){
   running=false; gameOver=false;
   t=0; speed=0.34; stamina=1; incline=0; required=0.32;
-  tapPulse=0; wobble=0; grace=1.25;
+  tapPulse=0; wobble=0; grace=2.35;
 
   taps=0;
   beltPhase=0;
-
   inclinePeak=0;
   caloriesThisRun=0;
 
-  statusEl.textContent='Tap to start';
-  hideModal();
+  holding=false;
+  holdAccumulator=0;
 
-  // reset FX
+  statusEl.textContent='Tap to start';
+
+  // clear modal + lock
+  hideModal();
+  inputLockedUntil = 0;
+
   gif.style.transform = 'translate(0px,0px) rotate(0deg) scale(1)';
   gif.style.filter = 'drop-shadow(0 26px 42px rgba(0,0,0,.55))';
   beltFx.style.opacity = 0;
@@ -431,35 +408,55 @@ function resetGame(){
   last=performance.now();
 }
 
-function tap(){
+/* ✅ tap that respects results lock + cooldown */
+function tapOnce(){
+  const n = nowMs();
+  if (resultsOpen || n < inputLockedUntil) return;
+
   if (gameOver){
-    // quick restart on tap if you want
-    resetGame();
-    running = true;
-    statusEl.textContent = 'RUN';
-    tapPulse = 0.85;
+    // We no longer auto-restart on tap. Only buttons restart.
     return;
   }
   if (!running){
     running = true;
     statusEl.textContent = 'RUN';
     last = performance.now();
-    tapPulse = Math.max(tapPulse, 0.80);
+    tapPulse = Math.max(tapPulse, 0.88);
   }
-  tapPulse = Math.min(1.9, tapPulse + 0.18);
+  tapPulse = Math.min(2.0, tapPulse + TAP_BOOST);
   taps++;
 }
 
-window.addEventListener('pointerdown', tap);
-window.addEventListener('keydown', e => { if (e.code==='Space') tap(); });
+/* Pointer events */
+window.addEventListener('pointerdown', () => {
+  if (resultsOpen || nowMs() < inputLockedUntil) return;
+  holding = true;
+  tapOnce();
+}, {passive:true});
 
+window.addEventListener('pointerup',   () => { holding = false; }, {passive:true});
+window.addEventListener('pointercancel',() => { holding = false; }, {passive:true});
+
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space') tapOnce();
+});
+
+/* Buttons */
 restartBtn.addEventListener('click', () => resetGame());
-runBackBtn.addEventListener('click', () => { resetGame(); running=true; statusEl.textContent='RUN'; tapPulse=0.85; });
+
+runBackBtn.addEventListener('click', () => {
+  resetGame();
+  running = true;
+  statusEl.textContent = 'RUN';
+  tapPulse = 0.95;
+});
+
 closeBtn.addEventListener('click', () => hideModal());
+
 lbBtn.addEventListener('click', () => {
-  // If you later add a leaderboard page, update this URL
   window.location.href = '../index.html#leaderboard';
 });
+
 modalBack.addEventListener('click', (e) => {
   if (e.target === modalBack) hideModal();
 });
@@ -472,39 +469,49 @@ function update(dt){
   t += dt;
   grace = Math.max(0, grace - dt);
 
-  // difficulty ramps
+  /* hold-to-run auto taps (disabled when results open) */
+  if (holding && !gameOver && !resultsOpen){
+    holdAccumulator += dt * HOLD_TAPS_PER_SEC;
+    while (holdAccumulator >= 1){
+      holdAccumulator -= 1;
+      tapPulse = Math.min(2.0, tapPulse + (TAP_BOOST * 0.55));
+      taps++;
+    }
+  }
+
+  /* difficulty ramp */
   const ramp = 1 - Math.exp(-t/40);
   incline = 0.04 + 0.85*ramp;
   required = 0.30 + 0.55*ramp;
 
   inclinePeak = Math.max(inclinePeak, incline);
 
-  // tap energy decays faster with incline
-  tapPulse = Math.max(0, tapPulse - (0.85 + 1.05*incline)*dt);
+  /* tapPulse decay */
+  tapPulse = Math.max(0, tapPulse - (0.78 + 0.95*incline)*dt);
 
-  // speed target from tapping
-  const target = 0.22 + 0.78*(tapPulse/1.2)*(0.62 + 0.38*stamina);
-  speed += (target - speed) * 3.0 * dt;
+  /* speed target */
+  const target = 0.22 + 0.78*(tapPulse/1.25)*(0.62 + 0.38*stamina);
+  speed += (target - speed) * 3.1 * dt;
 
-  // friction / gravity (incline)
-  speed = Math.max(0, speed - (0.20 + 0.56*incline) * dt);
+  /* friction + incline gravity */
+  speed = Math.max(0, speed - (0.17 + 0.52*incline) * dt);
 
-  // stamina drain
-  stamina = Math.max(0, stamina - (0.05 + 0.22*incline + 0.10*speed) * dt);
-  if (tapPulse > 0.65) stamina = Math.min(1, stamina + 0.05*dt);
+  /* stamina drain + recovery */
+  stamina = Math.max(0, stamina - (0.045 + 0.20*incline + 0.095*speed) * dt);
+  if (tapPulse > 0.70) stamina = Math.min(1, stamina + 0.065*dt);
 
-  // calories (simple arcade calc; feels good)
-  // base + intensity from speed+incline; scaled to look like your screenshot range
+  /* calories */
   const intensity = (0.55 + 0.85*speed + 0.75*incline);
-  caloriesThisRun += intensity * 7.2 * dt; // tuned for 100–250 range for ~20–40s
+  caloriesThisRun += intensity * 7.2 * dt;
 
-  // fail condition (after grace)
+  /* fail */
   if (grace <= 0 && (speed < required - 0.02 || stamina <= 0)){
     wobble += dt * 3.2;
     if (wobble > 1){
-      // GAME OVER
       gameOver = true;
       running = false;
+      holding = false;
+
       statusEl.textContent = 'Flew off 💥';
 
       if (t > best){
@@ -513,13 +520,15 @@ function update(dt){
         bestEl.textContent = best.toFixed(1) + 's';
       }
 
-      // Fill modal stats
       const cadence = taps / Math.max(0.1, t);
       mTime.textContent = t.toFixed(1) + 's';
       mRank.textContent = rankFromTime(t);
       mCals.textContent = Math.max(0, Math.round(caloriesThisRun)).toString();
       mCad.textContent = cadence.toFixed(1) + '/s';
-      mIncl.textContent = (inclinePeak * 10).toFixed(1) + '%'; // map 0..0.9 -> 0..9.0%
+      mIncl.textContent = (inclinePeak * 10).toFixed(1) + '%';
+
+      // ✅ lock all input for a moment so spam can’t leak through
+      inputLockedUntil = nowMs() + 450;
 
       showModal();
     }
@@ -528,9 +537,8 @@ function update(dt){
   }
 }
 
-/* ===== MOTION CUES (SELL MOVEMENT) ===== */
+/* ===== MOTION CUES ===== */
 function applySceneMotion(){
-  // If game over, keep it mostly still (so it feels "ended") but the GIF can loop visually.
   if (gameOver){
     beltFx.style.opacity = 0;
     speedLines.style.opacity = 0;
@@ -542,7 +550,7 @@ function applySceneMotion(){
   const leanDeg = -incline * 10.5;
   const scale = 0.98 + speed * 0.10;
 
-  const baseRumble = (0.6 + speed*1.6) * (running ? 1 : 0);
+  const baseRumble = (0.55 + speed*1.55) * (running ? 1 : 0);
   const panic = wobble > 0 ? (wobble * 2.2) : 0;
   const rumble = baseRumble + panic;
 
@@ -571,28 +579,25 @@ function applySceneMotion(){
   }
 }
 
-/* ===== DRAW HUD ONLY ===== */
+/* ===== HUD ===== */
 function drawHUD(){
   ctx.clearRect(0,0,900,520);
 
-  // time
   ctx.fillStyle = 'rgba(255,255,255,.95)';
   ctx.font = '900 28px system-ui';
   ctx.fillText(t.toFixed(1)+'s', 34, 52);
 
-  // cadence + hint
   const cadence = taps / Math.max(0.1, t);
   ctx.fillStyle = 'rgba(255,255,255,.72)';
   ctx.font = '800 13px system-ui';
   ctx.fillText('Cadence: ' + cadence.toFixed(1) + '/s', 34, 78);
 
   let sub = 'Warm-up… build rhythm and speed.';
-  if (!running && !gameOver) sub = 'Tap to start. Rhythm beats spam.';
-  if (gameOver) sub = 'Ejected. Snack-first doesn’t mean speed-last.';
+  if (!running && !gameOver) sub = 'Tap to start. Hold your finger to auto-run.';
+  if (gameOver) sub = 'Ejected. Check your stats.';
   if (!gameOver && grace<=0 && (speed < required+0.01 || stamina < 0.12)) sub = 'WARNING: keep speed up or you’re getting launched.';
   ctx.fillText(sub, 34, 102);
 
-  // bars
   drawBar(40, 450, 380, 22, speed, 'Speed', true);
   drawBar(480, 450, 380, 22, stamina, 'Stamina', false);
 }
@@ -620,7 +625,7 @@ function drawBar(x,y,w,h,p,label,isSpeed){
   }
 }
 
-/* ===== MAIN LOOP ===== */
+/* ===== LOOP ===== */
 function loop(now){
   const dt = (now - last) / 1000;
   last = now;
