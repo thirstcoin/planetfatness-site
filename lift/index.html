@@ -2,29 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
 <title>$PHAT — Ego Lift Buffet</title>
 
 <style>
 :root{
   --purple:#5b2cff;
   --yellow:#ffd400;
+  --bg0:#07050c;
+  --bg1:#0b0716;
   --panel:rgba(255,255,255,.08);
   --stroke:rgba(255,255,255,.14);
   --text:rgba(255,255,255,.95);
-  --muted:rgba(255,255,255,.65);
-  --danger:#ff4d6d;
+  --muted:rgba(255,255,255,.68);
+  --good1:#7fff7f;
+  --good2:#3bdc7a;
+  --bad:#ff4d6d;
+
+  /* If your idle has extra transparent padding vs the gif, tweak these 2 numbers only */
+  --idleY: 0px;
+  --idleScale: 1;
+  --gifY: 0px;
+  --gifScale: 1;
 }
 
 *{box-sizing:border-box}
-html,body{
-  margin:0;height:100%;
-  background:
-    radial-gradient(900px 520px at 50% 0%, rgba(91,44,255,.35), transparent 60%),
-    radial-gradient(700px 420px at 50% 100%, rgba(255,212,0,.22), transparent 60%),
-    linear-gradient(180deg,#140b2b,#07050c);
+html,body{height:100%}
+body{
+  margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   color:var(--text);
+  background:
+    radial-gradient(1100px 650px at 20% 10%, rgba(91,44,255,.35), transparent 55%),
+    radial-gradient(900px 560px at 85% 20%, rgba(255,212,0,.22), transparent 60%),
+    radial-gradient(900px 560px at 55% 120%, rgba(255,212,0,.10), transparent 60%),
+    linear-gradient(180deg, var(--bg1), var(--bg0));
   overflow:hidden;
 }
 
@@ -39,7 +51,7 @@ html,body{
 }
 
 .row{
-  width:min(920px,100%);
+  width:min(940px,100%);
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -53,7 +65,7 @@ html,body{
   background:var(--panel);
   border:1px solid var(--stroke);
   font-size:13px;
-  font-weight:900;
+  font-weight:1000;
   color:var(--muted);
   backdrop-filter: blur(10px);
   user-select:none;
@@ -63,7 +75,7 @@ html,body{
 .btn{
   padding:10px 16px;
   border-radius:14px;
-  font-weight:1000;
+  font-weight:1100;
   background:linear-gradient(180deg,var(--yellow),#ffbf00);
   color:#1b1400;
   border:none;
@@ -71,16 +83,37 @@ html,body{
   cursor:pointer;
 }
 .btn:active{transform:scale(.98)}
+.btn2{
+  padding:10px 14px;
+  border-radius:14px;
+  font-weight:1100;
+  background:rgba(0,0,0,.25);
+  color:rgba(255,255,255,.92);
+  border:1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(10px);
+  cursor:pointer;
+}
+.btn2:active{transform:scale(.98)}
 
-#stage{position:relative;width:min(920px,100%)}
-
-canvas{
-  width:100%;
-  border-radius:20px;
-  background:transparent;
-  border:1px solid var(--stroke);
+#stage{
+  position:relative;
+  width:min(940px,100%);
+  height:540px;
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
   box-shadow:0 30px 90px rgba(0,0,0,.55);
+  overflow:hidden;
   touch-action:manipulation;
+}
+
+#vignette{
+  position:absolute; inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 44%, rgba(0,0,0,.62) 84%, rgba(0,0,0,.86) 100%);
+  opacity:.0;
+  transition: opacity .12s ease;
 }
 
 #heroWrap{
@@ -93,61 +126,47 @@ canvas{
 }
 
 .heroStack{
-  position:relative;
-  height:440px;
-  width:auto;
-  transform-origin:center bottom;
+  position:absolute;
+  bottom:50px;
+  left:50%;
+  transform:translateX(-50%);
+  height:460px;
+  width:min(780px, 96%);
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
   filter:drop-shadow(0 26px 42px rgba(0,0,0,.55));
-  will-change: transform;
+  transform-origin:center bottom;
+  will-change:transform;
 }
 
 .heroStack img{
   position:absolute;
-  left:50%;
   bottom:0;
+  left:50%;
   transform:translateX(-50%);
-  height:440px;
+  height:460px;
   width:auto;
   user-select:none;
   -webkit-user-drag:none;
 }
 
+#heroIdle{
+  opacity:1;
+  transform: translateX(-50%) translateY(var(--idleY)) scale(var(--idleScale));
+}
 #heroGif{
   opacity:0;
-  pointer-events:none;
-}
-
-#vignette{
-  position:absolute;inset:0;pointer-events:none;
-  background:
-    radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 40%, rgba(0,0,0,.6) 80%, rgba(0,0,0,.86) 100%);
-  opacity:0;
-  transition: opacity .10s ease;
-}
-
-#hitFlash{
-  position:absolute;
-  left:50%;
-  bottom:190px;
-  transform:translateX(-50%) scale(.98);
-  padding:10px 14px;
-  border-radius:999px;
-  background:rgba(0,0,0,.45);
-  border:1px solid rgba(255,255,255,.14);
-  color:rgba(255,255,255,.92);
-  font-weight:1000;
-  font-size:12px;
-  letter-spacing:.4px;
-  backdrop-filter: blur(10px);
-  opacity:0;
-  transition: opacity .10s ease, transform .10s ease;
+  transform: translateX(-50%) translateY(var(--gifY)) scale(var(--gifScale));
 }
 
 #meter{
   position:absolute;
-  left:50%;bottom:26px;
+  left:50%;
+  bottom:22px;
   transform:translateX(-50%);
-  width:70%;height:18px;
+  width:72%;
+  height:18px;
   border-radius:999px;
   background:rgba(255,255,255,.15);
   overflow:hidden;
@@ -155,383 +174,537 @@ canvas{
 }
 
 #zone{
-  position:absolute;top:0;height:100%;
-  left:52%;width:20%;
-  background:linear-gradient(180deg,#7fff7f,#3bdc7a);
-  opacity:.92;
-  box-shadow: 0 0 0 6px rgba(127,255,127,.10);
-  transition: width .14s ease, left .14s ease;
+  position:absolute; top:0; height:100%;
+  left:55%; width:18%;
+  background:linear-gradient(180deg,var(--good1),var(--good2));
+  opacity:.95;
+  box-shadow:0 0 0 6px rgba(127,255,127,.10);
+  transition: width .12s ease, left .12s ease;
 }
 
 #needle{
-  position:absolute;top:0;height:100%;
-  width:3px;background:#fff;
+  position:absolute; top:0; height:100%;
+  width:3px;
   left:0;
-  box-shadow: 0 0 16px rgba(255,255,255,.35);
+  background:#fff;
+  box-shadow:0 0 16px rgba(255,255,255,.35);
 }
 
-.hint{
-  width:min(920px,100%);
-  display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+#hud{
+  position:absolute;
+  top:16px;
+  left:16px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  pointer-events:none;
+}
+
+.hudLine{
+  display:inline-flex;
+  gap:10px;
+  align-items:baseline;
+  padding:10px 12px;
+  border-radius:16px;
+  background:rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.10);
+  backdrop-filter: blur(10px);
+}
+
+.big{
+  font-size:26px;
+  font-weight:1200;
+  letter-spacing:-.6px;
+}
+.small{
+  font-size:12px;
+  font-weight:1000;
+  color:rgba(255,255,255,.70);
+}
+
+#flash{
+  position:absolute;
+  left:50%;
+  top:64px;
+  transform:translateX(-50%) scale(.98);
+  padding:10px 14px;
+  border-radius:999px;
+  background:rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.14);
+  backdrop-filter: blur(10px);
+  font-weight:1200;
+  font-size:12px;
+  letter-spacing:.5px;
+  opacity:0;
+  transition: opacity .10s ease, transform .10s ease;
+  pointer-events:none;
+}
+
+#toast{
+  position:fixed;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
+  padding:10px 14px;
+  border-radius:999px;
+  background:rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(12px);
+  color:rgba(255,255,255,.92);
+  font-weight:1100;
+  font-size:13px;
+  display:none;
+  z-index:50;
 }
 
 #modalBack{
-  position:fixed;inset:0;display:none;
-  align-items:center;justify-content:center;
-  background:rgba(0,0,0,.6);
-  backdrop-filter:blur(8px);
+  position:fixed; inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.65);
+  backdrop-filter: blur(10px);
+  z-index:60;
 }
+
 #modal{
-  width:min(760px,100%);
+  width:min(780px, calc(100% - 26px));
   border-radius:24px;
-  border:1px solid var(--stroke);
+  border:1px solid rgba(255,255,255,.14);
   background:
     radial-gradient(900px 420px at 20% 0%, rgba(91,44,255,.32), transparent 60%),
     radial-gradient(900px 520px at 80% 80%, rgba(255,212,0,.16), transparent 65%),
-    rgba(255,255,255,.06);
-  box-shadow:0 40px 140px rgba(0,0,0,.65);
+    rgba(0,0,0,.55);
+  box-shadow:0 40px 140px rgba(0,0,0,.75);
   padding:18px;
 }
-.stat{
-  border-radius:18px;border:1px solid var(--stroke);
-  background:rgba(0,0,0,.25);
-  padding:14px;margin-bottom:10px;
-}
-.stat .k{color:var(--muted);font-weight:900;font-size:13px}
-.stat .v{font-size:34px;font-weight:1100}
 
-.actions{display:flex;gap:12px;flex-wrap:wrap}
-.ghost{
-  padding:10px 14px;border-radius:14px;
-  background:rgba(0,0,0,.3);border:1px solid var(--stroke);
-  color:#fff;font-weight:1000;
-  cursor:pointer;
+.grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
 }
-.small{ font-size:12px; color:rgba(255,255,255,.72); font-weight:900; }
+@media (max-width:720px){ .grid2{grid-template-columns:1fr;} }
+
+.card{
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.25);
+  padding:14px;
+}
+.card .k{color:rgba(255,255,255,.70); font-weight:1100; font-size:12px}
+.card .v{font-weight:1250; font-size:30px; letter-spacing:-.4px; margin-top:4px}
+.card .s{color:rgba(255,255,255,.62); font-weight:1000; font-size:12px; margin-top:4px}
+
+.actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:14px;
+}
+
+.sep{
+  height:1px;
+  background:rgba(255,255,255,.10);
+  margin:14px 0;
+}
+
+a{color:inherit; text-decoration:none}
 </style>
 </head>
 
 <body>
+<div id="toast"></div>
+
 <div id="wrap">
   <div class="row">
     <div class="pill">$PHAT — Ego Lift Buffet</div>
-    <div class="pill" id="status">Tap & release on green. “Close enough” is a strategy.</div>
-    <button class="btn" id="restart">Run it back</button>
+    <div class="pill" id="status">Tap & release on green. Miss once = pinned.</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap">
+      <a class="btn2" href="https://planetfatness.fit/">Back to Gym</a>
+      <button class="btn" id="restartBtn">Run it back</button>
+    </div>
   </div>
 
   <div id="stage">
+    <div id="hud">
+      <div class="hudLine"><span class="big" id="repStreak">0</span><span class="small">rep streak</span></div>
+      <div class="hudLine"><span class="big" id="runCals">0</span><span class="small">calories this run</span></div>
+      <div class="hudLine"><span class="big" id="zonePct">18%</span><span class="small">green zone</span></div>
+    </div>
+
+    <div id="flash">CLEAN REP ✅</div>
+
     <div id="heroWrap">
       <div class="heroStack" id="heroStack">
-        <img id="heroIdle" src="../assets/lift_idle.png" alt="Planet Fatness Lifter (idle)"/>
-        <img id="heroGif"  src="../assets/lift_hero.gif" alt="Planet Fatness Lifter (rep)"/>
+        <img id="heroIdle" src="../assets/lift_idle.png" alt="Planet Fatness lifter idle"/>
+        <img id="heroGif"  src="../assets/lift_hero.gif" alt="Planet Fatness lifter rep"/>
       </div>
-
-      <div id="hitFlash">CLEAN REP ✅</div>
-      <div id="vignette"></div>
 
       <div id="meter">
         <div id="zone"></div>
         <div id="needle"></div>
       </div>
-    </div>
 
-    <canvas id="c" width="900" height="520"></canvas>
+      <div id="vignette"></div>
+    </div>
   </div>
 
-  <div class="hint">
-    <div class="pill">Calories today: <span id="today">0</span> / 1000</div>
-    <div class="pill">Gym resets in <span id="reset">--:--:--</span></div>
+  <div class="row" style="width:min(940px,100%); justify-content:space-between;">
+    <div class="pill">Today: <span id="todayCals">0</span> / <span id="cap">1000</span> calories</div>
+    <div class="pill">Resets in <span id="reset">--:--:--</span></div>
   </div>
 </div>
 
 <div id="modalBack">
   <div id="modal">
-    <div class="stat"><div class="k">Lift time</div><div class="v" id="mTime">0.0s</div></div>
-    <div class="stat"><div class="k">Calories earned</div><div class="v" id="mCal">0</div></div>
-    <div class="stat"><div class="k">Status</div><div class="v" id="mFail">Pinned by Pizza</div></div>
-    <div class="stat" style="margin-bottom:14px">
-      <div class="k">Combo</div><div class="v" id="mCombo">0</div>
-      <div class="small">each clean rep makes the green zone tighter. yes, it’s rude.</div>
+    <div class="row" style="width:100%; margin:0 0 10px">
+      <div class="pill" style="background:rgba(0,0,0,.25)">Run ended</div>
+      <div class="pill" id="endTag">Pinned by Pizza</div>
     </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="k">Best streak</div>
+        <div class="v" id="mBest">0</div>
+        <div class="s">how long you stayed blessed</div>
+      </div>
+      <div class="card">
+        <div class="k">Smallest zone</div>
+        <div class="v" id="mZone">18%</div>
+        <div class="s">tiny green = legendary timing</div>
+      </div>
+      <div class="card">
+        <div class="k">Calories earned</div>
+        <div class="v" id="mRunCals">0</div>
+        <div class="s">this run’s damage</div>
+      </div>
+      <div class="card">
+        <div class="k">Today total</div>
+        <div class="v" id="mToday">0</div>
+        <div class="s">daily cap keeps it honest</div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="row" style="width:100%; justify-content:space-between; gap:10px; margin:0 0 10px">
+      <div class="pill" style="background:rgba(0,0,0,.25)">Share the flex</div>
+      <div class="pill" id="shareLine">Rep streak: 0 • Zone: 18% • Calories: 0</div>
+    </div>
+
     <div class="actions">
-      <button class="btn" id="again">Run it back</button>
-      <button class="ghost" id="close">Close</button>
+      <button class="btn" id="againBtn">Run it back</button>
+      <button class="btn2" id="shareBtn">Share</button>
+      <button class="btn2" id="copyBtn">Copy</button>
+      <button class="btn2" id="closeBtn">Close</button>
     </div>
   </div>
 </div>
 
 <script>
-/* assets */
+/* ========= ASSETS ========= */
 const IDLE_SRC = "../assets/lift_idle.png";
 const REP_SRC  = "../assets/lift_hero.gif";
 
-/* daily cap */
-const CAP = 1000;
+/* ========= CALORIES + FAIRNESS =========
+   - Survival mode: ends on first miss
+   - Diminishing calories per rep (stops farm bots)
+   - Daily cap (stops nolife advantage)
+*/
+const DAILY_CAP = 1000;
 
-/* rep feel */
-const REP_SHOW_MS = 1200;   // how long the gif stays visible AFTER it loads
-const REP_COOLDOWN_MS = 80; // tiny buffer so it doesn’t insta-double-trigger
+/* diminishing curve */
+function caloriesForRep(repIndex){
+  // repIndex starts at 1
+  if (repIndex <= 10) return 25;
+  if (repIndex <= 25) return 15;
+  if (repIndex <= 50) return 8;
+  return 4;
+}
 
-/* needle timing */
-const BASE_LOOP = 1.85;
-const MIN_LOOP  = 0.95;
+/* ========= DIFFICULTY =========
+   - zone shrinks
+   - needle speeds up
+*/
+const BASE_LOOP = 1.85;   // seconds for a full needle sweep
+const MIN_LOOP  = 0.85;
 
-/* difficulty */
-const BASE_ZONE_W = 0.20;
-const MIN_ZONE_W  = 0.06;
-const SHRINK_PER_REP = 0.008;
-const CENTER_BASE = 0.62;
-const JITTER = 0.10;
+const BASE_ZONE_W = 0.18; // 18% of bar
+const MIN_ZONE_W  = 0.045;// 4.5% minimum
 
-/* calories */
-const CAL_PER_REP = 25;
+const SHRINK_EARLY = 0.007; // per rep early
+const SHRINK_LATE  = 0.003; // per rep later
 
-const c = document.getElementById("c"), ctx = c.getContext("2d");
-const heroStack = document.getElementById("heroStack");
-const heroIdle = document.getElementById("heroIdle");
-const heroGif  = document.getElementById("heroGif");
-const hitFlash = document.getElementById("hitFlash");
+const JITTER = 0.12;        // zone slides around
+const CENTER = 0.62;        // average center
 
-const needle = document.getElementById("needle");
-const zone = document.getElementById("zone");
-const vignette = document.getElementById("vignette");
-const statusEl = document.getElementById("status");
-const todayEl = document.getElementById("today");
-const resetEl = document.getElementById("reset");
+/* ========= FEEL ========= */
+const REP_HOLD_MS = 1250;   // how long to keep gif visible AFTER it loads
+const COOLDOWN_MS = 90;     // prevents accidental double-triggers
+const FLASH_MS    = 320;
 
-const modalBack = document.getElementById("modalBack");
-const mTime = document.getElementById("mTime");
-const mCal = document.getElementById("mCal");
-const mFail = document.getElementById("mFail");
-const mCombo = document.getElementById("mCombo");
+const el = (id)=>document.getElementById(id);
 
-let start = performance.now();
-let running = false;
-let over = false;
+const heroStack = el("heroStack");
+const heroIdle  = el("heroIdle");
+const heroGif   = el("heroGif");
 
-let calories = 0;
-let combo = 0;
-let bestCombo = 0;
+const zoneEl   = el("zone");
+const needleEl = el("needle");
+const vignette = el("vignette");
 
-let zoneLeft = 0.52;
-let zoneW = BASE_ZONE_W;
-let loopSeconds = BASE_LOOP;
+const repStreakEl = el("repStreak");
+const runCalsEl   = el("runCals");
+const zonePctEl   = el("zonePct");
 
-let repLock = false;
-let repTimer = null;
-let repSeq = 0;
+const todayCalsEl = el("todayCals");
+const capEl       = el("cap");
+const resetEl     = el("reset");
+const statusEl    = el("status");
+const flashEl     = el("flash");
+const toastEl     = el("toast");
 
+const modalBack = el("modalBack");
+const endTagEl  = el("endTag");
+const mBestEl   = el("mBest");
+const mZoneEl   = el("mZone");
+const mRunCalsEl= el("mRunCals");
+const mTodayEl  = el("mToday");
+const shareLine = el("shareLine");
+
+/* Shared daily keys (so treadmill + lift can share cap if you want later) */
+const KEY_RESET = "phat_reset";
+const KEY_TODAY = "phat_today";
+
+/* Init daily */
 function nextMidnight(){
   const d=new Date();
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
 }
-let resetAt = Number(localStorage.getItem("phat_reset_lift") || nextMidnight());
-let today = Number(localStorage.getItem("phat_today_lift") || 0);
+let resetAt = Number(localStorage.getItem(KEY_RESET) || nextMidnight());
+let today = Number(localStorage.getItem(KEY_TODAY) || 0);
 if (Date.now() > resetAt){
   today = 0;
   resetAt = nextMidnight();
-  localStorage.setItem("phat_reset_lift", resetAt);
-  localStorage.setItem("phat_today_lift", today);
+  localStorage.setItem(KEY_RESET, resetAt);
+  localStorage.setItem(KEY_TODAY, today);
 }
-todayEl.textContent = today;
+capEl.textContent = DAILY_CAP;
+todayCalsEl.textContent = today;
 
-function applyZone(){
+/* Game state */
+let running = false;
+let over = false;
+let lock = false;
+
+let start = performance.now();
+
+let reps = 0;
+let bestReps = 0;
+let runCals = 0;
+
+let loopSeconds = BASE_LOOP;
+let zoneW = BASE_ZONE_W;
+let zoneLeft = 0.54;
+
+let smallestZone = BASE_ZONE_W;
+
+let repTimer = null;
+let repSeq = 0;
+
+/* Helpers */
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.style.display = "block";
+  clearTimeout(window.__t);
+  window.__t = setTimeout(()=>toastEl.style.display="none", 2300);
+}
+
+function flash(msg){
+  flashEl.textContent = msg;
+  flashEl.style.opacity = 1;
+  flashEl.style.transform = "translateX(-50%) scale(1)";
+  setTimeout(()=>{
+    flashEl.style.opacity = 0;
+    flashEl.style.transform = "translateX(-50%) scale(.98)";
+  }, FLASH_MS);
+}
+
+function setZoneUI(){
   zoneW = Math.max(MIN_ZONE_W, Math.min(BASE_ZONE_W, zoneW));
-  zoneLeft = Math.max(0, Math.min(1 - zoneW, zoneLeft));
-  zone.style.left = (zoneLeft * 100) + "%";
-  zone.style.width = (zoneW * 100) + "%";
+  zoneLeft = Math.max(0, Math.min(1-zoneW, zoneLeft));
+
+  zoneEl.style.width = (zoneW*100)+"%";
+  zoneEl.style.left  = (zoneLeft*100)+"%";
+
+  zonePctEl.textContent = Math.round(zoneW*100) + "%";
 }
+
 function rerollZone(){
-  const center = CENTER_BASE + (Math.random()*2 - 1) * JITTER;
+  const center = CENTER + (Math.random()*2-1)*JITTER;
   zoneLeft = center - zoneW/2;
-  applyZone();
+  setZoneUI();
 }
+
 function setDifficulty(){
-  zoneW = Math.max(MIN_ZONE_W, BASE_ZONE_W - combo * SHRINK_PER_REP);
+  // shrink more early, then taper
+  const shrink = reps <= 20 ? SHRINK_EARLY : SHRINK_LATE;
+  zoneW = Math.max(MIN_ZONE_W, zoneW - shrink);
 
-  const t = combo / 18;
-  loopSeconds = Math.max(MIN_LOOP, BASE_LOOP - (BASE_LOOP - MIN_LOOP) * Math.min(1, t));
+  // speed up needle
+  const t = Math.min(1, reps/22);
+  loopSeconds = Math.max(MIN_LOOP, BASE_LOOP - (BASE_LOOP - MIN_LOOP)*t);
 
+  smallestZone = Math.min(smallestZone, zoneW);
   rerollZone();
 }
 
-function flashHit(text){
-  hitFlash.textContent = text;
-  hitFlash.style.opacity = 1;
-  hitFlash.style.transform = "translateX(-50%) scale(1)";
-  setTimeout(() => {
-    hitFlash.style.opacity = 0;
-    hitFlash.style.transform = "translateX(-50%) scale(.98)";
-  }, 320);
-}
-
-/* KEY FIX:
-   Start the “go back to idle” timer ONLY after the gif has loaded. */
 function playRep(){
-  if (repLock || over) return;
-  repLock = true;
+  if (lock || over) return;
+  lock = true;
 
-  // show something instantly so it feels responsive
-  flashHit(combo >= 3 ? `CLEAN REP x${combo} ✅` : "CLEAN REP ✅");
-
-  // flip to “rep mode” immediately
+  // show gif immediately (even if it’s still loading, it’ll pop in)
   heroIdle.style.opacity = 0;
   heroGif.style.opacity = 1;
 
-  // clear any previous timers
-  if (repTimer) { clearTimeout(repTimer); repTimer = null; }
+  // clear old timer
+  if (repTimer){ clearTimeout(repTimer); repTimer = null; }
 
-  // set onload BEFORE changing src
+  // set onload BEFORE updating src
   heroGif.onload = () => {
-    // keep rep visible for a consistent time AFTER load
+    // keep gif visible for a consistent time AFTER it actually loads
     if (repTimer) clearTimeout(repTimer);
-    repTimer = setTimeout(() => {
+    repTimer = setTimeout(()=>{
       heroGif.style.opacity = 0;
       heroIdle.style.opacity = 1;
       repTimer = null;
-      setTimeout(() => { repLock = false; }, REP_COOLDOWN_MS);
-    }, REP_SHOW_MS);
+      setTimeout(()=>{ lock=false; }, COOLDOWN_MS);
+    }, REP_HOLD_MS);
   };
 
-  // restart the gif (cache-bust) AFTER onload is attached
   repSeq++;
   heroGif.src = REP_SRC + "?r=" + repSeq;
-
-  // if it’s already cached and loads “instantly”, onload still fires.
 }
 
-function showEnd(reasonText){
+function endRun(reason){
   over = true;
   vignette.style.opacity = 1;
+
+  const tags = [
+    "Pinned by Pizza",
+    "Ego too heavy",
+    "Spotter went to vape",
+    "Elbows said “nah”",
+    "Yoo-hoo fueled delusion"
+  ];
+  const tag = reason || tags[(Math.random()*tags.length)|0];
+  endTagEl.textContent = tag;
+
+  bestReps = Math.max(bestReps, reps);
+
+  // persist daily
+  localStorage.setItem(KEY_RESET, resetAt);
+  localStorage.setItem(KEY_TODAY, today);
+
+  // modal stats
+  mBestEl.textContent = bestReps;
+  mZoneEl.textContent = Math.round(smallestZone*100) + "%";
+  mRunCalsEl.textContent = runCals;
+  mTodayEl.textContent = today;
+
+  const shareText =
+    `$PHAT Ego Lift Buffet 🟣\n` +
+    `Rep streak: ${bestReps}\n` +
+    `Smallest green zone: ${Math.round(smallestZone*100)}%\n` +
+    `Calories: ${runCals} (today ${today}/${DAILY_CAP})\n` +
+    `planetfatness.fit`;
+
+  shareLine.textContent = `Rep streak: ${bestReps} • Zone: ${Math.round(smallestZone*100)}% • Calories: ${runCals}`;
   modalBack.style.display = "flex";
 
-  const t = (performance.now() - start) / 1000;
-  mTime.textContent = t.toFixed(1) + "s";
-  mCal.textContent = calories;
-  mCombo.textContent = bestCombo;
-  mFail.textContent = reasonText;
-
-  localStorage.setItem("phat_today_lift", today);
-  localStorage.setItem("phat_reset_lift", resetAt);
+  // store for share/copy buttons
+  window.__shareText = shareText;
 }
 
+/* Input: release only (prevents hold-to-win) */
 function onRelease(){
-  if (!running || over) return;
-  if (repLock) return;
+  if (over) return;
+  if (!running){
+    running = true;
+    start = performance.now();
+    statusEl.textContent = "Release on green. Miss once and you’re done.";
+    // preload gif for first rep
+    const pre = new Image(); pre.src = REP_SRC;
+    return;
+  }
+  if (lock) return;
 
   const now = performance.now();
-  const phase = (((now - start) / 1000) % loopSeconds) / loopSeconds;
+  const phase = (((now - start)/1000) % loopSeconds) / loopSeconds;
 
-  const inGreen = (phase >= zoneLeft) && (phase <= (zoneLeft + zoneW));
+  const inGreen = (phase >= zoneLeft) && (phase <= zoneLeft + zoneW);
 
   if (inGreen){
-    combo++;
-    bestCombo = Math.max(bestCombo, combo);
+    reps++;
+    repStreakEl.textContent = reps;
 
-    if (today < CAP){
-      const add = Math.min(CAL_PER_REP, CAP - today);
-      calories += add;
-      today += add;
-      todayEl.textContent = today;
+    const add = caloriesForRep(reps);
+
+    if (today < DAILY_CAP){
+      const actualAdd = Math.min(add, DAILY_CAP - today);
+      runCals += actualAdd;
+      today += actualAdd;
+
+      runCalsEl.textContent = runCals;
+      todayCalsEl.textContent = today;
     }
 
-    statusEl.textContent = (combo < 3)
-      ? "Clean rep. Ego preserved. ✅"
-      : `Clean rep x${combo}. Green gets meaner. 😤`;
+    if (reps === 1) flash("CLEAN REP ✅");
+    else if (reps % 5 === 0) flash(`CLEAN REP x${reps} ✅`);
+    else flash("CLEAN ✅");
 
     setDifficulty();
     playRep();
   } else {
-    combo = 0;
-    const reasons = [
-      "Pinned by Pizza",
-      "Ego too heavy",
-      "Spotter went to vape",
-      "Elbows said “nah”",
-      "Yoo-hoo fueled delusion"
-    ];
-    showEnd(reasons[(Math.random() * reasons.length) | 0]);
+    endRun();
   }
 }
 
 window.addEventListener("pointerup", onRelease);
-window.addEventListener("keyup", (e) => { if (e.code === "Space") onRelease(); });
+window.addEventListener("keyup", (e)=>{ if(e.code==="Space") onRelease(); });
 
-document.getElementById("restart").onclick = () => location.reload();
-document.getElementById("again").onclick = () => location.reload();
-document.getElementById("close").onclick = () => modalBack.style.display = "none";
+/* Buttons */
+el("restartBtn").onclick = ()=>location.reload();
+el("againBtn").onclick = ()=>location.reload();
+el("closeBtn").onclick = ()=>{ modalBack.style.display="none"; };
 
-function drawBackground(t){
-  ctx.clearRect(0,0,900,520);
-
-  const g = ctx.createRadialGradient(450, 420, 40, 450, 420, 520);
-  g.addColorStop(0, "rgba(255,212,0,0.12)");
-  g.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = g;
-  ctx.fillRect(0,0,900,520);
-
-  ctx.globalAlpha = 0.35;
-  for (let i=0;i<22;i++){
-    const x = (Math.sin(t/900 + i*1.7)*0.5+0.5)*900;
-    const y = (Math.cos(t/1100 + i*2.1)*0.5+0.5)*520;
-    ctx.fillStyle = "rgba(255,255,255,0.35)";
-    ctx.fillRect(x, y, 2, 2);
+el("copyBtn").onclick = async ()=>{
+  try{
+    await navigator.clipboard.writeText(window.__shareText || "");
+    toast("Copied. Post the flex.");
+  }catch{
+    toast("Couldn’t copy. Screenshot it like a savage.");
   }
-  ctx.globalAlpha = 1;
+};
 
-  ctx.fillStyle = "rgba(255,255,255,.92)";
-  ctx.font = "900 28px system-ui";
-  const secs = ((performance.now() - start) / 1000);
-  ctx.fillText(secs.toFixed(1) + "s", 34, 52);
-
-  ctx.fillStyle = "rgba(255,255,255,.70)";
-  ctx.font = "800 14px system-ui";
-  ctx.fillText("Combo: " + combo, 34, 78);
-
-  ctx.fillStyle = "rgba(255,255,255,.60)";
-  ctx.font = "800 12px system-ui";
-  ctx.fillText("Tap & release when the needle hits green.", 34, 100);
-
-  if (!over && combo >= 6){
-    ctx.fillStyle = "rgba(255,77,109,.85)";
-    ctx.font = "900 12px system-ui";
-    ctx.fillText("WARNING: the green zone is on demon time.", 34, 120);
+el("shareBtn").onclick = async ()=>{
+  const text = window.__shareText || "";
+  if (navigator.share){
+    try{
+      await navigator.share({ text });
+    }catch{}
+    return;
   }
-}
-
-function loop(){
-  const now = performance.now();
-
-  if (!running){
-    running = true;
-    start = now;
-    heroIdle.src = IDLE_SRC;
-
-    // preload the gif once so first rep feels snappy
-    const pre = new Image();
-    pre.src = REP_SRC;
-
-    heroIdle.style.opacity = 1;
-    heroGif.style.opacity = 0;
-
-    zoneW = BASE_ZONE_W;
-    loopSeconds = BASE_LOOP;
-    rerollZone();
+  try{
+    await navigator.clipboard.writeText(text);
+    toast("Copied. Paste it into X.");
+  }catch{
+    toast("Screenshot + post.");
   }
+};
 
-  if (!over){
-    const phase = (((now - start) / 1000) % loopSeconds) / loopSeconds;
-    needle.style.left = (phase * 100) + "%";
-
-    const wob = Math.sin(now/140)*0.012 + Math.sin(now/480)*0.010;
-    const scale = 1 + 0.020 + wob;
-    heroStack.style.transform = `translateY(${Math.sin(now/180)*2}px) scale(${scale})`;
-  }
-
-  drawBackground(now);
-  requestAnimationFrame(loop);
-}
-
+/* Countdown */
 function tick(){
   const r = Math.max(0, resetAt - Date.now());
   const h = String(Math.floor(r/36e5)).padStart(2,'0');
@@ -539,9 +712,38 @@ function tick(){
   const s = String(Math.floor((r%6e4)/1e3)).padStart(2,'0');
   resetEl.textContent = `${h}:${m}:${s}`;
 }
-setInterval(tick, 1000);
+setInterval(tick,1000);
 tick();
+
+/* Loop: needle + tiny life */
+function loop(){
+  const now = performance.now();
+
+  if (!over){
+    const phase = (((now - start)/1000) % loopSeconds) / loopSeconds;
+    needleEl.style.left = (phase*100) + "%";
+
+    const wob = Math.sin(now/160)*0.010 + Math.sin(now/520)*0.010;
+    const scale = 1.02 + wob;
+    heroStack.style.transform = `translateX(-50%) translateY(${Math.sin(now/220)*2}px) scale(${scale})`;
+  }
+
+  requestAnimationFrame(loop);
+}
+
+/* Init UI */
+heroIdle.src = IDLE_SRC;
+heroGif.src  = REP_SRC;      // base preload
+runCalsEl.textContent = "0";
+repStreakEl.textContent = "0";
+zoneW = BASE_ZONE_W;
+loopSeconds = BASE_LOOP;
+smallestZone = zoneW;
+rerollZone();
 requestAnimationFrame(loop);
+
+/* Friendly nudge */
+statusEl.textContent = "Tap once to wake up. Then release on green to curl.";
 </script>
 </body>
 </html>
