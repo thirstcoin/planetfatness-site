@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+<title>$PHAT — Ego Lift Buffet</title>
+
+<style>
+:root{
+  --purple:#5b2cff;
+  --yellow:#ffd400;
+  --bg:#0b0716;
+  --panel:rgba(255,255,255,.08);
+  --stroke:rgba(255,255,255,.14);
+  --text:rgba(255,255,255,.95);
+  --muted:rgba(255,255,255,.65);
+  --danger:#ff4d6d;
+}
+
+*{box-sizing:border-box}
+html,body{
+  margin:0;height:100%;
+  background:
+    radial-gradient(900px 520px at 50% 0%, rgba(91,44,255,.35), transparent 60%),
+    radial-gradient(700px 420px at 50% 100%, rgba(255,212,0,.22), transparent 60%),
+    linear-gradient(180deg,#140b2b,#07050c);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+  overflow:hidden;
+}
+
+#wrap{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:14px;
+}
+
+.row{
+  width:min(920px,100%);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.pill{
+  padding:10px 14px;
+  border-radius:999px;
+  background:var(--panel);
+  border:1px solid var(--stroke);
+  font-size:13px;
+  font-weight:900;
+  color:var(--muted);
+  backdrop-filter: blur(10px);
+  user-select:none;
+  white-space:nowrap;
+}
+
+.btn{
+  padding:10px 16px;
+  border-radius:14px;
+  font-weight:1000;
+  background:linear-gradient(180deg,var(--yellow),#ffbf00);
+  color:#1b1400;
+  border:none;
+  box-shadow:0 14px 30px rgba(255,212,0,.45);
+}
+.btn:active{transform:scale(.98)}
+
+#stage{position:relative;width:min(920px,100%)}
+
+canvas{
+  width:100%;
+  border-radius:20px;
+  background:transparent;
+  border:1px solid var(--stroke);
+  box-shadow:0 30px 90px rgba(0,0,0,.55);
+  touch-action:manipulation;
+}
+
+#heroWrap{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  pointer-events:none;
+}
+
+#hero{
+  height:440px;
+  filter:drop-shadow(0 26px 42px rgba(0,0,0,.55));
+  transform-origin:center bottom;
+}
+
+#vignette{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 40%, rgba(0,0,0,.6) 80%, rgba(0,0,0,.8) 100%);
+  opacity:0;
+}
+
+#meter{
+  position:absolute;
+  left:50%;bottom:26px;
+  transform:translateX(-50%);
+  width:70%;height:18px;
+  border-radius:999px;
+  background:rgba(255,255,255,.15);
+  overflow:hidden;
+}
+#zone{
+  position:absolute;top:0;height:100%;
+  left:52%;width:20%;
+  background:linear-gradient(180deg,#7fff7f,#3bdc7a);
+  opacity:.9;
+}
+#needle{
+  position:absolute;top:0;height:100%;
+  width:3px;background:#fff;
+  left:0;
+}
+
+.hint{
+  width:min(920px,100%);
+  display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+}
+
+#modalBack{
+  position:fixed;inset:0;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(8px);
+}
+#modal{
+  width:min(760px,100%);
+  border-radius:24px;
+  border:1px solid var(--stroke);
+  background:
+    radial-gradient(900px 420px at 20% 0%, rgba(91,44,255,.32), transparent 60%),
+    radial-gradient(900px 520px at 80% 80%, rgba(255,212,0,.16), transparent 65%),
+    rgba(255,255,255,.06);
+  box-shadow:0 40px 140px rgba(0,0,0,.65);
+  padding:18px;
+}
+.stat{
+  border-radius:18px;border:1px solid var(--stroke);
+  background:rgba(0,0,0,.25);
+  padding:14px;margin-bottom:10px;
+}
+.stat .k{color:var(--muted);font-weight:900;font-size:13px}
+.stat .v{font-size:34px;font-weight:1100}
+
+.actions{display:flex;gap:12px;flex-wrap:wrap}
+.ghost{
+  padding:10px 14px;border-radius:14px;
+  background:rgba(0,0,0,.3);border:1px solid var(--stroke);
+  color:#fff;font-weight:1000;
+}
+</style>
+</head>
+
+<body>
+<div id="wrap">
+  <div class="row">
+    <div class="pill">$PHAT — Ego Lift Buffet</div>
+    <div class="pill" id="status">Tap & release. Good enough wins.</div>
+    <button class="btn" id="restart">Run it back</button>
+  </div>
+
+  <div id="stage">
+    <div id="heroWrap">
+      <img id="hero" src="../assets/lift_hero.gif" alt="Planet Fatness Lifter"/>
+      <div id="vignette"></div>
+      <div id="meter">
+        <div id="zone"></div>
+        <div id="needle"></div>
+      </div>
+    </div>
+    <canvas id="c" width="900" height="520"></canvas>
+  </div>
+
+  <div class="hint">
+    <div class="pill">Calories today: <span id="today">0</span> / 1000</div>
+    <div class="pill">Gym resets in <span id="reset">--:--:--</span></div>
+  </div>
+</div>
+
+<div id="modalBack">
+  <div id="modal">
+    <div class="stat"><div class="k">Run time</div><div class="v" id="mTime">0.0s</div></div>
+    <div class="stat"><div class="k">Calories earned</div><div class="v" id="mCal">0</div></div>
+    <div class="stat"><div class="k">Status</div><div class="v" id="mFail">Pinned by Pizza</div></div>
+    <div class="actions">
+      <button class="btn" id="again">Run it back</button>
+      <button class="ghost" id="close">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LOOP=1.8;
+const GOOD_START=.52, GOOD_END=.72;
+const CAP=1000;
+
+const c=document.getElementById('c'),ctx=c.getContext('2d');
+const hero=document.getElementById('hero');
+const needle=document.getElementById('needle');
+const todayEl=document.getElementById('today');
+const resetEl=document.getElementById('reset');
+const modalBack=document.getElementById('modalBack');
+const mTime=document.getElementById('mTime');
+const mCal=document.getElementById('mCal');
+const mFail=document.getElementById('mFail');
+
+let start=performance.now(),last=start;
+let running=false,over=false;
+let calories=0,today=Number(localStorage.getItem('phat_today')||0);
+todayEl.textContent=today;
+
+function resetDay(){
+  const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1);
+  return t.getTime();
+}
+let resetAt=Number(localStorage.getItem('phat_reset')||resetDay());
+if(Date.now()>resetAt){today=0;resetAt=resetDay();}
+
+function tapRelease(){
+  if(!running||over)return;
+  const now=performance.now();
+  const phase=((now-start)/1000)%LOOP/LOOP;
+  if(phase>GOOD_START&&phase<GOOD_END){
+    if(today<CAP){
+      calories+=25;
+      today=Math.min(CAP,today+25);
+      todayEl.textContent=today;
+    }
+  }else{
+    over=true;
+    mFail.textContent=["Pinned by Pizza","Ego Too Heavy","Spotter Went to Vape"][Math.random()*3|0];
+    showEnd();
+  }
+}
+
+window.addEventListener('pointerup',tapRelease);
+
+function showEnd(){
+  modalBack.style.display='flex';
+  const t=(performance.now()-start)/1000;
+  mTime.textContent=t.toFixed(1)+'s';
+  mCal.textContent=calories;
+  localStorage.setItem('phat_today',today);
+  localStorage.setItem('phat_reset',resetAt);
+}
+
+document.getElementById('restart').onclick=()=>location.reload();
+document.getElementById('again').onclick=()=>location.reload();
+document.getElementById('close').onclick=()=>modalBack.style.display='none';
+
+function loop(){
+  const now=performance.now();
+  const dt=(now-last)/1000;last=now;
+  if(!running){running=true;start=now;}
+  const phase=((now-start)/1000)%LOOP/LOOP;
+  needle.style.left=(phase*100)+'%';
+  hero.style.transform=`scale(${1+.05*Math.sin(now/120)})`;
+  requestAnimationFrame(loop);
+}
+
+function tick(){
+  const r=Math.max(0,resetAt-Date.now());
+  const h=String(Math.floor(r/36e5)).padStart(2,'0');
+  const m=String(Math.floor(r%36e5/6e4)).padStart(2,'0');
+  const s=String(Math.floor(r%6e4/1e3)).padStart(2,'0');
+  resetEl.textContent=`${h}:${m}:${s}`;
+}
+setInterval(tick,1000);
+tick();loop();
+</script>
+</body>
+</html>
