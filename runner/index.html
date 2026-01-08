@@ -2,26 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>$PHAT — Treadmill Rage Runner</title>
 
   <style>
-    :root {
+    :root{
       --purple:#5b2cff;
       --yellow:#ffd400;
-      --bg:#0b0716;
       --panel:rgba(255,255,255,.08);
       --stroke:rgba(255,255,255,.12);
       --text:rgba(255,255,255,.95);
-      --muted:rgba(255,255,255,.65);
+      --muted:rgba(255,255,255,.70);
     }
 
     html,body{
       margin:0;
       height:100%;
       background:
-        radial-gradient(900px 500px at 50% 0%, rgba(91,44,255,.35), transparent 60%),
-        radial-gradient(700px 400px at 50% 100%, rgba(255,212,0,.25), transparent 60%),
+        radial-gradient(900px 520px at 50% 0%, rgba(91,44,255,.35), transparent 60%),
+        radial-gradient(700px 420px at 50% 100%, rgba(255,212,0,.22), transparent 60%),
         linear-gradient(180deg, #140b2b, #07050c);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
@@ -48,187 +47,588 @@
     }
 
     .pill{
-      padding:8px 14px;
+      padding:10px 14px;
       border-radius:999px;
       background:var(--panel);
       border:1px solid var(--stroke);
       font-size:13px;
-      font-weight:800;
+      font-weight:900;
       color:var(--muted);
+      backdrop-filter: blur(10px);
+      box-shadow:0 18px 60px rgba(0,0,0,.35);
+      user-select:none;
+      white-space:nowrap;
     }
 
     .btn{
       padding:10px 16px;
       border-radius:14px;
-      font-weight:900;
+      font-weight:1000;
       background:linear-gradient(180deg, var(--yellow), #ffbf00);
       color:#1b1400;
       border:none;
       box-shadow:0 14px 30px rgba(255,212,0,.45);
       cursor:pointer;
     }
+    .btn:active{ transform: scale(.98); }
 
     #stage{
       position:relative;
       width:min(920px,100%);
     }
 
-    canvas{
-      width:100%;
-      border-radius:20px;
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border:1px solid var(--stroke);
-      box-shadow:0 30px 90px rgba(0,0,0,.55);
-      touch-action:manipulation;
-      display:block;
-    }
-
-    /* Runner overlay */
+    /* ===== Scene (GIF) ===== */
     #runnerWrap{
       position:absolute;
       inset:0;
+      z-index:1;
       pointer-events:none;
       display:flex;
       align-items:flex-end;
       justify-content:center;
     }
 
+    /* ✅ Your baked treadmill+runner GIF as the whole scene */
     #runnerGif{
-      height:320px;
-      transform-origin:center bottom;
-      filter: drop-shadow(0 30px 40px rgba(0,0,0,.55));
-      margin-bottom:14px; /* ✅ BASE BELT ALIGNMENT */
-      will-change: transform;
+      height: 430px;
+      width:auto;
+      margin-bottom: 0px;
+      transform-origin: center bottom;
+      will-change: transform, filter;
+      filter: drop-shadow(0 26px 42px rgba(0,0,0,.55));
+    }
+
+    /* Belt motion overlay (fake belt movement on top of baked treadmill) */
+    #beltFx{
+      position:absolute;
+      z-index:2;
+      left: 12%;
+      top: 63%;
+      width: 76%;
+      height: 16%;
+      border-radius: 18px;
+      opacity: 0;
+      pointer-events:none;
+      background:
+        repeating-linear-gradient(
+          135deg,
+          rgba(255,255,255,.11) 0px,
+          rgba(255,255,255,.11) 10px,
+          rgba(0,0,0,0) 10px,
+          rgba(0,0,0,0) 22px
+        );
+      mix-blend-mode: overlay;
+      filter: blur(0.4px);
+      transform: translateZ(0);
+    }
+
+    #speedLines{
+      position:absolute;
+      inset:0;
+      z-index:3;
+      opacity:0;
+      pointer-events:none;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255,255,255,.12) 0px,
+          rgba(255,255,255,.12) 1px,
+          rgba(0,0,0,0) 1px,
+          rgba(0,0,0,0) 18px
+        );
+      mask-image: radial-gradient(circle at 50% 40%, rgba(0,0,0,1), rgba(0,0,0,0) 70%);
+      -webkit-mask-image: radial-gradient(circle at 50% 40%, rgba(0,0,0,1), rgba(0,0,0,0) 70%);
+      mix-blend-mode: overlay;
+    }
+
+    #vignette{
+      position:absolute;
+      inset:0;
+      z-index:4;
+      opacity:0;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 40%, rgba(0,0,0,.55) 78%, rgba(0,0,0,.75) 100%),
+        radial-gradient(circle at 50% 45%, rgba(255,60,90,.22), rgba(0,0,0,0) 55%);
+      mix-blend-mode: screen;
+    }
+
+    /* ===== HUD (Canvas) ===== */
+    canvas{
+      position:relative;
+      z-index:5;
+      width:100%;
+      border-radius:20px;
+      background: transparent;
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 30px 90px rgba(0,0,0,.55);
+      touch-action:manipulation;
+      display:block;
+    }
+
+    .hint{
+      width:min(920px,100%);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    /* ===== Results Modal ===== */
+    #modalBack{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(8px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:50;
+    }
+
+    #modal{
+      width:min(760px, 100%);
+      border-radius:24px;
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(900px 420px at 20% 0%, rgba(91,44,255,.32), transparent 60%),
+        radial-gradient(900px 520px at 80% 80%, rgba(255,212,0,.16), transparent 65%),
+        rgba(255,255,255,.06);
+      box-shadow:0 40px 140px rgba(0,0,0,.65);
+      overflow:hidden;
+    }
+
+    #modal .top{
+      padding:18px 18px 8px;
+    }
+
+    #modal .title{
+      font-size:20px;
+      font-weight:1000;
+      letter-spacing:.2px;
+    }
+
+    #modal .sub{
+      margin-top:6px;
+      color:rgba(255,255,255,.75);
+      font-weight:800;
+    }
+
+    #cards{
+      padding:14px 18px 8px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+
+    .card{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.20);
+      padding:14px;
+    }
+
+    .card .k{
+      font-weight:900;
+      color:rgba(255,255,255,.72);
+      font-size:13px;
+      margin-bottom:6px;
+    }
+
+    .card .v{
+      font-weight:1100;
+      font-size:34px;
+      letter-spacing:-.5px;
+    }
+
+    .card .note{
+      margin-top:6px;
+      color:rgba(255,255,255,.70);
+      font-weight:800;
+      font-size:13px;
+    }
+
+    #actions{
+      padding:14px 18px 18px;
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      justify-content:flex-start;
+    }
+
+    .btnGhost{
+      padding:10px 14px;
+      border-radius:14px;
+      background: rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.14);
+      color:rgba(255,255,255,.9);
+      font-weight:1000;
+      cursor:pointer;
+    }
+    .btnGhost:active{ transform: scale(.98); }
+
+    #footerHint{
+      padding:0 18px 18px;
+      color:rgba(255,255,255,.75);
+      font-weight:900;
+      text-align:center;
     }
   </style>
 </head>
 
 <body>
-<div id="wrap">
+  <div id="wrap">
+    <div class="row">
+      <div class="pill">$PHAT — Treadmill Rage Runner</div>
+      <div class="pill" id="status">Tap to start</div>
+      <button class="btn" id="restartBtn">Restart</button>
+    </div>
 
-  <div class="row">
-    <div class="pill">$PHAT — Treadmill Rage Runner</div>
-    <div class="pill" id="status">Tap to start</div>
-    <button class="btn" onclick="resetGame()">Restart</button>
-  </div>
+    <div id="stage">
+      <div id="runnerWrap">
+        <!-- Put your baked treadmill+runner GIF here: /assets/runner.gif -->
+        <img id="runnerGif" src="../assets/runner.gif" alt="Planet Fatness Treadmill Scene" />
+        <div id="beltFx"></div>
+        <div id="speedLines"></div>
+        <div id="vignette"></div>
+      </div>
+      <canvas id="c" width="900" height="520"></canvas>
+    </div>
 
-  <div id="stage">
-    <canvas id="c" width="900" height="520"></canvas>
-    <div id="runnerWrap">
-      <!-- MUST EXIST: /assets/runner.gif -->
-      <img id="runnerGif" src="../assets/runner.gif" />
+    <div class="hint">
+      <div class="pill">Controls: Tap / Click / Space</div>
+      <div class="pill">Best: <span id="best">0.0s</span></div>
     </div>
   </div>
 
-  <div class="row">
-    <div class="pill">Controls: Tap / Click / Space</div>
-    <div class="pill">Best: <span id="best">0.0s</span></div>
+  <!-- Results Modal -->
+  <div id="modalBack" role="dialog" aria-modal="true">
+    <div id="modal">
+      <div class="top">
+        <div class="title">Ejected 💥</div>
+        <div class="sub" id="modalSub">Snack-first doesn’t mean speed-last.</div>
+      </div>
+
+      <div id="cards">
+        <div class="card">
+          <div class="k">Run Time</div>
+          <div class="v" id="mTime">0.0s</div>
+          <div class="note">Rank: <span id="mRank">NEW YEAR SIGNUP</span></div>
+        </div>
+
+        <div class="card">
+          <div class="k">Calories (this run)</div>
+          <div class="v" id="mCals">0</div>
+          <div class="note">Connect on the site to stack lifetime calories</div>
+        </div>
+
+        <div class="card">
+          <div class="k">Cadence</div>
+          <div class="v" id="mCad">0.0/s</div>
+          <div class="note">Certified menace cadence</div>
+        </div>
+
+        <div class="card">
+          <div class="k">Incline Peak</div>
+          <div class="v" id="mIncl">0.0%</div>
+          <div class="note">The belt was disrespectful</div>
+        </div>
+      </div>
+
+      <div id="actions">
+        <button class="btn" id="runBackBtn">Run it back</button>
+        <button class="btnGhost" id="closeBtn">Close</button>
+        <button class="btnGhost" id="lbBtn">Leaderboard</button>
+      </div>
+
+      <div id="footerHint">Guest run complete. Connect on the site to stack lifetime calories.</div>
+    </div>
   </div>
 
-</div>
-
 <script>
+/* ===== DOM ===== */
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
+
 const statusEl = document.getElementById('status');
 const bestEl = document.getElementById('best');
+const restartBtn = document.getElementById('restartBtn');
+
 const gif = document.getElementById('runnerGif');
+const beltFx = document.getElementById('beltFx');
+const speedLines = document.getElementById('speedLines');
+const vignette = document.getElementById('vignette');
 
-const BEST_KEY = 'phat_best';
-let best = Number(localStorage.getItem(BEST_KEY)||0);
-bestEl.textContent = best.toFixed(1)+'s';
+/* Modal DOM */
+const modalBack = document.getElementById('modalBack');
+const mTime = document.getElementById('mTime');
+const mRank = document.getElementById('mRank');
+const mCals = document.getElementById('mCals');
+const mCad = document.getElementById('mCad');
+const mIncl = document.getElementById('mIncl');
 
+const runBackBtn = document.getElementById('runBackBtn');
+const closeBtn = document.getElementById('closeBtn');
+const lbBtn = document.getElementById('lbBtn');
+
+/* ===== BEST ===== */
+const BEST_KEY = 'phat_treadmill_best_seconds';
+let best = Number(localStorage.getItem(BEST_KEY) || 0);
+bestEl.textContent = best.toFixed(1) + 's';
+
+/* ===== GAME STATE ===== */
 let running=false, gameOver=false;
-let t=0,last=performance.now();
-let speed=.34, stamina=1, incline=0, required=.32;
-let tapPulse=0, wobble=0, grace=1.2;
+let t=0, last=performance.now();
+
+let speed=0.34, stamina=1, incline=0, required=0.32;
+let tapPulse=0, wobble=0, grace=1.25;
+
+let taps=0;
+let beltPhase=0;
+
+let inclinePeak=0;
+let caloriesThisRun=0;
+
+function showModal(){
+  modalBack.style.display = 'flex';
+}
+
+function hideModal(){
+  modalBack.style.display = 'none';
+}
+
+function rankFromTime(sec){
+  if (sec >= 90) return "CHAD ZILLA";
+  if (sec >= 60) return "ULTRA GRINDER";
+  if (sec >= 40) return "SWEATY DEGEN";
+  if (sec >= 25) return "TREADMILL MENACE";
+  if (sec >= 12) return "NEW YEAR SIGNUP";
+  return "FIRST DAY BACK";
+}
 
 function resetGame(){
   running=false; gameOver=false;
-  t=0; speed=.34; stamina=1; incline=0; required=.32;
-  tapPulse=0; wobble=0; grace=1.2;
-  last=performance.now();
+  t=0; speed=0.34; stamina=1; incline=0; required=0.32;
+  tapPulse=0; wobble=0; grace=1.25;
+
+  taps=0;
+  beltPhase=0;
+
+  inclinePeak=0;
+  caloriesThisRun=0;
+
   statusEl.textContent='Tap to start';
+  hideModal();
+
+  // reset FX
+  gif.style.transform = 'translate(0px,0px) rotate(0deg) scale(1)';
+  gif.style.filter = 'drop-shadow(0 26px 42px rgba(0,0,0,.55))';
+  beltFx.style.opacity = 0;
+  speedLines.style.opacity = 0;
+  vignette.style.opacity = 0;
+
+  last=performance.now();
 }
 
 function tap(){
-  if(gameOver){ resetGame(); running=true; return; }
-  if(!running){ running=true; last=performance.now(); statusEl.textContent='RUN'; }
-  tapPulse=Math.min(1.8,tapPulse+.18);
+  if (gameOver){
+    // quick restart on tap if you want
+    resetGame();
+    running = true;
+    statusEl.textContent = 'RUN';
+    tapPulse = 0.85;
+    return;
+  }
+  if (!running){
+    running = true;
+    statusEl.textContent = 'RUN';
+    last = performance.now();
+    tapPulse = Math.max(tapPulse, 0.80);
+  }
+  tapPulse = Math.min(1.9, tapPulse + 0.18);
+  taps++;
 }
 
-window.addEventListener('pointerdown',tap);
-window.addEventListener('keydown',e=>{if(e.code==='Space')tap();});
+window.addEventListener('pointerdown', tap);
+window.addEventListener('keydown', e => { if (e.code==='Space') tap(); });
 
+restartBtn.addEventListener('click', () => resetGame());
+runBackBtn.addEventListener('click', () => { resetGame(); running=true; statusEl.textContent='RUN'; tapPulse=0.85; });
+closeBtn.addEventListener('click', () => hideModal());
+lbBtn.addEventListener('click', () => {
+  // If you later add a leaderboard page, update this URL
+  window.location.href = '../index.html#leaderboard';
+});
+modalBack.addEventListener('click', (e) => {
+  if (e.target === modalBack) hideModal();
+});
+
+/* ===== UPDATE ===== */
 function update(dt){
-  if(!running)return;
-  dt=Math.min(.02,dt);
-  t+=dt;
-  grace=Math.max(0,grace-dt);
+  if (!running) return;
+  dt = Math.min(0.02, dt);
 
-  const ramp=1-Math.exp(-t/40);
-  incline=.04+.85*ramp;
-  required=.30+.55*ramp;
+  t += dt;
+  grace = Math.max(0, grace - dt);
 
-  tapPulse=Math.max(0,tapPulse-(.85+incline)*dt);
-  const target=.22+.75*(tapPulse/1.2)*(0.6+0.4*stamina);
-  speed+=(target-speed)*3*dt;
-  speed=Math.max(0,speed-(.2+.55*incline)*dt);
+  // difficulty ramps
+  const ramp = 1 - Math.exp(-t/40);
+  incline = 0.04 + 0.85*ramp;
+  required = 0.30 + 0.55*ramp;
 
-  stamina=Math.max(0,stamina-(.05+.2*incline+.1*speed)*dt);
-  if(tapPulse>.6)stamina=Math.min(1,stamina+.05*dt);
+  inclinePeak = Math.max(inclinePeak, incline);
 
-  if(grace<=0 && (speed<required||stamina<=0)){
-    wobble+=dt*3;
-    if(wobble>1){
-      gameOver=true; running=false;
-      statusEl.textContent='Flew off 💥';
-      if(t>best){best=t;localStorage.setItem(BEST_KEY,best);bestEl.textContent=best.toFixed(1)+'s';}
+  // tap energy decays faster with incline
+  tapPulse = Math.max(0, tapPulse - (0.85 + 1.05*incline)*dt);
+
+  // speed target from tapping
+  const target = 0.22 + 0.78*(tapPulse/1.2)*(0.62 + 0.38*stamina);
+  speed += (target - speed) * 3.0 * dt;
+
+  // friction / gravity (incline)
+  speed = Math.max(0, speed - (0.20 + 0.56*incline) * dt);
+
+  // stamina drain
+  stamina = Math.max(0, stamina - (0.05 + 0.22*incline + 0.10*speed) * dt);
+  if (tapPulse > 0.65) stamina = Math.min(1, stamina + 0.05*dt);
+
+  // calories (simple arcade calc; feels good)
+  // base + intensity from speed+incline; scaled to look like your screenshot range
+  const intensity = (0.55 + 0.85*speed + 0.75*incline);
+  caloriesThisRun += intensity * 7.2 * dt; // tuned for 100–250 range for ~20–40s
+
+  // fail condition (after grace)
+  if (grace <= 0 && (speed < required - 0.02 || stamina <= 0)){
+    wobble += dt * 3.2;
+    if (wobble > 1){
+      // GAME OVER
+      gameOver = true;
+      running = false;
+      statusEl.textContent = 'Flew off 💥';
+
+      if (t > best){
+        best = t;
+        localStorage.setItem(BEST_KEY, String(best));
+        bestEl.textContent = best.toFixed(1) + 's';
+      }
+
+      // Fill modal stats
+      const cadence = taps / Math.max(0.1, t);
+      mTime.textContent = t.toFixed(1) + 's';
+      mRank.textContent = rankFromTime(t);
+      mCals.textContent = Math.max(0, Math.round(caloriesThisRun)).toString();
+      mCad.textContent = cadence.toFixed(1) + '/s';
+      mIncl.textContent = (inclinePeak * 10).toFixed(1) + '%'; // map 0..0.9 -> 0..9.0%
+
+      showModal();
     }
-  } else wobble=Math.max(0,wobble-dt*2);
+  } else {
+    wobble = Math.max(0, wobble - dt*2.2);
+  }
 }
 
-function draw(){
+/* ===== MOTION CUES (SELL MOVEMENT) ===== */
+function applySceneMotion(){
+  // If game over, keep it mostly still (so it feels "ended") but the GIF can loop visually.
+  if (gameOver){
+    beltFx.style.opacity = 0;
+    speedLines.style.opacity = 0;
+    vignette.style.opacity = 0.25;
+    gif.style.filter = 'drop-shadow(0 0 24px rgba(255,60,90,.55)) drop-shadow(0 26px 42px rgba(0,0,0,.55))';
+    return;
+  }
+
+  const leanDeg = -incline * 10.5;
+  const scale = 0.98 + speed * 0.10;
+
+  const baseRumble = (0.6 + speed*1.6) * (running ? 1 : 0);
+  const panic = wobble > 0 ? (wobble * 2.2) : 0;
+  const rumble = baseRumble + panic;
+
+  const rx = (Math.random()*2-1) * rumble;
+  const ry = (Math.random()*2-1) * rumble;
+
+  const driftY = (speed > 0.65 ? -1.2 : 0) + (incline * -2.0);
+
+  gif.style.transform = `translate(${rx}px, ${ry + driftY}px) rotate(${leanDeg}deg) scale(${scale})`;
+
+  beltPhase += (220 + 1200*speed) * 0.016;
+  beltFx.style.backgroundPosition = `${-beltPhase}px 0px`;
+  beltFx.style.opacity = Math.min(0.55, Math.max(0, (speed - 0.20) * 0.9));
+
+  speedLines.style.opacity = Math.min(0.45, Math.max(0, (speed - 0.35) * 0.55));
+
+  const danger = (grace<=0) && (speed < required+0.01 || stamina < 0.12);
+  vignette.style.opacity = danger ? (0.55 + 0.20*Math.sin(performance.now()/80)) : 0;
+
+  if (danger){
+    gif.style.filter = 'drop-shadow(0 0 18px rgba(255,60,90,.40)) drop-shadow(0 26px 42px rgba(0,0,0,.55))';
+  } else if (speed > 0.75){
+    gif.style.filter = 'drop-shadow(0 0 18px rgba(255,212,0,.35)) drop-shadow(0 26px 42px rgba(0,0,0,.55))';
+  } else {
+    gif.style.filter = 'drop-shadow(0 26px 42px rgba(0,0,0,.55))';
+  }
+}
+
+/* ===== DRAW HUD ONLY ===== */
+function drawHUD(){
   ctx.clearRect(0,0,900,520);
 
-  ctx.fillStyle='rgba(255,255,255,.9)';
-  ctx.font='800 28px system-ui';
-  ctx.fillText(t.toFixed(1)+'s',40,46);
+  // time
+  ctx.fillStyle = 'rgba(255,255,255,.95)';
+  ctx.font = '900 28px system-ui';
+  ctx.fillText(t.toFixed(1)+'s', 34, 52);
 
-  // treadmill
-  ctx.fillStyle='rgba(0,0,0,.45)';
-  ctx.fillRect(160,380,580,60);
+  // cadence + hint
+  const cadence = taps / Math.max(0.1, t);
+  ctx.fillStyle = 'rgba(255,255,255,.72)';
+  ctx.font = '800 13px system-ui';
+  ctx.fillText('Cadence: ' + cadence.toFixed(1) + '/s', 34, 78);
+
+  let sub = 'Warm-up… build rhythm and speed.';
+  if (!running && !gameOver) sub = 'Tap to start. Rhythm beats spam.';
+  if (gameOver) sub = 'Ejected. Snack-first doesn’t mean speed-last.';
+  if (!gameOver && grace<=0 && (speed < required+0.01 || stamina < 0.12)) sub = 'WARNING: keep speed up or you’re getting launched.';
+  ctx.fillText(sub, 34, 102);
 
   // bars
-  drawBar(40,450,380,22,speed,'Speed');
-  drawBar(480,450,380,22,stamina,'Stamina');
-
-  applyGifMotion();
+  drawBar(40, 450, 380, 22, speed, 'Speed', true);
+  drawBar(480, 450, 380, 22, stamina, 'Stamina', false);
 }
 
-function drawBar(x,y,w,h,p,label){
-  ctx.fillStyle='rgba(255,255,255,.15)';
+function drawBar(x,y,w,h,p,label,isSpeed){
+  ctx.fillStyle = 'rgba(255,255,255,.14)';
   ctx.fillRect(x,y,w,h);
-  ctx.fillStyle=label==='Speed'?'#ffd400':'#7fff7f';
-  ctx.fillRect(x,y,w*Math.max(0,Math.min(1,p)),h);
-  ctx.fillStyle='rgba(0,0,0,.8)';
-  ctx.font='700 12px system-ui';
-  ctx.fillText(label,x+6,y+15);
+
+  const val = Math.max(0, Math.min(1, p));
+  ctx.fillStyle = isSpeed ? '#ffd400' : '#7fff7f';
+  ctx.fillRect(x,y,w*val,h);
+
+  ctx.fillStyle = 'rgba(0,0,0,.82)';
+  ctx.font = '900 12px system-ui';
+  ctx.fillText(label, x+8, y+15);
+
+  if (isSpeed){
+    const req = Math.max(0, Math.min(1, required));
+    ctx.strokeStyle = 'rgba(255,255,255,.45)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + w*req, y);
+    ctx.lineTo(x + w*req, y+h);
+    ctx.stroke();
+  }
 }
 
-function applyGifMotion(){
-  const lean = -incline * 12;
-  const scale = .95 + speed*.15;
-  const yStick = 6 - incline*18;   // ✅ keeps feet glued to belt as incline rises
-  const shake = wobble>0 ? Math.sin(performance.now()/60)*wobble*6 : 0;
-
-  gif.style.transform =
-    `translate(${shake}px, ${yStick}px) rotate(${lean}deg) scale(${scale})`;
-}
-
+/* ===== MAIN LOOP ===== */
 function loop(now){
-  const dt=(now-last)/1000; last=now;
-  update(dt); draw();
+  const dt = (now - last) / 1000;
+  last = now;
+
+  update(dt);
+  applySceneMotion();
+  drawHUD();
+
   requestAnimationFrame(loop);
 }
 
