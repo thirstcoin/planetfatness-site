@@ -9,7 +9,6 @@
 :root{
   --purple:#5b2cff;
   --yellow:#ffd400;
-  --bg:#0b0716;
   --panel:rgba(255,255,255,.08);
   --stroke:rgba(255,255,255,.14);
   --text:rgba(255,255,255,.95);
@@ -93,11 +92,29 @@ canvas{
   pointer-events:none;
 }
 
-#hero{
+.heroStack{
+  position:relative;
   height:440px;
-  filter:drop-shadow(0 26px 42px rgba(0,0,0,.55));
+  width:auto;
   transform-origin:center bottom;
+  filter:drop-shadow(0 26px 42px rgba(0,0,0,.55));
   will-change: transform;
+}
+
+.heroStack img{
+  position:absolute;
+  left:50%;
+  bottom:0;
+  transform:translateX(-50%);
+  height:440px;
+  width:auto;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+
+#heroGif{
+  opacity:0;
+  pointer-events:none;
 }
 
 #vignette{
@@ -105,7 +122,25 @@ canvas{
   background:
     radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 40%, rgba(0,0,0,.6) 80%, rgba(0,0,0,.86) 100%);
   opacity:0;
-  transition: opacity .12s ease;
+  transition: opacity .10s ease;
+}
+
+#hitFlash{
+  position:absolute;
+  left:50%;
+  bottom:190px;
+  transform:translateX(-50%) scale(.98);
+  padding:10px 14px;
+  border-radius:999px;
+  background:rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.14);
+  color:rgba(255,255,255,.92);
+  font-weight:1000;
+  font-size:12px;
+  letter-spacing:.4px;
+  backdrop-filter: blur(10px);
+  opacity:0;
+  transition: opacity .10s ease, transform .10s ease;
 }
 
 #meter{
@@ -172,7 +207,6 @@ canvas{
   color:#fff;font-weight:1000;
   cursor:pointer;
 }
-
 .small{ font-size:12px; color:rgba(255,255,255,.72); font-weight:900; }
 </style>
 </head>
@@ -187,14 +221,20 @@ canvas{
 
   <div id="stage">
     <div id="heroWrap">
-      <!-- idle by default; rep gif only when you nail the green -->
-      <img id="hero" src="../assets/lift_idle.png" alt="Planet Fatness Lifter"/>
+      <div class="heroStack" id="heroStack">
+        <img id="heroIdle" src="../assets/lift_idle.png" alt="Planet Fatness Lifter (idle)"/>
+        <img id="heroGif"  src="../assets/lift_hero.gif" alt="Planet Fatness Lifter (rep)"/>
+      </div>
+
+      <div id="hitFlash">CLEAN REP ✅</div>
       <div id="vignette"></div>
+
       <div id="meter">
         <div id="zone"></div>
         <div id="needle"></div>
       </div>
     </div>
+
     <canvas id="c" width="900" height="520"></canvas>
   </div>
 
@@ -221,30 +261,37 @@ canvas{
 </div>
 
 <script>
-/* assets (in /assets) */
+/* assets */
 const IDLE_SRC = "../assets/lift_idle.png";
-const REP_SRC  = "../assets/lift_hero.gif"; // your 1.8s curl gif
+const REP_SRC  = "../assets/lift_hero.gif";
 
 /* daily cap */
 const CAP = 1000;
 
-/* rep timing */
-const REP_MS = 1800;          // your loop length
-const BASE_LOOP = 1.85;       // meter cycle length (seconds)
-const MIN_LOOP  = 0.95;       // how fast it can get at high difficulty
+/* rep feel */
+const REP_SHOW_MS = 1200;   // how long the gif stays visible AFTER it loads
+const REP_COOLDOWN_MS = 80; // tiny buffer so it doesn’t insta-double-trigger
+
+/* needle timing */
+const BASE_LOOP = 1.85;
+const MIN_LOOP  = 0.95;
 
 /* difficulty */
-const BASE_ZONE_W = 0.20;     // 20% of meter width
-const MIN_ZONE_W  = 0.06;     // 6% minimum
-const SHRINK_PER_REP = 0.008; // tighten each success
-const CENTER_BASE = 0.62;     // where the green tends to live
-const JITTER = 0.10;          // how much it slides around
+const BASE_ZONE_W = 0.20;
+const MIN_ZONE_W  = 0.06;
+const SHRINK_PER_REP = 0.008;
+const CENTER_BASE = 0.62;
+const JITTER = 0.10;
 
-/* calories per clean rep */
+/* calories */
 const CAL_PER_REP = 25;
 
 const c = document.getElementById("c"), ctx = c.getContext("2d");
-const hero = document.getElementById("hero");
+const heroStack = document.getElementById("heroStack");
+const heroIdle = document.getElementById("heroIdle");
+const heroGif  = document.getElementById("heroGif");
+const hitFlash = document.getElementById("hitFlash");
+
 const needle = document.getElementById("needle");
 const zone = document.getElementById("zone");
 const vignette = document.getElementById("vignette");
@@ -259,22 +306,24 @@ const mFail = document.getElementById("mFail");
 const mCombo = document.getElementById("mCombo");
 
 let start = performance.now();
-let last = start;
-
 let running = false;
 let over = false;
 
 let calories = 0;
-let combo = 0;          // clean reps in a row
+let combo = 0;
 let bestCombo = 0;
 
-let repLock = false;    // prevents double-trigger while gif plays
+let zoneLeft = 0.52;
+let zoneW = BASE_ZONE_W;
+let loopSeconds = BASE_LOOP;
 
-/* daily reset tracking */
+let repLock = false;
+let repTimer = null;
+let repSeq = 0;
+
 function nextMidnight(){
-  const d = new Date();
-  const t = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
-  return t.getTime();
+  const d=new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
 }
 let resetAt = Number(localStorage.getItem("phat_reset_lift") || nextMidnight());
 let today = Number(localStorage.getItem("phat_today_lift") || 0);
@@ -286,41 +335,71 @@ if (Date.now() > resetAt){
 }
 todayEl.textContent = today;
 
-/* dynamic zone bounds */
-let zoneLeft = 0.52;
-let zoneW = BASE_ZONE_W;
-
-/* meter speed (loop length) changes with difficulty */
-let loopSeconds = BASE_LOOP;
-
-/* set zone UI */
 function applyZone(){
-  // clamp bounds
   zoneW = Math.max(MIN_ZONE_W, Math.min(BASE_ZONE_W, zoneW));
   zoneLeft = Math.max(0, Math.min(1 - zoneW, zoneLeft));
   zone.style.left = (zoneLeft * 100) + "%";
   zone.style.width = (zoneW * 100) + "%";
 }
-
 function rerollZone(){
-  const w = zoneW;
-  const center = CENTER_BASE + (Math.random() * 2 - 1) * JITTER;
-  zoneLeft = center - w / 2;
+  const center = CENTER_BASE + (Math.random()*2 - 1) * JITTER;
+  zoneLeft = center - zoneW/2;
   applyZone();
 }
+function setDifficulty(){
+  zoneW = Math.max(MIN_ZONE_W, BASE_ZONE_W - combo * SHRINK_PER_REP);
 
-function setDifficultyFromCombo(){
-  zoneW = BASE_ZONE_W - combo * SHRINK_PER_REP;
-  zoneW = Math.max(MIN_ZONE_W, zoneW);
-
-  const t = combo / 18; // ramp
-  loopSeconds = BASE_LOOP - (BASE_LOOP - MIN_LOOP) * Math.min(1, t);
-  loopSeconds = Math.max(MIN_LOOP, loopSeconds);
+  const t = combo / 18;
+  loopSeconds = Math.max(MIN_LOOP, BASE_LOOP - (BASE_LOOP - MIN_LOOP) * Math.min(1, t));
 
   rerollZone();
 }
 
-/* end modal */
+function flashHit(text){
+  hitFlash.textContent = text;
+  hitFlash.style.opacity = 1;
+  hitFlash.style.transform = "translateX(-50%) scale(1)";
+  setTimeout(() => {
+    hitFlash.style.opacity = 0;
+    hitFlash.style.transform = "translateX(-50%) scale(.98)";
+  }, 320);
+}
+
+/* KEY FIX:
+   Start the “go back to idle” timer ONLY after the gif has loaded. */
+function playRep(){
+  if (repLock || over) return;
+  repLock = true;
+
+  // show something instantly so it feels responsive
+  flashHit(combo >= 3 ? `CLEAN REP x${combo} ✅` : "CLEAN REP ✅");
+
+  // flip to “rep mode” immediately
+  heroIdle.style.opacity = 0;
+  heroGif.style.opacity = 1;
+
+  // clear any previous timers
+  if (repTimer) { clearTimeout(repTimer); repTimer = null; }
+
+  // set onload BEFORE changing src
+  heroGif.onload = () => {
+    // keep rep visible for a consistent time AFTER load
+    if (repTimer) clearTimeout(repTimer);
+    repTimer = setTimeout(() => {
+      heroGif.style.opacity = 0;
+      heroIdle.style.opacity = 1;
+      repTimer = null;
+      setTimeout(() => { repLock = false; }, REP_COOLDOWN_MS);
+    }, REP_SHOW_MS);
+  };
+
+  // restart the gif (cache-bust) AFTER onload is attached
+  repSeq++;
+  heroGif.src = REP_SRC + "?r=" + repSeq;
+
+  // if it’s already cached and loads “instantly”, onload still fires.
+}
+
 function showEnd(reasonText){
   over = true;
   vignette.style.opacity = 1;
@@ -330,32 +409,14 @@ function showEnd(reasonText){
   mTime.textContent = t.toFixed(1) + "s";
   mCal.textContent = calories;
   mCombo.textContent = bestCombo;
-
   mFail.textContent = reasonText;
 
   localStorage.setItem("phat_today_lift", today);
   localStorage.setItem("phat_reset_lift", resetAt);
 }
 
-/* play rep animation only on success */
-function playRep(){
-  if (repLock) return;
-  repLock = true;
-
-  // force restart gif
-  hero.src = REP_SRC + "?t=" + Date.now();
-
-  setTimeout(() => {
-    hero.src = IDLE_SRC;
-    repLock = false;
-  }, REP_MS);
-}
-
-/* input: tap & release */
 function onRelease(){
   if (!running || over) return;
-
-  // lockout if already playing rep
   if (repLock) return;
 
   const now = performance.now();
@@ -364,7 +425,6 @@ function onRelease(){
   const inGreen = (phase >= zoneLeft) && (phase <= (zoneLeft + zoneW));
 
   if (inGreen){
-    // success
     combo++;
     bestCombo = Math.max(bestCombo, combo);
 
@@ -379,14 +439,9 @@ function onRelease(){
       ? "Clean rep. Ego preserved. ✅"
       : `Clean rep x${combo}. Green gets meaner. 😤`;
 
-    // tighten difficulty + slide the zone
-    setDifficultyFromCombo();
-
-    // visual: play rep + tiny bounce
+    setDifficulty();
     playRep();
-
   } else {
-    // fail
     combo = 0;
     const reasons = [
       "Pinned by Pizza",
@@ -400,27 +455,21 @@ function onRelease(){
 }
 
 window.addEventListener("pointerup", onRelease);
-window.addEventListener("keyup", (e) => {
-  if (e.code === "Space") onRelease();
-});
+window.addEventListener("keyup", (e) => { if (e.code === "Space") onRelease(); });
 
-/* buttons */
 document.getElementById("restart").onclick = () => location.reload();
 document.getElementById("again").onclick = () => location.reload();
 document.getElementById("close").onclick = () => modalBack.style.display = "none";
 
-/* draw minimal vibe behind the hero (keeps the UI feeling “alive”) */
 function drawBackground(t){
   ctx.clearRect(0,0,900,520);
 
-  // subtle floor glow
   const g = ctx.createRadialGradient(450, 420, 40, 450, 420, 520);
   g.addColorStop(0, "rgba(255,212,0,0.12)");
   g.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = g;
   ctx.fillRect(0,0,900,520);
 
-  // tiny sparkles
   ctx.globalAlpha = 0.35;
   for (let i=0;i<22;i++){
     const x = (Math.sin(t/900 + i*1.7)*0.5+0.5)*900;
@@ -430,7 +479,6 @@ function drawBackground(t){
   }
   ctx.globalAlpha = 1;
 
-  // labels on the left like a HUD
   ctx.fillStyle = "rgba(255,255,255,.92)";
   ctx.font = "900 28px system-ui";
   const secs = ((performance.now() - start) / 1000);
@@ -444,7 +492,6 @@ function drawBackground(t){
   ctx.font = "800 12px system-ui";
   ctx.fillText("Tap & release when the needle hits green.", 34, 100);
 
-  // danger hint
   if (!over && combo >= 6){
     ctx.fillStyle = "rgba(255,77,109,.85)";
     ctx.font = "900 12px system-ui";
@@ -452,38 +499,39 @@ function drawBackground(t){
   }
 }
 
-/* main loop */
 function loop(){
   const now = performance.now();
-  last = now;
 
   if (!running){
     running = true;
     start = now;
+    heroIdle.src = IDLE_SRC;
 
-    // init zone
+    // preload the gif once so first rep feels snappy
+    const pre = new Image();
+    pre.src = REP_SRC;
+
+    heroIdle.style.opacity = 1;
+    heroGif.style.opacity = 0;
+
     zoneW = BASE_ZONE_W;
-    rerollZone();
     loopSeconds = BASE_LOOP;
-    hero.src = IDLE_SRC;
+    rerollZone();
   }
 
   if (!over){
     const phase = (((now - start) / 1000) % loopSeconds) / loopSeconds;
     needle.style.left = (phase * 100) + "%";
 
-    // little idle wobble
-    const wob = Math.sin(now/140) * 0.012 + Math.sin(now/480) * 0.010;
+    const wob = Math.sin(now/140)*0.012 + Math.sin(now/480)*0.010;
     const scale = 1 + 0.020 + wob;
-    hero.style.transform = `translateY(${Math.sin(now/180)*2}px) scale(${scale})`;
+    heroStack.style.transform = `translateY(${Math.sin(now/180)*2}px) scale(${scale})`;
   }
 
   drawBackground(now);
-
   requestAnimationFrame(loop);
 }
 
-/* reset countdown */
 function tick(){
   const r = Math.max(0, resetAt - Date.now());
   const h = String(Math.floor(r/36e5)).padStart(2,'0');
