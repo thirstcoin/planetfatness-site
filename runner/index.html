@@ -2,49 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <title>$PHAT — Treadmill Rage Runner</title>
-  <meta name="theme-color" content="#5b2cff" />
-  <meta name="color-scheme" content="dark" />
 
   <style>
-    :root{
+    :root {
       --purple:#5b2cff;
-      --purple2:#a278ff;
       --yellow:#ffd400;
-
-      --bg0:#07050c;
-      --bg1:#0b0716;
-
+      --bg:#0b0716;
       --panel:rgba(255,255,255,.08);
       --stroke:rgba(255,255,255,.12);
-
-      --text:rgba(255,255,255,.94);
-      --muted:rgba(255,255,255,.70);
-
-      --shadow:0 30px 90px rgba(0,0,0,.55);
-      --shadow2:0 18px 50px rgba(0,0,0,.45);
+      --text:rgba(255,255,255,.95);
+      --muted:rgba(255,255,255,.65);
     }
 
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; margin:0; }
-    body{
+    html,body{
+      margin:0;
+      height:100%;
       background:
-        radial-gradient(1100px 650px at 20% 10%, rgba(91,44,255,.35), transparent 55%),
-        radial-gradient(900px 560px at 85% 20%, rgba(255,212,0,.22), transparent 60%),
-        radial-gradient(900px 560px at 55% 120%, rgba(162,120,255,.18), transparent 60%),
-        linear-gradient(180deg, var(--bg1), var(--bg0));
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        radial-gradient(900px 500px at 50% 0%, rgba(91,44,255,.35), transparent 60%),
+        radial-gradient(700px 400px at 50% 100%, rgba(255,212,0,.25), transparent 60%),
+        linear-gradient(180deg, #140b2b, #07050c);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
       overflow:hidden;
-    }
-
-    .grain{
-      pointer-events:none;
-      position:fixed; inset:0;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
-      mix-blend-mode: overlay;
-      opacity:.08;
     }
 
     #wrap{
@@ -53,971 +34,206 @@
       flex-direction:column;
       align-items:center;
       justify-content:center;
-      gap:10px;
+      gap:12px;
       padding:14px;
     }
 
-    .hud{
-      width:min(980px, 100%);
+    .row{
+      width:min(920px,100%);
       display:flex;
       justify-content:space-between;
       align-items:center;
       gap:10px;
       flex-wrap:wrap;
-      margin-bottom:6px;
-    }
-
-    .brand{
-      display:flex; align-items:center; gap:10px;
-      padding:10px 12px;
-      border-radius:999px;
-      background:rgba(0,0,0,.20);
-      border:1px solid rgba(255,255,255,.12);
-      box-shadow: var(--shadow2);
-      backdrop-filter: blur(10px);
-    }
-    .mark{
-      width:28px; height:28px; border-radius:10px;
-      background: radial-gradient(circle at 30% 30%, var(--yellow), var(--purple));
-      border:1px solid rgba(255,255,255,.12);
-      box-shadow:0 16px 40px rgba(91,44,255,.25);
-      position:relative;
-      overflow:hidden;
-    }
-    .mark:after{
-      content:"";
-      position:absolute; inset:0;
-      background: radial-gradient(circle at 20% 10%, rgba(255,255,255,.55), transparent 42%);
-      opacity:.65;
-    }
-    .brand .t1{ font-weight:1000; letter-spacing:.2px; font-size:13px; }
-    .brand .t2{ color:var(--muted); font-size:12px; font-weight:800; }
-
-    .pills{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-      margin-left:auto;
     }
 
     .pill{
-      padding:10px 12px;
+      padding:8px 14px;
       border-radius:999px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.12);
-      font-size:12px;
-      font-weight:950;
-      color:rgba(255,255,255,.82);
-      box-shadow: var(--shadow2);
-      backdrop-filter: blur(10px);
-      display:flex; align-items:center; gap:8px;
-      user-select:none;
-      white-space:nowrap;
+      background:var(--panel);
+      border:1px solid var(--stroke);
+      font-size:13px;
+      font-weight:800;
+      color:var(--muted);
     }
-
-    .dot{ width:8px; height:8px; border-radius:999px; background:var(--yellow); box-shadow:0 0 0 6px rgba(255,212,0,.12); }
 
     .btn{
-      padding:10px 14px;
+      padding:10px 16px;
       border-radius:14px;
-      font-weight:1000;
-      font-size:12px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.22);
-      color:rgba(255,255,255,.92);
-      box-shadow: var(--shadow2);
-      cursor:pointer;
-      transition: transform .12s ease, border-color .12s ease, background .12s ease;
-    }
-    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.06); }
-    .btn.primary{
-      background: linear-gradient(180deg, var(--yellow), #ffbf00);
+      font-weight:900;
+      background:linear-gradient(180deg, var(--yellow), #ffbf00);
       color:#1b1400;
-      border-color: rgba(0,0,0,.18);
-      box-shadow:0 18px 44px rgba(255,212,0,.22);
+      border:none;
+      box-shadow:0 14px 30px rgba(255,212,0,.45);
+      cursor:pointer;
     }
 
-    /* Stage wraps canvas + GIF layer */
     #stage{
-      width:min(980px, 100%);
       position:relative;
+      width:min(920px,100%);
     }
 
     canvas{
       width:100%;
-      border-radius:22px;
+      border-radius:20px;
       background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border:1px solid rgba(255,255,255,.12);
-      box-shadow: var(--shadow);
+      border:1px solid var(--stroke);
+      box-shadow:0 30px 90px rgba(0,0,0,.55);
       touch-action:manipulation;
       display:block;
     }
 
-    /* Runner GIF layer */
+    /* Runner overlay */
     #runnerWrap{
       position:absolute;
-      left:0; top:0;
-      width:100%;
-      height:100%;
+      inset:0;
       pointer-events:none;
       display:flex;
       align-items:flex-end;
       justify-content:center;
-      z-index:5;
     }
 
     #runnerGif{
-      height: 320px;
-      width:auto;
+      height:320px;
       transform-origin:center bottom;
       filter: drop-shadow(0 30px 40px rgba(0,0,0,.55));
-      will-change: transform, filter;
-      image-rendering:auto;
-      margin-bottom: 92px; /* aligns feet near belt */
+      margin-bottom:14px; /* ✅ BASE BELT ALIGNMENT */
+      will-change: transform;
     }
-
-    .bottom{
-      width:min(980px,100%);
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:6px;
-    }
-
-    .toast{
-      position:fixed;
-      left:50%;
-      bottom:18px;
-      transform:translateX(-50%);
-      background: rgba(0,0,0,.55);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius: 999px;
-      padding: 10px 14px;
-      color: rgba(255,255,255,.92);
-      font-weight: 1000;
-      font-size: 13px;
-      box-shadow: var(--shadow2);
-      backdrop-filter: blur(12px);
-      display:none;
-      z-index:50;
-      max-width: calc(100% - 24px);
-      text-align:center;
-    }
-
-    .overlay{
-      position:fixed; inset:0;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-      z-index:40;
-      background: radial-gradient(800px 400px at 50% 30%, rgba(91,44,255,.25), rgba(0,0,0,.55));
-      backdrop-filter: blur(10px);
-    }
-    .modal{
-      width:min(620px, 100%);
-      border-radius:24px;
-      background: rgba(0,0,0,.35);
-      border:1px solid rgba(255,255,255,.12);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
-    }
-    .modal:before{
-      content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(640px 340px at 18% 0%, rgba(91,44,255,.35), transparent 60%),
-        radial-gradient(640px 340px at 88% 30%, rgba(255,212,0,.22), transparent 62%);
-      opacity:.9;
-      pointer-events:none;
-    }
-    .modal .pad{ position:relative; padding:18px; }
-    .modal h2{ margin:0 0 6px; font-size:18px; letter-spacing:.2px; }
-    .modal p{ margin:0 0 12px; color:rgba(255,255,255,.72); line-height:1.45; font-weight:800; font-size:13px; }
-
-    .modalGrid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-      margin-top:12px;
-    }
-    @media (max-width:560px){ .modalGrid{ grid-template-columns:1fr; } }
-
-    .statCard{
-      border-radius:16px;
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);
-      padding:12px;
-      position:relative;
-      overflow:hidden;
-    }
-    .statCard:before{
-      content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(260px 160px at 20% 0%, rgba(91,44,255,.22), transparent 65%),
-        radial-gradient(260px 160px at 90% 30%, rgba(255,212,0,.14), transparent 65%);
-      opacity:.9;
-      pointer-events:none;
-    }
-    .statCard .k{ position:relative; color:rgba(255,255,255,.70); font-size:12px; font-weight:900; margin-bottom:6px; }
-    .statCard .v{ position:relative; font-size:22px; font-weight:1000; letter-spacing:-.4px; }
-    .statCard .s{ position:relative; color:rgba(255,255,255,.64); font-size:12px; font-weight:850; margin-top:4px; }
-
-    .modalActions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
   </style>
 </head>
 
 <body>
-  <div class="grain"></div>
-  <div class="toast" id="toast"></div>
+<div id="wrap">
 
-  <div id="wrap">
-    <div class="hud">
-      <div class="brand">
-        <div class="mark"></div>
-        <div>
-          <div class="t1">$PHAT — Treadmill Rage Runner</div>
-          <div class="t2">tap to survive • stack calories • fly off with honor</div>
-        </div>
-      </div>
+  <div class="row">
+    <div class="pill">$PHAT — Treadmill Rage Runner</div>
+    <div class="pill" id="status">Tap to start</div>
+    <button class="btn" onclick="resetGame()">Restart</button>
+  </div>
 
-      <div class="pills">
-        <div class="pill" id="memberPill"><span class="dot"></span>Guest Mode</div>
-        <div class="pill" id="statePill">Ready</div>
-        <button class="btn" id="pauseBtn">Pause</button>
-        <button class="btn" id="restartBtn">Restart</button>
-        <button class="btn primary" id="siteBtn">Site</button>
-      </div>
-    </div>
-
-    <div id="stage">
-      <canvas id="c" width="960" height="540"></canvas>
-      <div id="runnerWrap">
-        <!-- Put your GIF at: assets/runner.gif -->
-        <img id="runnerGif" src="../assets/runner.gif" alt="Planet Fatness Runner">
-      </div>
-    </div>
-
-    <div class="bottom">
-      <div class="pill">Controls: Tap / Click / Space</div>
-      <div class="pill">Best Run: <span id="best">0.0s</span></div>
-      <div class="pill" id="tipPill">Tip: Tap in rhythm. Panic taps waste stamina.</div>
+  <div id="stage">
+    <canvas id="c" width="900" height="520"></canvas>
+    <div id="runnerWrap">
+      <!-- MUST EXIST: /assets/runner.gif -->
+      <img id="runnerGif" src="../assets/runner.gif" />
     </div>
   </div>
 
-  <div class="overlay" id="overlay">
-    <div class="modal">
-      <div class="pad">
-        <h2 id="overTitle">You flew off 💥</h2>
-        <p id="overSub">Respect. Your treadmill didn’t win… it just got lucky.</p>
-
-        <div class="modalGrid">
-          <div class="statCard">
-            <div class="k">Run Time</div>
-            <div class="v" id="mTime">0.0s</div>
-            <div class="s" id="mRank">Rank: —</div>
-          </div>
-          <div class="statCard">
-            <div class="k">Calories (this run)</div>
-            <div class="v" id="mCals">0</div>
-            <div class="s" id="mCalsSub">Connect on the site to stack lifetime calories</div>
-          </div>
-          <div class="statCard">
-            <div class="k">Cadence</div>
-            <div class="v" id="mCad">0.0/s</div>
-            <div class="s" id="mCadSub">Smooth > spam</div>
-          </div>
-          <div class="statCard">
-            <div class="k">Incline Peak</div>
-            <div class="v" id="mInc">0.0%</div>
-            <div class="s">The belt was disrespectful</div>
-          </div>
-        </div>
-
-        <div class="modalActions">
-          <button class="btn primary" id="playAgainBtn">Run it back</button>
-          <button class="btn" id="closeBtn">Close</button>
-          <a class="btn" href="https://planetfatness.fit/#leaderboard">Leaderboard</a>
-        </div>
-      </div>
-    </div>
+  <div class="row">
+    <div class="pill">Controls: Tap / Click / Space</div>
+    <div class="pill">Best: <span id="best">0.0s</span></div>
   </div>
+
+</div>
 
 <script>
-/* ====== CONFIG ====== */
-const HOME_URL = "https://planetfatness.fit/";
-const TOKEN_KEY = "phat_token";
-const ADDR_KEY  = "phat_address";
-const BEST_KEY  = "phat_treadmill_best_seconds";
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const statusEl = document.getElementById('status');
+const bestEl = document.getElementById('best');
+const gif = document.getElementById('runnerGif');
 
-/* ====== DOM ====== */
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
+const BEST_KEY = 'phat_best';
+let best = Number(localStorage.getItem(BEST_KEY)||0);
+bestEl.textContent = best.toFixed(1)+'s';
 
-const runnerGif = document.getElementById("runnerGif");
-
-const toastEl = document.getElementById("toast");
-const overlay = document.getElementById("overlay");
-
-const statePill = document.getElementById("statePill");
-const memberPill = document.getElementById("memberPill");
-const tipPill = document.getElementById("tipPill");
-const bestEl = document.getElementById("best");
-
-const pauseBtn = document.getElementById("pauseBtn");
-const restartBtn = document.getElementById("restartBtn");
-const siteBtn = document.getElementById("siteBtn");
-
-const playAgainBtn = document.getElementById("playAgainBtn");
-const closeBtn = document.getElementById("closeBtn");
-
-const mTime = document.getElementById("mTime");
-const mRank = document.getElementById("mRank");
-const mCals = document.getElementById("mCals");
-const mCalsSub = document.getElementById("mCalsSub");
-const mCad = document.getElementById("mCad");
-const mCadSub = document.getElementById("mCadSub");
-const mInc = document.getElementById("mInc");
-
-/* ====== UTILS ====== */
-function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-function rand(a,b){ return a + Math.random()*(b-a); }
-function shortAddr(a){ return a ? (a.slice(0,4)+"…"+a.slice(-4)) : ""; }
-
-function getToken(){ return localStorage.getItem(TOKEN_KEY) || ""; }
-function getAddr(){ return localStorage.getItem(ADDR_KEY) || ""; }
-
-function setMemberUI(){
-  const addr = getAddr();
-  const tok = getToken();
-  if (addr && tok){
-    memberPill.innerHTML = `<span class="dot"></span>Member: ${shortAddr(addr)}`;
-    mCalsSub.textContent = "This run stacks to your lifetime calories";
-  } else {
-    memberPill.innerHTML = `<span class="dot"></span>Guest Mode`;
-    mCalsSub.textContent = "Connect on the site to stack lifetime calories";
-  }
-}
-setMemberUI();
-
-function toast(msg){
-  toastEl.textContent = msg;
-  toastEl.style.display = "block";
-  clearTimeout(window.__toastT);
-  window.__toastT = setTimeout(() => toastEl.style.display = "none", 2500);
-}
-
-/* incline (0..~0.9) -> degrees (2..12) */
-function inclineDeg(inc){
-  const t = clamp((inc - 0.04) / 0.84, 0, 1);
-  return 2 + t * 10;
-}
-
-/* ====== SOUND (tiny) ====== */
-let audioOn = true;
-let ac = null;
-function audioInit(){
-  if (ac) return;
-  try{ ac = new (window.AudioContext || window.webkitAudioContext)(); } catch { ac = null; }
-}
-function beep(freq=240, dur=0.06, type="sine", gain=0.06){
-  if (!audioOn || !ac) return;
-  const t0 = ac.currentTime;
-  const o = ac.createOscillator();
-  const g = ac.createGain();
-  o.type = type;
-  o.frequency.value = freq;
-  g.gain.value = gain;
-  o.connect(g); g.connect(ac.destination);
-  o.start(t0); o.stop(t0 + dur);
-}
-function thump(){ beep(120,0.03,"sine",0.05); beep(70,0.05,"sine",0.03); }
-function warn(){ beep(520,0.05,"square",0.03); }
-function crash(){ beep(90,0.12,"sawtooth",0.06); beep(55,0.18,"sine",0.05); }
-
-/* ====== GAME STATE ====== */
-let best = Number(localStorage.getItem(BEST_KEY) || 0);
-bestEl.textContent = best.toFixed(1) + "s";
-
-let running = false;
-let paused = false;
-let gameOver = false;
-
-let t = 0;
-let last = performance.now();
-
-let speed = 0.34;
-let stamina = 1;
-let incline = 0;
-let required = 0.30;
-
-let tapPulse = 0;
-let wobble = 0;
-let legPhase = 0;
-
-let shake = 0;
-let flash = 0;
-let slowMo = 1;
-let grace = 0;
-let warnTimer = 0;
-
-let taps = 0;
-let maxInclineSeen = 0;
-let lastTapAt = 0;
-let cadenceSmooth = 0;
-let combo = 0;
-let comboSmooth = 0;
-
-const sweat = [];
-const sparks = [];
-const streaks = [];
+let running=false, gameOver=false;
+let t=0,last=performance.now();
+let speed=.34, stamina=1, incline=0, required=.32;
+let tapPulse=0, wobble=0, grace=1.2;
 
 function resetGame(){
-  running=false; paused=false; gameOver=false;
-  t=0;
-
-  speed=0.34; stamina=1; incline=0; required=0.30;
-  tapPulse=0; wobble=0; legPhase=0;
-
-  shake=0; flash=0; slowMo=1; grace=1.35; warnTimer=0;
-
-  taps=0; maxInclineSeen=0; lastTapAt=performance.now();
-  cadenceSmooth=0; combo=0; comboSmooth=0;
-
-  sweat.length=0; sparks.length=0; streaks.length=0;
-
-  overlay.style.display="none";
-  statePill.textContent="Ready";
-  tipPill.textContent="Tip: Tap in rhythm. Panic taps waste stamina.";
-  pauseBtn.textContent = "Pause";
-
-  // reset gif transform
-  runnerGif.style.transform = "translateX(0px) rotate(0deg) scale(1)";
-  runnerGif.style.filter = "drop-shadow(0 30px 40px rgba(0,0,0,.55))";
-
-  last = performance.now();
-}
-
-function startRunNow(){
-  running=true; paused=false; gameOver=false;
-  last = performance.now();
-  tapPulse = Math.max(tapPulse, 0.62);
-  flash = 0.35; shake = 6;
-  statePill.textContent="RUN";
-  tipPill.textContent="Tap to keep the belt under you. Don’t let speed drop.";
-  pauseBtn.textContent = "Pause";
-}
-
-function togglePause(){
-  if (!running && !gameOver) return;
-  paused = !paused;
-  if (paused){
-    statePill.textContent="Paused";
-    tipPill.textContent="Paused. Hit Pause again to resume.";
-    pauseBtn.textContent = "Resume";
-  } else {
-    last = performance.now();
-    statePill.textContent = running ? "RUN" : "Ready";
-    tipPill.textContent="Back at it. Rhythm > spam.";
-    pauseBtn.textContent = "Pause";
-  }
-}
-
-function rankForTime(s){
-  if (s >= 120) return "CHAD GOD";
-  if (s >= 75)  return "PLANET BOSS";
-  if (s >= 45)  return "GYM RAT";
-  if (s >= 25)  return "SWEATY DEGEN";
-  if (s >= 12)  return "NEW YEAR SIGNUP";
-  return "TREADMILL VICTIM";
-}
-
-function caloriesEstimate(seconds, maxInc, taps){
-  const tps = taps / Math.max(1, seconds);
-  const incMult = 1 + Math.min(1.2, maxInc / 12);
-  const cadMult = 1 + Math.min(0.8, tps / 12);
-  const base = seconds * 2.2;
-  return Math.max(1, Math.round(base * incMult * cadMult));
-}
-
-function spawnTapJuice(){
-  for (let i=0;i<3;i++){
-    sweat.push({ x: rand(410, 460), y: rand(210, 260), vx: rand(-35, 35), vy: rand(-160, -80), life: rand(0.5, 0.95), r: rand(2.5, 4.0) });
-  }
-  for (let i=0;i<4;i++){
-    sparks.push({ x: rand(290, 760), y: rand(405, 430), vx: rand(-220, -80), vy: rand(-60, 10), life: rand(0.22, 0.52) });
-  }
+  running=false; gameOver=false;
+  t=0; speed=.34; stamina=1; incline=0; required=.32;
+  tapPulse=0; wobble=0; grace=1.2;
+  last=performance.now();
+  statusEl.textContent='Tap to start';
 }
 
 function tap(){
-  audioInit();
-  if (ac && ac.state === "suspended") ac.resume().catch(()=>{});
-
-  if (paused){ togglePause(); return; }
-
-  if (gameOver){
-    resetGame();
-    startRunNow();
-    tapPulse = Math.min(1.85, tapPulse + 0.22);
-    taps++; thump(); spawnTapJuice();
-    return;
-  }
-  if (!running) startRunNow();
-
-  const now = performance.now();
-  const delta = (now - lastTapAt) / 1000;
-  lastTapAt = now;
-
-  const rhythm = 1 - Math.min(1, Math.abs(delta - 0.36) / 0.28);
-  if (rhythm > 0.35) combo = Math.min(25, combo + 1);
-  else combo = Math.max(0, combo - 1);
-
-  tapPulse = Math.min(1.85, tapPulse + (0.16 + 0.05 * Math.min(1, combo/12)));
-  taps++;
-
-  shake = Math.min(10, shake + 1.4);
-  flash = Math.min(0.8, flash + 0.12);
-
-  thump();
-  spawnTapJuice();
+  if(gameOver){ resetGame(); running=true; return; }
+  if(!running){ running=true; last=performance.now(); statusEl.textContent='RUN'; }
+  tapPulse=Math.min(1.8,tapPulse+.18);
 }
 
-window.addEventListener("pointerdown", tap);
-window.addEventListener("keydown", e => {
-  if (e.code === "Space") tap();
-  if (e.code === "KeyP") togglePause();
-});
+window.addEventListener('pointerdown',tap);
+window.addEventListener('keydown',e=>{if(e.code==='Space')tap();});
 
-/* ====== PARTICLES ====== */
-function updateParticles(dt){
-  for (let i=sweat.length-1;i>=0;i--){
-    const p=sweat[i];
-    p.life -= dt;
-    p.vy += 320*dt;
-    p.x += p.vx*dt;
-    p.y += p.vy*dt;
-    if (p.life<=0) sweat.splice(i,1);
-  }
-  for (let i=sparks.length-1;i>=0;i--){
-    const p=sparks[i];
-    p.life -= dt;
-    p.vy += 250*dt;
-    p.x += p.vx*dt;
-    p.y += p.vy*dt;
-    if (p.life<=0) sparks.splice(i,1);
-  }
-  if (running && Math.random() < 0.10 + 0.22*speed){
-    streaks.push({ x: rand(120, 980), y: rand(70, 320), vx: rand(-950, -520), life: rand(0.18, 0.32), w: rand(50, 110) });
-  }
-  for (let i=streaks.length-1;i>=0;i--){
-    const s=streaks[i];
-    s.life -= dt;
-    s.x += s.vx*dt;
-    if (s.life<=0) streaks.splice(i,1);
-  }
-}
+function update(dt){
+  if(!running)return;
+  dt=Math.min(.02,dt);
+  t+=dt;
+  grace=Math.max(0,grace-dt);
 
-/* ====== GAME OVER ====== */
-function triggerGameOver(){
-  if (gameOver) return;
-  gameOver=true;
-  running=false;
+  const ramp=1-Math.exp(-t/40);
+  incline=.04+.85*ramp;
+  required=.30+.55*ramp;
 
-  crash();
-  flash=1;
-  shake=18;
+  tapPulse=Math.max(0,tapPulse-(.85+incline)*dt);
+  const target=.22+.75*(tapPulse/1.2)*(0.6+0.4*stamina);
+  speed+=(target-speed)*3*dt;
+  speed=Math.max(0,speed-(.2+.55*incline)*dt);
 
-  slowMo=0.5;
-  setTimeout(()=>slowMo=1, 220);
+  stamina=Math.max(0,stamina-(.05+.2*incline+.1*speed)*dt);
+  if(tapPulse>.6)stamina=Math.min(1,stamina+.05*dt);
 
-  if (t>best){
-    best=t;
-    localStorage.setItem(BEST_KEY, best);
-    bestEl.textContent = best.toFixed(1)+"s";
-  }
-
-  const runCals = caloriesEstimate(t, maxInclineSeen, taps);
-  const rank = rankForTime(t);
-  const tps = taps / Math.max(1,t);
-
-  mTime.textContent = t.toFixed(1)+"s";
-  mRank.textContent = "Rank: " + rank;
-  mCals.textContent = runCals.toLocaleString();
-  mCad.textContent = tps.toFixed(1)+"/s";
-  mInc.textContent = maxInclineSeen.toFixed(1)+"%";
-
-  if (tps>=8) mCadSub.textContent="Certified menace cadence";
-  else if (tps>=5) mCadSub.textContent="Solid rhythm. Respect.";
-  else mCadSub.textContent="Needs more chaos taps (lightly).";
-
-  const titles=[
-    ["Ejected 💥","Snack-first doesn’t mean speed-last."],
-    ["Launched 💥","The belt chose violence."],
-    ["Treadmill W","Run it back. No excuses."],
-    ["Yeeted 💥","Planet Fatness does not fear embarrassment."]
-  ];
-  const pick=titles[Math.floor(Math.random()*titles.length)];
-  document.getElementById("overTitle").textContent=pick[0];
-  document.getElementById("overSub").textContent=pick[1];
-
-  overlay.style.display="flex";
-  statePill.textContent="Flew off 💥";
-
-  if (getToken() && getAddr()) toast("Run saved. Keep stacking lifetime calories.");
-  else toast("Guest run complete. Connect on the site to stack lifetime calories.");
-}
-
-/* ====== UPDATE ====== */
-function update(dtRaw){
-  if (!running || paused) return;
-
-  let dt = Math.min(0.02, dtRaw) * slowMo;
-
-  t += dt;
-  grace = Math.max(0, grace - dt);
-
-  const ramp = 1 - Math.exp(-t/48);
-  incline = 0.04 + 0.84*ramp;
-  required = 0.30 + 0.55*ramp;
-
-  const incPct = incline * 12.5;
-  if (incPct > maxInclineSeen) maxInclineSeen = incPct;
-
-  tapPulse = Math.max(0, tapPulse - (0.86 + 1.02*incline) * dt);
-
-  const tps = taps / Math.max(1,t);
-  cadenceSmooth += (tps - cadenceSmooth) * 0.08;
-  comboSmooth += (combo - comboSmooth) * 0.10;
-
-  const comboBoost = 0.02 * Math.min(1, comboSmooth/16);
-  const target = 0.22 + 0.74*(tapPulse/1.2) * (0.66 + 0.34*stamina) + comboBoost;
-
-  speed += (target - speed) * 3.2 * dt;
-  speed = Math.max(0, speed - (0.20 + 0.52*incline) * dt);
-
-  const early = t < 7 ? 0.68 : 1.0;
-  stamina = Math.max(0, stamina - early*(0.05 + 0.22*incline + 0.10*speed) * dt);
-  if (tapPulse > 0.70) stamina = Math.min(1, stamina + 0.05*dt);
-
-  legPhase = (legPhase + dt*(1.6 + 5.2*speed)) % 1;
-
-  const danger = (grace<=0) && (speed < required+0.01 || stamina < 0.12);
-
-  if (grace<=0){
-    if (speed < required - 0.02 || stamina <= 0){
-      wobble += dt * 3.2;
-      shake = Math.min(14, shake + dt * 18);
-
-      warnTimer += dt;
-      if (warnTimer > 0.25){
-        warnTimer = 0;
-        warn();
-      }
-
-      if (wobble > 1) triggerGameOver();
-    } else {
-      wobble = Math.max(0, wobble - dt*2.4);
-      warnTimer = Math.max(0, warnTimer - dt*2);
+  if(grace<=0 && (speed<required||stamina<=0)){
+    wobble+=dt*3;
+    if(wobble>1){
+      gameOver=true; running=false;
+      statusEl.textContent='Flew off 💥';
+      if(t>best){best=t;localStorage.setItem(BEST_KEY,best);bestEl.textContent=best.toFixed(1)+'s';}
     }
-  } else {
-    wobble = Math.max(0, wobble - dt*3.0);
-  }
-
-  if (danger) tipPill.textContent="WARNING: keep speed up or you’re getting launched.";
-  else if (grace>0) tipPill.textContent="Warm-up… build rhythm and speed.";
-  else tipPill.textContent="Rhythm > spam. Combo boosts your run.";
-
-  shake = Math.max(0, shake - dt*14);
-  flash = Math.max(0, flash - dt*1.5);
-
-  updateParticles(dt);
+  } else wobble=Math.max(0,wobble-dt*2);
 }
 
-/* ====== DRAW HELPERS ====== */
-function rr(x,y,w,h,r){
-  ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r);
-  ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r);
-  ctx.arcTo(x,y,x+w,y,r);
-  ctx.closePath();
-}
-
-/* ====== TREADMILL (TILTS WITH INCLINE) ====== */
-function drawTreadmill(world){
-  const {beltX, beltY, beltW, beltH, phase, inc} = world;
-
-  const deg = inclineDeg(inc);
-  const rad = -deg * Math.PI / 180;
-
-  // pivot near the front roller so it feels like it lifts
-  const px = beltX + 58;
-  const py = beltY + beltH + 18;
-
-  // floor shadow (not tilted)
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = "rgba(0,0,0,.35)";
-  rr(140, 430, 680, 90, 22);
-  ctx.fill();
-
-  // tilt deck + belt + rails + console together
-  ctx.save();
-  ctx.translate(px, py);
-  ctx.rotate(rad);
-  ctx.translate(-px, -py);
-
-  // deck base
-  const deckX = 160, deckY = 365, deckW = 640, deckH = 95;
-  rr(deckX, deckY, deckW, deckH, 22);
-  ctx.fillStyle = "rgba(0,0,0,.40)";
-  ctx.fill();
-
-  // deck highlight strip
-  ctx.save();
-  ctx.globalAlpha = .7;
-  rr(deckX+2, deckY+2, deckW-4, 10, 18);
-  ctx.fillStyle = "rgba(255,255,255,.08)";
-  ctx.fill();
-  ctx.restore();
-
-  // belt bed
-  rr(beltX, beltY, beltW, beltH, 16);
-  ctx.fillStyle = "rgba(255,255,255,.06)";
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,.10)";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // rollers (front + rear)
-  ctx.fillStyle = "rgba(0,0,0,.35)";
-  rr(beltX+8, beltY+beltH-8, 56, 16, 8);
-  ctx.fill();
-  rr(beltX+beltW-64, beltY+beltH-8, 56, 16, 8);
-  ctx.fill();
-
-  // moving belt stripes
-  const stripeCount = 22;
-  const seg = beltW/stripeCount;
-  ctx.strokeStyle = "rgba(255,255,255,.12)";
-  ctx.lineWidth = 3;
-  for (let i=0;i<stripeCount;i++){
-    const x = beltX + i*seg - phase;
-    ctx.beginPath();
-    ctx.moveTo(x, beltY + beltH*0.50);
-    ctx.lineTo(x+26, beltY + beltH*0.70);
-    ctx.stroke();
-  }
-
-  // rails
-  ctx.lineCap="round";
-  ctx.strokeStyle="rgba(255,255,255,.20)";
-  ctx.lineWidth=10;
-  ctx.beginPath();
-  ctx.moveTo(230, 310); ctx.lineTo(230, 380);
-  ctx.moveTo(730, 310); ctx.lineTo(730, 380);
-  ctx.stroke();
-
-  ctx.strokeStyle="rgba(255,255,255,.14)";
-  ctx.lineWidth=8;
-  ctx.beginPath();
-  ctx.moveTo(230, 320); ctx.lineTo(330, 285);
-  ctx.moveTo(730, 320); ctx.lineTo(630, 285);
-  ctx.stroke();
-
-  // console
-  rr(420, 250, 120, 60, 16);
-  ctx.fillStyle="rgba(0,0,0,.30)";
-  ctx.fill();
-  ctx.strokeStyle="rgba(255,255,255,.12)";
-  ctx.lineWidth=1.5;
-  ctx.stroke();
-
-  // console lights
-  ctx.fillStyle="rgba(255,212,0,.60)";
-  rr(432, 262, 42, 14, 7); ctx.fill();
-  ctx.fillStyle="rgba(91,44,255,.55)";
-  rr(480, 262, 48, 14, 7); ctx.fill();
-  ctx.fillStyle="rgba(255,255,255,.10)";
-  rr(432, 282, 96, 20, 10); ctx.fill();
-
-  ctx.restore();
-}
-
-/* ====== BARS ====== */
-function drawBars(){
-  const danger = (grace<=0) && (speed < required+0.01 || stamina < 0.12);
-  drawBar(40, 452, 410, 24, speed, "Speed", true, danger);
-  drawBar(510, 452, 410, 24, stamina, "Stamina", false, danger);
-}
-function drawBar(x,y,w,h,p,label,isSpeed,danger){
-  ctx.fillStyle = "rgba(255,255,255,.14)";
-  ctx.fillRect(x,y,w,h);
-
-  const val = Math.max(0, Math.min(1, p));
-  ctx.fillStyle = isSpeed ? "#ffd400" : "#7fff7f";
-  ctx.fillRect(x,y,w*val,h);
-
-  ctx.fillStyle = "rgba(0,0,0,.78)";
-  ctx.font = "1000 12px system-ui";
-  ctx.fillText(label, x+8, y+16);
-
-  if (isSpeed){
-    const req = Math.max(0, Math.min(1, required));
-    ctx.strokeStyle = "rgba(255,255,255,.45)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x + w*req, y);
-    ctx.lineTo(x + w*req, y+h);
-    ctx.stroke();
-  }
-
-  if (danger){
-    ctx.globalAlpha = 0.25;
-    ctx.strokeStyle = "rgba(255,75,109,.8)";
-    ctx.lineWidth = 6;
-    ctx.strokeRect(x+1, y+1, w-2, h-2);
-    ctx.globalAlpha = 1;
-  }
-}
-
-/* ====== MAIN DRAW ====== */
 function draw(){
-  const W=960,H=540;
-  ctx.clearRect(0,0,W,H);
+  ctx.clearRect(0,0,900,520);
 
-  // camera shake
-  const sx = (Math.random()*2-1)*shake;
-  const sy = (Math.random()*2-1)*shake;
-  ctx.save();
-  ctx.translate(sx,sy);
+  ctx.fillStyle='rgba(255,255,255,.9)';
+  ctx.font='800 28px system-ui';
+  ctx.fillText(t.toFixed(1)+'s',40,46);
 
-  // ambient streaks
-  for (const s of streaks){
-    ctx.globalAlpha = Math.max(0, Math.min(1, s.life*3));
-    ctx.strokeStyle = "rgba(255,255,255,.18)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(s.x, s.y);
-    ctx.lineTo(s.x + s.w, s.y);
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
+  // treadmill
+  ctx.fillStyle='rgba(0,0,0,.45)';
+  ctx.fillRect(160,380,580,60);
 
-  // HUD inside canvas
-  ctx.fillStyle="rgba(255,255,255,.92)";
-  ctx.font="1000 30px system-ui";
-  ctx.fillText(t.toFixed(1)+"s", 40, 54);
+  // bars
+  drawBar(40,450,380,22,speed,'Speed');
+  drawBar(480,450,380,22,stamina,'Stamina');
 
-  const tps = t>0 ? (taps/t) : 0;
-  ctx.font="900 14px system-ui";
-  ctx.fillStyle="rgba(255,255,255,.70)";
-  ctx.fillText("Cadence: "+tps.toFixed(1)+"/s", 40, 82);
-  ctx.fillText(comboSmooth>=6 ? ("Combo: "+Math.round(comboSmooth)) : "Combo: —", 200, 82);
-
-  // treadmill world
-  const beltX=185, beltY=390, beltW=590, beltH=56;
-  const beltWSeg = beltW/22;
-  const phase = (t*(190+540*speed)) % beltWSeg;
-
-  drawTreadmill({beltX,beltY,beltW,beltH,phase,inc:incline});
-
-  // sparks
-  for (const p of sparks){
-    ctx.globalAlpha = Math.max(0, p.life*2);
-    ctx.fillStyle = "rgba(255,212,0,.88)";
-    ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, Math.PI*2); ctx.fill();
-  }
-  ctx.globalAlpha=1;
-
-  // sweat
-  for (const p of sweat){
-    ctx.globalAlpha = Math.max(0, p.life);
-    ctx.fillStyle = "rgba(162,120,255,.72)";
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
-  }
-  ctx.globalAlpha=1;
-
-  drawBars();
-
-  if (flash>0){
-    ctx.globalAlpha = Math.min(0.55, flash);
-    ctx.fillStyle="rgba(255,212,0,.35)";
-    ctx.fillRect(0,0,W,H);
-    ctx.globalAlpha = 1;
-  }
-
-  ctx.restore();
-
-  // tiny hint
-  ctx.fillStyle="rgba(255,255,255,.10)";
-  ctx.font="900 12px system-ui";
-  ctx.fillText("P = Pause", 890, 28);
-
-  // Drive GIF transform (incline lean + speed intensity + wobble panic)
   applyGifMotion();
 }
 
-function applyGifMotion(){
-  if (!runnerGif) return;
-
-  // incline -> lean
-  const deg = inclineDeg(incline);
-  const leanDeg = -deg * 0.85; // stronger lean for drama
-
-  // speed -> intensity scale
-  const scale = 0.96 + speed * 0.18;
-
-  // wobble -> lateral panic
-  const wob = wobble > 0 ? (Math.sin(performance.now()/60) * wobble * 6) : 0;
-
-  // extra: slight "bounce" when tapping
-  const bounce = running && !paused ? Math.sin(performance.now()/90) * (0.8 + speed*1.2) : 0;
-
-  // ramp color FX
-  const danger = (grace<=0) && (speed < required+0.01 || stamina < 0.12);
-
-  runnerGif.style.transform =
-    `translateX(${wob}px) translateY(${bounce}px) rotate(${leanDeg}deg) scale(${scale})`;
-
-  if (gameOver){
-    runnerGif.style.filter = "drop-shadow(0 0 26px rgba(255,75,109,.55)) drop-shadow(0 30px 40px rgba(0,0,0,.55))";
-  } else if (danger){
-    runnerGif.style.filter = "drop-shadow(0 0 18px rgba(255,75,109,.45)) drop-shadow(0 30px 40px rgba(0,0,0,.55))";
-  } else if (speed > 0.75){
-    runnerGif.style.filter = "drop-shadow(0 0 18px rgba(255,212,0,.40)) drop-shadow(0 30px 40px rgba(0,0,0,.55))";
-  } else {
-    runnerGif.style.filter = "drop-shadow(0 30px 40px rgba(0,0,0,.55))";
-  }
+function drawBar(x,y,w,h,p,label){
+  ctx.fillStyle='rgba(255,255,255,.15)';
+  ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=label==='Speed'?'#ffd400':'#7fff7f';
+  ctx.fillRect(x,y,w*Math.max(0,Math.min(1,p)),h);
+  ctx.fillStyle='rgba(0,0,0,.8)';
+  ctx.font='700 12px system-ui';
+  ctx.fillText(label,x+6,y+15);
 }
 
-/* ====== LOOP ====== */
-function loop(now){
-  const dt = (now - last)/1000;
-  last = now;
+function applyGifMotion(){
+  const lean = -incline * 12;
+  const scale = .95 + speed*.15;
+  const yStick = 6 - incline*18;   // ✅ keeps feet glued to belt as incline rises
+  const shake = wobble>0 ? Math.sin(performance.now()/60)*wobble*6 : 0;
 
-  if (running && !paused && !gameOver) update(dt);
-  draw();
+  gif.style.transform =
+    `translate(${shake}px, ${yStick}px) rotate(${lean}deg) scale(${scale})`;
+}
+
+function loop(now){
+  const dt=(now-last)/1000; last=now;
+  update(dt); draw();
   requestAnimationFrame(loop);
 }
 
-/* ====== BUTTONS ====== */
-pauseBtn.addEventListener("click", () => togglePause());
-restartBtn.addEventListener("click", () => { resetGame(); toast("Reset. Tap to start."); });
-siteBtn.addEventListener("click", () => window.location.href = HOME_URL);
-
-playAgainBtn.addEventListener("click", () => { overlay.style.display="none"; resetGame(); startRunNow(); });
-closeBtn.addEventListener("click", () => overlay.style.display="none");
-
-/* ====== START ====== */
 resetGame();
 requestAnimationFrame(loop);
-setTimeout(() => toast("Tap to start. Rhythm beats spam."), 600);
 </script>
 </body>
-</html> 
+</html>
