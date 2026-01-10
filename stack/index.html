@@ -2,802 +2,770 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>$PHAT — Conveyor Munch</title>
-
   <style>
     :root{
-      --bg1:#2b0b4a;
-      --bg2:#14051f;
-      --glass: rgba(255,255,255,.08);
-      --stroke: rgba(255,255,255,.14);
-      --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.66);
-      --accent:#ffd400;
-      --shadow: 0 18px 60px rgba(0,0,0,.45);
-      --radius: 22px;
+      --bg1:#2b0f3d;
+      --bg2:#13001e;
+      --panel:rgba(255,255,255,.06);
+      --panel2:rgba(255,255,255,.08);
+      --stroke:rgba(255,255,255,.10);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.65);
+      --yellow:#f6d84a;
+      --yellow2:#f0c92e;
     }
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
+    *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      color: var(--text);
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      color:var(--text);
       background:
-        radial-gradient(1100px 700px at 50% -100px, rgba(192,114,255,.35), transparent 60%),
-        radial-gradient(900px 600px at 20% 10%, rgba(255,212,0,.14), transparent 55%),
-        radial-gradient(900px 600px at 80% 20%, rgba(90,255,200,.10), transparent 55%),
-        linear-gradient(180deg, var(--bg1), var(--bg2));
-      overflow-x:hidden;
-      padding: env(safe-area-inset-top) 14px env(safe-area-inset-bottom) 14px;
+        radial-gradient(1200px 900px at 35% 10%, rgba(140,86,255,.35), transparent 60%),
+        radial-gradient(900px 700px at 70% 40%, rgba(255,92,205,.18), transparent 55%),
+        linear-gradient(180deg,var(--bg1),var(--bg2));
+      min-height:100vh;
+      padding:14px 12px 28px;
     }
-    .wrap{ max-width: 980px; margin: 0 auto; padding: 12px 0 28px; }
-
-    .topRow{
-      display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;
-      margin-bottom: 12px;
+    .wrap{max-width:820px;margin:0 auto}
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; flex-wrap:wrap;
+      margin-bottom:12px;
     }
-    .pillTitle{
-      display:flex; align-items:center; gap:10px;
-      padding: 10px 14px; border-radius: 999px;
-      background: var(--glass); border: 1px solid var(--stroke);
-      box-shadow: 0 12px 40px rgba(0,0,0,.22);
-      user-select:none;
+    .pill{
+      padding:10px 14px; border-radius:999px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(8px);
+      font-weight:700;
+      letter-spacing:.3px;
     }
-    .subPill{
-      flex: 1 1 420px; min-width: 280px;
-      padding: 10px 14px; border-radius: 999px;
-      background: var(--glass); border: 1px solid var(--stroke);
-      color: var(--muted);
+    .cta{
+      background:linear-gradient(180deg,var(--yellow),var(--yellow2));
+      color:#160018;
+      border:0;
+      border-radius:14px;
+      padding:12px 14px;
+      font-weight:900;
+      min-width:120px;
+      box-shadow:0 10px 26px rgba(0,0,0,.35);
+      cursor:pointer;
+    }
+    .subrow{
+      display:flex; gap:12px; flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .hint{
+      flex:1;
+      min-width:220px;
+      padding:12px 14px;
+      border-radius:18px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(8px);
+      color:var(--muted);
+      line-height:1.25;
     }
     .btn{
-      border:0; padding: 12px 16px; border-radius: 999px;
-      font-weight: 900; cursor:pointer; user-select:none;
-      box-shadow: var(--shadow); background: var(--accent); color: rgba(0,0,0,.85);
+      padding:12px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--text);
+      font-weight:800;
+      cursor:pointer;
+      min-width:120px;
     }
-    .btn.secondary{ background: rgba(255,255,255,.10); border: 1px solid var(--stroke); color: var(--text); box-shadow:none; }
-    .btn:active{ transform: translateY(1px); }
-
-    .statsRow{
-      display:grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px; margin-top: 10px; margin-bottom: 14px;
-    }
-    @media (max-width: 780px){ .statsRow{ grid-template-columns: 1fr; } .subPill{ flex:1 1 100%; } }
-
-    .card{
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: var(--radius);
-      padding: 14px 14px;
-      box-shadow: 0 18px 60px rgba(0,0,0,.22);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-    .kicker{ color: var(--muted); font-weight: 800; letter-spacing: .8px; font-size: 12px; }
-    .big{ font-size: 34px; font-weight: 950; line-height: 1.0; margin-top: 4px; }
-    .mini{ color: var(--muted); margin-top: 4px; font-weight: 700; }
-
-    .stageCard{ padding: 12px; }
-    .stage{
-      position: relative;
-      width: 100%;
-      height: min(66vh, 620px);
-      min-height: 520px;
-      border-radius: calc(var(--radius) + 6px);
-      overflow: hidden;
-      background:
-        radial-gradient(900px 500px at 50% 15%, rgba(255,255,255,.08), transparent 60%),
-        radial-gradient(600px 340px at 60% 30%, rgba(255,212,0,.10), transparent 60%),
-        linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.40));
-      border: 1px solid rgba(255,255,255,.12);
-      box-shadow: 0 30px 90px rgba(0,0,0,.35);
-    }
-
-    /* Bubble (with fallback background so it never disappears) */
-    .thought{
-      position:absolute;
-      left: 50%;
-      top: 3%;
-      transform: translateX(-50%);
-      width: min(520px, 92%);
-      height: 200px;
-      z-index: 90;
-      pointer-events:none;
-    }
-    .thought .bubbleImg{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      filter: drop-shadow(0 18px 40px rgba(0,0,0,.35));
-      display:block;
-    }
-    .thought.fallback{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .thought.fallback::before{
-      content:"";
-      position:absolute;
-      inset: 20px 36px 36px 36px;
-      border-radius: 60px;
-      background: rgba(255,255,255,.18);
-      border: 2px solid rgba(255,255,255,.22);
-      filter: drop-shadow(0 18px 40px rgba(0,0,0,.35));
-    }
-
-    /* Target inside bubble */
-    .thoughtTarget{
-      position:absolute;
-      left: 50%;
-      top: 48%;
-      transform: translate(-50%, -50%);
-      width: 140px;
-      height: 140px;
+    .cards{
       display:grid;
-      place-items:center;
-      z-index: 95;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:12px;
+      margin-bottom:12px;
     }
-    .thoughtTarget img{
-      width: 112px;
-      height: 112px;
-      object-fit: contain;
-      filter: drop-shadow(0 18px 40px rgba(0,0,0,.35));
+    .card{
+      padding:14px;
+      border-radius:18px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
     }
-    .thoughtLabel{
+    .card .k{font-size:12px;color:var(--muted);letter-spacing:.18em;font-weight:900}
+    .card .v{margin-top:6px;font-size:40px;font-weight:900;line-height:1}
+    .card .s{margin-top:6px;color:var(--muted);font-weight:700}
+    .gamepanel{
+      padding:14px;
+      border-radius:22px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
+    }
+    .stage{
+      position:relative;
+      width:100%;
+      aspect-ratio: 9 / 11;
+      max-height: 640px;
+      margin:0 auto;
+      border-radius:22px;
+      overflow:hidden;
+      background:
+        radial-gradient(900px 700px at 50% 0%, rgba(255,255,255,.08), transparent 55%),
+        radial-gradient(700px 600px at 35% 65%, rgba(255,255,255,.05), transparent 60%),
+        rgba(0,0,0,.12);
+      border:1px solid rgba(255,255,255,.12);
+    }
+    /* Layers */
+    .bubbleWrap{
       position:absolute;
-      left: 50%;
-      top: 80%;
-      transform: translate(-50%, -50%);
-      font-weight: 950;
-      letter-spacing:.6px;
-      color: rgba(255,255,255,.92);
-      text-shadow: 0 10px 28px rgba(0,0,0,.55);
-      font-size: 13px;
-      white-space: nowrap;
-      z-index: 96;
+      left:50%;
+      top:7%;
+      transform:translateX(-50%);
+      width:min(62%, 340px);
+      z-index:6;
+      pointer-events:none;
+      text-align:center;
+    }
+    .bubbleImg{
+      width:100%;
+      height:auto;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
+      opacity:.98;
+    }
+    .bubbleFood{
+      position:absolute;
+      left:50%;
+      top:48%;
+      transform:translate(-50%,-50%);
+      width:36%;
+      height:auto;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
+    }
+    .wantLabel{
+      margin-top:10px;
+      font-weight:1000;
+      letter-spacing:.22em;
+      opacity:.92;
+      text-transform:uppercase;
+      text-shadow:0 6px 14px rgba(0,0,0,.45);
     }
 
-    /* Character + belt LOWER than before */
-    .character{
+    .base{
       position:absolute;
-      left: 50%;
-      top: 40%;
-      transform: translateX(-50%);
-      width: min(560px, 96%);
-      z-index: 30;
-      pointer-events:none;
-      filter: drop-shadow(0 22px 60px rgba(0,0,0,.55));
+      left:50%;
+      top:44%;
+      transform:translateX(-50%);
+      width:min(78%, 520px);
+      height:auto;
+      z-index:2;
+      filter: drop-shadow(0 18px 26px rgba(0,0,0,.35));
       user-select:none;
+      -webkit-user-drag:none;
     }
+
     .belt{
       position:absolute;
-      left: 50%;
-      bottom: -2%;
-      transform: translateX(-50%);
-      width: min(900px, 130%);
-      z-index: 60;
-      pointer-events:none;
-      opacity: .98;
-      filter: drop-shadow(0 26px 70px rgba(0,0,0,.55));
+      left:50%;
+      top:59%;
+      transform:translateX(-50%);
+      width:min(92%, 650px);
+      height:auto;
+      z-index:3;
       user-select:none;
+      -webkit-user-drag:none;
+      pointer-events:none;
+      filter: drop-shadow(0 14px 20px rgba(0,0,0,.35));
     }
 
-    /* Food ON TOP of belt */
-    .foodItem{
+    .foodsLayer{
       position:absolute;
-      width: 82px;
-      height: 82px;
-      transform: translate(-50%, -50%);
-      z-index: 70;
+      inset:0;
+      z-index:4;
+      pointer-events:none;
+    }
+    .food{
+      position:absolute;
+      width:68px;
+      height:68px;
+      object-fit:contain;
+      transform:translate(-50%,-50%);
+      filter: drop-shadow(0 10px 14px rgba(0,0,0,.35));
+      pointer-events:auto; /* allow drag */
       touch-action:none;
       user-select:none;
+      -webkit-user-drag:none;
       cursor:grab;
-      filter: drop-shadow(0 18px 40px rgba(0,0,0,.42));
     }
-    .foodItem:active{ cursor:grabbing; }
-
-    .floatingBanner{
-      position:absolute;
-      left:50%; top: 56%;
-      transform: translate(-50%, -50%);
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(0,0,0,.45);
-      border: 1px solid rgba(255,255,255,.18);
-      font-weight: 950;
-      letter-spacing: .6px;
-      opacity: 0;
-      pointer-events:none;
-      transition: opacity .16s ease, transform .16s ease;
-      text-align:center;
-      z-index: 110;
+    .food.dragging{
+      cursor:grabbing;
+      filter: drop-shadow(0 18px 22px rgba(0,0,0,.45));
     }
-    .floatingBanner.show{ opacity: 1; transform: translate(-50%, -58%); }
-
-    .mouthHit{
-      position:absolute;
-      left: 50%; top: 46%;
-      width: 92px; height: 72px;
-      transform: translate(-50%, -50%);
-      border-radius: 999px;
-      opacity: 0;
-      pointer-events:none;
-      background: rgba(51,255,154,.12);
-      border: 2px solid rgba(51,255,154,.55);
-      box-shadow: 0 18px 60px rgba(0,0,0,.35);
-      z-index: 105;
-    }
-    body.debug .mouthHit{ opacity: 1; }
 
     .toast{
-      position: fixed;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%);
-      padding: 10px 14px;
-      background: rgba(0,0,0,.65);
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius: 999px;
-      color: rgba(255,255,255,.92);
-      font-weight: 900;
-      opacity: 0;
+      position:absolute;
+      left:50%;
+      top:52%;
+      transform:translate(-50%,-50%);
+      z-index:7;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(8px);
+      font-weight:1000;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      opacity:0;
       pointer-events:none;
-      transition: opacity .16s ease, transform .16s ease;
-      z-index: 9999;
-      text-align:center;
-      max-width: 92vw;
+      transition:opacity .15s ease, transform .15s ease;
     }
-    .toast.show{ opacity: 1; transform: translateX(-50%) translateY(-6px); }
+    .toast.show{
+      opacity:1;
+      transform:translate(-50%,-54%);
+    }
+
+    .how{
+      margin-top:12px;
+      padding:14px;
+      border-radius:18px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      color:var(--muted);
+      line-height:1.35;
+      font-weight:650;
+    }
+    .how b{color:rgba(255,255,255,.9)}
+    @media (max-width:520px){
+      .cards{grid-template-columns:1fr}
+      .stage{aspect-ratio: 9/12}
+      .food{width:60px;height:60px}
+    }
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <div class="topRow">
-      <div class="pillTitle" id="titleTap">
-        <b>$PHAT — Conveyor Munch</b>
-      </div>
-      <div class="subPill">Bubble shows what he wants. Belt runs nonstop. Drag the correct one into his mouth.</div>
-      <button class="btn" id="restartBtn">Run it back</button>
-      <button class="btn secondary" id="shareBtn">Share score</button>
+<div class="wrap">
+  <div class="topbar">
+    <div class="pill">$PHAT — Conveyor Munch</div>
+    <button class="cta" id="btnReset">Run it back</button>
+  </div>
+
+  <div class="subrow">
+    <div class="hint">Drag the snack into his mouth. Miss = pain. Streak = glory.</div>
+    <button class="btn" id="btnShare">Share score</button>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="k">RUN</div>
+      <div class="v"><span id="runCorrect">0</span></div>
+      <div class="s">Streak: <span id="streak">0</span> · Mult: <span id="mult">1.0x</span></div>
     </div>
-
-    <div class="statsRow">
-      <div class="card">
-        <div class="kicker">RUN</div>
-        <div class="big"><span id="runCorrect">0</span> <span style="font-size:14px; font-weight:950; opacity:.7;">correct</span></div>
-        <div class="mini">Streak: <span id="streak">0</span> • Mult: <span id="mult">1.00x</span></div>
-      </div>
-      <div class="card">
-        <div class="kicker">BEST</div>
-        <div class="big"><span id="best">0</span> <span style="font-size:14px; font-weight:950; opacity:.7;">correct</span></div>
-        <div class="mini">Daily best: <span id="dailyBest">0</span></div>
-      </div>
-      <div class="card">
-        <div class="kicker">DAILY GOAL</div>
-        <div class="big"><span id="daily">0</span><span style="opacity:.7;"> / </span><span id="goal">30</span></div>
-        <div class="mini">Resets in <span id="resetIn">--:--:--</span></div>
-      </div>
+    <div class="card">
+      <div class="k">BEST</div>
+      <div class="v"><span id="best">0</span></div>
+      <div class="s">Daily best: <span id="dailyBest">0</span></div>
     </div>
-
-    <div class="card stageCard">
-      <div class="stage" id="stage">
-        <div class="thought" id="thought">
-          <img class="bubbleImg" id="bubbleImg" src="../assets/thought-bubble.png" alt="Thought bubble" draggable="false">
-          <div class="thoughtTarget">
-            <img id="targetImg" src="../assets/food_burger.png" alt="Target food" draggable="false">
-          </div>
-          <div class="thoughtLabel" id="targetName">BURGER</div>
-        </div>
-
-        <img class="character" id="character" src="../assets/stack_base.png" alt="Seated character" draggable="false">
-        <div class="mouthHit" id="mouthHit"></div>
-
-        <img class="belt" id="belt" src="../assets/conveyor.png" alt="Conveyor belt" draggable="false">
-
-        <div class="floatingBanner" id="banner">MISSED</div>
-      </div>
+    <div class="card">
+      <div class="k">DAILY GOAL</div>
+      <div class="v"><span id="goalNow">0</span> / <span id="goalMax">30</span></div>
+      <div class="s">Resets in <span id="resetIn">--:--:--</span></div>
     </div>
   </div>
 
-  <div class="toast" id="toast">Saved</div>
+  <div class="gamepanel">
+    <div class="stage" id="stage">
+      <div class="bubbleWrap" id="bubbleWrap">
+        <img class="bubbleImg" src="../assets/thought-bubble.png" alt="thought bubble" draggable="false" />
+        <img class="bubbleFood" id="bubbleFood" src="" alt="wanted food" draggable="false" />
+        <div class="wantLabel" id="wantLabel">—</div>
+      </div>
 
-  <script>
-    const ASSET = (p) => `../assets/${p}`;
+      <!-- Your base PNG already includes table + plate + seated character -->
+      <img class="base" id="base" src="../assets/stack_base.png" alt="base" draggable="false" />
 
-    // Foods (must match your /assets list)
-    const FOODS = [
-      { file:'food_brownies.png', label:'BROWNIES' },
-      { file:'food_burger.png', label:'BURGER' },
-      { file:'food_cake.png', label:'CAKE' },
-      { file:'food_chinese_takeout.png', label:'TAKEOUT' },
-      { file:'food_cookie_pizza.png', label:'COOKIE PIZZA' },
-      { file:'food_donut_stack.png', label:'DONUT STACK' },
-      { file:'food_fried_chicken.png', label:'FRIED CHICKEN' },
-      { file:'food_fries.png', label:'FRIES' },
-      { file:'food_grilledcheese.png', label:'GRILLED CHEESE' },
-      { file:'food_hotdogs.png', label:'HOTDOGS' },
-      { file:'food_icecream_cone.png', label:'ICE CREAM' },
-      { file:'food_milkshake_chocolate.png', label:'CHOC SHAKE' },
-      { file:'food_milkshake_strawberry.png', label:'STRAW SHAKE' },
-      { file:'food_milkshake_vanilla.png', label:'VANILLA SHAKE' },
-      { file:'food_onion_rings.png', label:'ONION RINGS' },
-    ];
+      <!-- Conveyor belt overlay -->
+      <img class="belt" id="belt" src="../assets/conveyor.png" alt="conveyor" draggable="false" />
 
-    const DAILY_GOAL = 30;
+      <div class="foodsLayer" id="foodsLayer"></div>
 
-    // PLAYABILITY TUNING (less chaos, no stacking)
-    const MAX_FOODS = 9;             // ~7-9 on screen
-    const START_FOODS = 6;
-    const ITEM_SPACING = 110;        // min px gap between items
+      <div class="toast" id="toast">MISSED</div>
+    </div>
 
-    let beltSpeed = 110;             // px/sec (slower)
-    let spawnEvery = 520;            // ms (slower)
-    const TARGET_GUARANTEE_MS = 1800;
+    <div class="how">
+      <b>How it plays:</b> The thought bubble shows what he wants. The belt feeds a nonstop stream of snacks.
+      Grab the correct one <b>between the wrong choices</b> and drag it to his mouth before it rolls away.
+    </div>
+  </div>
+</div>
 
-    // Lane is computed from the belt position (fixes "food below belt")
-    let laneY = 0;
-    let leftX = 0, rightX = 0;
+<script>
+(() => {
+  const stage = document.getElementById('stage');
+  const foodsLayer = document.getElementById('foodsLayer');
+  const beltEl = document.getElementById('belt');
+  const baseEl = document.getElementById('base');
+  const bubbleFoodEl = document.getElementById('bubbleFood');
+  const wantLabelEl = document.getElementById('wantLabel');
+  const toastEl = document.getElementById('toast');
 
-    // Mouth hitbox offsets from stage center (px)
-    const MOUTH_STORAGE_KEY = 'phat_mouth_v4';
-    let mouth = { x: 0, y: -8, w: 92, h: 72 };
+  const runCorrectEl = document.getElementById('runCorrect');
+  const streakEl = document.getElementById('streak');
+  const multEl = document.getElementById('mult');
+  const bestEl = document.getElementById('best');
+  const dailyBestEl = document.getElementById('dailyBest');
+  const goalNowEl = document.getElementById('goalNow');
+  const goalMaxEl = document.getElementById('goalMax');
+  const resetInEl = document.getElementById('resetIn');
 
-    const el = (id) => document.getElementById(id);
-    const stage = el('stage');
-    const beltEl = el('belt');
-    const thoughtEl = el('thought');
-    const bubbleImg = el('bubbleImg');
+  const btnReset = document.getElementById('btnReset');
+  const btnShare = document.getElementById('btnShare');
 
-    const targetImg = el('targetImg');
-    const targetName = el('targetName');
-    const banner = el('banner');
-    const toast = el('toast');
+  // -------------------------
+  // ASSETS (auto from /assets list naming)
+  // -------------------------
+  // This list matches your assets naming style: food_*.png
+  const FOODS = [
+    {key:'brownies', label:'Brownies', src:'../assets/food_brownies.png'},
+    {key:'burger', label:'Burger', src:'../assets/food_burger.png'},
+    {key:'cake', label:'Cake', src:'../assets/food_cake.png'},
+    {key:'chinese_takeout', label:'Takeout', src:'../assets/food_chinese_takeout.png'},
+    {key:'cookie_pizza', label:'Cookie Pizza', src:'../assets/food_cookie_pizza.png'},
+    {key:'donut_stack', label:'Donut Stack', src:'../assets/food_donut_stack.png'},
+    {key:'fried_chicken', label:'Fried Chicken', src:'../assets/food_fried_chicken.png'},
+    {key:'fries', label:'Fries', src:'../assets/food_fries.png'},
+    {key:'grilledcheese', label:'Grilled Cheese', src:'../assets/food_grilledcheese.png'},
+    {key:'hotdogs', label:'Hotdogs', src:'../assets/food_hotdogs.png'},
+    {key:'icecream_cone', label:'Ice Cream', src:'../assets/food_icecream_cone.png'},
+    {key:'milkshake_chocolate', label:'Choco Shake', src:'../assets/food_milkshake_chocolate.png'},
+    {key:'milkshake_strawberry', label:'Strawberry Shake', src:'../assets/food_milkshake_strawberry.png'},
+    {key:'milkshake_vanilla', label:'Vanilla Shake', src:'../assets/food_milkshake_vanilla.png'},
+    {key:'onion_rings', label:'Onion Rings', src:'../assets/food_onion_rings.png'},
+  ];
 
-    const runCorrectEl = el('runCorrect');
-    const streakEl = el('streak');
-    const multEl = el('mult');
-    const bestEl = el('best');
-    const dailyBestEl = el('dailyBest');
-    const dailyEl = el('daily');
-    const goalEl = el('goal');
-    const resetInEl = el('resetIn');
+  // -------------------------
+  // PRESSURE SETTINGS (no manual tweaking required)
+  // -------------------------
+  const GOAL_MAX = 30;
+  goalMaxEl.textContent = GOAL_MAX;
 
-    const restartBtn = el('restartBtn');
-    const shareBtn = el('shareBtn');
-    const mouthHit = el('mouthHit');
+  const MAX_FOODS_ON_SCREEN = 12;    // pressure
+  const START_FOODS_ON_SCREEN = 9;   // starts hot
+  const ITEM_SPACING_PX = 92;        // keeps them dense without stacking
+  let beltSpeed = 185;               // px/sec
+  let spawnEveryMs = 240;            // spawn cadence
+  const TARGET_GUARANTEE_MS = 1400;  // target appears often enough
 
-    // Stats
-    let runCorrect = 0;
-    let streak = 0;
-    let mult = 1.0;
+  // -------------------------
+  // State
+  // -------------------------
+  let foods = []; // {id, foodIndex, x, y, el, isTarget}
+  let nextId = 1;
 
-    // Daily / best
-    const DAY_KEY = () => new Date().toISOString().slice(0,10);
-    const LS_BEST = 'phat_conv_best_v4';
-    const LS_DAILY = 'phat_conv_daily_v4';
-    const LS_DAILYBEST = 'phat_conv_dailybest_v4';
+  let laneY = 0;              // computed from belt surface
+  let mouth = {x:0,y:0,r:56}; // computed from base image
+  let lastSpawn = 0;
+  let lastTargetSeen = 0;
 
-    let dailyDone = 0;
-    let dailyBest = 0;
-    let bestAll = 0;
+  let runCorrect = 0;
+  let streak = 0;
+  let best = 0;
 
-    // Target
-    let target = null;
+  // daily persistence
+  const LS_KEY = 'phat_conveyor_munch_v3';
+  let daily = { day:'', dailyBest:0, goalNow:0, bestAll:0 };
 
-    // Foods on belt
-    let foods = [];
-    let nextId = 1;
+  // current target
+  let targetIndex = 0;
 
-    // Drag
-    let dragging = null;
-    let dragOffset = {x:0,y:0};
+  // drag state
+  let dragging = null; // {foodObj, dx, dy}
+  let raf = 0;
+  let lastT = performance.now();
 
-    // Timing
-    let lastTime = performance.now();
-    let spawnTimer = 0;
-    let timeSinceTargetSpawn = 0;
+  // -------------------------
+  // Helpers
+  // -------------------------
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+  function pickRandomIndex(){ return Math.floor(Math.random()*FOODS.length); }
+  function nowMs(){ return Date.now(); }
 
-    // Spacing tracking (prevents stacking)
-    let lastSpawnX = -9999;
+  function getLocalDayKey(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const da = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${da}`;
+  }
 
-    function shuffle(a){
-      for(let i=a.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [a[i],a[j]] = [a[j],a[i]];
-      }
-      return a;
+  function msUntilMidnight(){
+    const n = new Date();
+    const t = new Date(n);
+    t.setHours(24,0,0,0);
+    return t.getTime() - n.getTime();
+  }
+
+  function fmtCountdown(ms){
+    ms = Math.max(0, ms);
+    const s = Math.floor(ms/1000);
+    const hh = String(Math.floor(s/3600)).padStart(2,'0');
+    const mm = String(Math.floor((s%3600)/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    return `${hh}:${mm}:${ss}`;
+  }
+
+  function saveDaily(){
+    localStorage.setItem(LS_KEY, JSON.stringify(daily));
+  }
+
+  function loadDaily(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(raw) daily = JSON.parse(raw);
+    }catch(e){}
+    const today = getLocalDayKey();
+    if(daily.day !== today){
+      daily.day = today;
+      daily.dailyBest = 0;
+      daily.goalNow = 0;
+      daily.bestAll = daily.bestAll || 0;
+      saveDaily();
     }
-    let deck = [];
-    function nextFromDeck(){
-      if(deck.length === 0) deck = shuffle([...FOODS]);
-      return deck.pop();
+    best = daily.bestAll || 0;
+    bestEl.textContent = best;
+    dailyBestEl.textContent = daily.dailyBest || 0;
+    goalNowEl.textContent = daily.goalNow || 0;
+  }
+
+  function showToast(text){
+    toastEl.textContent = text;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>toastEl.classList.remove('show'), 520);
+  }
+
+  function updateHUD(){
+    runCorrectEl.textContent = runCorrect;
+    streakEl.textContent = streak;
+    const mult = (1 + Math.min(9, Math.floor(streak/5)) * 0.2);
+    multEl.textContent = mult.toFixed(1) + 'x';
+
+    if(runCorrect > (daily.dailyBest||0)){
+      daily.dailyBest = runCorrect;
+      dailyBestEl.textContent = daily.dailyBest;
+      saveDaily();
     }
-
-    function safeLoadJSON(key, fallback){
-      try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
-      catch{ return fallback; }
+    if(runCorrect > best){
+      best = runCorrect;
+      daily.bestAll = best;
+      bestEl.textContent = best;
+      saveDaily();
     }
+  }
 
-    function toastMsg(msg){
-      toast.textContent = msg;
-      toast.classList.add('show');
-      setTimeout(()=>toast.classList.remove('show'), 1100);
-    }
+  // -------------------------
+  // Geometry: belt lane + mouth hitbox
+  // -------------------------
+  function computeLaneFromBelt(){
+    const sr = stage.getBoundingClientRect();
+    const br = beltEl.getBoundingClientRect();
 
-    function showBanner(msg){
-      banner.textContent = msg;
-      banner.classList.add('show');
-      setTimeout(()=>banner.classList.remove('show'), 650);
-    }
+    // Convert belt rect to stage-local coords
+    const beltTop = br.top - sr.top;
+    const beltH = br.height;
 
-    function stageMetrics(){
-      const sr = stage.getBoundingClientRect();
-      leftX = sr.width * 0.02;
-      rightX = sr.width * 0.98;
-    }
+    // Food rides on the TOP surface of the belt.
+    // Tuned for your conveyor art so items sit correctly (no manual edits needed).
+    const SURFACE_RATIO = 0.30;
+    const SURFACE_NUDGE = -6;
 
-    function computeLaneFromBelt(){
-      const sr = stage.getBoundingClientRect();
-      const br = beltEl.getBoundingClientRect();
+    laneY = beltTop + beltH * SURFACE_RATIO + SURFACE_NUDGE;
+    laneY = clamp(laneY, 0, sr.height);
+  }
 
-      // Convert belt rect to stage-local coords
-      const beltTop = br.top - sr.top;
-      const beltH = br.height;
+  function computeMouthFromBase(){
+    const sr = stage.getBoundingClientRect();
+    const br = baseEl.getBoundingClientRect();
 
-      // Pick a point on the belt surface (tweakable but stable)
-      laneY = beltTop + beltH * 0.62;
+    const baseLeft = br.left - sr.left;
+    const baseTop = br.top - sr.top;
+    const baseW = br.width;
+    const baseH = br.height;
 
-      // Clamp safety
-      laneY = Math.max(0, Math.min(sr.height, laneY));
-    }
+    // Mouth center relative to the seated character in stack_base.png
+    // (Works even if your PNG scale changes.)
+    mouth.x = baseLeft + baseW * 0.50;
+    mouth.y = baseTop + baseH * 0.30;  // face area above belt
+    mouth.r = Math.max(42, baseW * 0.08);
+  }
 
-    function setMouth(){
-      const r = stage.getBoundingClientRect();
-      const cx = r.width/2;
-      const cy = r.height/2;
+  function recomputeAll(){
+    computeLaneFromBelt();
+    computeMouthFromBase();
+    // snap foods to lane on resize
+    foods.forEach(f => { f.y = laneY; });
+  }
 
-      mouthHit.style.width = mouth.w + 'px';
-      mouthHit.style.height = mouth.h + 'px';
-      mouthHit.style.left = (cx + mouth.x) + 'px';
-      mouthHit.style.top  = (cy + mouth.y) + 'px';
-    }
+  // -------------------------
+  // Target selection (bubble)
+  // -------------------------
+  function setNewTarget(){
+    targetIndex = pickRandomIndex();
+    const t = FOODS[targetIndex];
+    bubbleFoodEl.src = t.src;
+    wantLabelEl.textContent = t.label.toUpperCase();
+    lastTargetSeen = performance.now();
+  }
 
-    function loadMouth(){
-      const saved = safeLoadJSON(MOUTH_STORAGE_KEY, null);
-      if(saved && typeof saved.x === 'number') mouth = { ...mouth, ...saved };
-    }
+  function isTargetOnBelt(){
+    return foods.some(f => f.foodIndex === targetIndex);
+  }
 
-    function setTarget(){
-      target = nextFromDeck();
-      targetImg.src = ASSET(target.file);
-      targetName.textContent = target.label;
-    }
+  // -------------------------
+  // Food spawning / movement
+  // -------------------------
+  function spawnFood(forceTarget=false){
+    const sr = stage.getBoundingClientRect();
+    const spawnX = sr.width + 40;
 
-    function loadStats(){
-      bestAll = parseInt(localStorage.getItem(LS_BEST) || '0', 10) || 0;
-
-      const dailyObj = safeLoadJSON(LS_DAILY, { day: DAY_KEY(), done: 0 });
-      dailyDone = (dailyObj.day === DAY_KEY()) ? (dailyObj.done || 0) : 0;
-      localStorage.setItem(LS_DAILY, JSON.stringify({ day: DAY_KEY(), done: dailyDone }));
-
-      const dbObj = safeLoadJSON(LS_DAILYBEST, { day: DAY_KEY(), best: 0 });
-      dailyBest = (dbObj.day === DAY_KEY()) ? (dbObj.best || 0) : 0;
-      localStorage.setItem(LS_DAILYBEST, JSON.stringify({ day: DAY_KEY(), best: dailyBest }));
-
-      bestEl.textContent = bestAll;
-      dailyEl.textContent = dailyDone;
-      dailyBestEl.textContent = dailyBest;
-      goalEl.textContent = DAILY_GOAL;
-    }
-
-    function saveBests(){
-      if(runCorrect > bestAll){
-        bestAll = runCorrect;
-        localStorage.setItem(LS_BEST, String(bestAll));
-        bestEl.textContent = bestAll;
-      }
-      if(runCorrect > dailyBest){
-        dailyBest = runCorrect;
-        localStorage.setItem(LS_DAILYBEST, JSON.stringify({ day: DAY_KEY(), best: dailyBest }));
-        dailyBestEl.textContent = dailyBest;
-      }
-    }
-
-    function addDaily(){
-      dailyDone = Math.min(DAILY_GOAL, dailyDone + 1);
-      localStorage.setItem(LS_DAILY, JSON.stringify({ day: DAY_KEY(), done: dailyDone }));
-      dailyEl.textContent = dailyDone;
-    }
-
-    function secondsToHMS(s){
-      const hh = String(Math.floor(s / 3600)).padStart(2,'0');
-      const mm = String(Math.floor((s % 3600) / 60)).padStart(2,'0');
-      const ss = String(Math.floor(s % 60)).padStart(2,'0');
-      return `${hh}:${mm}:${ss}`;
-    }
-
-    function updateResetTimer(){
-      const now = new Date();
-      const next = new Date(now);
-      next.setHours(24,0,0,0);
-      const diff = Math.max(0, Math.floor((next - now) / 1000));
-      resetInEl.textContent = secondsToHMS(diff);
-    }
-
-    function placeFoodEl(f){
-      f.el.style.left = f.x + 'px';
-      f.el.style.top = f.y + 'px';
-    }
-
-    function spawnFood(forceTarget=false){
-      if(foods.length >= MAX_FOODS) return;
-
-      const sr = stage.getBoundingClientRect();
-
-      // Spawn only if there is spacing from the last spawn (prevents stacking)
-      const startX = leftX - 60;
-      if(Math.abs(startX - lastSpawnX) < ITEM_SPACING && foods.length > 0) return;
-      lastSpawnX = startX;
-
-      const food = forceTarget ? target : nextFromDeck();
-
-      const img = document.createElement('img');
-      img.className = 'foodItem';
-      img.src = ASSET(food.file);
-      img.alt = food.label;
-      img.draggable = false;
-
-      const obj = {
-        id: nextId++,
-        food,
-        x: startX,
-        y: laneY,
-        el: img
-      };
-
-      img.addEventListener('pointerdown', (e)=>pointerDown(e, obj), { passive:false });
-
-      stage.appendChild(img);
-      foods.push(obj);
-      placeFoodEl(obj);
+    // Enforce spacing: last item must be far enough left
+    if(foods.length){
+      const maxX = Math.max(...foods.map(f => f.x));
+      if(maxX > spawnX - ITEM_SPACING_PX) return;
     }
 
-    function removeFood(obj){
-      obj.el.remove();
-      foods = foods.filter(f => f.id !== obj.id);
-      if(dragging && dragging.id === obj.id) dragging = null;
+    let foodIndex = forceTarget ? targetIndex : pickRandomIndex();
+
+    // Avoid endless repeats (slight bias)
+    if(!forceTarget && foods.length >= 2){
+      const last1 = foods[foods.length-1].foodIndex;
+      const last2 = // approximate: find rightmost two
+        foods.slice().sort((a,b)=>a.x-b.x).slice(-2)[0]?.foodIndex;
+      if(foodIndex === last1 || foodIndex === last2) foodIndex = pickRandomIndex();
     }
 
-    function missTarget(){
-      streak = 0;
-      streakEl.textContent = streak;
-      mult = 1.0;
-      multEl.textContent = mult.toFixed(2) + 'x';
-      showBanner('MISSED');
-    }
+    const img = document.createElement('img');
+    img.className = 'food';
+    img.src = FOODS[foodIndex].src;
+    img.alt = FOODS[foodIndex].label;
+    img.draggable = false;
 
-    function wrongSnack(){
-      streak = 0;
-      streakEl.textContent = streak;
-      mult = 1.0;
-      multEl.textContent = mult.toFixed(2) + 'x';
-      showBanner('WRONG');
-    }
+    const obj = {
+      id: nextId++,
+      foodIndex,
+      x: spawnX,
+      y: laneY,
+      el: img,
+    };
 
-    function munch(perfect){
-      const gained = perfect ? 2 : 1;
+    img.dataset.id = obj.id;
 
-      runCorrect += gained;
-      streak += 1;
+    // Drag handlers
+    img.addEventListener('pointerdown', (e) => {
+      // capture drag
+      if(dragging) return;
+      img.setPointerCapture(e.pointerId);
 
-      // Mild multiplier only
-      mult = 1 + Math.min(1.0, Math.floor(streak / 8) * 0.25);
-
-      runCorrectEl.textContent = runCorrect;
-      streakEl.textContent = streak;
-      multEl.textContent = mult.toFixed(2) + 'x';
-
-      addDaily();
-      saveBests();
-
-      showBanner(perfect ? `PERFECT +${gained}` : `NICE +${gained}`);
-
-      // New target often to keep it fresh
-      if(Math.random() < 0.65) setTarget();
-    }
-
-    function hitTestMouth(clientX, clientY){
-      const mh = mouthHit.getBoundingClientRect();
-      const inside = (clientX >= mh.left && clientX <= mh.right && clientY >= mh.top && clientY <= mh.bottom);
-      if(!inside) return { inside:false, perfect:false };
-
-      const cx = (mh.left + mh.right)/2;
-      const cy = (mh.top + mh.bottom)/2;
-      const dx = clientX - cx, dy = clientY - cy;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      const perfect = dist < Math.min(mh.width, mh.height) * 0.22;
-      return { inside:true, perfect };
-    }
-
-    function pointerDown(e, obj){
+      dragging = { foodObj: obj, dx: obj.x - e.clientX, dy: obj.y - e.clientY };
+      img.classList.add('dragging');
       e.preventDefault();
-      dragging = obj;
-      obj.el.setPointerCapture?.(e.pointerId);
+      e.stopPropagation();
+    });
 
-      const fr = obj.el.getBoundingClientRect();
-      dragOffset.x = e.clientX - (fr.left + fr.width/2);
-      dragOffset.y = e.clientY - (fr.top + fr.height/2);
-    }
-
-    function pointerMove(e){
-      if(!dragging) return;
-      e.preventDefault();
-
+    img.addEventListener('pointermove', (e) => {
+      if(!dragging || dragging.foodObj !== obj) return;
       const sr = stage.getBoundingClientRect();
-      dragging.x = (e.clientX - sr.left) - dragOffset.x;
-      dragging.y = (e.clientY - sr.top) - dragOffset.y;
-      placeFoodEl(dragging);
-    }
-
-    function pointerUp(e){
-      if(!dragging) return;
+      const x = (e.clientX - sr.left) + (dragging.dx || 0);
+      const y = (e.clientY - sr.top) + (dragging.dy || 0);
+      obj.x = clamp(x, 10, sr.width - 10);
+      obj.y = clamp(y, 10, sr.height - 10);
+      renderFood(obj);
       e.preventDefault();
+      e.stopPropagation();
+    });
 
-      const dropped = dragging;
+    img.addEventListener('pointerup', (e) => {
+      if(!dragging || dragging.foodObj !== obj) return;
+      img.classList.remove('dragging');
       dragging = null;
 
-      const ht = hitTestMouth(e.clientX, e.clientY);
-      if(ht.inside){
-        if(dropped.food.file === target.file){
-          munch(ht.perfect);
-          removeFood(dropped);
+      // check mouth hit
+      const dx = obj.x - mouth.x;
+      const dy = obj.y - mouth.y;
+      const dist = Math.hypot(dx,dy);
+
+      if(dist <= mouth.r){
+        // Eaten attempt
+        if(obj.foodIndex === targetIndex){
+          // correct
+          runCorrect++;
+          streak++;
+          daily.goalNow = Math.min(GOAL_MAX, (daily.goalNow||0) + 1);
+          goalNowEl.textContent = daily.goalNow;
+          saveDaily();
+          showToast('NICE');
+          removeFood(obj.id);
+          setNewTarget();
         }else{
-          wrongSnack();
-          dropped.y = laneY;
-          placeFoodEl(dropped);
+          // wrong
+          streak = 0;
+          showToast('MISSED');
+          // snap back to lane so it keeps moving
+          obj.y = laneY;
         }
-        return;
+        updateHUD();
+      }else{
+        // not dropped in mouth -> snap back to lane for smooth belt
+        obj.y = laneY;
       }
 
-      // Snap back to belt lane
-      dropped.y = laneY;
-      placeFoodEl(dropped);
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    foodsLayer.appendChild(img);
+    foods.push(obj);
+    renderFood(obj);
+  }
+
+  function renderFood(obj){
+    obj.el.style.left = obj.x + 'px';
+    obj.el.style.top = obj.y + 'px';
+  }
+
+  function removeFood(id){
+    const idx = foods.findIndex(f => f.id === id);
+    if(idx >= 0){
+      const [f] = foods.splice(idx,1);
+      try{ f.el.remove(); }catch(e){}
+    }
+  }
+
+  function tick(t){
+    const dt = Math.min(0.05, (t - lastT) / 1000);
+    lastT = t;
+
+    const sr = stage.getBoundingClientRect();
+    const leftKill = -80;
+
+    // Recompute lane/mouth occasionally (images load async)
+    // plus if user rotates phone
+    if((t|0) % 1200 < 16) recomputeAll();
+
+    // Spawn logic (keep pressure steady)
+    if(t - lastSpawn >= spawnEveryMs){
+      lastSpawn = t;
+
+      // Guarantee target appears frequently
+      const needTarget = !isTargetOnBelt() && (t - lastTargetSeen >= TARGET_GUARANTEE_MS);
+
+      if(foods.length < MAX_FOODS_ON_SCREEN){
+        spawnFood(needTarget);
+        if(needTarget) lastTargetSeen = t;
+      }
     }
 
-    async function shareScore(){
-      const text =
-`$PHAT Conveyor Munch
-✅ Correct: ${runCorrect}
-🔥 Streak: ${streak}
-🎯 Daily: ${dailyDone}/${DAILY_GOAL}
-Play: planetfatness.fit/stack`;
+    // Keep initial pressure
+    if(foods.length < START_FOODS_ON_SCREEN){
+      for(let i=0;i<2;i++){
+        if(foods.length < START_FOODS_ON_SCREEN) spawnFood(false);
+      }
+    }
 
+    // Move belt foods (unless dragging)
+    for(const f of foods){
+      if(dragging && dragging.foodObj === f) continue;
+      f.x -= beltSpeed * dt;
+      f.y = laneY; // stay on belt lane
+      renderFood(f);
+    }
+
+    // Remove offscreen + punish if target slipped away
+    for(let i=foods.length-1;i>=0;i--){
+      const f = foods[i];
+      if(f.x < leftKill){
+        const wasTarget = (f.foodIndex === targetIndex);
+        removeFood(f.id);
+        if(wasTarget){
+          streak = 0;
+          showToast('MISSED');
+          updateHUD();
+          // Make sure target comes back quickly
+          lastTargetSeen = 0;
+        }
+      }
+    }
+
+    raf = requestAnimationFrame(tick);
+  }
+
+  // -------------------------
+  // Reset / Share
+  // -------------------------
+  function resetRun(){
+    runCorrect = 0;
+    streak = 0;
+    updateHUD();
+
+    // clear foods
+    foods.forEach(f => { try{ f.el.remove(); }catch(e){} });
+    foods = [];
+    dragging = null;
+
+    setNewTarget();
+    recomputeAll();
+
+    // kickstart spawns
+    lastSpawn = 0;
+    lastTargetSeen = 0;
+  }
+
+  async function shareScore(){
+    const text = `$PHAT Conveyor Munch — Run: ${runCorrect} • Streak: ${streak} • Daily: ${daily.goalNow||0}/${GOAL_MAX}\n${location.href}`;
+    try{
+      if(navigator.share){
+        await navigator.share({text});
+      }else{
+        await navigator.clipboard.writeText(text);
+        showToast('COPIED');
+      }
+    }catch(e){
       try{
-        if(navigator.share){
-          await navigator.share({ title: '$PHAT — Conveyor Munch', text });
-          toastMsg('Shared');
-        }else{
-          await navigator.clipboard.writeText(text);
-          toastMsg('Copied');
-        }
-      }catch{
-        try{ await navigator.clipboard.writeText(text); toastMsg('Copied'); }
-        catch{ toastMsg('Share blocked'); }
-      }
+        await navigator.clipboard.writeText(text);
+        showToast('COPIED');
+      }catch(_){}
     }
+  }
 
-    function resetRun(){
-      for(const f of foods){ f.el.remove(); }
-      foods = [];
-      dragging = null;
+  // -------------------------
+  // Boot
+  // -------------------------
+  loadDaily();
+  resetRun();
 
-      runCorrect = 0;
-      streak = 0;
-      mult = 1.0;
+  btnReset.addEventListener('click', resetRun);
+  btnShare.addEventListener('click', shareScore);
 
-      runCorrectEl.textContent = runCorrect;
-      streakEl.textContent = streak;
-      multEl.textContent = mult.toFixed(2) + 'x';
+  // countdown
+  function updateCountdown(){
+    resetInEl.textContent = fmtCountdown(msUntilMidnight());
+    requestAnimationFrame(updateCountdown);
+  }
+  updateCountdown();
 
-      deck = [];
-      setTarget();
+  // Wait for images to load then compute exact geometry
+  function onReady(){
+    recomputeAll();
+  }
+  window.addEventListener('resize', recomputeAll, {passive:true});
+  window.addEventListener('orientationchange', () => setTimeout(recomputeAll, 250), {passive:true});
+  baseEl.addEventListener('load', onReady);
+  beltEl.addEventListener('load', onReady);
 
-      spawnTimer = 0;
-      timeSinceTargetSpawn = 0;
-      lastSpawnX = -9999;
-      lastTime = performance.now();
-
-      // Start with a few, not a flood
-      for(let i=0;i<START_FOODS;i++){
-        spawnFood(i === 2);
-      }
-    }
-
-    function tick(now){
-      const dt = Math.min(0.033, (now - lastTime) / 1000);
-      lastTime = now;
-
-      spawnTimer += dt * 1000;
-      timeSinceTargetSpawn += dt * 1000;
-
-      const shouldForceTarget = timeSinceTargetSpawn >= TARGET_GUARANTEE_MS;
-
-      while(spawnTimer >= spawnEvery){
-        spawnTimer -= spawnEvery;
-
-        if(shouldForceTarget){
-          spawnFood(true);
-          timeSinceTargetSpawn = 0;
-        }else{
-          spawnFood(false);
-        }
-      }
-
-      const sr = stage.getBoundingClientRect();
-
-      for(const f of foods){
-        if(!(dragging && dragging.id === f.id)){
-          f.x += (beltSpeed * dt);
-          f.y = laneY;
-          placeFoodEl(f);
-        }
-
-        // remove offscreen
-        if(f.x > sr.width + 120){
-          if(f.food.file === target.file){
-            missTarget();
-          }
-          removeFood(f);
-          break;
-        }
-      }
-
-      requestAnimationFrame(tick);
-    }
-
-    function refreshLayout(){
-      stageMetrics();
-      computeLaneFromBelt();
-      setMouth();
-
-      for(const f of foods){
-        if(!(dragging && dragging.id === f.id)){
-          f.y = laneY;
-          placeFoodEl(f);
-        }
-      }
-    }
-
-    (function boot(){
-      // Bubble fallback if image fails to load
-      bubbleImg.addEventListener('error', ()=>{
-        thoughtEl.classList.add('fallback');
-        bubbleImg.style.display = 'none';
-      });
-
-      loadMouth();
-      loadStats();
-      updateResetTimer();
-      setInterval(updateResetTimer, 250);
-
-      window.addEventListener('resize', refreshLayout, { passive:true });
-
-      // Wait a tick so images have dimensions, then compute lane from belt
-      setTimeout(refreshLayout, 60);
-      beltEl.addEventListener('load', refreshLayout);
-
-      window.addEventListener('pointermove', pointerMove, { passive:false });
-      window.addEventListener('pointerup', pointerUp, { passive:false });
-      window.addEventListener('pointercancel', pointerUp, { passive:false });
-
-      restartBtn.addEventListener('click', () => { saveBests(); resetRun(); toastMsg('Run reset'); });
-      shareBtn.addEventListener('click', shareScore);
-
-      resetRun();
-      requestAnimationFrame(tick);
-    })();
-  </script>
+  // start loop
+  cancelAnimationFrame(raf);
+  lastT = performance.now();
+  raf = requestAnimationFrame(tick);
+})();
+</script>
 </body>
 </html>
