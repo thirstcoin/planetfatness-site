@@ -111,7 +111,7 @@
       border:1px solid rgba(255,255,255,.10);
     }
 
-    /* Scene background image */
+    /* Scene background */
     .scene{
       position:absolute;
       inset:0;
@@ -128,17 +128,17 @@
       display:block;
     }
 
-    /* Thought bubble + label cluster (UP so it won't cover face) */
+    /* Thought cluster moved UP so it doesn't cover face */
     .thoughtCluster{
       position:absolute;
       left:50%;
-      top:6.5%;              /* higher */
+      top:3.5%;
       transform:translateX(-50%);
       z-index:6;
       display:flex;
       flex-direction:column;
       align-items:center;
-      gap:8px;
+      gap:10px;
       pointer-events:none;
     }
 
@@ -154,14 +154,14 @@
       max-width:min(92vw, 560px);
       line-height:1.15;
       font-size:16px;
-      box-shadow:0 10px 24px rgba(0,0,0,.25);
-      white-space:normal;       /* never cut off shakes */
+      white-space:normal;
       word-break:break-word;
+      box-shadow:0 10px 24px rgba(0,0,0,.25);
     }
 
     .thought{
       position:relative;
-      width:min(240px, 54vw);   /* slightly smaller */
+      width:min(220px, 52vw);
       aspect-ratio: 4 / 3;
       display:flex;
       align-items:center;
@@ -173,6 +173,7 @@
       width:100%;
       height:100%;
       object-fit:contain;
+      transform: translateY(-18%);
       user-select:none;
       -webkit-user-drag:none;
     }
@@ -181,12 +182,11 @@
       width:44%;
       height:44%;
       object-fit:contain;
-      transform: translateY(-2%);
+      transform: translateY(-22%);
       user-select:none;
       -webkit-user-drag:none;
     }
 
-    /* Belt items layer */
     .itemsLayer{
       position:absolute;
       inset:0;
@@ -215,7 +215,7 @@
       pointer-events:none;
     }
 
-    /* Invisible mouth drop target */
+    /* mouth target */
     .mouthTarget{
       position:absolute;
       left:50%;
@@ -276,7 +276,7 @@
     @media (min-width:720px){
       .stage{ aspect-ratio: 16 / 15; }
       .foodItem{ width:96px; height:96px; }
-      .thoughtCluster{ top:5.5%; }
+      .thoughtCluster{ top:2.8%; }
     }
   </style>
 </head>
@@ -394,10 +394,9 @@
   let streak = 0;
   let bestScore = 0;
 
-  // Daily storage
-  const LS_KEY = 'phat_snack_daily_v3';
-  const LS_BEST = 'phat_snack_dailybest_v3';
-  const LS_BEST_RUN = 'phat_snack_best_run_v3';
+  const LS_KEY = 'phat_snack_daily_v4';
+  const LS_BEST = 'phat_snack_dailybest_v4';
+  const LS_BEST_RUN = 'phat_snack_best_run_v4';
 
   function todayKey(){
     const d = new Date();
@@ -452,15 +451,14 @@
 
   // ---------- GAME CONFIG ----------
   const items = [];
-
-  // Pressure (but readable)
   const MAX_ONSCREEN = 5;
-  const MIN_GAP = 150;        // more spacing = fewer mis-grabs
-  let BASE_SPEED = 220;       // faster baseline so it feels alive
+  const MIN_GAP = 160;
+
+  let BASE_SPEED = 240;
   let speedNow = BASE_SPEED;
 
-  // Guarantee target appears quickly
-  const TARGET_MAX_WAIT_MS = 7000; // force target within 7s
+  // target must appear fast
+  const TARGET_MAX_WAIT_MS = 6500;
   let lastTargetSeenAt = Date.now();
 
   function rect(el){ return el.getBoundingClientRect(); }
@@ -470,20 +468,18 @@
   }
 
   function foodSizePx(){
-    return (window.innerWidth >= 720) ? 92 : 88; // readable but not giant
+    return (window.innerWidth >= 720) ? 92 : 88;
   }
 
-  // BELT LINE tuned for your stack_scene.png so food sits ON the belt
+  // Raise belt surface line for stack_scene.png
   function beltSurfaceY(){
     const { h } = stageDims();
-    // This ratio puts food right on the belt top edge (based on your screenshot)
-    return Math.round(h * 0.705);
+    return Math.round(h * 0.635);
   }
 
   function foodRideY(){
     const px = foodSizePx();
-    // Pull food up onto belt surface (bigger value = higher on belt)
-    return beltSurfaceY() - Math.round(px * 0.62);
+    return beltSurfaceY() - Math.round(px * 0.78);
   }
 
   function isInMouth(clientX, clientY){
@@ -497,7 +493,6 @@
     target = FOODS[Math.floor(Math.random() * FOODS.length)];
     targetNameEl.textContent = target.label.toUpperCase();
     targetFoodImg.src = target.src;
-
     lastTargetSeenAt = Date.now();
   }
 
@@ -555,12 +550,11 @@
       offY:0
     };
 
-    // If this is the target food, mark "seen"
     if(f.id === target.id){
       lastTargetSeenAt = Date.now();
     }
 
-    // Drag (no jump)
+    // drag (no jump)
     el.addEventListener('pointerdown', (ev) => {
       ev.preventDefault();
       el.setPointerCapture(ev.pointerId);
@@ -631,18 +625,14 @@
     let startX = (rightMost === -Infinity) ? (sd.w + px) : (rightMost + MIN_GAP);
 
     while(items.filter(it => it.x > -px*2).length < MAX_ONSCREEN){
-      // TARGET INJECTION: if target hasn't appeared within the wait window, force it next
       const waited = Date.now() - lastTargetSeenAt;
       const mustInject = waited > TARGET_MAX_WAIT_MS;
-
       if(mustInject){
         spawnItem(startX, target);
       } else {
-        // mild bias: 18% chance to spawn target naturally even before forcing
         const roll = Math.random();
         spawnItem(startX, roll < 0.18 ? target : null);
       }
-
       startX += MIN_GAP;
     }
   }
