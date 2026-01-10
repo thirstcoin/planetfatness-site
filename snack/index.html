@@ -128,11 +128,11 @@
       display:block;
     }
 
-    /* Thought bubble + label cluster (FIXED: higher) */
+    /* Thought bubble + label cluster (UP so it won't cover face) */
     .thoughtCluster{
       position:absolute;
       left:50%;
-      top:12%;              /* <-- was too low; this keeps it near head */
+      top:6.5%;              /* higher */
       transform:translateX(-50%);
       z-index:6;
       display:flex;
@@ -155,13 +155,13 @@
       line-height:1.15;
       font-size:16px;
       box-shadow:0 10px 24px rgba(0,0,0,.25);
-      white-space:normal;       /* never cut off “Vanilla Shake” */
+      white-space:normal;       /* never cut off shakes */
       word-break:break-word;
     }
 
     .thought{
       position:relative;
-      width:min(260px, 56vw);
+      width:min(240px, 54vw);   /* slightly smaller */
       aspect-ratio: 4 / 3;
       display:flex;
       align-items:center;
@@ -178,8 +178,8 @@
     }
     .thought img.food{
       position:relative;
-      width:46%;
-      height:46%;
+      width:44%;
+      height:44%;
       object-fit:contain;
       transform: translateY(-2%);
       user-select:none;
@@ -219,7 +219,7 @@
     .mouthTarget{
       position:absolute;
       left:50%;
-      top:44%;
+      top:43%;
       transform:translate(-50%,-50%);
       width:155px;
       height:120px;
@@ -276,7 +276,7 @@
     @media (min-width:720px){
       .stage{ aspect-ratio: 16 / 15; }
       .foodItem{ width:96px; height:96px; }
-      .thoughtCluster{ top:10%; }
+      .thoughtCluster{ top:5.5%; }
     }
   </style>
 </head>
@@ -395,9 +395,9 @@
   let bestScore = 0;
 
   // Daily storage
-  const LS_KEY = 'phat_snack_daily_v2';
-  const LS_BEST = 'phat_snack_dailybest_v2';
-  const LS_BEST_RUN = 'phat_snack_best_run_v2';
+  const LS_KEY = 'phat_snack_daily_v3';
+  const LS_BEST = 'phat_snack_dailybest_v3';
+  const LS_BEST_RUN = 'phat_snack_best_run_v3';
 
   function todayKey(){
     const d = new Date();
@@ -450,29 +450,40 @@
   setInterval(tickReset, 250);
   tickReset();
 
-  // ---------- GAME CONFIG (movement + spacing) ----------
+  // ---------- GAME CONFIG ----------
   const items = [];
 
-  const MAX_ONSCREEN = 6;    // pressure without chaos
-  const MIN_GAP = 110;       // spacing between items so you don’t grab “behind” one
-  let BASE_SPEED = 170;      // belt speed baseline
+  // Pressure (but readable)
+  const MAX_ONSCREEN = 5;
+  const MIN_GAP = 150;        // more spacing = fewer mis-grabs
+  let BASE_SPEED = 220;       // faster baseline so it feels alive
   let speedNow = BASE_SPEED;
 
-  function rect(el){ return el.getBoundingClientRect(); }
+  // Guarantee target appears quickly
+  const TARGET_MAX_WAIT_MS = 7000; // force target within 7s
+  let lastTargetSeenAt = Date.now();
 
+  function rect(el){ return el.getBoundingClientRect(); }
   function stageDims(){
     const r = rect(stage);
     return { w:r.width, h:r.height, left:r.left, top:r.top };
   }
 
-  // Belt ride line tuned for stack_scene.png
-  function beltY(){
-    const { h } = stageDims();
-    return Math.round(h * 0.675);
+  function foodSizePx(){
+    return (window.innerWidth >= 720) ? 92 : 88; // readable but not giant
   }
 
-  function foodSizePx(){
-    return (window.innerWidth >= 720) ? 96 : 92;
+  // BELT LINE tuned for your stack_scene.png so food sits ON the belt
+  function beltSurfaceY(){
+    const { h } = stageDims();
+    // This ratio puts food right on the belt top edge (based on your screenshot)
+    return Math.round(h * 0.705);
+  }
+
+  function foodRideY(){
+    const px = foodSizePx();
+    // Pull food up onto belt surface (bigger value = higher on belt)
+    return beltSurfaceY() - Math.round(px * 0.62);
   }
 
   function isInMouth(clientX, clientY){
@@ -486,9 +497,10 @@
     target = FOODS[Math.floor(Math.random() * FOODS.length)];
     targetNameEl.textContent = target.label.toUpperCase();
     targetFoodImg.src = target.src;
+
+    lastTargetSeenAt = Date.now();
   }
 
-  // ---------- TOAST ----------
   function showToast(text, good){
     toast.textContent = text;
     toast.className = 'toast ' + (good ? 'good' : 'bad');
@@ -497,7 +509,6 @@
     showToast._t = setTimeout(() => toast.style.display = 'none', 650);
   }
 
-  // ---------- HUD ----------
   function updateHUD(){
     runScoreEl.textContent = runScore;
     bestScoreEl.textContent = bestScore;
@@ -514,12 +525,12 @@
   }
 
   // ---------- SPAWN + MOVE ----------
-  function spawnItem(x){
-    const { h } = stageDims();
-    if(!h) return; // safeguard for early layout
+  function spawnItem(x, forcedFood=null){
+    const { w, h } = stageDims();
+    if(!w || !h) return;
 
     const px = foodSizePx();
-    const f = FOODS[Math.floor(Math.random()*FOODS.length)];
+    const f = forcedFood || FOODS[Math.floor(Math.random()*FOODS.length)];
 
     const el = document.createElement('div');
     el.className = 'foodItem';
@@ -532,19 +543,22 @@
     el.appendChild(img);
     itemsLayer.appendChild(el);
 
-    const y = beltY() - Math.round(px * 0.55);
-
     const obj = {
       food: f,
       el,
       x,
-      y,
+      y: foodRideY(),
       vx: -speedNow,
       dragging:false,
       pointerId:null,
       offX:0,
       offY:0
     };
+
+    // If this is the target food, mark "seen"
+    if(f.id === target.id){
+      lastTargetSeenAt = Date.now();
+    }
 
     // Drag (no jump)
     el.addEventListener('pointerdown', (ev) => {
@@ -568,9 +582,8 @@
       obj.x = (ev.clientX - sd.left) - obj.offX;
       obj.y = (ev.clientY - sd.top) - obj.offY;
 
-      // clamp a bit
-      obj.x = Math.max(-40, Math.min(sd.w - px + 40, obj.x));
-      obj.y = Math.max(-40, Math.min(sd.h - px + 40, obj.y));
+      obj.x = Math.max(-60, Math.min(sd.w - px + 60, obj.x));
+      obj.y = Math.max(-60, Math.min(sd.h - px + 60, obj.y));
     });
 
     el.addEventListener('pointerup', (ev) => {
@@ -585,8 +598,7 @@
         if(obj.food.id === target.id) onCorrect(obj);
         else onMiss(obj);
       } else {
-        // snap back to belt
-        obj.y = beltY() - Math.round(foodSizePx() * 0.55);
+        obj.y = foodRideY();
       }
     });
 
@@ -594,7 +606,7 @@
       obj.dragging = false;
       obj.pointerId = null;
       el.style.zIndex = 7;
-      obj.y = beltY() - Math.round(foodSizePx() * 0.55);
+      obj.y = foodRideY();
     });
 
     items.push(obj);
@@ -619,7 +631,18 @@
     let startX = (rightMost === -Infinity) ? (sd.w + px) : (rightMost + MIN_GAP);
 
     while(items.filter(it => it.x > -px*2).length < MAX_ONSCREEN){
-      spawnItem(startX);
+      // TARGET INJECTION: if target hasn't appeared within the wait window, force it next
+      const waited = Date.now() - lastTargetSeenAt;
+      const mustInject = waited > TARGET_MAX_WAIT_MS;
+
+      if(mustInject){
+        spawnItem(startX, target);
+      } else {
+        // mild bias: 18% chance to spawn target naturally even before forcing
+        const roll = Math.random();
+        spawnItem(startX, roll < 0.18 ? target : null);
+      }
+
       startX += MIN_GAP;
     }
   }
@@ -638,11 +661,9 @@
     runScore += 1;
     streak += 1;
 
-    // speed scales with streak (pressure)
-    const mult = 1 + Math.min(0.75, streak * 0.04);
+    const mult = 1 + Math.min(0.75, streak * 0.05);
     speedNow = BASE_SPEED * mult;
 
-    // daily count
     const d = loadDaily();
     d.count += 1;
     saveDailyCount(d.count);
@@ -669,7 +690,7 @@
     updateHUD();
   }
 
-  // ---------- LOOP (FIXED: reliable start) ----------
+  // ---------- LOOP ----------
   let last = 0;
   function loop(ts){
     if(!last) last = ts;
@@ -678,17 +699,17 @@
 
     const sd = stageDims();
     const px = foodSizePx();
+
     if(sd.w && sd.h){
       for(const it of items){
         if(!it.dragging){
           it.vx = -speedNow;
           it.x += it.vx * dt;
-          it.y = beltY() - Math.round(px * 0.55);
+          it.y = foodRideY();
         }
         it.el.style.transform = `translate3d(${Math.round(it.x)}px, ${Math.round(it.y)}px, 0)`;
       }
 
-      // clear offscreen
       for(let i=items.length-1;i>=0;i--){
         if(items[i].x < -px*3) removeItem(items[i]);
       }
@@ -700,7 +721,6 @@
     requestAnimationFrame(loop);
   }
 
-  // ---------- RESET ----------
   function hardReset(){
     while(items.length) removeItem(items[0]);
     runScore = 0;
@@ -712,15 +732,11 @@
     pickTarget();
     updateHUD();
 
-    // force a topUp after layout settles
-    requestAnimationFrame(() => {
-      topUp();
-    });
+    requestAnimationFrame(() => topUp());
   }
 
   // ---------- Buttons ----------
   btnReset.addEventListener('click', hardReset);
-
   btnDebug.addEventListener('click', () => {
     debug = !debug;
     stage.classList.toggle('debugOn', debug);
@@ -739,13 +755,12 @@
     }catch{}
   });
 
-  // ---------- INIT (FIXED: wait for scene image + real layout) ----------
+  // ---------- INIT ----------
   function startWhenReady(){
     bestScore = Number(localStorage.getItem(LS_BEST_RUN) || '0');
     pickTarget();
     updateHUD();
 
-    // Wait until stage has real size, then spawn + animate
     const tryStart = () => {
       const sd = stageDims();
       if(sd.w > 50 && sd.h > 50){
@@ -758,20 +773,13 @@
     requestAnimationFrame(tryStart);
   }
 
-  // If scene image is cached, complete immediately
   if(sceneImg && sceneImg.complete){
     startWhenReady();
   } else {
-    // otherwise start after it loads (prevents 0x0 layout bugs -> top-left pile)
     sceneImg?.addEventListener('load', startWhenReady, { once:true });
-    // safety fallback
     window.addEventListener('load', startWhenReady, { once:true });
   }
 
-  // keep belt aligned on rotate
-  window.addEventListener('resize', () => {
-    // no-op; loop uses live beltY every frame
-  });
 })();
 </script>
 </body>
