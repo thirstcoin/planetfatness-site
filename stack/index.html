@@ -132,65 +132,69 @@
       height:auto;
       user-select:none;
       pointer-events:none;
+      z-index: 10;
     }
 
-    /* Thought bubble + label (MOVED UP + closer to head + always on top) */
+    /* Thought bubble: sit right on top of head */
     .thoughtWrap{
       position:absolute;
       left:50%;
-      top: 2.5%;                 /* was 8% */
+      top: 19%;                 /* ✅ head-top placement */
       transform: translateX(-50%);
-      width: 56%;                /* slightly bigger */
+      width: 54%;
       display:flex;
       flex-direction:column;
       align-items:center;
-      gap: 6px;
+      gap: 8px;
       pointer-events:none;
       user-select:none;
-      z-index: 40;               /* ensure above character */
+      z-index: 60;
+    }
+
+    /* ✅ food name ABOVE bubble */
+    #thoughtLabel{
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.26);
+      border: 1px solid rgba(255,255,255,.16);
+      backdrop-filter: blur(10px);
+      font-weight: 950;
+      letter-spacing: 4px;
+      font-size: 18px;
+      text-align:center;
+      text-shadow: 0 10px 18px rgba(0,0,0,.45);
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bubbleBox{
+      position:relative;
+      width:100%;
+      display:block;
+      filter: drop-shadow(0 12px 18px rgba(0,0,0,.25));
     }
     #thoughtBubble{
       width:100%;
       height:auto;
       display:block;
-      filter: drop-shadow(0 12px 18px rgba(0,0,0,.25));
     }
     #thoughtFood{
       position:absolute;
       left:50%;
-      top: 44%;
+      top: 46%;
       transform: translate(-50%, -50%);
-      width: 44%;
+      width: 46%;
       height:auto;
       filter: drop-shadow(0 10px 14px rgba(0,0,0,.25));
-    }
-
-    /* Label: moved up and given its own high z + background so it never disappears */
-    #thoughtLabel{
-      position: relative;
-      z-index: 60;
-      margin-top: -6px;          /* pulls label closer to bubble */
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgba(0,0,0,.22);
-      border: 1px solid rgba(255,255,255,.14);
-      backdrop-filter: blur(8px);
-      font-weight: 950;
-      letter-spacing: 4px;
-      font-size: 18px;           /* readable */
-      text-align:center;
-      text-shadow: 0 10px 18px rgba(0,0,0,.45);
-      max-width: 92%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     /* Toast */
     #toast{
       position:absolute;
       left:50%;
-      top: 54%;
+      top: 56%;
       transform: translateX(-50%);
       padding: 10px 16px;
       border-radius: 999px;
@@ -203,32 +207,30 @@
       transition: opacity .18s ease, transform .18s ease;
       pointer-events:none;
       user-select:none;
-      z-index: 70;
+      z-index: 80;
     }
     #toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px); }
     #toast.good{ color: var(--good); }
     #toast.bad{ color: var(--bad); }
 
-    /* Food items (BIGGER) */
+    /* Food items */
     .food{
       position:absolute;
       left:0;
       top:0;
-      width: 56px;
-      height: 56px;
       transform: translate3d(-9999px,-9999px,0);
       will-change: transform;
       user-select:none;
       -webkit-user-drag:none;
       touch-action:none;
       cursor: grab;
-      filter: drop-shadow(0 12px 18px rgba(0,0,0,.35));
+      filter: drop-shadow(0 14px 22px rgba(0,0,0,.40));
       z-index: 30;
     }
     .food.dragging{
       cursor: grabbing;
-      filter: drop-shadow(0 18px 26px rgba(0,0,0,.45));
-      z-index: 90;
+      filter: drop-shadow(0 20px 28px rgba(0,0,0,.52));
+      z-index: 95;
     }
 
     /* Debug */
@@ -310,9 +312,11 @@
     <div class="gameCard">
       <div class="arena" id="arena">
         <div class="thoughtWrap" id="thoughtWrap">
-          <img id="thoughtBubble" src="../assets/thought-bubble.png" alt="thought" />
-          <img id="thoughtFood" src="" alt="wanted" />
           <div id="thoughtLabel">---</div>
+          <div class="bubbleBox">
+            <img id="thoughtBubble" src="../assets/thought-bubble.png" alt="thought" />
+            <img id="thoughtFood" src="" alt="wanted" />
+          </div>
         </div>
 
         <img id="scene" src="../assets/stack_scene.png" alt="scene" />
@@ -341,41 +345,47 @@
   const PATH_BUBBLE = "../assets/thought-bubble.png";
 
   const FOODS = [
-    { key:"brownies",  label:"BROWNIES",        src:"../assets/food_brownies.png" },
-    { key:"burger",    label:"BURGER",          src:"../assets/food_burger.png" },
-    { key:"cake",      label:"CAKE",            src:"../assets/food_cake.png" },
-    { key:"takeout",   label:"TAKEOUT",         src:"../assets/food_chinese_takeout.png" },
-    { key:"cookiepz",  label:"COOKIE PIZZA",    src:"../assets/food_cookie_pizza.png" },
-    { key:"donuts",    label:"DONUT STACK",     src:"../assets/food_donut_stack.png" },
-    { key:"chicken",   label:"FRIED CHICKEN",   src:"../assets/food_fried_chicken.png" },
-    { key:"fries",     label:"FRIES",           src:"../assets/food_fries.png" },
-    { key:"grilled",   label:"GRILLED CHEESE",  src:"../assets/food_grilledcheese.png" },
-    { key:"hotdogs",   label:"HOTDOGS",         src:"../assets/food_hotdogs.png" },
-    { key:"icecream",  label:"ICE CREAM",       src:"../assets/food_icecream_cone.png" },
-    { key:"shakechoc", label:"CHOC SHAKE",      src:"../assets/food_milkshake_chocolate.png" },
-    { key:"shakestr",  label:"STRAWBERRY SHAKE",src:"../assets/food_milkshake_strawberry.png" },
-    { key:"shakevan",  label:"VANILLA SHAKE",   src:"../assets/food_milkshake_vanilla.png" },
-    { key:"onion",     label:"ONION RINGS",     src:"../assets/food_onion_rings.png" },
+    { key:"brownies",  label:"BROWNIES",         src:"../assets/food_brownies.png" },
+    { key:"burger",    label:"BURGER",           src:"../assets/food_burger.png" },
+    { key:"cake",      label:"CAKE",             src:"../assets/food_cake.png" },
+    { key:"takeout",   label:"TAKEOUT",          src:"../assets/food_chinese_takeout.png" },
+
+    /* ✅ rename cookie pizza -> Pizookie */
+    { key:"pizookie",  label:"PIZOOKIE",         src:"../assets/food_cookie_pizza.png" },
+
+    { key:"donuts",    label:"DONUT STACK",      src:"../assets/food_donut_stack.png" },
+    { key:"chicken",   label:"FRIED CHICKEN",    src:"../assets/food_fried_chicken.png" },
+    { key:"fries",     label:"FRIES",            src:"../assets/food_fries.png" },
+    { key:"grilled",   label:"GRILLED CHEESE",   src:"../assets/food_grilledcheese.png" },
+    { key:"hotdogs",   label:"HOTDOGS",          src:"../assets/food_hotdogs.png" },
+    { key:"icecream",  label:"ICE CREAM",        src:"../assets/food_icecream_cone.png" },
+    { key:"shakechoc", label:"CHOC SHAKE",       src:"../assets/food_milkshake_chocolate.png" },
+    { key:"shakestr",  label:"STRAWBERRY SHAKE", src:"../assets/food_milkshake_strawberry.png" },
+    { key:"shakevan",  label:"VANILLA SHAKE",    src:"../assets/food_milkshake_vanilla.png" },
+    { key:"onion",     label:"ONION RINGS",      src:"../assets/food_onion_rings.png" },
   ];
 
   // --- Tunables ---
+  // Belt line for your current stack_scene.png (tweak only if needed later)
   let BELT_Y_PCT = 0.735;
 
-  // Mouth box (percent of arena). Leave unless you feel drops are off.
-  let MOUTH = { x: 0.50, y: 0.535, w: 0.17, h: 0.12 };
+  // ✅ FIX: make mouth hitbox larger + slightly higher so drops register reliably
+  // (this is why your “completed task” stopped registering — hitbox was too low/tight vs the new scene scaling)
+  let MOUTH = { x: 0.50, y: 0.515, w: 0.26, h: 0.18 };
 
-  const MAX_ONSCREEN = 8;
+  // Pressure
+  const MAX_ONSCREEN = 7;
   const SPAWN_EVERY_MS = 720;
-  const MIN_SPACING_PX = 56;
-  const DESPAWN_PAD = 140;
+  const MIN_SPACING_PX = 64;
+  const DESPAWN_PAD = 160;
 
   const BASE_SPEED = 150;
   const SPEED_PER_STREAK = 6;
   const MAX_SPEED = 260;
 
-  // ✅ Bigger food so it reads clean
-  // was 0.085; bump to 0.12 (and allow larger max size)
-  const FOOD_SIZE_PCT = 0.12;
+  // ✅ 3x bigger than what you had on-screen: hard bump + big max
+  // (old was 0.12 with max ~112px. This targets ~160–220px depending on device width)
+  const FOOD_SIZE_PCT = 0.34;
 
   const arena = document.getElementById("arena");
   const sceneImg = document.getElementById("scene");
@@ -400,7 +410,7 @@
 
   let arenaRect = null;
   let beltY = 0;
-  let foodSize = 56;
+  let foodSize = 140;
   let mouthRect = null;
 
   let runCorrect = 0;
@@ -467,9 +477,10 @@
     arenaRect = arena.getBoundingClientRect();
     beltY = arenaRect.height * BELT_Y_PCT;
 
-    // ✅ bigger max size now
-    foodSize = Math.max(54, Math.min(112, Math.floor(arenaRect.width * FOOD_SIZE_PCT)));
+    // ✅ big readable food size
+    foodSize = Math.max(140, Math.min(240, Math.floor(arenaRect.width * FOOD_SIZE_PCT)));
 
+    // mouth hitbox
     mouthRect = {
       left: arenaRect.left + arenaRect.width * (MOUTH.x - MOUTH.w/2),
       top:  arenaRect.top  + arenaRect.height * (MOUTH.y - MOUTH.h/2),
@@ -486,7 +497,7 @@
     for (const it of items) {
       it.el.style.width = `${foodSize}px`;
       it.el.style.height = `${foodSize}px`;
-      if (!it.dragging) it.y = beltY - foodSize * 0.62;
+      if (!it.dragging) it.y = beltY - foodSize * 0.66;
       renderItem(it);
     }
   }
@@ -546,7 +557,7 @@
       food,
       el,
       x: arenaRect.width + 30,
-      y: beltY - foodSize * 0.62,
+      y: beltY - foodSize * 0.66,
       vx: -getSpeed(),
       dragging: false,
     };
@@ -642,7 +653,8 @@
         removeItem(it);
       }
     } else {
-      it.y = beltY - foodSize * 0.62;
+      // snap back to belt lane
+      it.y = beltY - foodSize * 0.66;
       it.vx = -getSpeed();
       renderItem(it);
     }
@@ -685,7 +697,7 @@
       it.vx = -getSpeed();
       it.x += it.vx * dt;
 
-      it.y = beltY - foodSize * 0.62;
+      it.y = beltY - foodSize * 0.66;
       renderItem(it);
 
       if (it.x < -DESPAWN_PAD) handleMiss(it);
