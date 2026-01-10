@@ -12,10 +12,9 @@
       --stroke:rgba(255,255,255,.10);
       --txt:rgba(255,255,255,.92);
       --muted:rgba(255,255,255,.70);
-      --pill:rgba(0,0,0,.35);
+      --accent:#ffd44d;
       --good:#6dffb3;
       --bad:#ff6d8a;
-      --accent:#ffd44d;
     }
     *{ box-sizing:border-box; }
     body{
@@ -106,18 +105,18 @@
       position:absolute; inset:0;
       display:flex; align-items:flex-end; justify-content:center;
       pointer-events:none;
+      z-index:10;
     }
     .scene img{
       width:100%;
       height:100%;
       object-fit:contain;
       object-position: center bottom;
-      transform: translateY(0px);
       user-select:none;
       -webkit-user-drag:none;
     }
 
-    /* Target cluster: label + bubble (bubble stays close to head but not covering face) */
+    /* Target cluster */
     .targetCluster{
       position:absolute;
       left:50%;
@@ -129,7 +128,7 @@
       align-items:center;
       gap:10px;
       pointer-events:none;
-      z-index:20;
+      z-index:30;
     }
     .targetLabel{
       background:rgba(0,0,0,.40);
@@ -137,8 +136,8 @@
       border-radius:999px;
       padding:10px 16px;
       font-weight:900;
-      letter-spacing:.35em;
-      text-indent:.35em;
+      letter-spacing:.28em;
+      text-indent:.28em;
       text-transform:uppercase;
       max-width:92%;
       overflow:hidden;
@@ -162,7 +161,7 @@
     .bubbleFood{
       position:absolute;
       left:50%;
-      top:42%;                 /* nudged UP so it doesn’t sit low */
+      top:40%; /* slightly higher so it sits centered in bubble */
       transform:translate(-50%, -50%);
       width:32%;
       height:auto;
@@ -171,48 +170,46 @@
       pointer-events:none;
     }
 
-    /* Belt lane (invisible): foods move along this y */
+    /* BELT LANE (LOCKED) */
     .beltLane{
       position:absolute;
       left:0;
       width:100%;
       height:1px;
-      top: 67.5%;             /* LOCK THIS to keep belt ride-line */
+      top: 74%;            /* <-- FIX: moved DOWN so snacks ride ON the belt surface */
       pointer-events:none;
-      z-index:15;
+      z-index:20;
     }
 
     .food{
       position:absolute;
       top: 0;
-      transform: translate(-50%, -100%); /* anchor bottom to lane */
-      width: 92px;                      /* base size (not giant) */
+      transform: translate(-50%, -100%); /* bottom sits on the lane */
+      width: 184px; /* <-- FIX: 2x size (was ~92px) */
       height:auto;
       touch-action:none;
       user-select:none;
       -webkit-user-drag:none;
-      z-index:16;
+      z-index:25;
       filter: drop-shadow(0 10px 12px rgba(0,0,0,.25));
     }
 
-    /* Dragging */
     .food.dragging{
-      z-index:40;
+      z-index:60;
       filter: drop-shadow(0 16px 18px rgba(0,0,0,.35));
       transition:none !important;
     }
 
-    /* Mouth/Plate drop zone */
     .dropZone{
       position:absolute;
       left:50%;
-      top: 58.5%;             /* tuned to the plate/mouth area in stack_scene.png */
+      top: 58.5%;
       transform:translate(-50%, -50%);
-      width: 220px;
-      height: 140px;
+      width: 240px;
+      height: 150px;
       border-radius:22px;
       pointer-events:none;
-      z-index:18;
+      z-index:26;
     }
 
     .toast{
@@ -245,7 +242,7 @@
       left:50%;
       top:50%;
       transform:translate(-50%, -50%);
-      z-index:60;
+      z-index:80;
       background:rgba(0,0,0,.55);
       border:1px solid rgba(255,255,255,.18);
       padding:14px 16px;
@@ -260,8 +257,8 @@
     @media (max-width:520px){
       .stats{ grid-template-columns: 1fr; }
       .stage{ aspect-ratio: 9/12; }
-      .food{ width: 84px; }
-      .dropZone{ width: 210px; height: 130px; }
+      .food{ width: 172px; } /* 2x mobile */
+      .dropZone{ width: 230px; height: 140px; }
       .targetCluster{ top: 8%; }
     }
   </style>
@@ -329,32 +326,29 @@
 
 <script>
 (() => {
-  // ===== ASSETS (ALL YOUR FOODS) =====
-  // NOTE: We rename cookie pizza to "Pizookie" in the LABEL ONLY.
   const FOODS = [
-    { key:'brownies',         name:'Brownies',            src:'../assets/food_brownies.png' },
-    { key:'burger',           name:'Burger',              src:'../assets/food_burger.png' },
-    { key:'cake',             name:'Cake',                src:'../assets/food_cake.png' },
-    { key:'takeout',          name:'Takeout',             src:'../assets/food_chinese_takeout.png' },
-    { key:'pizookie',         name:'Pizookie',            src:'../assets/food_cookie_pizza.png' },
-    { key:'donut_stack',      name:'Donut Stack',         src:'../assets/food_donut_stack.png' },
-    { key:'fried_chicken',    name:'Fried Chicken',       src:'../assets/food_fried_chicken.png' },
-    { key:'fries',            name:'Fries',               src:'../assets/food_fries.png' },
-    { key:'grilledcheese',    name:'Grilled Cheese',      src:'../assets/food_grilledcheese.png' },
-    { key:'hotdogs',          name:'Hot Dogs',            src:'../assets/food_hotdogs.png' },
-    { key:'icecream',         name:'Ice Cream',           src:'../assets/food_icecream_cone.png' },
-    { key:'shake_choc',       name:'Chocolate Shake',     src:'../assets/food_milkshake_chocolate.png' },
-    { key:'shake_straw',      name:'Strawberry Shake',    src:'../assets/food_milkshake_strawberry.png' },
-    { key:'shake_van',        name:'Vanilla Shake',       src:'../assets/food_milkshake_vanilla.png' },
-    { key:'onion_rings',      name:'Onion Rings',         src:'../assets/food_onion_rings.png' },
-    { key:'pancakes',         name:'Pancakes',            src:'../assets/food_pancakes.png' },
-    { key:'pizza_stack',      name:'Pizza',               src:'../assets/food_pizza_stack.png' },
-    { key:'popcorn',          name:'Popcorn',             src:'../assets/food_popcorn.png' },
-    { key:'soda',             name:'Soda',                src:'../assets/food_soda.png' },
-    { key:'sub',              name:'Sub',                 src:'../assets/food_sub.png' },
+    { key:'brownies',      name:'Brownies',         src:'../assets/food_brownies.png' },
+    { key:'burger',        name:'Burger',           src:'../assets/food_burger.png' },
+    { key:'cake',          name:'Cake',             src:'../assets/food_cake.png' },
+    { key:'takeout',       name:'Takeout',          src:'../assets/food_chinese_takeout.png' },
+    { key:'pizookie',      name:'Pizookie',         src:'../assets/food_cookie_pizza.png' },
+    { key:'donut_stack',   name:'Donut Stack',      src:'../assets/food_donut_stack.png' },
+    { key:'fried_chicken', name:'Fried Chicken',    src:'../assets/food_fried_chicken.png' },
+    { key:'fries',         name:'Fries',            src:'../assets/food_fries.png' },
+    { key:'grilledcheese', name:'Grilled Cheese',   src:'../assets/food_grilledcheese.png' },
+    { key:'hotdogs',       name:'Hot Dogs',         src:'../assets/food_hotdogs.png' },
+    { key:'icecream',      name:'Ice Cream',        src:'../assets/food_icecream_cone.png' },
+    { key:'shake_choc',    name:'Chocolate Shake',  src:'../assets/food_milkshake_chocolate.png' },
+    { key:'shake_straw',   name:'Strawberry Shake', src:'../assets/food_milkshake_strawberry.png' },
+    { key:'shake_van',     name:'Vanilla Shake',    src:'../assets/food_milkshake_vanilla.png' },
+    { key:'onion_rings',   name:'Onion Rings',      src:'../assets/food_onion_rings.png' },
+    { key:'pancakes',      name:'Pancakes',         src:'../assets/food_pancakes.png' },
+    { key:'pizza_stack',   name:'Pizza',            src:'../assets/food_pizza_stack.png' },
+    { key:'popcorn',       name:'Popcorn',          src:'../assets/food_popcorn.png' },
+    { key:'soda',          name:'Soda',             src:'../assets/food_soda.png' },
+    { key:'sub',           name:'Sub',              src:'../assets/food_sub.png' },
   ];
 
-  // ===== ELEMENTS =====
   const stage      = document.getElementById('stage');
   const beltLane   = document.getElementById('beltLane');
   const dropZoneEl = document.getElementById('dropZone');
@@ -371,56 +365,47 @@
   const resetBtn = document.getElementById('resetBtn');
   const shareBtn = document.getElementById('shareBtn');
   const debugBtn = document.getElementById('debugBtn');
+  const resetInEl = document.getElementById('resetIn');
 
-  // ===== STATE =====
   let debug = false;
-  let foodsOnBelt = []; // {id, def, el, x, vx, isTarget, grabbed}
+
+  let foodsOnBelt = []; // {id, def, el, x}
   let nextId = 1;
 
   let running = true;
   let streak = 0;
   let score = 0;
 
-  // Speed system: starts slower, speeds up per correct
   let speedMult = 1.00;
-  const baseSpeed = 115;           // px/sec baseline (tuned for phone)
-  const speedStep = 0.045;         // each correct increases belt speed slightly
-  const speedCap  = 2.25;
+  const baseSpeed = 125;        // slightly faster baseline
+  const speedStep = 0.055;      // speeds up per correct
+  const speedCap  = 2.35;
 
-  // Density / spacing
-  const maxOnScreen = 7;           // pressure but not unreadable
-  const minGap = 120;              // prevents overlap / mis-drag
-  const spawnEveryMs = 520;        // cadence
-  let spawnTimer = 0;
+  const maxOnScreen = 6;        // fewer items because they’re 2x bigger
+  const minGap = 260;           // spacing so you don’t mis-grab stacked items
+  const spawnEveryMs = 560;
+  let acc = 0;
 
-  // Target guarantee window
-  const targetMustAppearWithinMs = 2400; // avoids 20s boredom
+  const targetMustAppearWithinMs = 1800; // faster “desired food” appearance
   let targetSetAt = 0;
 
-  // Drag state
   let activeDrag = null; // {food, offsetX, offsetY}
   let lastPointerId = null;
 
-  // Daily best (local)
+  const goalTarget = 30;
+
   const todayKey = () => {
     const d = new Date();
     return `phat_snack_best_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}`;
   };
   const loadBest = () => +localStorage.getItem(todayKey()) || 0;
   const saveBest = (v) => localStorage.setItem(todayKey(), String(v));
-
   let best = loadBest();
   bestEl.textContent = best;
 
-  // Daily goal
-  const goalTarget = 30;
-
-  // ===== HELPERS =====
   function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
-
   function stageRect(){ return stage.getBoundingClientRect(); }
   function laneY(){
-    // beltLane is 1px height, use its top as lane Y in stage coords
     const s = stageRect();
     const r = beltLane.getBoundingClientRect();
     return (r.top - s.top);
@@ -450,10 +435,8 @@
   let currentTarget = pickTarget();
 
   function ensureTargetSoon(){
-    // If it’s been too long since we set target without a target spawn, force it
     const now = performance.now();
     if ((now - targetSetAt) > targetMustAppearWithinMs){
-      // inject a target spawn next
       spawnFood(true);
       targetSetAt = now;
     }
@@ -468,36 +451,24 @@
 
   function spawnFood(forceTarget=false){
     if (!running) return;
-
     const s = stageRect();
     const y = laneY();
 
-    // choose definition
-    let def, isTarget;
+    if (foodsOnBelt.length >= maxOnScreen) return;
+
+    let def;
     if (forceTarget){
       def = currentTarget;
-      isTarget = true;
     } else {
-      // random non-target most of the time; occasionally target
       const roll = Math.random();
-      if (roll < 0.18){ def = currentTarget; isTarget = true; }
+      if (roll < 0.22) def = currentTarget;
       else {
-        // choose any, but avoid being the target too often
         do { def = FOODS[Math.floor(Math.random()*FOODS.length)]; }
-        while(def.key === currentTarget.key && Math.random() < 0.85);
-        isTarget = (def.key === currentTarget.key);
+        while(def.key === currentTarget.key && Math.random() < 0.80);
       }
     }
 
-    // spawn position: right edge + padding
-    let x = s.width + 60;
-    // minor random to avoid perfect “columns”
-    x += Math.random()*40;
-
-    // If there are already too many foods, don’t spawn
-    if (foodsOnBelt.length >= maxOnScreen) return;
-
-    // If too close to last spawned, skip
+    let x = s.width + 120 + Math.random()*60;
     if (!canSpawnAt(x)) return;
 
     const el = document.createElement('img');
@@ -505,34 +476,20 @@
     el.src = def.src;
     el.alt = def.name;
     el.draggable = false;
-
-    // Size: keep readable but not giant (tune here if needed)
-    // (You said belt height/food size was good in the last working screenshot.)
-    const baseW = (window.innerWidth < 520) ? 86 : 96;
-    el.style.width = baseW + 'px';
-
-    // Position
     el.style.left = `${x}px`;
     el.style.top  = `${y}px`;
 
-    // Pointer handlers
+    const id = nextId++;
     el.addEventListener('pointerdown', (e) => onPointerDown(e, id));
 
     stage.appendChild(el);
 
-    const id = nextId++;
-    const vx = (baseSpeed * speedMult);
-
-    foodsOnBelt.push({
-      id, def, el,
-      x, y,
-      vx,
-      isTarget,
-      grabbed:false
-    });
+    foodsOnBelt.push({ id, def, el, x });
 
     if (debug){
-      el.style.outline = isTarget ? '2px solid rgba(109,255,179,.8)' : '2px solid rgba(255,255,255,.12)';
+      el.style.outline = (def.key === currentTarget.key)
+        ? '2px solid rgba(109,255,179,.85)'
+        : '2px solid rgba(255,255,255,.14)';
     }
   }
 
@@ -541,17 +498,15 @@
     foodsOnBelt = foodsOnBelt.filter(f => f.id !== food.id);
   }
 
-  function gameOver(reason){
+  function gameOver(){
     if (!running) return;
     running = false;
     setBanner('MISSED', getComputedStyle(document.documentElement).getPropertyValue('--bad'));
-    // stop dragging
     activeDrag = null;
     lastPointerId = null;
   }
 
   function winCorrect(food){
-    // Animate food into mouth/plate center
     const s = stageRect();
     const z = dropZoneEl.getBoundingClientRect();
     const targetX = (z.left - s.left) + (z.width/2);
@@ -562,19 +517,15 @@
     food.el.style.top  = `${targetY}px`;
     food.el.style.transform = 'translate(-50%, -50%) scale(.65)';
     food.el.style.opacity = '0.25';
-
     setTimeout(() => removeFood(food), 160);
 
     score += 1;
     streak += 1;
 
-    // speed up
     speedMult = clamp(speedMult + speedStep, 1.00, speedCap);
 
-    // new target immediately after correct
     currentTarget = pickTarget();
 
-    // best update
     if (score > best){
       best = score;
       bestEl.textContent = best;
@@ -585,35 +536,27 @@
     setBanner('NICE', getComputedStyle(document.documentElement).getPropertyValue('--good'));
   }
 
-  // ===== DRAG / DROP =====
   function onPointerDown(e, id){
     if (!running) return;
-
-    // find food
     const food = foodsOnBelt.find(f => f.id === id);
     if (!food) return;
 
-    // mark active
     lastPointerId = e.pointerId;
-    food.grabbed = true;
     food.el.classList.add('dragging');
 
     const s = stageRect();
     const r = food.el.getBoundingClientRect();
 
-    // offsets so it doesn’t "jump"
     const offsetX = (e.clientX - r.left) - r.width/2;
     const offsetY = (e.clientY - r.top ) - r.height/2;
 
     activeDrag = { food, offsetX, offsetY };
-
     food.el.setPointerCapture(e.pointerId);
     e.preventDefault();
   }
 
   function onPointerMove(e){
     if (!activeDrag || e.pointerId !== lastPointerId) return;
-
     const { food, offsetX, offsetY } = activeDrag;
     const s = stageRect();
 
@@ -623,7 +566,7 @@
     food.el.style.transition = 'none';
     food.el.style.left = `${x}px`;
     food.el.style.top  = `${y}px`;
-    food.el.style.transform = 'translate(-50%, -50%)'; // while dragging
+    food.el.style.transform = 'translate(-50%, -50%)';
   }
 
   function onPointerUp(e){
@@ -635,7 +578,6 @@
 
     food.el.classList.remove('dragging');
 
-    // drop check: inside dropZone?
     const fRect = food.el.getBoundingClientRect();
     const zRect = dropZoneEl.getBoundingClientRect();
 
@@ -645,7 +587,6 @@
     const inZone = (fCx >= zRect.left && fCx <= zRect.right && fCy >= zRect.top && fCy <= zRect.bottom);
 
     if (!inZone){
-      // snap back to belt lane (continue moving)
       const y = laneY();
       food.el.style.transition = 'top 120ms ease, transform 120ms ease';
       food.el.style.top = `${y}px`;
@@ -653,9 +594,8 @@
       return;
     }
 
-    // Dropped in zone: must be the TARGET or game over
     if (food.def.key !== currentTarget.key){
-      gameOver('wrong_drop');
+      gameOver();
       return;
     }
 
@@ -666,32 +606,14 @@
   stage.addEventListener('pointerup', onPointerUp);
   stage.addEventListener('pointercancel', onPointerUp);
 
-  // ===== LOOP =====
   let lastT = performance.now();
-  function tick(t){
-    const dt = (t - lastT) / 1000;
-    lastT = t;
-
-    if (running){
-      // spawn stream
-      spawnTimer += (t - lastT + dt*1000); // keep stable-ish
-      // simpler: spawn based on time delta
-      // We'll do a manual accumulator in ms
-    }
-    requestAnimationFrame(tick);
-  }
-
-  // We’ll use a clearer accumulator:
-  let acc = 0;
   function loop(now){
     const dt = (now - lastT) / 1000;
     lastT = now;
 
     if (running){
-      // update lane y each frame (responsive)
       const y = laneY();
 
-      // move foods (unless being dragged)
       for (const f of foodsOnBelt){
         if (activeDrag && activeDrag.food.id === f.id) continue;
         f.x -= (baseSpeed * speedMult) * dt;
@@ -700,11 +622,10 @@
         f.el.style.transform = 'translate(-50%, -100%)';
       }
 
-      // remove off-screen, but if the OFFSCREEN one was the target => MISS (game over)
       for (const f of [...foodsOnBelt]){
-        if (f.x < -80){
+        if (f.x < -160){
           if (f.def.key === currentTarget.key){
-            gameOver('target_passed');
+            gameOver();
             break;
           } else {
             removeFood(f);
@@ -712,13 +633,10 @@
         }
       }
 
-      // spawn cadence
       acc += dt * 1000;
       if (acc >= spawnEveryMs){
         acc = 0;
-        // ensure target appears quickly
         ensureTargetSoon();
-        // spawn 1 item
         spawnFood(false);
       }
     }
@@ -726,7 +644,6 @@
     requestAnimationFrame(loop);
   }
 
-  // ===== RESET =====
   function reset(){
     running = true;
     streak = 0;
@@ -735,16 +652,14 @@
     currentTarget = pickTarget();
     updateHUD();
 
-    // clear foods
     for (const f of [...foodsOnBelt]) removeFood(f);
 
-    // prime belt with a few items fast so it feels alive
+    // prime belt quickly
     for (let i=0;i<4;i++){
-      spawnFood(i===2); // inject one target early
+      spawnFood(i===1); // inject target early
     }
   }
 
-  // ===== SHARE =====
   function share(){
     const txt = `$PHAT Conveyor Munch — ${score} correct · streak ${streak} · speed ${speedMult.toFixed(2)}x\nplanetfatness.fit/snack`;
     if (navigator.share){
@@ -755,7 +670,6 @@
     }
   }
 
-  // ===== DAILY RESET TIMER =====
   function timeToMidnight(){
     const n = new Date();
     const m = new Date(n);
@@ -770,25 +684,22 @@
     const ss = String(s%60).padStart(2,'0');
     return `${hh}:${mm}:${ss}`;
   }
-  const resetInEl = document.getElementById('resetIn');
   setInterval(() => resetInEl.textContent = fmt(timeToMidnight()), 250);
 
-  // ===== DEBUG =====
   debugBtn.addEventListener('click', () => {
     debug = !debug;
     for (const f of foodsOnBelt){
-      f.el.style.outline = debug ? (f.def.key===currentTarget.key ? '2px solid rgba(109,255,179,.8)' : '2px solid rgba(255,255,255,.12)') : 'none';
+      f.el.style.outline = debug
+        ? (f.def.key===currentTarget.key ? '2px solid rgba(109,255,179,.85)' : '2px solid rgba(255,255,255,.14)')
+        : 'none';
     }
     setBanner(debug ? 'DEBUG ON' : 'DEBUG OFF', '#fff');
   });
 
-  // Buttons
   resetBtn.addEventListener('click', reset);
   shareBtn.addEventListener('click', share);
 
-  // Start
   reset();
-  lastT = performance.now();
   requestAnimationFrame(loop);
 })();
 </script>
