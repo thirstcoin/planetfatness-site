@@ -94,61 +94,46 @@
       box-shadow: 0 30px 90px rgba(0,0,0,.35);
     }
 
-    .thought{
-      position:absolute; left: 50%; top: 8%;
-      transform: translateX(-50%);
-      width: min(460px, 86%); height: 170px;
-      pointer-events:none;
-      opacity:.98;
-    }
+    /* LAYERING FIXES */
+    .thought{ position:absolute; left: 50%; top: 7%; transform: translateX(-50%); width: min(500px, 90%); height: 190px; z-index: 60; pointer-events:none; }
+    .character{ position:absolute; left: 50%; top: 33%; transform: translateX(-50%); width: min(520px, 92%); z-index: 30; pointer-events:none; filter: drop-shadow(0 22px 60px rgba(0,0,0,.55)); user-select:none; }
+    .belt{ position:absolute; left: 50%; bottom: 5%; transform: translateX(-50%); width: min(860px, 120%); z-index: 40; pointer-events:none; opacity: .98; filter: drop-shadow(0 26px 70px rgba(0,0,0,.55)); user-select:none; }
+    .foodItem{ position:absolute; width: 86px; height: 86px; transform: translate(-50%, -50%); z-index: 55; touch-action:none; user-select:none; cursor:grab; filter: drop-shadow(0 18px 40px rgba(0,0,0,.42)); }
+    .foodItem:active{ cursor:grabbing; }
+
     .thought img{ width:100%; height:100%; object-fit: contain; filter: drop-shadow(0 18px 40px rgba(0,0,0,.35)); }
 
-    .targetIcon{
-      position:absolute; left: 50%; top: 10%;
-      transform: translateX(-50%);
-      width: 110px; height: 110px;
-      display:grid; place-items:center; pointer-events:none;
-    }
-    .targetIcon img{ width: 92px; height: 92px; object-fit: contain; filter: drop-shadow(0 18px 40px rgba(0,0,0,.25)); }
-    .targetLabel{
-      position:absolute; left: 50%; top: 132px;
-      transform: translateX(-50%);
-      font-weight: 950; letter-spacing:.3px;
-      color: rgba(255,255,255,.88);
-      text-shadow: 0 8px 22px rgba(0,0,0,.45);
-      pointer-events:none; font-size: 13px;
-      white-space: nowrap;
-    }
-
-    .character{
-      position:absolute; left: 50%; top: 34%;
-      transform: translateX(-50%);
-      width: min(520px, 92%);
-      pointer-events:none;
-      filter: drop-shadow(0 22px 60px rgba(0,0,0,.55));
-      user-select:none;
-    }
-    .belt{
-      position:absolute; left: 50%; bottom: 5%;
-      transform: translateX(-50%);
-      width: min(860px, 120%);
-      pointer-events:none;
-      opacity: .98;
-      filter: drop-shadow(0 26px 70px rgba(0,0,0,.55));
-      user-select:none;
-    }
-
-    .foodItem{
+    /* Target INSIDE bubble */
+    .thoughtTarget{
       position:absolute;
-      width: 92px; height: 92px;
-      left: 0; top: 0;
+      left: 50%;
+      top: 46%;
       transform: translate(-50%, -50%);
-      touch-action: none;
-      user-select:none;
-      cursor: grab;
-      filter: drop-shadow(0 18px 40px rgba(0,0,0,.42));
+      width: 140px;
+      height: 140px;
+      display:grid;
+      place-items:center;
+      z-index: 70;
     }
-    .foodItem:active{ cursor: grabbing; }
+    .thoughtTarget img{
+      width: 118px;
+      height: 118px;
+      object-fit: contain;
+      filter: drop-shadow(0 18px 40px rgba(0,0,0,.35));
+    }
+    .thoughtLabel{
+      position:absolute;
+      left: 50%;
+      top: 78%;
+      transform: translate(-50%, -50%);
+      font-weight: 950;
+      letter-spacing:.6px;
+      color: rgba(255,255,255,.92);
+      text-shadow: 0 10px 28px rgba(0,0,0,.55);
+      font-size: 13px;
+      white-space: nowrap;
+      z-index: 70;
+    }
 
     .floatingBanner{
       position:absolute;
@@ -164,6 +149,7 @@
       pointer-events:none;
       transition: opacity .16s ease, transform .16s ease;
       text-align:center;
+      z-index: 80;
     }
     .floatingBanner.show{ opacity: 1; transform: translate(-50%, -58%); }
 
@@ -178,6 +164,7 @@
       background: rgba(51,255,154,.12);
       border: 2px solid rgba(51,255,154,.55);
       box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      z-index: 75;
     }
     body.debug .mouthHit{ opacity: 1; }
 
@@ -229,7 +216,7 @@
         <b>$PHAT — Conveyor Munch</b>
         <span class="tiny" id="modeTag" style="margin-left:6px; opacity:.7;"></span>
       </div>
-      <div class="subPill">Drag the correct snack (from the thought bubble) into his mouth. Wrong = streak nuked.</div>
+      <div class="subPill">Bubble shows what he wants. Belt runs nonstop. Drag the correct one into his mouth.</div>
       <button class="btn" id="restartBtn">Run it back</button>
       <button class="btn secondary" id="shareBtn">Share score</button>
     </div>
@@ -256,12 +243,11 @@
       <div class="stage" id="stage">
         <div class="thought">
           <img src="../assets/thought-bubble.png" alt="Thought bubble" draggable="false">
+          <div class="thoughtTarget">
+            <img id="targetImg" src="../assets/food_burger.png" alt="Target food" draggable="false">
+          </div>
+          <div class="thoughtLabel" id="targetName">BURGER</div>
         </div>
-
-        <div class="targetIcon">
-          <img id="targetImg" src="../assets/food_burger.png" alt="Target food" draggable="false">
-        </div>
-        <div class="targetLabel" id="targetName">BURGER</div>
 
         <img class="character" id="character" src="../assets/stack_base.png" alt="Seated character" draggable="false">
         <div class="mouthHit" id="mouthHit"></div>
@@ -288,10 +274,10 @@
   <script>
     const ASSET = (p) => `../assets/${p}`;
 
-    // IMPORTANT: your actual filename is stack_base.png
+    // Your actual file is stack_base.png (underscore)
     const CHARACTER_SRC = ASSET('stack_base.png');
 
-    // Foods (must match your exact /assets filenames)
+    // Foods (must match your /assets list)
     const FOODS = [
       { file:'food_brownies.png', label:'BROWNIES' },
       { file:'food_burger.png', label:'BURGER' },
@@ -311,6 +297,22 @@
     ];
 
     const DAILY_GOAL = 30;
+
+    // CONVEYOR FEEL SETTINGS (more chaos, more variety)
+    const MAX_FOODS = 14;            // aim ~10+ visible
+    const START_FOODS = 10;          // load the belt immediately
+    let beltSpeed = 165;             // px/sec baseline
+    let spawnEvery = 240;            // ms baseline (fast)
+    let laneY = 0;                   // computed
+    let leftX = 0, rightX = 0;
+
+    // Guarantee the target shows up regularly
+    const TARGET_GUARANTEE_MS = 1200;
+    let timeSinceTargetSpawn = 0;
+
+    // Mouth hitbox offsets from stage center (px)
+    const MOUTH_STORAGE_KEY = 'phat_mouth_v3';
+    let mouth = { x: 0, y: -10, w: 92, h: 72 };
 
     const el = (id) => document.getElementById(id);
     const stage = el('stage');
@@ -333,17 +335,6 @@
     const characterEl = el('character');
     const mouthHit = el('mouthHit');
 
-    // Mouth hitbox offsets from stage center (px)
-    const MOUTH_STORAGE_KEY = 'phat_mouth_v2';
-    let mouth = { x: 0, y: -10, w: 92, h: 72 };
-
-    // Scrolling conveyor settings
-    let beltSpeed = 155;           // px/sec baseline
-    let spawnEvery = 650;          // ms baseline
-    const maxFoods = 9;            // keep performance good on mobile
-    let laneY = 0;
-    let leftX = 0, rightX = 0;
-
     // Game stats
     let runCorrect = 0;
     let streak = 0;
@@ -351,9 +342,9 @@
 
     // Daily / best
     const DAY_KEY = () => new Date().toISOString().slice(0,10);
-    const LS_BEST = 'phat_conv_best_v2';
-    const LS_DAILY = 'phat_conv_daily_v2';
-    const LS_DAILYBEST = 'phat_conv_dailybest_v2';
+    const LS_BEST = 'phat_conv_best_v3';
+    const LS_DAILY = 'phat_conv_daily_v3';
+    const LS_DAILYBEST = 'phat_conv_dailybest_v3';
 
     let dailyDone = 0;
     let dailyBest = 0;
@@ -363,12 +354,12 @@
     let target = null;
 
     // Food objects on belt
-    // { id, food, x, y, dir, el, isTarget }
+    // { id, food, x, y, dir, el }
     let foods = [];
     let nextId = 1;
 
     // Dragging
-    let dragging = null; // food object
+    let dragging = null;
     let dragOffset = {x:0,y:0};
 
     // Timing
@@ -378,6 +369,22 @@
     // Debug mode
     let tapCount = 0;
     let debug = false;
+
+    // Variety “deck” so we don’t repeat 4 items forever
+    let deck = [];
+    function shuffle(a){
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i],a[j]] = [a[j],a[i]];
+      }
+      return a;
+    }
+    function nextFromDeck(){
+      if(deck.length === 0){
+        deck = shuffle([...FOODS]);
+      }
+      return deck.pop();
+    }
 
     function safeLoadJSON(key, fallback){
       try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
@@ -396,13 +403,14 @@
       setTimeout(()=>banner.classList.remove('show'), 650);
     }
 
-    function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-
     function stageMetrics(){
       const r = stage.getBoundingClientRect();
-      laneY = r.height * 0.72;
-      leftX = r.width * 0.08;
-      rightX = r.width * 0.92;
+
+      // Raise lane so food rides “on” the conveyor, not below it
+      laneY = r.height * 0.70;
+
+      leftX = r.width * 0.06;
+      rightX = r.width * 0.94;
     }
 
     function setMouth(){
@@ -435,20 +443,19 @@
     }
 
     function setDifficulty(){
-      // speed up with streak
+      // speed up slightly with streak, but keep readable
       const s = Math.min(streak, 40);
-      beltSpeed = 155 + s * 7.5;
+      beltSpeed = 165 + s * 6.0;
 
-      // spawn faster with streak (more chaos)
-      spawnEvery = Math.max(360, 650 - s * 6);
+      // keep spawns dense so ~10+ visible
+      spawnEvery = Math.max(160, 240 - s * 2);
 
-      // multiplier steps
-      mult = 1 + Math.floor(streak / 5) * 0.25;
+      mult = 1 + Math.floor(streak / 6) * 0.25;
       multEl.textContent = mult.toFixed(2) + 'x';
     }
 
     function setTarget(){
-      target = pick(FOODS);
+      target = nextFromDeck(); // also uses deck = more variety
       targetImg.src = ASSET(target.file);
       targetName.textContent = target.label;
     }
@@ -509,16 +516,14 @@
       f.el.style.top = f.y + 'px';
     }
 
-    function spawnFood(){
-      if(foods.length >= maxFoods) return;
+    function spawnFood(forceTarget=false){
+      if(foods.length >= MAX_FOODS) return;
 
       const r = stage.getBoundingClientRect();
       const dir = Math.random() < 0.5 ? 1 : -1;
       const startX = dir === 1 ? (r.width * 0.02) : (r.width * 0.98);
 
-      // Chance to spawn the TARGET food so it actually appears regularly
-      const isTarget = Math.random() < 0.30; // 30% are the target
-      const food = isTarget ? target : pick(FOODS);
+      const food = forceTarget ? target : nextFromDeck();
 
       const img = document.createElement('img');
       img.className = 'foodItem';
@@ -529,7 +534,6 @@
       const obj = {
         id: nextId++,
         food,
-        isTarget,
         dir,
         x: startX,
         y: laneY,
@@ -550,7 +554,6 @@
     }
 
     function missTarget(){
-      // only called when a TARGET food escapes untouched
       streak = 0;
       streakEl.textContent = streak;
       setDifficulty();
@@ -580,8 +583,8 @@
 
       showBanner(perfect ? `PERFECT +${gained}` : `NICE +${gained}`);
 
-      // rotate target sometimes to keep it fresh
-      if(Math.random() < 0.42) setTarget();
+      // rotate target more often so it feels like a “new order”
+      if(Math.random() < 0.60) setTarget();
     }
 
     function hitTestMouth(clientX, clientY){
@@ -626,20 +629,17 @@
 
       const ht = hitTestMouth(e.clientX, e.clientY);
       if(ht.inside){
-        // correct?
         if(dropped.food.file === target.file){
           munch(ht.perfect);
           removeFood(dropped);
         }else{
           wrongSnack();
-          // snap it back to belt lane (don’t delete)
           dropped.y = laneY;
           placeFoodEl(dropped);
         }
         return;
       }
 
-      // not dropped in mouth -> snap back to belt lane
       dropped.y = laneY;
       placeFoodEl(dropped);
     }
@@ -667,7 +667,6 @@ Play: planetfatness.fit/stack`;
     }
 
     function resetRun(){
-      // wipe belt items
       for(const f of foods){ f.el.remove(); }
       foods = [];
       dragging = null;
@@ -680,14 +679,19 @@ Play: planetfatness.fit/stack`;
       streakEl.textContent = streak;
       multEl.textContent = mult.toFixed(2) + 'x';
 
+      // rebuild deck and set a fresh target
+      deck = [];
       setTarget();
       setDifficulty();
 
       spawnTimer = 0;
+      timeSinceTargetSpawn = 0;
       lastTime = performance.now();
 
-      // start with a few foods already rolling
-      for(let i=0;i<5;i++) spawnFood();
+      // Start with lots already visible
+      for(let i=0;i<START_FOODS;i++){
+        spawnFood(i === 2); // make sure at least one early target appears
+      }
     }
 
     function tick(now){
@@ -695,31 +699,41 @@ Play: planetfatness.fit/stack`;
       lastTime = now;
 
       spawnTimer += dt * 1000;
+      timeSinceTargetSpawn += dt * 1000;
+
+      // Force the target to appear regularly so “MISSED” is fair/visible
+      const shouldForceTarget = timeSinceTargetSpawn >= TARGET_GUARANTEE_MS;
+
       while(spawnTimer >= spawnEvery){
         spawnTimer -= spawnEvery;
-        spawnFood();
+
+        if(shouldForceTarget){
+          spawnFood(true);
+          timeSinceTargetSpawn = 0;
+        }else{
+          spawnFood(false);
+        }
       }
 
       const r = stage.getBoundingClientRect();
 
       for(const f of foods){
-        // if not dragging this one, move it
         if(!(dragging && dragging.id === f.id)){
           f.x += (beltSpeed * dt) * f.dir;
           f.y = laneY;
           placeFoodEl(f);
         }
 
-        // escaped?
-        const escapedLeft = f.x < r.width * 0.00;
-        const escapedRight = f.x > r.width * 1.00;
+        const escapedLeft = f.x < r.width * -0.10;
+        const escapedRight = f.x > r.width * 1.10;
+
         if(escapedLeft || escapedRight){
-          // only MISS if the escaping one was the TARGET food
+          // Only miss if the TARGET escaped
           if(f.food.file === target.file){
             missTarget();
           }
           removeFood(f);
-          break; // foods array changed, loop safely
+          break;
         }
       }
 
@@ -727,7 +741,6 @@ Play: planetfatness.fit/stack`;
     }
 
     (function boot(){
-      // fix character image path
       characterEl.src = CHARACTER_SRC;
 
       loadMouth();
@@ -738,7 +751,6 @@ Play: planetfatness.fit/stack`;
       const onResize = () => {
         stageMetrics();
         setMouth();
-        // snap all foods to new lane
         for(const f of foods){
           if(!(dragging && dragging.id === f.id)){
             f.y = laneY;
@@ -749,7 +761,6 @@ Play: planetfatness.fit/stack`;
       window.addEventListener('resize', onResize, { passive:true });
       onResize();
 
-      // global pointer listeners
       window.addEventListener('pointermove', pointerMove, { passive:false });
       window.addEventListener('pointerup', pointerUp, { passive:false });
       window.addEventListener('pointercancel', pointerUp, { passive:false });
@@ -767,7 +778,6 @@ Play: planetfatness.fit/stack`;
         }
       });
 
-      // debug move chips
       document.querySelectorAll('.chip[data-move]').forEach(chip=>{
         chip.addEventListener('click', ()=>{
           const [dx,dy] = chip.getAttribute('data-move').split(',').map(n=>parseInt(n,10));
