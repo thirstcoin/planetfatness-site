@@ -7,8 +7,7 @@
 
   <style>
     :root{
-      --bg1:#2a1442;
-      --bg2:#140a22;
+      --bg1:#2a1442; --bg2:#140a22;
       --card:rgba(255,255,255,.06);
       --card2:rgba(255,255,255,.08);
       --stroke:rgba(255,255,255,.10);
@@ -19,7 +18,6 @@
       --bad:#ff6d8a;
       --accent:#ffd44d;
     }
-
     *{ box-sizing:border-box; }
     body{
       margin:0;
@@ -33,7 +31,6 @@
       display:flex;
       justify-content:center;
     }
-
     .wrap{ width:min(980px, 94vw); padding:18px 0 28px; }
 
     .topbar{
@@ -51,13 +48,7 @@
       padding:14px 16px;
       backdrop-filter: blur(10px);
     }
-    .titleLine{
-      font-weight:800;
-      letter-spacing:.3px;
-      font-size:18px;
-      opacity:.95;
-      margin-bottom:6px;
-    }
+    .titleLine{ font-weight:800; letter-spacing:.3px; font-size:18px; opacity:.95; margin-bottom:6px; }
     .subLine{ color:var(--muted); font-size:14px; line-height:1.3; }
 
     .btn{
@@ -100,7 +91,6 @@
       backdrop-filter: blur(10px);
       overflow:hidden;
     }
-
     .stage{
       position:relative;
       width:100%;
@@ -111,24 +101,15 @@
       border:1px solid rgba(255,255,255,.10);
     }
 
-    /* Scene background */
-    .scene{
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      z-index:2;
-    }
+    .scene{ position:absolute; inset:0; pointer-events:none; z-index:2; }
     .scene img{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      object-position:center;
-      user-select:none;
-      -webkit-user-drag:none;
+      width:100%; height:100%;
+      object-fit:contain; object-position:center;
+      user-select:none; -webkit-user-drag:none;
       display:block;
     }
 
-    /* Thought cluster moved UP so it doesn't cover face */
+    /* Thought cluster good height — keep it */
     .thoughtCluster{
       position:absolute;
       left:50%;
@@ -141,7 +122,6 @@
       gap:10px;
       pointer-events:none;
     }
-
     .targetName{
       background:var(--pill);
       border:1px solid rgba(255,255,255,.12);
@@ -158,7 +138,6 @@
       word-break:break-word;
       box-shadow:0 10px 24px rgba(0,0,0,.25);
     }
-
     .thought{
       position:relative;
       width:min(220px, 52vw);
@@ -174,32 +153,24 @@
       height:100%;
       object-fit:contain;
       transform: translateY(-18%);
-      user-select:none;
-      -webkit-user-drag:none;
+      user-select:none; -webkit-user-drag:none;
     }
+    /* Move thought food UP a bit */
     .thought img.food{
       position:relative;
       width:44%;
       height:44%;
       object-fit:contain;
-      transform: translateY(-22%);
-      user-select:none;
-      -webkit-user-drag:none;
+      transform: translateY(-30%); /* was -22% */
+      user-select:none; -webkit-user-drag:none;
     }
 
-    .itemsLayer{
-      position:absolute;
-      inset:0;
-      z-index:5;
-    }
+    .itemsLayer{ position:absolute; inset:0; z-index:5; }
 
     .foodItem{
       position:absolute;
-      width:92px;
-      height:92px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      width:92px; height:92px;
+      display:flex; align-items:center; justify-content:center;
       will-change: transform;
       touch-action:none;
       user-select:none;
@@ -207,21 +178,18 @@
       z-index:7;
     }
     .foodItem img{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      user-select:none;
-      -webkit-user-drag:none;
+      width:100%; height:100%; object-fit:contain;
+      user-select:none; -webkit-user-drag:none;
       pointer-events:none;
     }
 
-    /* mouth target */
+    /* HIT TARGET: move down to plate/mouth area (not belt) */
     .mouthTarget{
       position:absolute;
       left:50%;
-      top:43%;
+      top:51.5%;
       transform:translate(-50%,-50%);
-      width:155px;
+      width:170px;
       height:120px;
       border-radius:999px;
       z-index:8;
@@ -230,7 +198,7 @@
       outline:2px dashed rgba(109,255,179,.75);
       outline-offset:6px;
     }
-    .debugOn .mouthTarget{ opacity:.18; }
+    .debugOn .mouthTarget{ opacity:.22; }
 
     .toast{
       position:absolute;
@@ -343,7 +311,6 @@
 
 <script>
 (() => {
-  // ---------- ALL FOOD ASSETS ----------
   const FOODS = [
     { id:"brownies",      label:"Brownies",         src:"../assets/food_brownies.png" },
     { id:"burger",        label:"Burger",           src:"../assets/food_burger.png" },
@@ -367,7 +334,6 @@
     { id:"sub",           label:"Sub",              src:"../assets/food_sub.png" },
   ];
 
-  // ---------- DOM ----------
   const stage = document.getElementById('stage');
   const itemsLayer = document.getElementById('itemsLayer');
   const targetNameEl = document.getElementById('targetName');
@@ -388,21 +354,19 @@
   const btnShare = document.getElementById('btnShare');
   const btnDebug = document.getElementById('btnDebug');
 
-  // ---------- STATE ----------
   let debug = false;
   let runScore = 0;
   let streak = 0;
   let bestScore = 0;
 
-  const LS_KEY = 'phat_snack_daily_v4';
-  const LS_BEST = 'phat_snack_dailybest_v4';
-  const LS_BEST_RUN = 'phat_snack_best_run_v4';
+  const LS_KEY = 'phat_snack_daily_v5';
+  const LS_BEST = 'phat_snack_dailybest_v5';
+  const LS_BEST_RUN = 'phat_snack_best_run_v5';
 
   function todayKey(){
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
-
   function loadDaily(){
     const k = todayKey();
     const raw = localStorage.getItem(LS_KEY);
@@ -425,7 +389,6 @@
       return fresh;
     }
   }
-
   function saveDailyCount(count){
     localStorage.setItem(LS_KEY, JSON.stringify({ day:todayKey(), count }));
   }
@@ -436,7 +399,6 @@
     next.setHours(24,0,0,0);
     return next.getTime() - now.getTime();
   }
-
   function tickReset(){
     let ms = nextMidnightMs();
     if(ms < 0) ms = 0;
@@ -449,17 +411,21 @@
   setInterval(tickReset, 250);
   tickReset();
 
-  // ---------- GAME CONFIG ----------
+  // ---- GAME CONFIG ----
   const items = [];
   const MAX_ONSCREEN = 5;
   const MIN_GAP = 160;
 
-  let BASE_SPEED = 240;
+  // Start slower, ramp per correct
+  const BASE_SPEED = 180;            // slower start
+  const SPEED_PER_CORRECT = 16;      // each correct speeds it up
+  const SPEED_CAP = 360;             // cap so it doesn't become impossible
   let speedNow = BASE_SPEED;
 
-  // target must appear fast
-  const TARGET_MAX_WAIT_MS = 6500;
+  // auto-miss if target scrolls off screen unfed
+  let target = null;
   let lastTargetSeenAt = Date.now();
+  const TARGET_MAX_WAIT_MS = 6500;
 
   function rect(el){ return el.getBoundingClientRect(); }
   function stageDims(){
@@ -471,12 +437,11 @@
     return (window.innerWidth >= 720) ? 92 : 88;
   }
 
-  // Raise belt surface line for stack_scene.png
+  // ***** LOCKED BELT / FOOD HEIGHT (DO NOT CHANGE) *****
   function beltSurfaceY(){
     const { h } = stageDims();
     return Math.round(h * 0.635);
   }
-
   function foodRideY(){
     const px = foodSizePx();
     return beltSurfaceY() - Math.round(px * 0.78);
@@ -487,8 +452,6 @@
     return (clientX >= m.left && clientX <= m.right && clientY >= m.top && clientY <= m.bottom);
   }
 
-  // ---------- TARGET ----------
-  let target = null;
   function pickTarget(){
     target = FOODS[Math.floor(Math.random() * FOODS.length)];
     targetNameEl.textContent = target.label.toUpperCase();
@@ -519,7 +482,6 @@
     dailyBestEl.textContent = db;
   }
 
-  // ---------- SPAWN + MOVE ----------
   function spawnItem(x, forcedFood=null){
     const { w, h } = stageDims();
     if(!w || !h) return;
@@ -547,10 +509,11 @@
       dragging:false,
       pointerId:null,
       offX:0,
-      offY:0
+      offY:0,
+      wasTarget: (target && f.id === target.id)
     };
 
-    if(f.id === target.id){
+    if(obj.wasTarget){
       lastTargetSeenAt = Date.now();
     }
 
@@ -627,12 +590,14 @@
     while(items.filter(it => it.x > -px*2).length < MAX_ONSCREEN){
       const waited = Date.now() - lastTargetSeenAt;
       const mustInject = waited > TARGET_MAX_WAIT_MS;
+
       if(mustInject){
         spawnItem(startX, target);
       } else {
         const roll = Math.random();
         spawnItem(startX, roll < 0.18 ? target : null);
       }
+
       startX += MIN_GAP;
     }
   }
@@ -646,13 +611,12 @@
     }
   }
 
-  // ---------- SCORING ----------
   function onCorrect(obj){
     runScore += 1;
     streak += 1;
 
-    const mult = 1 + Math.min(0.75, streak * 0.05);
-    speedNow = BASE_SPEED * mult;
+    // speed ramp (small bumps each correct)
+    speedNow = Math.min(SPEED_CAP, BASE_SPEED + (runScore * SPEED_PER_CORRECT));
 
     const d = loadDaily();
     d.count += 1;
@@ -670,17 +634,24 @@
     updateHUD();
   }
 
-  function onMiss(obj){
+  function onMiss(objOrNull){
     streak = 0;
-    speedNow = BASE_SPEED;
-
+    speedNow = BASE_SPEED; // reset on miss
     showToast('MISSED ❌', false);
-    removeItem(obj);
+
+    if(objOrNull) removeItem(objOrNull);
     pickTarget();
     updateHUD();
   }
 
-  // ---------- LOOP ----------
+  // auto-miss if TARGET item scrolls off screen unfed
+  function checkAutoMiss(it){
+    const px = foodSizePx();
+    if(it.wasTarget && it.x < -px*2){
+      onMiss(null);
+    }
+  }
+
   let last = 0;
   function loop(ts){
     if(!last) last = ts;
@@ -700,8 +671,11 @@
         it.el.style.transform = `translate3d(${Math.round(it.x)}px, ${Math.round(it.y)}px, 0)`;
       }
 
+      // remove offscreen + auto-miss check
       for(let i=items.length-1;i>=0;i--){
-        if(items[i].x < -px*3) removeItem(items[i]);
+        const it = items[i];
+        checkAutoMiss(it);
+        if(it.x < -px*3) removeItem(it);
       }
 
       enforceSpacing();
@@ -718,14 +692,12 @@
     speedNow = BASE_SPEED;
 
     bestScore = Number(localStorage.getItem(LS_BEST_RUN) || '0');
-
     pickTarget();
     updateHUD();
 
     requestAnimationFrame(() => topUp());
   }
 
-  // ---------- Buttons ----------
   btnReset.addEventListener('click', hardReset);
   btnDebug.addEventListener('click', () => {
     debug = !debug;
@@ -745,7 +717,6 @@
     }catch{}
   });
 
-  // ---------- INIT ----------
   function startWhenReady(){
     bestScore = Number(localStorage.getItem(LS_BEST_RUN) || '0');
     pickTarget();
