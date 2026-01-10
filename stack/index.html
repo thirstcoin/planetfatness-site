@@ -9,7 +9,6 @@
       --bg1:#1b0b2a;
       --bg2:#3b145c;
       --card: rgba(255,255,255,.06);
-      --card2: rgba(255,255,255,.10);
       --stroke: rgba(255,255,255,.12);
       --text: rgba(255,255,255,.92);
       --muted: rgba(255,255,255,.70);
@@ -101,7 +100,6 @@
       color: var(--muted);
     }
 
-    /* Game card */
     .gameCard{
       position:relative;
       border-radius: 26px;
@@ -120,10 +118,10 @@
       background: radial-gradient(900px 700px at 50% 0%, rgba(255,255,255,.10), transparent 60%),
                   linear-gradient(180deg, rgba(0,0,0,.20), rgba(0,0,0,.45));
       border: 1px solid rgba(255,255,255,.10);
-      touch-action: none; /* critical for pointer dragging on mobile */
+      touch-action: none;
     }
 
-    /* Scene (your merged character+table+belt image) */
+    /* Scene */
     #scene{
       position:absolute;
       left:50%;
@@ -134,22 +132,22 @@
       height:auto;
       user-select:none;
       pointer-events:none;
-      image-rendering: auto;
     }
 
-    /* Thought bubble + label */
+    /* Thought bubble + label (MOVED UP + closer to head + always on top) */
     .thoughtWrap{
       position:absolute;
       left:50%;
-      top: 8%;
+      top: 2.5%;                 /* was 8% */
       transform: translateX(-50%);
-      width: 52%;
+      width: 56%;                /* slightly bigger */
       display:flex;
       flex-direction:column;
       align-items:center;
       gap: 6px;
       pointer-events:none;
       user-select:none;
+      z-index: 40;               /* ensure above character */
     }
     #thoughtBubble{
       width:100%;
@@ -159,23 +157,36 @@
     }
     #thoughtFood{
       position:absolute;
-      /* centered inside bubble */
       left:50%;
-      top: 46%;
+      top: 44%;
       transform: translate(-50%, -50%);
-      width: 42%;
+      width: 44%;
       height:auto;
       filter: drop-shadow(0 10px 14px rgba(0,0,0,.25));
     }
+
+    /* Label: moved up and given its own high z + background so it never disappears */
     #thoughtLabel{
+      position: relative;
+      z-index: 60;
+      margin-top: -6px;          /* pulls label closer to bubble */
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(8px);
       font-weight: 950;
-      letter-spacing: 3px;
-      font-size: 20px;
+      letter-spacing: 4px;
+      font-size: 18px;           /* readable */
       text-align:center;
-      text-shadow: 0 10px 18px rgba(0,0,0,.35);
+      text-shadow: 0 10px 18px rgba(0,0,0,.45);
+      max-width: 92%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    /* Floating status */
+    /* Toast */
     #toast{
       position:absolute;
       left:50%;
@@ -192,15 +203,13 @@
       transition: opacity .18s ease, transform .18s ease;
       pointer-events:none;
       user-select:none;
+      z-index: 70;
     }
-    #toast.show{
-      opacity:1;
-      transform: translateX(-50%) translateY(-4px);
-    }
+    #toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px); }
     #toast.good{ color: var(--good); }
     #toast.bad{ color: var(--bad); }
 
-    /* Food items */
+    /* Food items (BIGGER) */
     .food{
       position:absolute;
       left:0;
@@ -214,14 +223,15 @@
       touch-action:none;
       cursor: grab;
       filter: drop-shadow(0 12px 18px rgba(0,0,0,.35));
+      z-index: 30;
     }
     .food.dragging{
       cursor: grabbing;
       filter: drop-shadow(0 18px 26px rgba(0,0,0,.45));
-      z-index: 50;
+      z-index: 90;
     }
 
-    /* Debug overlays (optional) */
+    /* Debug */
     .debugLine{
       position:absolute;
       left:0;
@@ -230,17 +240,17 @@
       background: rgba(0,255,160,.65);
       pointer-events:none;
       display:none;
+      z-index: 99;
     }
     .debugMouth{
       position:absolute;
       border: 2px dashed rgba(0,255,160,.75);
       pointer-events:none;
       display:none;
+      z-index: 99;
     }
     .debugOn .debugLine,
-    .debugOn .debugMouth{
-      display:block;
-    }
+    .debugOn .debugMouth{ display:block; }
 
     .how{
       margin-top: 12px;
@@ -299,20 +309,16 @@
 
     <div class="gameCard">
       <div class="arena" id="arena">
-        <!-- Thought bubble -->
         <div class="thoughtWrap" id="thoughtWrap">
           <img id="thoughtBubble" src="../assets/thought-bubble.png" alt="thought" />
           <img id="thoughtFood" src="" alt="wanted" />
           <div id="thoughtLabel">---</div>
         </div>
 
-        <!-- Scene (merged character+table+belt) -->
         <img id="scene" src="../assets/stack_scene.png" alt="scene" />
 
-        <!-- Toast -->
         <div id="toast">MISSED</div>
 
-        <!-- Debug overlays -->
         <div class="debugLine" id="debugLine"></div>
         <div class="debugMouth" id="debugMouth"></div>
       </div>
@@ -331,15 +337,9 @@
 
 <script>
 (() => {
-  /**
-   * IMPORTANT PATHS (based on your folder screenshot):
-   * stack/index.html  -> uses ../assets/...
-   * If you moved the game, update these 3 constants only.
-   */
-  const PATH_SCENE = "../assets/stack_scene.png";
+  const PATH_SCENE  = "../assets/stack_scene.png";
   const PATH_BUBBLE = "../assets/thought-bubble.png";
 
-  // Your food files (add/remove freely; this is the full pool used).
   const FOODS = [
     { key:"brownies",  label:"BROWNIES",        src:"../assets/food_brownies.png" },
     { key:"burger",    label:"BURGER",          src:"../assets/food_burger.png" },
@@ -358,27 +358,25 @@
     { key:"onion",     label:"ONION RINGS",     src:"../assets/food_onion_rings.png" },
   ];
 
-  // ---- Tunables (these are the “feel” knobs) ----
-  // Belt lane and mouth box are percent-based ON THE ARENA (not the whole page).
-  // You can toggle Debug and tweak these two values if needed.
-  let BELT_Y_PCT = 0.735;      // where foods should ride (top surface of belt)
-  let MOUTH = { x: 0.50, y: 0.535, w: 0.17, h: 0.12 }; // drop zone (percent-based)
+  // --- Tunables ---
+  let BELT_Y_PCT = 0.735;
 
-  // Pressure mode
-  const MAX_ONSCREEN = 8;      // ~6–10 feels good
-  const SPAWN_EVERY_MS = 720;  // how often new foods appear
-  const MIN_SPACING_PX = 56;   // prevents huge overlap on belt
-  const DESPAWN_PAD = 120;     // offscreen cleanup
+  // Mouth box (percent of arena). Leave unless you feel drops are off.
+  let MOUTH = { x: 0.50, y: 0.535, w: 0.17, h: 0.12 };
 
-  // Speed (px/sec)
+  const MAX_ONSCREEN = 8;
+  const SPAWN_EVERY_MS = 720;
+  const MIN_SPACING_PX = 56;
+  const DESPAWN_PAD = 140;
+
   const BASE_SPEED = 150;
-  const SPEED_PER_STREAK = 6;  // ramps pressure
+  const SPEED_PER_STREAK = 6;
   const MAX_SPEED = 260;
 
-  // Food size relative to arena width
-  const FOOD_SIZE_PCT = 0.085; // 0.07–0.10
+  // ✅ Bigger food so it reads clean
+  // was 0.085; bump to 0.12 (and allow larger max size)
+  const FOOD_SIZE_PCT = 0.12;
 
-  // ---- DOM ----
   const arena = document.getElementById("arena");
   const sceneImg = document.getElementById("scene");
   const thoughtFood = document.getElementById("thoughtFood");
@@ -400,7 +398,6 @@
 
   sceneImg.src = PATH_SCENE;
 
-  // ---- State ----
   let arenaRect = null;
   let beltY = 0;
   let foodSize = 56;
@@ -410,18 +407,14 @@
   let streak = 0;
   let best = 0;
 
-  let target = null; // current wanted food object
-
-  // foods on belt
+  let target = null;
   let items = [];
   let lastSpawnAt = 0;
   let lastFrame = performance.now();
 
-  // dragging
-  let dragging = null; // { item, offsetX, offsetY }
+  let dragging = null;
   let debugOn = false;
 
-  // ---- Storage keys (daily reset) ----
   const todayKey = () => {
     const d = new Date();
     const y = d.getFullYear();
@@ -470,15 +463,13 @@
     resetInEl.textContent = `${hh}:${mm}:${ss}`;
   }
 
-  // ---- Geometry ----
   function recalc() {
     arenaRect = arena.getBoundingClientRect();
     beltY = arenaRect.height * BELT_Y_PCT;
 
-    // food size scales with arena width
-    foodSize = Math.max(44, Math.min(84, Math.floor(arenaRect.width * FOOD_SIZE_PCT)));
+    // ✅ bigger max size now
+    foodSize = Math.max(54, Math.min(112, Math.floor(arenaRect.width * FOOD_SIZE_PCT)));
 
-    // Mouth rect based on arena
     mouthRect = {
       left: arenaRect.left + arenaRect.width * (MOUTH.x - MOUTH.w/2),
       top:  arenaRect.top  + arenaRect.height * (MOUTH.y - MOUTH.h/2),
@@ -486,70 +477,30 @@
       height: arenaRect.height * MOUTH.h
     };
 
-    // Debug visuals
     debugLine.style.top = `${beltY}px`;
     debugMouth.style.left = `${arenaRect.width * (MOUTH.x - MOUTH.w/2)}px`;
     debugMouth.style.top  = `${arenaRect.height * (MOUTH.y - MOUTH.h/2)}px`;
     debugMouth.style.width  = `${arenaRect.width * MOUTH.w}px`;
     debugMouth.style.height = `${arenaRect.height * MOUTH.h}px`;
 
-    // Resize existing items to new foodSize and snap them to belt lane
     for (const it of items) {
       it.el.style.width = `${foodSize}px`;
       it.el.style.height = `${foodSize}px`;
-      if (!it.dragging) {
-        it.y = beltY - foodSize * 0.62; // sits on belt surface (tweak if needed)
-      }
+      if (!it.dragging) it.y = beltY - foodSize * 0.62;
       renderItem(it);
     }
   }
 
-  // ---- Target selection ----
   function pickTarget() {
     target = FOODS[Math.floor(Math.random() * FOODS.length)];
     thoughtFood.src = target.src;
     thoughtLabel.textContent = target.label;
-
-    // Nudge food slightly up inside bubble (fix “sits low”)
-    // (kept in CSS, but this ensures consistent load sizing on mobile)
-    thoughtFood.onload = () => { /* no-op */ };
-  }
-
-  // ---- Item creation ----
-  function createFoodItem(food) {
-    const el = document.createElement("img");
-    el.className = "food";
-    el.draggable = false;
-    el.src = food.src;
-    el.alt = food.label;
-
-    arena.appendChild(el);
-
-    const it = {
-      id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()),
-      food,
-      el,
-      x: arenaRect.width + 30,
-      y: beltY - foodSize * 0.62,
-      vx: -getSpeed(),
-      dragging: false,
-      grabbedAt: 0,
-    };
-
-    el.style.width = `${foodSize}px`;
-    el.style.height = `${foodSize}px`;
-
-    // Pointer events
-    el.addEventListener("pointerdown", (e) => onPointerDown(e, it), { passive: false });
-    return it;
   }
 
   function getSpeed() {
-    const s = Math.min(MAX_SPEED, BASE_SPEED + streak * SPEED_PER_STREAK);
-    return s;
+    return Math.min(MAX_SPEED, BASE_SPEED + streak * SPEED_PER_STREAK);
   }
 
-  // Keep items from stacking on top of each other too much
   function canSpawnAtX(x) {
     for (const it of items) {
       if (it.dragging) continue;
@@ -558,48 +509,58 @@
     return true;
   }
 
-  // ---- Rendering ----
   function renderItem(it) {
     it.el.style.transform = `translate3d(${it.x}px, ${it.y}px, 0)`;
   }
 
-  // ---- Toast ----
   let toastTimer = null;
   function showToast(text, good) {
     toast.textContent = text;
     toast.classList.remove("good","bad","show");
     toast.classList.add(good ? "good" : "bad");
-    // force reflow
     void toast.offsetWidth;
     toast.classList.add("show");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove("show"), 520);
   }
 
-  // ---- Hit testing ----
   function rectsOverlap(a, b) {
     return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
   }
 
   function itemRectOnScreen(it) {
-    // item's current rect in viewport
     const left = arenaRect.left + it.x;
     const top  = arenaRect.top + it.y;
-    return {
-      left, top,
-      right: left + foodSize,
-      bottom: top + foodSize,
-      width: foodSize,
-      height: foodSize
-    };
+    return { left, top, right:left+foodSize, bottom:top+foodSize };
   }
 
-  // ---- Dragging (fixes “jump up 2 inches”) ----
+  function createFoodItem(food) {
+    const el = document.createElement("img");
+    el.className = "food";
+    el.draggable = false;
+    el.src = food.src;
+    el.alt = food.label;
+    arena.appendChild(el);
+
+    const it = {
+      food,
+      el,
+      x: arenaRect.width + 30,
+      y: beltY - foodSize * 0.62,
+      vx: -getSpeed(),
+      dragging: false,
+    };
+
+    el.style.width = `${foodSize}px`;
+    el.style.height = `${foodSize}px`;
+
+    el.addEventListener("pointerdown", (e) => onPointerDown(e, it), { passive:false });
+    return it;
+  }
+
   function onPointerDown(e, it) {
     e.preventDefault();
     e.stopPropagation();
-
-    // lock geometry
     recalc();
 
     it.dragging = true;
@@ -611,8 +572,6 @@
     const offsetY = e.clientY - r.top;
 
     dragging = { it, offsetX, offsetY, pointerId: e.pointerId };
-
-    // stop belt movement while dragging this one
     it.vx = 0;
 
     it.el.addEventListener("pointermove", onPointerMove, { passive:false });
@@ -623,17 +582,24 @@
   function onPointerMove(e) {
     if (!dragging) return;
     e.preventDefault();
-
-    // Keep item under finger WITHOUT snapping
     const it = dragging.it;
-
-    const x = e.clientX - arenaRect.left - dragging.offsetX;
-    const y = e.clientY - arenaRect.top  - dragging.offsetY;
-
-    it.x = x;
-    it.y = y;
-
+    it.x = e.clientX - arenaRect.left - dragging.offsetX;
+    it.y = e.clientY - arenaRect.top  - dragging.offsetY;
     renderItem(it);
+  }
+
+  function removeItem(it) {
+    const idx = items.indexOf(it);
+    if (idx >= 0) items.splice(idx, 1);
+    it.el.remove();
+  }
+
+  function updateHUD() {
+    runCorrectEl.textContent = runCorrect;
+    streakEl.textContent = streak;
+    const mult = (1 + Math.min(0.9, streak * 0.05)).toFixed(1);
+    multEl.textContent = `${mult}x`;
+    bestEl.textContent = best;
   }
 
   function onPointerUp(e) {
@@ -642,7 +608,6 @@
 
     const it = dragging.it;
 
-    // release listeners
     it.el.removeEventListener("pointermove", onPointerMove);
     it.el.removeEventListener("pointerup", onPointerUp);
     it.el.removeEventListener("pointercancel", onPointerUp);
@@ -650,10 +615,9 @@
     it.el.classList.remove("dragging");
     it.dragging = false;
 
-    // Check mouth overlap
     recalc();
-    const r = itemRectOnScreen(it);
 
+    const r = itemRectOnScreen(it);
     const mouth = {
       left: mouthRect.left,
       top: mouthRect.top,
@@ -664,27 +628,20 @@
     const hit = rectsOverlap(r, mouth);
 
     if (hit) {
-      // Correct if matches target
       if (it.food.key === target.key) {
         runCorrect++;
         streak++;
         best = Math.max(best, runCorrect);
         bumpDailyCount();
-
         showToast("CHOMP!", true);
         pickTarget();
-
-        // Remove the item
         removeItem(it);
       } else {
-        // Wrong food into mouth
         streak = 0;
         showToast("WRONG SNACK", false);
-        // Toss it (remove)
         removeItem(it);
       }
     } else {
-      // Not dropped on mouth: snap it back onto belt lane at its current x
       it.y = beltY - foodSize * 0.62;
       it.vx = -getSpeed();
       renderItem(it);
@@ -694,15 +651,7 @@
     updateHUD();
   }
 
-  function removeItem(it) {
-    const idx = items.indexOf(it);
-    if (idx >= 0) items.splice(idx, 1);
-    it.el.remove();
-  }
-
-  // ---- Miss logic (when correct target scrolls off screen untouched) ----
   function handleMiss(it) {
-    // If the target food goes offscreen without being eaten: miss
     if (it.food.key === target.key) {
       streak = 0;
       showToast("MISSED", false);
@@ -712,46 +661,23 @@
     updateHUD();
   }
 
-  // ---- HUD ----
-  function updateHUD() {
-    runCorrectEl.textContent = runCorrect;
-    streakEl.textContent = streak;
-    const mult = (1 + Math.min(0.9, streak * 0.05)).toFixed(1);
-    multEl.textContent = `${mult}x`;
-    bestEl.textContent = best;
-  }
-
-  // ---- Main loop ----
   function tick(now) {
     const dt = Math.min(0.05, (now - lastFrame) / 1000);
     lastFrame = now;
 
-    // update geometry occasionally (handles iOS UI bar changes)
-    // lightweight: just read rect every frame only if needed
     if (!arenaRect) recalc();
 
-    // spawn
     if (!lastSpawnAt) lastSpawnAt = now;
-    const canSpawnMore = items.length < MAX_ONSCREEN;
-
-    if (canSpawnMore && now - lastSpawnAt >= SPAWN_EVERY_MS) {
+    if (items.length < MAX_ONSCREEN && now - lastSpawnAt >= SPAWN_EVERY_MS) {
       lastSpawnAt = now;
 
-      // Choose random food. Slightly bias to include target sometimes, but not always.
       const roll = Math.random();
-      let f = null;
-      if (roll < 0.22) f = target; // 22% chance spawn is the target
-      else f = FOODS[Math.floor(Math.random() * FOODS.length)];
+      const f = (roll < 0.22) ? target : FOODS[Math.floor(Math.random() * FOODS.length)];
 
-      // Spawn at right edge with spacing guard
       const spawnX = arenaRect.width + 24;
-      if (canSpawnAtX(spawnX)) {
-        const it = createFoodItem(f);
-        items.push(it);
-      }
+      if (canSpawnAtX(spawnX)) items.push(createFoodItem(f));
     }
 
-    // move items
     for (let i = items.length - 1; i >= 0; i--) {
       const it = items[i];
       if (it.dragging) continue;
@@ -759,31 +685,22 @@
       it.vx = -getSpeed();
       it.x += it.vx * dt;
 
-      // lock on belt lane always
       it.y = beltY - foodSize * 0.62;
-
       renderItem(it);
 
-      // despawn left
-      if (it.x < -DESPAWN_PAD) {
-        handleMiss(it);
-      }
+      if (it.x < -DESPAWN_PAD) handleMiss(it);
     }
 
     requestAnimationFrame(tick);
   }
 
-  // ---- Controls ----
   function restart() {
-    // clear belt
     for (const it of items) it.el.remove();
     items = [];
     dragging = null;
-
     runCorrect = 0;
     streak = 0;
     best = 0;
-
     pickTarget();
     updateHUD();
     showToast("RUN IT", true);
@@ -809,21 +726,12 @@
     showToast(debugOn ? "DEBUG ON" : "DEBUG OFF", true);
   });
 
-  window.addEventListener("resize", () => {
-    // iOS can resize when bars collapse/expand
-    recalc();
-  });
-
-  // Prevent page scroll while playing inside arena
+  window.addEventListener("resize", recalc);
   arena.addEventListener("touchmove", (e) => e.preventDefault(), { passive:false });
 
-  // ---- Init ----
   function preloadImages() {
     const urls = [PATH_SCENE, PATH_BUBBLE, ...FOODS.map(f => f.src)];
-    for (const u of urls) {
-      const img = new Image();
-      img.src = u;
-    }
+    for (const u of urls) { const img = new Image(); img.src = u; }
   }
 
   loadDaily();
@@ -834,19 +742,13 @@
   pickTarget();
   updateHUD();
 
-  // Ensure scene loads then calc
   sceneImg.onload = () => recalc();
-  sceneImg.onerror = () => {
-    // If scene path is wrong, show a loud toast
-    showToast("SCENE PATH WRONG", false);
-  };
+  sceneImg.onerror = () => showToast("SCENE PATH WRONG", false);
 
-  // If bubble path wrong, you’ll see broken icon; still playable
   requestAnimationFrame(() => {
     recalc();
     requestAnimationFrame(tick);
   });
-
 })();
 </script>
 </body>
