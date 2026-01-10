@@ -136,8 +136,8 @@
       border-radius:999px;
       padding:10px 16px;
       font-weight:900;
-      letter-spacing:.28em;
-      text-indent:.28em;
+      letter-spacing:.22em;
+      text-indent:.22em;
       text-transform:uppercase;
       max-width:92%;
       overflow:hidden;
@@ -161,7 +161,7 @@
     .bubbleFood{
       position:absolute;
       left:50%;
-      top:40%; /* slightly higher so it sits centered in bubble */
+      top:36%; /* a touch higher inside bubble */
       transform:translate(-50%, -50%);
       width:32%;
       height:auto;
@@ -170,13 +170,13 @@
       pointer-events:none;
     }
 
-    /* BELT LANE (LOCKED) */
+    /* BELT LANE (moved down per your request) */
     .beltLane{
       position:absolute;
       left:0;
       width:100%;
       height:1px;
-      top: 74%;            /* <-- FIX: moved DOWN so snacks ride ON the belt surface */
+      top: 77%;   /* <-- CHANGED: was 74%. This moves snacks DOWN on the belt. */
       pointer-events:none;
       z-index:20;
     }
@@ -185,7 +185,7 @@
       position:absolute;
       top: 0;
       transform: translate(-50%, -100%); /* bottom sits on the lane */
-      width: 184px; /* <-- FIX: 2x size (was ~92px) */
+      width: 160px; /* keep good readable size (not mega) */
       height:auto;
       touch-action:none;
       user-select:none;
@@ -257,7 +257,7 @@
     @media (max-width:520px){
       .stats{ grid-template-columns: 1fr; }
       .stage{ aspect-ratio: 9/12; }
-      .food{ width: 172px; } /* 2x mobile */
+      .food{ width: 148px; }
       .dropZone{ width: 230px; height: 140px; }
       .targetCluster{ top: 8%; }
     }
@@ -377,16 +377,19 @@
   let score = 0;
 
   let speedMult = 1.00;
-  const baseSpeed = 125;        // slightly faster baseline
-  const speedStep = 0.055;      // speeds up per correct
-  const speedCap  = 2.35;
 
-  const maxOnScreen = 6;        // fewer items because they’re 2x bigger
-  const minGap = 260;           // spacing so you don’t mis-grab stacked items
-  const spawnEveryMs = 560;
+  // --- PRESSURE TUNING (more food + not boring) ---
+  const baseSpeed = 150;        // faster baseline than before (but not insane)
+  const speedStep = 0.045;      // each correct speeds up
+  const speedCap  = 2.25;
+
+  const targetFlowCount = 8;    // aim to keep ~8 items present
+  const maxOnScreen = 10;       // hard cap
+  const minGap = 190;           // tighter spacing (still prevents mis-grab overlap)
+  const spawnEveryMs = 320;     // spawns more frequently
   let acc = 0;
 
-  const targetMustAppearWithinMs = 1800; // faster “desired food” appearance
+  const targetMustAppearWithinMs = 1400; // desired food appears sooner
   let targetSetAt = 0;
 
   let activeDrag = null; // {food, offsetX, offsetY}
@@ -461,14 +464,14 @@
       def = currentTarget;
     } else {
       const roll = Math.random();
-      if (roll < 0.22) def = currentTarget;
+      if (roll < 0.24) def = currentTarget; // more frequent target presence
       else {
         do { def = FOODS[Math.floor(Math.random()*FOODS.length)]; }
-        while(def.key === currentTarget.key && Math.random() < 0.80);
+        while(def.key === currentTarget.key && Math.random() < 0.75);
       }
     }
 
-    let x = s.width + 120 + Math.random()*60;
+    let x = s.width + 120 + Math.random()*80;
     if (!canSpawnAt(x)) return;
 
     const el = document.createElement('img');
@@ -483,13 +486,19 @@
     el.addEventListener('pointerdown', (e) => onPointerDown(e, id));
 
     stage.appendChild(el);
-
     foodsOnBelt.push({ id, def, el, x });
 
     if (debug){
       el.style.outline = (def.key === currentTarget.key)
         ? '2px solid rgba(109,255,179,.85)'
         : '2px solid rgba(255,255,255,.14)';
+    }
+  }
+
+  function fillBelt(){
+    // keep belt busy: if it thins out, top it up immediately
+    while (running && foodsOnBelt.length < targetFlowCount){
+      spawnFood(false);
     }
   }
 
@@ -534,6 +543,9 @@
 
     updateHUD();
     setBanner('NICE', getComputedStyle(document.documentElement).getPropertyValue('--good'));
+
+    // keep pressure after a win
+    fillBelt();
   }
 
   function onPointerDown(e, id){
@@ -565,7 +577,7 @@
 
     food.el.style.transition = 'none';
     food.el.style.left = `${x}px`;
-    food.el.style.top  = `${y}px`;
+    food.el.style.top = `${y}px`;
     food.el.style.transform = 'translate(-50%, -50%)';
   }
 
@@ -634,9 +646,13 @@
       }
 
       acc += dt * 1000;
+
+      // keep belt populated even if spawn ticks get delayed
+      fillBelt();
+      ensureTargetSoon();
+
       if (acc >= spawnEveryMs){
         acc = 0;
-        ensureTargetSoon();
         spawnFood(false);
       }
     }
@@ -654,10 +670,11 @@
 
     for (const f of [...foodsOnBelt]) removeFood(f);
 
-    // prime belt quickly
-    for (let i=0;i<4;i++){
-      spawnFood(i===1); // inject target early
+    // Prime belt with more items immediately
+    for (let i=0;i<targetFlowCount;i++){
+      spawnFood(i===2); // inject target early
     }
+    fillBelt();
   }
 
   function share(){
