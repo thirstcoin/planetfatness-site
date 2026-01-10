@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+<title>$PHAT — Snack Stack</title>
+
+<style>
+:root{
+  --purple:#5b2cff;
+  --yellow:#ffd400;
+  --bg:#0b0716;
+  --panel:rgba(255,255,255,.08);
+  --stroke:rgba(255,255,255,.14);
+  --text:rgba(255,255,255,.95);
+  --muted:rgba(255,255,255,.65);
+  --good:#3bdc7a;
+  --bad:#ff4d6d;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;height:100%;
+  background:
+    radial-gradient(900px 520px at 50% 0%, rgba(91,44,255,.35), transparent 60%),
+    radial-gradient(700px 420px at 50% 100%, rgba(255,212,0,.22), transparent 60%),
+    linear-gradient(180deg,#140b2b,#07050c);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+  overflow:hidden;
+}
+#wrap{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:14px;
+}
+.row{
+  width:min(960px,100%);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.pill{
+  padding:10px 14px;
+  border-radius:999px;
+  background:var(--panel);
+  border:1px solid var(--stroke);
+  font-size:13px;
+  font-weight:900;
+  color:var(--muted);
+  backdrop-filter: blur(10px);
+  user-select:none;
+  white-space:nowrap;
+}
+.pill strong{color:var(--text)}
+.btn{
+  padding:10px 16px;
+  border-radius:14px;
+  font-weight:1000;
+  background:linear-gradient(180deg,var(--yellow),#ffbf00);
+  color:#1b1400;
+  border:none;
+  box-shadow:0 14px 30px rgba(255,212,0,.45);
+}
+.btn:active{transform:scale(.98)}
+#stage{position:relative;width:min(960px,100%)}
+canvas{
+  width:100%;
+  border-radius:20px;
+  background:transparent;
+  border:1px solid var(--stroke);
+  box-shadow:0 30px 90px rgba(0,0,0,.55);
+  touch-action:manipulation;
+}
+#hud{
+  position:absolute; inset:0;
+  pointer-events:none;
+}
+#banner{
+  position:absolute; left:50%; top:18px;
+  transform:translateX(-50%);
+  padding:10px 14px;
+  border-radius:999px;
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.9);
+  font-weight:1000;
+  font-size:13px;
+  backdrop-filter: blur(10px);
+  opacity:.95;
+}
+#banner .hint{color:rgba(255,255,255,.7); font-weight:900}
+#toast{
+  position:absolute; left:50%; top:64px;
+  transform:translateX(-50%);
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.92);
+  font-weight:1000;
+  font-size:12px;
+  backdrop-filter: blur(10px);
+  display:none;
+}
+#meter{
+  position:absolute; left:50%; bottom:18px;
+  transform:translateX(-50%);
+  width:70%; height:14px;
+  border-radius:999px;
+  background:rgba(255,255,255,.14);
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.10);
+}
+#meterFill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,var(--good),#b7ff5a);
+}
+#meterLabel{
+  position:absolute; left:50%; bottom:38px;
+  transform:translateX(-50%);
+  font-size:12px;
+  font-weight:1000;
+  color:rgba(255,255,255,.78);
+  background:rgba(0,0,0,.25);
+  border:1px solid rgba(255,255,255,.10);
+  padding:6px 10px;
+  border-radius:999px;
+  backdrop-filter: blur(10px);
+}
+
+#modalBack{
+  position:fixed; inset:0; display:none;
+  align-items:center; justify-content:center;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(8px);
+  padding:14px;
+}
+#modal{
+  width:min(780px,100%);
+  border-radius:24px;
+  border:1px solid var(--stroke);
+  background:
+    radial-gradient(900px 420px at 20% 0%, rgba(91,44,255,.32), transparent 60%),
+    radial-gradient(900px 520px at 80% 80%, rgba(255,212,0,.16), transparent 65%),
+    rgba(255,255,255,.06);
+  box-shadow:0 40px 140px rgba(0,0,0,.65);
+  padding:18px;
+}
+.stat{
+  border-radius:18px;border:1px solid var(--stroke);
+  background:rgba(0,0,0,.25);
+  padding:14px;margin-bottom:10px;
+}
+.stat .k{color:var(--muted);font-weight:900;font-size:13px}
+.stat .v{font-size:34px;font-weight:1100}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:680px){ .grid2{grid-template-columns:1fr} }
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.ghost{
+  padding:10px 14px;border-radius:14px;
+  background:rgba(0,0,0,.3);border:1px solid var(--stroke);
+  color:#fff;font-weight:1000;
+}
+.small{font-size:12px;color:rgba(255,255,255,.7);font-weight:900}
+a{color:inherit;text-decoration:none}
+</style>
+</head>
+
+<body>
+<div id="wrap">
+  <div class="row">
+    <div class="pill">$PHAT — <strong>Snack Stack</strong></div>
+    <div class="pill" id="status">Tap to drop. If it falls, it’s still progress.</div>
+    <button class="btn" id="restart">Run it back</button>
+  </div>
+
+  <div id="stage">
+    <canvas id="c" width="960" height="560"></canvas>
+
+    <div id="hud">
+      <div id="banner"><span class="hint">Drop snacks</span> → build the tower → flex absolutely nothing</div>
+      <div id="toast"></div>
+      <div id="meterLabel">Calories today</div>
+      <div id="meter"><div id="meterFill"></div></div>
+    </div>
+  </div>
+
+  <div class="row" style="justify-content:space-between;">
+    <div class="pill">Calories today: <span id="today">0</span> / 1000</div>
+    <div class="pill">Gym resets in <span id="reset">--:--:--</span></div>
+    <div class="pill">Best stack: <span id="best">0</span></div>
+  </div>
+</div>
+
+<div id="modalBack">
+  <div id="modal">
+    <div class="stat">
+      <div class="k">Stack height</div>
+      <div class="v" id="mHeight">0</div>
+      <div class="small" id="mTitle">Certified snack engineer.</div>
+    </div>
+
+    <div class="grid2">
+      <div class="stat">
+        <div class="k">Calories earned</div>
+        <div class="v" id="mCal">0</div>
+      </div>
+      <div class="stat">
+        <div class="k">Perfect drops</div>
+        <div class="v" id="mPerfect">0</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="again">Run it back</button>
+      <button class="ghost" id="share">Share</button>
+      <button class="ghost" id="close">Close</button>
+    </div>
+
+    <div class="small" style="margin-top:10px;">Pro move: share the stack. Let them know you trained at Planet Fatness.</div>
+  </div>
+</div>
+
+<script>
+/* ==========================
+   ASSETS (MATCH YOUR /assets NAMES)
+   Put these in /assets/
+   ========================== */
+const BASE_BG = "../assets/stack_base.png";   // seated 500lb member at table w/ empty plate
+const FOOD = [
+  "../assets/food_burger.png",
+  "../assets/food_brownies.png",
+  "../assets/food_donut_stack.png",
+  "../assets/food_pizza_stack.png",
+  "../assets/food_pancakes.png",
+  "../assets/food_grilledcheese.png",
+  "../assets/food_icecream_cone.png",
+  "../assets/food_chinese_takeout.png",
+  "../assets/food_onion_rings.png",
+  "../assets/food_popcorn.png",
+  "../assets/food_soda.png",
+  "../assets/food_hotdogs.png",
+  "../assets/food_sub.png",
+  "../assets/food_fried_chicken.png",
+  "../assets/food_cookie_pizza.png",
+  "../assets/food_milkshake_strawberry.png",
+  "../assets/food_milkshake_chocolate.png",
+  "../assets/food_milkshake_vanilla.png",
+  "../assets/food_fries.png",
+  "../assets/food_cake.png",
+];
+
+/* ==========================
+   SAVE / DAILY CAP
+   ========================== */
+const CAP = 1000;
+const KEY_TODAY = "phat_today_stack";
+const KEY_RESET = "phat_reset_stack";
+const KEY_BEST  = "phat_best_stack";
+
+/* ==========================
+   CANVAS + UI
+   ========================== */
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
+const statusEl = document.getElementById("status");
+const toastEl = document.getElementById("toast");
+const todayEl = document.getElementById("today");
+const bestEl = document.getElementById("best");
+const resetEl = document.getElementById("reset");
+const meterFill = document.getElementById("meterFill");
+const banner = document.getElementById("banner");
+
+const modalBack = document.getElementById("modalBack");
+const mHeight = document.getElementById("mHeight");
+const mCal = document.getElementById("mCal");
+const mPerfect = document.getElementById("mPerfect");
+const mTitle = document.getElementById("mTitle");
+
+/* ==========================
+   TIME / RESET
+   ========================== */
+function resetDay(){
+  const d=new Date(), t=new Date(d.getFullYear(), d.getMonth(), d.getDate()+1);
+  return t.getTime();
+}
+let resetAt = Number(localStorage.getItem(KEY_RESET) || resetDay());
+let today = Number(localStorage.getItem(KEY_TODAY) || 0);
+let best = Number(localStorage.getItem(KEY_BEST) || 0);
+
+if (Date.now() > resetAt){
+  today = 0;
+  resetAt = resetDay();
+  localStorage.setItem(KEY_TODAY, String(today));
+  localStorage.setItem(KEY_RESET, String(resetAt));
+}
+todayEl.textContent = today;
+bestEl.textContent = best;
+meterFill.style.width = Math.min(100, (today / CAP) * 100) + "%";
+
+function tick(){
+  const r = Math.max(0, resetAt - Date.now());
+  const h = String(Math.floor(r/36e5)).padStart(2,"0");
+  const m = String(Math.floor((r%36e5)/6e4)).padStart(2,"0");
+  const s = String(Math.floor((r%6e4)/1e3)).padStart(2,"0");
+  resetEl.textContent = `${h}:${m}:${s}`;
+}
+setInterval(tick, 1000);
+tick();
+
+/* ==========================
+   LOADER
+   ========================== */
+function loadImg(src){
+  return new Promise((res, rej)=>{
+    const i = new Image();
+    i.onload = ()=>res(i);
+    i.onerror = ()=>rej(new Error("Failed " + src));
+    i.src = src;
+  });
+}
+let bgImg = null;
+let foodImgs = [];
+
+let assetReady = false;
+(async function boot(){
+  try{
+    bgImg = await loadImg(BASE_BG);
+    const loaded = [];
+    for (const f of FOOD){
+      try{ loaded.push(await loadImg(f)); } catch(e){}
+    }
+    foodImgs = loaded.length ? loaded : [];
+    assetReady = true;
+    toast("Loaded. Tap to start stacking.");
+  }catch(e){
+    assetReady = true;
+    toast("Assets missing — check your /assets filenames.");
+  }
+})();
+
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.style.display = "block";
+  clearTimeout(window.__t);
+  window.__t = setTimeout(()=> toastEl.style.display="none", 1800);
+}
+
+/* ==========================
+   GAME
+   ========================== */
+const W = c.width, H = c.height;
+const FLOOR_Y = Math.floor(H * 0.86);          // snack floor / plate area
+const BASELINE_PAD = 12;
+
+let state = "idle"; // idle | play | over
+let shakeT = 0;
+
+function rand(min,max){ return min + Math.random()*(max-min); }
+function pickFood(){
+  if (!foodImgs.length) return null;
+  return foodImgs[(Math.random()*foodImgs.length)|0];
+}
+
+const tower = []; // blocks: {x,y,w,h,img,cut}
+let mover = null; // current moving block
+let height = 0;
+let perfects = 0;
+let earned = 0;
+
+function newRun(){
+  state = "idle";
+  tower.length = 0;
+  mover = null;
+  height = 0;
+  perfects = 0;
+  earned = 0;
+  banner.style.opacity = 1;
+  statusEl.textContent = "Tap to drop. If it falls, it’s still progress.";
+  buildFirst();
+}
+function buildFirst(){
+  const baseW = Math.floor(W * 0.46);
+  const baseH = Math.floor(H * 0.12);
+  const img = pickFood();
+  const x = (W - baseW)/2;
+  const y = FLOOR_Y - baseH;
+
+  tower.push({x,y,w:baseW,h:baseH,img});
+  height = 1;
+  spawnMover(true);
+}
+
+function spawnMover(first=false){
+  const prev = tower[tower.length-1];
+  const shrink = Math.max(0.55, 1 - (height-1)*0.028); // gets smaller as you go
+  const w = Math.max(140, Math.floor(prev.w * shrink));
+  const h = Math.floor(prev.h * rand(0.92, 1.05));
+  const y = prev.y - h + (first ? 0 : 0);
+
+  const speedBase = 250;
+  const speed = speedBase + (height-1) * 28;           // faster as you go
+  const dir = Math.random() < 0.5 ? 1 : -1;
+  const startX = dir === 1 ? -w : W + w;
+
+  mover = {
+    x: startX,
+    y: y,
+    w, h,
+    img: pickFood(),
+    vx: dir * speed,
+    wobble: rand(0, Math.PI*2)
+  };
+}
+
+function endRun(reason){
+  state = "over";
+  banner.style.opacity = 0;
+  statusEl.textContent = "Ejected 💥";
+  const lines = [
+    "Tower folded like a lawn chair.",
+    "Plate said: absolutely not.",
+    "Gravity is a hater.",
+    "Snack stack got audited.",
+    "That wobble was personal."
+  ];
+  mTitle.textContent = reason || lines[(Math.random()*lines.length)|0];
+
+  best = Math.max(best, height);
+  localStorage.setItem(KEY_BEST, String(best));
+  bestEl.textContent = best;
+
+  // write daily
+  localStorage.setItem(KEY_TODAY, String(today));
+  localStorage.setItem(KEY_RESET, String(resetAt));
+
+  mHeight.textContent = String(height);
+  mCal.textContent = String(earned);
+  mPerfect.textContent = String(perfects);
+
+  modalBack.style.display = "flex";
+}
+
+function addCalories(amount){
+  if (today >= CAP) return 0;
+  const add = Math.min(amount, CAP - today);
+  today += add;
+  earned += add;
+  todayEl.textContent = today;
+  meterFill.style.width = Math.min(100, (today / CAP) * 100) + "%";
+  return add;
+}
+
+function drop(){
+  if (!assetReady) return;
+  if (state === "over") return;
+
+  if (state === "idle"){
+    state = "play";
+    banner.style.opacity = 0;
+    statusEl.textContent = "Drop snacks. Keep it straight. Pretend it’s discipline.";
+    return;
+  }
+
+  if (state !== "play" || !mover) return;
+
+  const prev = tower[tower.length-1];
+  const left = Math.max(mover.x, prev.x);
+  const right = Math.min(mover.x + mover.w, prev.x + prev.w);
+  const overlap = right - left;
+
+  if (overlap <= 10){
+    shakeT = 0.55;
+    endRun("Snack stack collapsed. Respectfully.");
+    return;
+  }
+
+  const perfect = overlap / prev.w >= 0.92;
+  if (perfect){
+    perfects++;
+    toast("Perfect drop ✅");
+    addCalories(18);
+  } else {
+    addCalories(10);
+  }
+
+  // cut to overlap
+  const newW = Math.floor(overlap);
+  const newX = Math.floor(left);
+  const newH = mover.h;
+
+  tower.push({x:newX, y:mover.y, w:newW, h:newH, img:mover.img});
+  height = tower.length;
+
+  // if it gets too skinny, it’s basically over soon anyway
+  if (newW < 70){
+    shakeT = 0.35;
+    endRun("That snack became a toothpick.");
+    return;
+  }
+
+  // next
+  spawnMover(false);
+}
+
+/* ==========================
+   INPUT
+   ========================== */
+window.addEventListener("pointerdown", (e)=>{
+  // prevent accidental double inputs while modal open
+  if (modalBack.style.display === "flex") return;
+  drop();
+});
+
+/* ==========================
+   DRAW
+   ========================== */
+function drawBG(){
+  // base character image (seated member)
+  if (bgImg){
+    // Fit to canvas with slight crop, keep bottom anchored
+    const scale = Math.max(W / bgImg.width, H / bgImg.height);
+    const bw = bgImg.width * scale;
+    const bh = bgImg.height * scale;
+    const bx = (W - bw) / 2;
+    const by = (H - bh) / 2 + 10;
+    ctx.drawImage(bgImg, bx, by, bw, bh);
+  } else {
+    // fallback
+    ctx.fillStyle = "rgba(0,0,0,.15)";
+    ctx.fillRect(0,0,W,H);
+  }
+
+  // subtle vignette
+  const g = ctx.createRadialGradient(W*0.5, H*0.45, 40, W*0.5, H*0.45, H*0.82);
+  g.addColorStop(0, "rgba(0,0,0,0)");
+  g.addColorStop(1, "rgba(0,0,0,.55)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,W,H);
+
+  // plate floor hint line (very subtle)
+  ctx.fillStyle = "rgba(255,255,255,.05)";
+  ctx.fillRect(0, FLOOR_Y + BASELINE_PAD, W, 2);
+}
+
+function drawBlock(b){
+  // baked-in shadow
+  ctx.save();
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = "#000";
+  const sh = Math.max(10, b.h * 0.18);
+  const sw = Math.min(b.w * 1.06, b.w + 18);
+  ctx.beginPath();
+  ctx.ellipse(b.x + b.w/2, b.y + b.h + 8, sw/2, sh/2, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // image
+  if (b.img){
+    ctx.drawImage(b.img, b.x, b.y, b.w, b.h);
+  } else {
+    ctx.fillStyle = "rgba(255,255,255,.10)";
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.strokeStyle = "rgba(255,255,255,.18)";
+    ctx.strokeRect(b.x, b.y, b.w, b.h);
+  }
+}
+
+function drawMover(m){
+  if (!m) return;
+
+  // tiny hover wobble (for chaos), but base still flat visually
+  const wob = Math.sin(performance.now()/130 + m.wobble) * 2.2;
+
+  ctx.save();
+  ctx.translate(0, wob);
+
+  // shadow
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = "#000";
+  const sh = Math.max(10, m.h * 0.16);
+  ctx.beginPath();
+  ctx.ellipse(m.x + m.w/2, m.y + m.h + 10, Math.min(m.w*0.55, m.w/2), sh/2, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // image
+  if (m.img){
+    ctx.drawImage(m.img, m.x, m.y, m.w, m.h);
+  } else {
+    ctx.fillStyle = "rgba(255,255,255,.10)";
+    ctx.fillRect(m.x, m.y, m.w, m.h);
+  }
+
+  ctx.restore();
+}
+
+function drawText(){
+  ctx.save();
+  ctx.fillStyle = "rgba(255,255,255,.92)";
+  ctx.font = "900 20px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillText(`Stack: ${height}`, 22, 40);
+  ctx.fillStyle = "rgba(255,255,255,.70)";
+  ctx.font = "900 13px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillText(`Perfects: ${perfects}`, 22, 62);
+  ctx.fillText(`Calories earned: ${earned}`, 22, 82);
+
+  if (state === "idle"){
+    ctx.fillStyle = "rgba(255,255,255,.88)";
+    ctx.font = "1000 28px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.fillText("TAP TO START", W/2 - 92, H*0.22);
+    ctx.fillStyle = "rgba(255,255,255,.66)";
+    ctx.font = "900 14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.fillText("Drop snacks on the stack. Miss the landing and you get ejected.", W/2 - 230, H*0.22 + 26);
+  }
+  ctx.restore();
+}
+
+function cameraShake(dt){
+  if (shakeT <= 0) return {x:0,y:0};
+  shakeT = Math.max(0, shakeT - dt);
+  const p = shakeT / 0.55;
+  const amt = 10 * p;
+  return {x:(Math.random()-0.5)*amt, y:(Math.random()-0.5)*amt};
+}
+
+let last = performance.now();
+function loop(){
+  const now = performance.now();
+  const dt = (now - last) / 1000;
+  last = now;
+
+  // update mover
+  if (state === "play" && mover){
+    mover.x += mover.vx * dt;
+
+    // bounce edges with a little chaos
+    if (mover.x < -mover.w - 10){
+      mover.x = -mover.w - 10;
+      mover.vx *= -1;
+      mover.vx *= 1.02;
+    }
+    if (mover.x > W + 10){
+      mover.x = W + 10;
+      mover.vx *= -1;
+      mover.vx *= 1.02;
+    }
+  }
+
+  // stack rises: keep top near mid screen
+  let camY = 0;
+  const top = tower.length ? tower[tower.length-1].y : FLOOR_Y;
+  const targetTop = H * 0.34;
+  if (top < targetTop){
+    camY = (targetTop - top);
+  }
+
+  const sh = cameraShake(dt);
+
+  ctx.clearRect(0,0,W,H);
+  ctx.save();
+  ctx.translate(sh.x, sh.y);
+
+  drawBG();
+
+  // camera lift
+  ctx.save();
+  ctx.translate(0, camY);
+
+  // draw tower
+  for (const b of tower) drawBlock(b);
+  drawMover(mover);
+
+  ctx.restore();
+
+  drawText();
+
+  ctx.restore();
+
+  requestAnimationFrame(loop);
+}
+newRun();
+loop();
+
+/* ==========================
+   BUTTONS / MODAL
+   ========================== */
+document.getElementById("restart").onclick = ()=> location.reload();
+document.getElementById("again").onclick = ()=> location.reload();
+document.getElementById("close").onclick = ()=> { modalBack.style.display="none"; };
+
+document.getElementById("share").onclick = async ()=>{
+  const text = `I stacked ${height} snacks at Planet Fatness 💥 Calories earned: ${earned}. #PHAT #PlanetFatness`;
+  try{
+    if (navigator.share){
+      await navigator.share({ text, url: location.href });
+    } else {
+      await navigator.clipboard.writeText(text + " " + location.href);
+      toast("Copied. Post the flex.");
+    }
+  }catch(e){
+    // silent
+    toast("Share failed. Screenshot it like a degen.");
+  }
+};
+</script>
+</body>
+</html>
