@@ -2,148 +2,199 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
 <title>$PHAT — Snack Stack</title>
 
 <style>
 :root{
   --purple:#5b2cff;
   --yellow:#ffd400;
-  --bg:#0b0716;
+  --bg0:#07050c;
+  --bg1:#140b2b;
   --panel:rgba(255,255,255,.08);
   --stroke:rgba(255,255,255,.14);
   --text:rgba(255,255,255,.95);
-  --muted:rgba(255,255,255,.65);
-  --good:#3bdc7a;
-  --bad:#ff4d6d;
+  --muted:rgba(255,255,255,.68);
+  --shadow:0 30px 90px rgba(0,0,0,.55);
 }
+
 *{box-sizing:border-box}
-html,body{
-  margin:0;height:100%;
-  background:
-    radial-gradient(900px 520px at 50% 0%, rgba(91,44,255,.35), transparent 60%),
-    radial-gradient(700px 420px at 50% 100%, rgba(255,212,0,.22), transparent 60%),
-    linear-gradient(180deg,#140b2b,#07050c);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+html,body{height:100%}
+body{
+  margin:0;
   color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:
+    radial-gradient(1100px 650px at 20% 10%, rgba(91,44,255,.35), transparent 55%),
+    radial-gradient(900px 560px at 85% 20%, rgba(255,212,0,.22), transparent 60%),
+    radial-gradient(900px 560px at 55% 120%, rgba(255,212,0,.10), transparent 60%),
+    linear-gradient(180deg, var(--bg1), var(--bg0));
   overflow:hidden;
 }
+
+/* Layout */
 #wrap{
-  height:100%;
+  height:100dvh;
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:center;
   gap:12px;
   padding:14px;
 }
+
 .row{
-  width:min(960px,100%);
+  width:min(980px,100%);
   display:flex;
   justify-content:space-between;
   align-items:center;
   gap:10px;
   flex-wrap:wrap;
 }
+
 .pill{
   padding:10px 14px;
   border-radius:999px;
   background:var(--panel);
   border:1px solid var(--stroke);
   font-size:13px;
-  font-weight:900;
+  font-weight:1000;
   color:var(--muted);
   backdrop-filter: blur(10px);
   user-select:none;
   white-space:nowrap;
 }
-.pill strong{color:var(--text)}
+
 .btn{
   padding:10px 16px;
   border-radius:14px;
-  font-weight:1000;
+  font-weight:1100;
   background:linear-gradient(180deg,var(--yellow),#ffbf00);
   color:#1b1400;
   border:none;
   box-shadow:0 14px 30px rgba(255,212,0,.45);
 }
 .btn:active{transform:scale(.98)}
-#stage{position:relative;width:min(960px,100%)}
-canvas{
-  width:100%;
-  border-radius:20px;
-  background:transparent;
-  border:1px solid var(--stroke);
-  box-shadow:0 30px 90px rgba(0,0,0,.55);
-  touch-action:manipulation;
-}
-#hud{
-  position:absolute; inset:0;
-  pointer-events:none;
-}
-#banner{
-  position:absolute; left:50%; top:18px;
-  transform:translateX(-50%);
-  padding:10px 14px;
-  border-radius:999px;
-  background:rgba(0,0,0,.35);
-  border:1px solid rgba(255,255,255,.12);
-  color:rgba(255,255,255,.9);
-  font-weight:1000;
-  font-size:13px;
-  backdrop-filter: blur(10px);
-  opacity:.95;
-}
-#banner .hint{color:rgba(255,255,255,.7); font-weight:900}
-#toast{
-  position:absolute; left:50%; top:64px;
-  transform:translateX(-50%);
-  padding:8px 12px;
-  border-radius:999px;
-  background:rgba(0,0,0,.45);
-  border:1px solid rgba(255,255,255,.12);
-  color:rgba(255,255,255,.92);
-  font-weight:1000;
-  font-size:12px;
-  backdrop-filter: blur(10px);
-  display:none;
-}
-#meter{
-  position:absolute; left:50%; bottom:18px;
-  transform:translateX(-50%);
-  width:70%; height:14px;
-  border-radius:999px;
-  background:rgba(255,255,255,.14);
-  overflow:hidden;
-  border:1px solid rgba(255,255,255,.10);
-}
-#meterFill{
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,var(--good),#b7ff5a);
-}
-#meterLabel{
-  position:absolute; left:50%; bottom:38px;
-  transform:translateX(-50%);
-  font-size:12px;
-  font-weight:1000;
-  color:rgba(255,255,255,.78);
-  background:rgba(0,0,0,.25);
-  border:1px solid rgba(255,255,255,.10);
-  padding:6px 10px;
-  border-radius:999px;
-  backdrop-filter: blur(10px);
+
+#stage{
+  width:min(980px,100%);
+  flex:1;
+  position:relative;
+  display:flex;
+  align-items:stretch;
 }
 
+#frame{
+  position:relative;
+  width:100%;
+  height:100%;
+  border-radius:22px;
+  border:1px solid var(--stroke);
+  background: rgba(0,0,0,.12);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  touch-action:manipulation;
+}
+
+/* hero (background art) */
+#heroWrap{
+  position:absolute; inset:0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  pointer-events:none;
+}
+
+#hero{
+  width:min(560px, 88%);
+  height:auto;
+  max-height:92%;
+  transform-origin:center bottom;
+  filter: drop-shadow(0 26px 42px rgba(0,0,0,.55));
+  opacity:.98;
+}
+
+/* canvas draws foods + table line */
+canvas{
+  position:absolute; inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+/* HUD inside frame */
+#hud{
+  position:absolute;
+  left:14px; top:14px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  pointer-events:none;
+}
+#hud .tiny{
+  font-size:12px;
+  font-weight:1000;
+  color:rgba(255,255,255,.82);
+  text-shadow: 0 8px 24px rgba(0,0,0,.55);
+}
+#hud .muted{color:rgba(255,255,255,.62); font-weight:900}
+
+/* calories bar overlay */
+#calBar{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:58px;
+  width:min(620px, 86%);
+  height:18px;
+  border-radius:999px;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.12);
+  overflow:hidden;
+  pointer-events:none;
+}
+#calFill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(180deg,#7fff7f,#3bdc7a);
+  opacity:.9;
+}
+#calLabel{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:84px;
+  padding:9px 14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.35);
+  backdrop-filter: blur(12px);
+  font-size:13px;
+  font-weight:1100;
+  color:rgba(255,255,255,.86);
+  pointer-events:none;
+}
+
+/* bottom pills */
+.hint{
+  width:min(980px,100%);
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+/* end modal */
 #modalBack{
-  position:fixed; inset:0; display:none;
-  align-items:center; justify-content:center;
-  background:rgba(0,0,0,.6);
-  backdrop-filter:blur(8px);
-  padding:14px;
+  position:fixed; inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.62);
+  backdrop-filter: blur(10px);
+  z-index:50;
 }
 #modal{
-  width:min(780px,100%);
+  width:min(760px, calc(100% - 28px));
   border-radius:24px;
   border:1px solid var(--stroke);
   background:
@@ -154,45 +205,52 @@ canvas{
   padding:18px;
 }
 .stat{
-  border-radius:18px;border:1px solid var(--stroke);
+  border-radius:18px;
+  border:1px solid var(--stroke);
   background:rgba(0,0,0,.25);
-  padding:14px;margin-bottom:10px;
+  padding:14px;
+  margin-bottom:10px;
 }
-.stat .k{color:var(--muted);font-weight:900;font-size:13px}
-.stat .v{font-size:34px;font-weight:1100}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:680px){ .grid2{grid-template-columns:1fr} }
-.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.stat .k{color:var(--muted);font-weight:1000;font-size:13px}
+.stat .v{font-size:34px;font-weight:1200; letter-spacing:-.5px}
+.actions{display:flex;gap:12px;flex-wrap:wrap}
 .ghost{
   padding:10px 14px;border-radius:14px;
-  background:rgba(0,0,0,.3);border:1px solid var(--stroke);
-  color:#fff;font-weight:1000;
+  background:rgba(0,0,0,.30);border:1px solid var(--stroke);
+  color:#fff;font-weight:1100;
 }
-.small{font-size:12px;color:rgba(255,255,255,.7);font-weight:900}
-a{color:inherit;text-decoration:none}
 </style>
 </head>
 
 <body>
 <div id="wrap">
   <div class="row">
-    <div class="pill">$PHAT — <strong>Snack Stack</strong></div>
-    <div class="pill" id="status">Tap to drop. If it falls, it’s still progress.</div>
+    <div class="pill">$PHAT — Snack Stack</div>
+    <div class="pill" id="status">Drop snacks. Keep it straight. Pretend it’s discipline.</div>
     <button class="btn" id="restart">Run it back</button>
   </div>
 
   <div id="stage">
-    <canvas id="c" width="960" height="560"></canvas>
+    <div id="frame">
+      <div id="heroWrap">
+        <!-- Put your seated character PNG here -->
+        <img id="hero" src="../assets/snack_hero.png" alt="Planet Fatness Snack Stack Hero"/>
+      </div>
 
-    <div id="hud">
-      <div id="banner"><span class="hint">Drop snacks</span> → build the tower → flex absolutely nothing</div>
-      <div id="toast"></div>
-      <div id="meterLabel">Calories today</div>
-      <div id="meter"><div id="meterFill"></div></div>
+      <div id="hud">
+        <div class="tiny">Stack: <span id="stackN">0</span></div>
+        <div class="tiny muted">Perfects: <span id="perfectN">0</span></div>
+        <div class="tiny muted">Calories earned: <span id="earnedN">0</span></div>
+      </div>
+
+      <div id="calLabel">Calories today</div>
+      <div id="calBar"><div id="calFill"></div></div>
+
+      <canvas id="c"></canvas>
     </div>
   </div>
 
-  <div class="row" style="justify-content:space-between;">
+  <div class="hint">
     <div class="pill">Calories today: <span id="today">0</span> / 1000</div>
     <div class="pill">Gym resets in <span id="reset">--:--:--</span></div>
     <div class="pill">Best stack: <span id="best">0</span></div>
@@ -201,46 +259,32 @@ a{color:inherit;text-decoration:none}
 
 <div id="modalBack">
   <div id="modal">
-    <div class="stat">
-      <div class="k">Stack height</div>
-      <div class="v" id="mHeight">0</div>
-      <div class="small" id="mTitle">Certified snack engineer.</div>
-    </div>
-
-    <div class="grid2">
-      <div class="stat">
-        <div class="k">Calories earned</div>
-        <div class="v" id="mCal">0</div>
-      </div>
-      <div class="stat">
-        <div class="k">Perfect drops</div>
-        <div class="v" id="mPerfect">0</div>
-      </div>
-    </div>
-
+    <div class="stat"><div class="k">Final stack</div><div class="v" id="mStack">0</div></div>
+    <div class="stat"><div class="k">Calories earned</div><div class="v" id="mCal">0</div></div>
+    <div class="stat"><div class="k">Status</div><div class="v" id="mLine">Folded like a napkin</div></div>
     <div class="actions">
       <button class="btn" id="again">Run it back</button>
-      <button class="ghost" id="share">Share</button>
       <button class="ghost" id="close">Close</button>
     </div>
-
-    <div class="small" style="margin-top:10px;">Pro move: share the stack. Let them know you trained at Planet Fatness.</div>
   </div>
 </div>
 
 <script>
-/* ==========================
-   ASSETS (MATCH YOUR /assets NAMES)
-   Put these in /assets/
-   ========================== */
-const BASE_BG = "../assets/stack_base.png";   // seated 500lb member at table w/ empty plate
-const FOOD = [
+/* =========================
+   Snack Stack — real stacking
+   ========================= */
+
+const CAP = 1000;
+
+// Keep these filenames matching what you uploaded.
+// Put foods in /assets/ with these exact names (or edit the list).
+const FOOD_FILES = [
   "../assets/food_burger.png",
   "../assets/food_brownies.png",
-  "../assets/food_donut_stack.png",
+  "../assets/food_donuts.png",
   "../assets/food_pizza_stack.png",
   "../assets/food_pancakes.png",
-  "../assets/food_grilledcheese.png",
+  "../assets/food_grilled_cheese.png",
   "../assets/food_icecream_cone.png",
   "../assets/food_chinese_takeout.png",
   "../assets/food_onion_rings.png",
@@ -250,467 +294,450 @@ const FOOD = [
   "../assets/food_sub.png",
   "../assets/food_fried_chicken.png",
   "../assets/food_cookie_pizza.png",
-  "../assets/food_milkshake_strawberry.png",
-  "../assets/food_milkshake_chocolate.png",
-  "../assets/food_milkshake_vanilla.png",
-  "../assets/food_fries.png",
-  "../assets/food_cake.png",
+  "../assets/food_strawberry_milkshake.png",
+  "../assets/food_chocolate_milkshake.png",
+  "../assets/food_vanilla_milkshake.png",
+  "../assets/food_fries_bucket.png",
+  "../assets/food_cake.png"
 ];
 
-/* ==========================
-   SAVE / DAILY CAP
-   ========================== */
-const CAP = 1000;
-const KEY_TODAY = "phat_today_stack";
-const KEY_RESET = "phat_reset_stack";
-const KEY_BEST  = "phat_best_stack";
-
-/* ==========================
-   CANVAS + UI
-   ========================== */
+// DOM
 const c = document.getElementById("c");
 const ctx = c.getContext("2d");
-const statusEl = document.getElementById("status");
-const toastEl = document.getElementById("toast");
+
+const stackEl = document.getElementById("stackN");
+const perfectEl = document.getElementById("perfectN");
+const earnedEl = document.getElementById("earnedN");
+
 const todayEl = document.getElementById("today");
-const bestEl = document.getElementById("best");
 const resetEl = document.getElementById("reset");
-const meterFill = document.getElementById("meterFill");
-const banner = document.getElementById("banner");
+const bestEl = document.getElementById("best");
+const calFill = document.getElementById("calFill");
 
 const modalBack = document.getElementById("modalBack");
-const mHeight = document.getElementById("mHeight");
+const mStack = document.getElementById("mStack");
 const mCal = document.getElementById("mCal");
-const mPerfect = document.getElementById("mPerfect");
-const mTitle = document.getElementById("mTitle");
+const mLine = document.getElementById("mLine");
 
-/* ==========================
-   TIME / RESET
-   ========================== */
-function resetDay(){
-  const d=new Date(), t=new Date(d.getFullYear(), d.getMonth(), d.getDate()+1);
+// Local day reset
+function nextResetMs(){
+  const d = new Date();
+  const t = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
   return t.getTime();
 }
-let resetAt = Number(localStorage.getItem(KEY_RESET) || resetDay());
-let today = Number(localStorage.getItem(KEY_TODAY) || 0);
-let best = Number(localStorage.getItem(KEY_BEST) || 0);
-
+let resetAt = Number(localStorage.getItem("phat_reset") || nextResetMs());
+let today = Number(localStorage.getItem("phat_today") || 0);
 if (Date.now() > resetAt){
   today = 0;
-  resetAt = resetDay();
-  localStorage.setItem(KEY_TODAY, String(today));
-  localStorage.setItem(KEY_RESET, String(resetAt));
+  resetAt = nextResetMs();
+  localStorage.setItem("phat_today", today);
+  localStorage.setItem("phat_reset", resetAt);
 }
 todayEl.textContent = today;
-bestEl.textContent = best;
-meterFill.style.width = Math.min(100, (today / CAP) * 100) + "%";
 
-function tick(){
-  const r = Math.max(0, resetAt - Date.now());
-  const h = String(Math.floor(r/36e5)).padStart(2,"0");
-  const m = String(Math.floor((r%36e5)/6e4)).padStart(2,"0");
-  const s = String(Math.floor((r%6e4)/1e3)).padStart(2,"0");
-  resetEl.textContent = `${h}:${m}:${s}`;
+// Best stack
+let bestStack = Number(localStorage.getItem("phat_best_stack") || 0);
+bestEl.textContent = bestStack;
+
+// Canvas resize (full frame)
+function resize(){
+  const rect = c.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  c.width  = Math.floor(rect.width * dpr);
+  c.height = Math.floor(rect.height * dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels
 }
-setInterval(tick, 1000);
-tick();
+window.addEventListener("resize", resize);
+resize();
 
-/* ==========================
-   LOADER
-   ========================== */
-function loadImg(src){
-  return new Promise((res, rej)=>{
-    const i = new Image();
-    i.onload = ()=>res(i);
-    i.onerror = ()=>rej(new Error("Failed " + src));
-    i.src = src;
-  });
-}
-let bgImg = null;
-let foodImgs = [];
+// Game metrics (computed after resize)
+function W(){ return c.getBoundingClientRect().width; }
+function H(){ return c.getBoundingClientRect().height; }
 
-let assetReady = false;
-(async function boot(){
-  try{
-    bgImg = await loadImg(BASE_BG);
-    const loaded = [];
-    for (const f of FOOD){
-      try{ loaded.push(await loadImg(f)); } catch(e){}
-    }
-    foodImgs = loaded.length ? loaded : [];
-    assetReady = true;
-    toast("Loaded. Tap to start stacking.");
-  }catch(e){
-    assetReady = true;
-    toast("Assets missing — check your /assets filenames.");
-  }
-})();
-
-function toast(msg){
-  toastEl.textContent = msg;
-  toastEl.style.display = "block";
-  clearTimeout(window.__t);
-  window.__t = setTimeout(()=> toastEl.style.display="none", 1800);
+// Table/floor line where stacks sit (tuned for the seated hero PNG)
+function floorY(){
+  return H() * 0.78; // adjust if you want, but this fits the hero/table look
 }
 
-/* ==========================
-   GAME
-   ========================== */
-const W = c.width, H = c.height;
-const FLOOR_Y = Math.floor(H * 0.86);          // snack floor / plate area
-const BASELINE_PAD = 12;
+// Physics
+let lastT = performance.now();
+let running = true;
+let gameOver = false;
 
-let state = "idle"; // idle | play | over
-let shakeT = 0;
+const placed = [];
+let current = null;
+let currentDropped = false;
 
-function rand(min,max){ return min + Math.random()*(max-min); }
-function pickFood(){
-  if (!foodImgs.length) return null;
-  return foodImgs[(Math.random()*foodImgs.length)|0];
-}
-
-const tower = []; // blocks: {x,y,w,h,img,cut}
-let mover = null; // current moving block
-let height = 0;
-let perfects = 0;
+let stackCount = 0;
+let perfectCount = 0;
 let earned = 0;
 
-function newRun(){
-  state = "idle";
-  tower.length = 0;
-  mover = null;
-  height = 0;
-  perfects = 0;
-  earned = 0;
-  banner.style.opacity = 1;
-  statusEl.textContent = "Tap to drop. If it falls, it’s still progress.";
-  buildFirst();
-}
-function buildFirst(){
-  const baseW = Math.floor(W * 0.46);
-  const baseH = Math.floor(H * 0.12);
-  const img = pickFood();
-  const x = (W - baseW)/2;
-  const y = FLOOR_Y - baseH;
+const GRAVITY_SCALE = 2.25; // relative to screen height
+const SWAY_SPEED = 0.48;    // horizontal drift speed
+const MAX_SWAY = 0.30;      // percent of width from center
 
-  tower.push({x,y,w:baseW,h:baseH,img});
-  height = 1;
-  spawnMover(true);
+// Preload images
+const imgCache = new Map();
+function loadImage(src){
+  return new Promise((resolve,reject)=>{
+    if (imgCache.has(src)) return resolve(imgCache.get(src));
+    const im = new Image();
+    im.onload = ()=>{ imgCache.set(src, im); resolve(im); };
+    im.onerror = reject;
+    im.src = src;
+  });
 }
 
-function spawnMover(first=false){
-  const prev = tower[tower.length-1];
-  const shrink = Math.max(0.55, 1 - (height-1)*0.028); // gets smaller as you go
-  const w = Math.max(140, Math.floor(prev.w * shrink));
-  const h = Math.floor(prev.h * rand(0.92, 1.05));
-  const y = prev.y - h + (first ? 0 : 0);
+async function preload(){
+  // load all, but don't die if one fails — missing ones just won't spawn
+  const tasks = FOOD_FILES.map(f => loadImage(f).catch(()=>null));
+  const res = await Promise.all(tasks);
+  return res.filter(Boolean);
+}
 
-  const speedBase = 250;
-  const speed = speedBase + (height-1) * 28;           // faster as you go
-  const dir = Math.random() < 0.5 ? 1 : -1;
-  const startX = dir === 1 ? -w : W + w;
+let FOOD_IMGS = [];
 
-  mover = {
-    x: startX,
-    y: y,
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+// Hitbox helpers (tight, stack-friendly)
+function makeFood(im){
+  const cw = W(), ch = H();
+  const baseW = cw * 0.23;            // food width
+  const w = clamp(baseW, 88, 170);    // good mobile range
+  const ratio = im.naturalHeight / im.naturalWidth || 1;
+  const h = clamp(w * ratio, 70, 150);
+
+  // Collision box: tighter than sprite so it "touches"
+  const hitW = w * 0.86;
+  const hitH = h * 0.66;
+
+  return {
+    im,
+    x: cw * 0.5,
+    y: -h,
     w, h,
-    img: pickFood(),
-    vx: dir * speed,
-    wobble: rand(0, Math.PI*2)
+    hitW, hitH,
+    vx: 0,
+    vy: 0,
+    placed: false,
+    // used for sway before drop
+    swayT: 0,
+    swayDir: Math.random() < 0.5 ? -1 : 1
   };
 }
 
-function endRun(reason){
-  state = "over";
-  banner.style.opacity = 0;
-  statusEl.textContent = "Ejected 💥";
-  const lines = [
-    "Tower folded like a lawn chair.",
-    "Plate said: absolutely not.",
-    "Gravity is a hater.",
-    "Snack stack got audited.",
-    "That wobble was personal."
-  ];
-  mTitle.textContent = reason || lines[(Math.random()*lines.length)|0];
+function aabb(a,b){
+  return !(
+    a.x + a.hitW/2 < b.x - b.hitW/2 ||
+    a.x - a.hitW/2 > b.x + b.hitW/2 ||
+    a.y + a.hitH/2 < b.y - b.hitH/2 ||
+    a.y - a.hitH/2 > b.y + b.hitW/2 // typo guard? nope, fix below
+  );
+}
+// fix: last line should be b.hitH/2, not hitW
+function aabb2(a,b){
+  return !(
+    a.x + a.hitW/2 < b.x - b.hitW/2 ||
+    a.x - a.hitW/2 > b.x + b.hitW/2 ||
+    a.y + a.hitH/2 < b.y - b.hitH/2 ||
+    a.y - a.hitH/2 > b.y + b.hitH/2
+  );
+}
 
-  best = Math.max(best, height);
-  localStorage.setItem(KEY_BEST, String(best));
-  bestEl.textContent = best;
+// UI update
+function refreshHUD(){
+  stackEl.textContent = String(stackCount);
+  perfectEl.textContent = String(perfectCount);
+  earnedEl.textContent = String(earned);
 
-  // write daily
-  localStorage.setItem(KEY_TODAY, String(today));
-  localStorage.setItem(KEY_RESET, String(resetAt));
-
-  mHeight.textContent = String(height);
-  mCal.textContent = String(earned);
-  mPerfect.textContent = String(perfects);
-
-  modalBack.style.display = "flex";
+  todayEl.textContent = String(today);
+  calFill.style.width = (today / CAP * 100).toFixed(2) + "%";
+  bestEl.textContent = String(bestStack);
 }
 
 function addCalories(amount){
-  if (today >= CAP) return 0;
-  const add = Math.min(amount, CAP - today);
-  today += add;
+  if (today >= CAP) return;
+  const add = Math.max(0, Math.floor(amount));
   earned += add;
-  todayEl.textContent = today;
-  meterFill.style.width = Math.min(100, (today / CAP) * 100) + "%";
-  return add;
+  today = Math.min(CAP, today + add);
+  localStorage.setItem("phat_today", String(today));
+  localStorage.setItem("phat_reset", String(resetAt));
+  refreshHUD();
 }
 
+function endGame(reason){
+  if (gameOver) return;
+  gameOver = true;
+
+  if (stackCount > bestStack){
+    bestStack = stackCount;
+    localStorage.setItem("phat_best_stack", String(bestStack));
+  }
+
+  const lines = [
+    "Folded like a napkin",
+    "Gravity called… you answered",
+    "Stack went on a diet (it quit)",
+    "Plate said “nah”",
+    "Respectfully… that was criminal"
+  ];
+  mLine.textContent = reason || lines[Math.random()*lines.length|0];
+
+  mStack.textContent = String(stackCount);
+  mCal.textContent = String(earned);
+
+  modalBack.style.display = "flex";
+  refreshHUD();
+}
+
+// Spawn next food
+function spawnNext(){
+  if (!FOOD_IMGS.length) return;
+
+  const im = FOOD_IMGS[(Math.random()*FOOD_IMGS.length)|0];
+  current = makeFood(im);
+
+  // If there is a stack, spawn above it, centered, and sway starts fresh
+  current.y = -current.h;
+  currentDropped = false;
+}
+
+// Perfect placement logic
+function placementScore(dx, w){
+  // dx is absolute center offset
+  const perfect = w * 0.08;
+  const good = w * 0.18;
+
+  if (dx <= perfect) return { tag:"perfect", cal: 16 };
+  if (dx <= good)    return { tag:"good",    cal: 12 };
+  return             { tag:"meh",     cal: 8  };
+}
+
+// Drop action: tap/click to drop the current snack
 function drop(){
-  if (!assetReady) return;
-  if (state === "over") return;
-
-  if (state === "idle"){
-    state = "play";
-    banner.style.opacity = 0;
-    statusEl.textContent = "Drop snacks. Keep it straight. Pretend it’s discipline.";
-    return;
-  }
-
-  if (state !== "play" || !mover) return;
-
-  const prev = tower[tower.length-1];
-  const left = Math.max(mover.x, prev.x);
-  const right = Math.min(mover.x + mover.w, prev.x + prev.w);
-  const overlap = right - left;
-
-  if (overlap <= 10){
-    shakeT = 0.55;
-    endRun("Snack stack collapsed. Respectfully.");
-    return;
-  }
-
-  const perfect = overlap / prev.w >= 0.92;
-  if (perfect){
-    perfects++;
-    toast("Perfect drop ✅");
-    addCalories(18);
-  } else {
-    addCalories(10);
-  }
-
-  // cut to overlap
-  const newW = Math.floor(overlap);
-  const newX = Math.floor(left);
-  const newH = mover.h;
-
-  tower.push({x:newX, y:mover.y, w:newW, h:newH, img:mover.img});
-  height = tower.length;
-
-  // if it gets too skinny, it’s basically over soon anyway
-  if (newW < 70){
-    shakeT = 0.35;
-    endRun("That snack became a toothpick.");
-    return;
-  }
-
-  // next
-  spawnMover(false);
+  if (!running || gameOver) return;
+  if (!current) return;
+  if (currentDropped) return;
+  currentDropped = true;
+  current.vy = 0;
 }
 
-/* ==========================
-   INPUT
-   ========================== */
+// Pointer controls: tap = drop; (before drop it still sways automatically)
 window.addEventListener("pointerdown", (e)=>{
-  // prevent accidental double inputs while modal open
+  // if modal open, ignore
   if (modalBack.style.display === "flex") return;
   drop();
 });
 
-/* ==========================
-   DRAW
-   ========================== */
-function drawBG(){
-  // base character image (seated member)
-  if (bgImg){
-    // Fit to canvas with slight crop, keep bottom anchored
-    const scale = Math.max(W / bgImg.width, H / bgImg.height);
-    const bw = bgImg.width * scale;
-    const bh = bgImg.height * scale;
-    const bx = (W - bw) / 2;
-    const by = (H - bh) / 2 + 10;
-    ctx.drawImage(bgImg, bx, by, bw, bh);
-  } else {
-    // fallback
-    ctx.fillStyle = "rgba(0,0,0,.15)";
-    ctx.fillRect(0,0,W,H);
+// Main update
+function update(dt){
+  if (gameOver) return;
+  const cw = W(), ch = H();
+  const floor = floorY();
+
+  // always have one current
+  if (!current) spawnNext();
+
+  // Sway before dropping
+  if (current && !currentDropped){
+    current.swayT += dt * SWAY_SPEED;
+    const amp = cw * MAX_SWAY;
+    const center = cw * 0.5;
+    // smooth wave sway
+    current.x = center + Math.sin(current.swayT * Math.PI * 2) * amp;
+    // keep within safe bounds
+    const margin = cw * 0.12;
+    current.x = clamp(current.x, margin, cw - margin);
+    // keep it just above top
+    current.y = -current.h * 0.85;
+    return;
   }
 
-  // subtle vignette
-  const g = ctx.createRadialGradient(W*0.5, H*0.45, 40, W*0.5, H*0.45, H*0.82);
+  // Falling
+  if (current && currentDropped){
+    const GRAVITY = ch * GRAVITY_SCALE; // px/s^2 relative to view
+    current.vy += GRAVITY * dt;
+    current.y  += current.vy * dt;
+
+    // Collision with stack top or floor
+    const top = placed[placed.length - 1];
+
+    // If no stack, collide with floor
+    if (!top){
+      if (current.y + current.hitH/2 >= floor){
+        // land
+        current.y = floor - current.hitH/2;
+        current.placed = true;
+
+        placed.push(current);
+        stackCount++;
+
+        // reward
+        addCalories(10);
+
+        spawnNext();
+      }
+
+      // miss (fell too low somehow)
+      if (current.y > ch + 200){
+        endGame("Snack escaped the plate");
+      }
+      return;
+    }
+
+    // If there is a stack: first check miss horizontally when below top
+    const missMargin = cw * 0.08;
+    const leftBound = missMargin;
+    const rightBound = cw - missMargin;
+
+    if (current.x < leftBound || current.x > rightBound){
+      // drifting off-screen = instant shame
+      endGame("Snack rolled into the void");
+      return;
+    }
+
+    // If it intersects the top, snap on it
+    if (aabb2(current, top) || (current.y + current.hitH/2 >= (top.y - top.hitH/2))){
+      // only accept landing if the overlap isn't absurd
+      const dx = Math.abs(current.x - top.x);
+
+      // Too far off-center = fall (game over)
+      const failDx = top.hitW * 0.58;
+      if (dx > failDx){
+        endGame("Stack said “not my problem”");
+        return;
+      }
+
+      // Snap exactly onto the top
+      current.y = (top.y - top.hitH/2) - current.hitH/2;
+      current.vy = 0;
+      current.placed = true;
+
+      placed.push(current);
+      stackCount++;
+
+      // Perfect scoring
+      const score = placementScore(dx, top.hitW);
+      if (score.tag === "perfect") perfectCount++;
+
+      // Calories scale slightly as stack grows (but still capped daily)
+      const base = score.cal;
+      const bonus = Math.min(10, Math.floor(stackCount / 6)); // mild ramp
+      addCalories(base + bonus);
+
+      // subtle “tighten” as you get deeper: smaller allowable failDx via top.hitW already handled by size
+      spawnNext();
+      return;
+    }
+
+    // Also collide with floor if somehow below floor (rare)
+    if (current.y + current.hitH/2 >= floor){
+      // landed on floor = only ok if stack empty; otherwise that means dropped past stack
+      endGame("Snack hit the table, not the stack");
+      return;
+    }
+
+    // Fell out of world
+    if (current.y > ch + 240){
+      endGame("Snack vanished for emotional reasons");
+      return;
+    }
+  }
+}
+
+// Render
+function draw(){
+  const cw = W(), ch = H();
+  ctx.clearRect(0,0,cw,ch);
+
+  // soft vignette
+  const g = ctx.createRadialGradient(cw*0.5, ch*0.45, ch*0.10, cw*0.5, ch*0.55, ch*0.75);
   g.addColorStop(0, "rgba(0,0,0,0)");
-  g.addColorStop(1, "rgba(0,0,0,.55)");
+  g.addColorStop(1, "rgba(0,0,0,0.55)");
   ctx.fillStyle = g;
-  ctx.fillRect(0,0,W,H);
+  ctx.fillRect(0,0,cw,ch);
 
-  // plate floor hint line (very subtle)
-  ctx.fillStyle = "rgba(255,255,255,.05)";
-  ctx.fillRect(0, FLOOR_Y + BASELINE_PAD, W, 2);
+  // Table line (invisible-ish but helps the brain)
+  const fy = floorY();
+  ctx.fillStyle = "rgba(255,255,255,0.06)";
+  ctx.fillRect(cw*0.18, fy+2, cw*0.64, 2);
+
+  // Draw placed foods
+  for (const p of placed){
+    drawFood(p);
+  }
+
+  // Draw current
+  if (current){
+    drawFood(current);
+  }
 }
 
-function drawBlock(b){
-  // baked-in shadow
+function drawFood(o){
+  // sprite centered on x, with visual y tied to hitbox center (so it visually sits tight)
+  const x = o.x - o.w/2;
+  const y = o.y - o.h/2 + (o.h - o.hitH) * 0.22;
+
+  // tiny baked-in shadow (looks like it’s actually sitting)
   ctx.save();
-  ctx.globalAlpha = 0.25;
+  const shadowW = o.hitW * 0.95;
+  const shadowH = Math.max(6, o.hitH * 0.10);
+  ctx.globalAlpha = 0.22;
   ctx.fillStyle = "#000";
-  const sh = Math.max(10, b.h * 0.18);
-  const sw = Math.min(b.w * 1.06, b.w + 18);
   ctx.beginPath();
-  ctx.ellipse(b.x + b.w/2, b.y + b.h + 8, sw/2, sh/2, 0, 0, Math.PI*2);
+  ctx.ellipse(o.x, o.y + o.hitH/2 - 2, shadowW/2, shadowH/2, 0, 0, Math.PI*2);
   ctx.fill();
   ctx.restore();
 
-  // image
-  if (b.img){
-    ctx.drawImage(b.img, b.x, b.y, b.w, b.h);
-  } else {
-    ctx.fillStyle = "rgba(255,255,255,.10)";
-    ctx.fillRect(b.x, b.y, b.w, b.h);
-    ctx.strokeStyle = "rgba(255,255,255,.18)";
-    ctx.strokeRect(b.x, b.y, b.w, b.h);
-  }
+  ctx.drawImage(o.im, x, y, o.w, o.h);
 }
 
-function drawMover(m){
-  if (!m) return;
-
-  // tiny hover wobble (for chaos), but base still flat visually
-  const wob = Math.sin(performance.now()/130 + m.wobble) * 2.2;
-
-  ctx.save();
-  ctx.translate(0, wob);
-
-  // shadow
-  ctx.save();
-  ctx.globalAlpha = 0.18;
-  ctx.fillStyle = "#000";
-  const sh = Math.max(10, m.h * 0.16);
-  ctx.beginPath();
-  ctx.ellipse(m.x + m.w/2, m.y + m.h + 10, Math.min(m.w*0.55, m.w/2), sh/2, 0, 0, Math.PI*2);
-  ctx.fill();
-  ctx.restore();
-
-  // image
-  if (m.img){
-    ctx.drawImage(m.img, m.x, m.y, m.w, m.h);
-  } else {
-    ctx.fillStyle = "rgba(255,255,255,.10)";
-    ctx.fillRect(m.x, m.y, m.w, m.h);
+// Loop
+function frame(t){
+  const dt = Math.min(0.033, (t - lastT)/1000);
+  lastT = t;
+  if (running){
+    update(dt);
+    draw();
   }
-
-  ctx.restore();
+  requestAnimationFrame(frame);
 }
 
-function drawText(){
-  ctx.save();
-  ctx.fillStyle = "rgba(255,255,255,.92)";
-  ctx.font = "900 20px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-  ctx.fillText(`Stack: ${height}`, 22, 40);
-  ctx.fillStyle = "rgba(255,255,255,.70)";
-  ctx.font = "900 13px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-  ctx.fillText(`Perfects: ${perfects}`, 22, 62);
-  ctx.fillText(`Calories earned: ${earned}`, 22, 82);
+// Reset timer text
+function tick(){
+  const r = Math.max(0, resetAt - Date.now());
+  const h = String(Math.floor(r/36e5)).padStart(2,'0');
+  const m = String(Math.floor((r%36e5)/6e4)).padStart(2,'0');
+  const s = String(Math.floor((r%6e4)/1e3)).padStart(2,'0');
+  resetEl.textContent = `${h}:${m}:${s}`;
 
-  if (state === "idle"){
-    ctx.fillStyle = "rgba(255,255,255,.88)";
-    ctx.font = "1000 28px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    ctx.fillText("TAP TO START", W/2 - 92, H*0.22);
-    ctx.fillStyle = "rgba(255,255,255,.66)";
-    ctx.font = "900 14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    ctx.fillText("Drop snacks on the stack. Miss the landing and you get ejected.", W/2 - 230, H*0.22 + 26);
+  // daily reset live
+  if (Date.now() > resetAt){
+    today = 0;
+    resetAt = nextResetMs();
+    localStorage.setItem("phat_today", String(today));
+    localStorage.setItem("phat_reset", String(resetAt));
+    refreshHUD();
   }
-  ctx.restore();
 }
+setInterval(tick, 1000);
 
-function cameraShake(dt){
-  if (shakeT <= 0) return {x:0,y:0};
-  shakeT = Math.max(0, shakeT - dt);
-  const p = shakeT / 0.55;
-  const amt = 10 * p;
-  return {x:(Math.random()-0.5)*amt, y:(Math.random()-0.5)*amt};
-}
+// Buttons
+document.getElementById("restart").onclick = ()=>location.reload();
+document.getElementById("again").onclick = ()=>location.reload();
+document.getElementById("close").onclick = ()=>{ modalBack.style.display = "none"; };
 
-let last = performance.now();
-function loop(){
-  const now = performance.now();
-  const dt = (now - last) / 1000;
-  last = now;
+// Start
+(async function start(){
+  FOOD_IMGS = await preload();
 
-  // update mover
-  if (state === "play" && mover){
-    mover.x += mover.vx * dt;
+  // If you want a guaranteed “burger first” vibe, un-comment this:
+  // FOOD_IMGS.sort((a,b)=> (a.src.includes("burger") ? -1 : 1));
 
-    // bounce edges with a little chaos
-    if (mover.x < -mover.w - 10){
-      mover.x = -mover.w - 10;
-      mover.vx *= -1;
-      mover.vx *= 1.02;
-    }
-    if (mover.x > W + 10){
-      mover.x = W + 10;
-      mover.vx *= -1;
-      mover.vx *= 1.02;
-    }
-  }
-
-  // stack rises: keep top near mid screen
-  let camY = 0;
-  const top = tower.length ? tower[tower.length-1].y : FLOOR_Y;
-  const targetTop = H * 0.34;
-  if (top < targetTop){
-    camY = (targetTop - top);
-  }
-
-  const sh = cameraShake(dt);
-
-  ctx.clearRect(0,0,W,H);
-  ctx.save();
-  ctx.translate(sh.x, sh.y);
-
-  drawBG();
-
-  // camera lift
-  ctx.save();
-  ctx.translate(0, camY);
-
-  // draw tower
-  for (const b of tower) drawBlock(b);
-  drawMover(mover);
-
-  ctx.restore();
-
-  drawText();
-
-  ctx.restore();
-
-  requestAnimationFrame(loop);
-}
-newRun();
-loop();
-
-/* ==========================
-   BUTTONS / MODAL
-   ========================== */
-document.getElementById("restart").onclick = ()=> location.reload();
-document.getElementById("again").onclick = ()=> location.reload();
-document.getElementById("close").onclick = ()=> { modalBack.style.display="none"; };
-
-document.getElementById("share").onclick = async ()=>{
-  const text = `I stacked ${height} snacks at Planet Fatness 💥 Calories earned: ${earned}. #PHAT #PlanetFatness`;
-  try{
-    if (navigator.share){
-      await navigator.share({ text, url: location.href });
-    } else {
-      await navigator.clipboard.writeText(text + " " + location.href);
-      toast("Copied. Post the flex.");
-    }
-  }catch(e){
-    // silent
-    toast("Share failed. Screenshot it like a degen.");
-  }
-};
+  refreshHUD();
+  tick();
+  requestAnimationFrame(frame);
+})();
 </script>
 </body>
 </html>
