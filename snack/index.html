@@ -370,13 +370,13 @@
   const speedStep = 0.045;
   const speedCap  = 2.25;
 
-  const targetFlowCount = 8;    // aim ~8 on belt
-  const maxOnScreen = 10;
-  const minGap = 200;           // safe spacing to reduce mis-grab overlap
-  const spawnEveryMs = 330;
+  const targetFlowCount = 10;    // aim ~8 on belt
+  const maxOnScreen = 14;
+  const minGap = 135;           // safe spacing to reduce mis-grab overlap
+  const spawnEveryMs = 260;
   let acc = 0;
 
-  const targetMustAppearWithinMs = 1400;
+  const targetMustAppearWithinMs = 6000;
   let targetSetAt = 0;
 
   let activeDrag = null; // {food, offsetX, offsetY}
