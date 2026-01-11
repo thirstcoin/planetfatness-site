@@ -88,7 +88,6 @@
       backdrop-filter: blur(10px);
     }
 
-    /* GAME STAGE */
     .stage{
       position:relative;
       width:100%;
@@ -116,7 +115,6 @@
       -webkit-user-drag:none;
     }
 
-    /* Target cluster */
     .targetCluster{
       position:absolute;
       left:50%;
@@ -136,8 +134,8 @@
       border-radius:999px;
       padding:10px 16px;
       font-weight:900;
-      letter-spacing:.22em;
-      text-indent:.22em;
+      letter-spacing:.18em;
+      text-indent:.18em;
       text-transform:uppercase;
       max-width:92%;
       overflow:hidden;
@@ -161,7 +159,7 @@
     .bubbleFood{
       position:absolute;
       left:50%;
-      top:36%; /* a touch higher inside bubble */
+      top:33%;
       transform:translate(-50%, -50%);
       width:32%;
       height:auto;
@@ -170,22 +168,22 @@
       pointer-events:none;
     }
 
-    /* BELT LANE (moved down per your request) */
+    /* BELT LANE — adjust this only if needed */
     .beltLane{
       position:absolute;
       left:0;
       width:100%;
       height:1px;
-      top: 77%;   /* <-- CHANGED: was 74%. This moves snacks DOWN on the belt. */
+      top: 77%;
       pointer-events:none;
       z-index:20;
     }
 
     .food{
       position:absolute;
-      top: 0;
-      transform: translate(-50%, -100%); /* bottom sits on the lane */
-      width: 160px; /* keep good readable size (not mega) */
+      top:0;
+      transform: translate(-50%, -100%);
+      width: 150px;
       height:auto;
       touch-action:none;
       user-select:none;
@@ -193,12 +191,7 @@
       z-index:25;
       filter: drop-shadow(0 10px 12px rgba(0,0,0,.25));
     }
-
-    .food.dragging{
-      z-index:60;
-      filter: drop-shadow(0 16px 18px rgba(0,0,0,.35));
-      transition:none !important;
-    }
+    .food.dragging{ z-index:60; filter: drop-shadow(0 16px 18px rgba(0,0,0,.35)); }
 
     .dropZone{
       position:absolute;
@@ -221,11 +214,7 @@
       color:var(--muted);
       line-height:1.35;
     }
-    .rowBtns{
-      display:flex;
-      gap:10px;
-      margin-top:12px;
-    }
+    .rowBtns{ display:flex; gap:10px; margin-top:12px; }
     .ghost{
       flex:1;
       background:transparent;
@@ -257,7 +246,7 @@
     @media (max-width:520px){
       .stats{ grid-template-columns: 1fr; }
       .stage{ aspect-ratio: 9/12; }
-      .food{ width: 148px; }
+      .food{ width: 140px; }
       .dropZone{ width: 230px; height: 140px; }
       .targetCluster{ top: 8%; }
     }
@@ -308,7 +297,6 @@
 
         <div class="beltLane" id="beltLane"></div>
         <div class="dropZone" id="dropZone"></div>
-
         <div class="banner" id="banner">MISSED</div>
       </div>
 
@@ -375,27 +363,34 @@
   let running = true;
   let streak = 0;
   let score = 0;
-
   let speedMult = 1.00;
 
-  // --- PRESSURE TUNING (more food + not boring) ---
-  const baseSpeed = 150;        // faster baseline than before (but not insane)
-  const speedStep = 0.045;      // each correct speeds up
+  // PRESSURE TUNING
+  const baseSpeed = 160;
+  const speedStep = 0.045;
   const speedCap  = 2.25;
 
-  const targetFlowCount = 8;    // aim to keep ~8 items present
-  const maxOnScreen = 10;       // hard cap
-  const minGap = 190;           // tighter spacing (still prevents mis-grab overlap)
-  const spawnEveryMs = 320;     // spawns more frequently
+  const targetFlowCount = 8;    // aim ~8 on belt
+  const maxOnScreen = 10;
+  const minGap = 200;           // safe spacing to reduce mis-grab overlap
+  const spawnEveryMs = 330;
   let acc = 0;
 
-  const targetMustAppearWithinMs = 1400; // desired food appears sooner
+  const targetMustAppearWithinMs = 1400;
   let targetSetAt = 0;
 
   let activeDrag = null; // {food, offsetX, offsetY}
   let lastPointerId = null;
 
   const goalTarget = 30;
+
+  function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
+  function stageRect(){ return stage.getBoundingClientRect(); }
+  function laneY(){
+    const s = stageRect();
+    const r = beltLane.getBoundingClientRect();
+    return (r.top - s.top);
+  }
 
   const todayKey = () => {
     const d = new Date();
@@ -406,44 +401,28 @@
   let best = loadBest();
   bestEl.textContent = best;
 
-  function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
-  function stageRect(){ return stage.getBoundingClientRect(); }
-  function laneY(){
-    const s = stageRect();
-    const r = beltLane.getBoundingClientRect();
-    return (r.top - s.top);
-  }
-
   function updateHUD(){
     runScoreEl.textContent = score;
     runSubEl.textContent = `Streak: ${streak} · Speed: ${speedMult.toFixed(2)}x`;
     goalEl.textContent = `${Math.min(score, goalTarget)} / ${goalTarget}`;
   }
 
-  function setBanner(text, color){
+  function setBanner(text, cssColor){
     banner.textContent = text;
-    banner.style.color = color || '#fff';
+    banner.style.color = cssColor || '#fff';
     banner.classList.add('show');
     setTimeout(() => banner.classList.remove('show'), 800);
   }
 
   function pickTarget(){
     const def = FOODS[Math.floor(Math.random()*FOODS.length)];
-    targetText.textContent = def.name.toUpperCase();
+    targetText.textContent = def.name.toUpperCase(); // no truncation like "STRAWBERRY"
     bubbleFood.src = def.src;
     targetSetAt = performance.now();
     return def;
   }
 
   let currentTarget = pickTarget();
-
-  function ensureTargetSoon(){
-    const now = performance.now();
-    if ((now - targetSetAt) > targetMustAppearWithinMs){
-      spawnFood(true);
-      targetSetAt = now;
-    }
-  }
 
   function canSpawnAt(x){
     for (const f of foodsOnBelt){
@@ -453,26 +432,34 @@
   }
 
   function spawnFood(forceTarget=false){
-    if (!running) return;
+    if (!running) return false;
+    if (foodsOnBelt.length >= maxOnScreen) return false;
+
     const s = stageRect();
     const y = laneY();
-
-    if (foodsOnBelt.length >= maxOnScreen) return;
 
     let def;
     if (forceTarget){
       def = currentTarget;
     } else {
       const roll = Math.random();
-      if (roll < 0.24) def = currentTarget; // more frequent target presence
+      if (roll < 0.24) def = currentTarget;
       else {
         do { def = FOODS[Math.floor(Math.random()*FOODS.length)]; }
         while(def.key === currentTarget.key && Math.random() < 0.75);
       }
     }
 
-    let x = s.width + 120 + Math.random()*80;
-    if (!canSpawnAt(x)) return;
+    // Try a few candidate spawn X positions
+    let x = null;
+    for (let tries=0; tries<6; tries++){
+      const candidate = s.width + 140 + Math.random()*120;
+      if (canSpawnAt(candidate)){
+        x = candidate;
+        break;
+      }
+    }
+    if (x === null) return false;
 
     const el = document.createElement('img');
     el.className = 'food';
@@ -492,13 +479,37 @@
       el.style.outline = (def.key === currentTarget.key)
         ? '2px solid rgba(109,255,179,.85)'
         : '2px solid rgba(255,255,255,.14)';
+    } else {
+      el.style.outline = 'none';
+    }
+
+    return true;
+  }
+
+  // ✅ SAFE: bounded attempts (no infinite loops => no Safari crash)
+  function fillBelt(){
+    if (!running) return;
+    const need = Math.max(0, targetFlowCount - foodsOnBelt.length);
+    if (need === 0) return;
+
+    let spawned = 0;
+    let attempts = 0;
+    const maxAttempts = 22; // hard cap per call
+
+    while (spawned < need && attempts < maxAttempts){
+      attempts++;
+      if (spawnFood(false)) spawned++;
     }
   }
 
-  function fillBelt(){
-    // keep belt busy: if it thins out, top it up immediately
-    while (running && foodsOnBelt.length < targetFlowCount){
-      spawnFood(false);
+  function ensureTargetSoon(){
+    const now = performance.now();
+    if ((now - targetSetAt) > targetMustAppearWithinMs){
+      // Try a few times to force-spawn target (bounded)
+      for (let i=0;i<6;i++){
+        if (spawnFood(true)) break;
+      }
+      targetSetAt = now;
     }
   }
 
@@ -544,8 +555,8 @@
     updateHUD();
     setBanner('NICE', getComputedStyle(document.documentElement).getPropertyValue('--good'));
 
-    // keep pressure after a win
     fillBelt();
+    ensureTargetSoon();
   }
 
   function onPointerDown(e, id){
@@ -558,7 +569,6 @@
 
     const s = stageRect();
     const r = food.el.getBoundingClientRect();
-
     const offsetX = (e.clientX - r.left) - r.width/2;
     const offsetY = (e.clientY - r.top ) - r.height/2;
 
@@ -592,7 +602,6 @@
 
     const fRect = food.el.getBoundingClientRect();
     const zRect = dropZoneEl.getBoundingClientRect();
-
     const fCx = fRect.left + fRect.width/2;
     const fCy = fRect.top  + fRect.height/2;
 
@@ -634,8 +643,9 @@
         f.el.style.transform = 'translate(-50%, -100%)';
       }
 
+      // Remove offscreen; target miss ends game
       for (const f of [...foodsOnBelt]){
-        if (f.x < -160){
+        if (f.x < -180){
           if (f.def.key === currentTarget.key){
             gameOver();
             break;
@@ -647,7 +657,7 @@
 
       acc += dt * 1000;
 
-      // keep belt populated even if spawn ticks get delayed
+      // bounded upkeep (safe)
       fillBelt();
       ensureTargetSoon();
 
@@ -670,11 +680,12 @@
 
     for (const f of [...foodsOnBelt]) removeFood(f);
 
-    // Prime belt with more items immediately
-    for (let i=0;i<targetFlowCount;i++){
+    // Prime belt (bounded; safe)
+    for (let i=0;i<8;i++){
       spawnFood(i===2); // inject target early
     }
     fillBelt();
+    ensureTargetSoon();
   }
 
   function share(){
