@@ -79,26 +79,20 @@
       min-width: 240px;
     }
 
-    /* ✅ swap decorative gradient box -> thumbs-down.png */
+    /* ✅ TOP-LEFT LOGO (bigger + no pill box) */
     .logoMark{
-      width:38px; height:38px; border-radius:12px;
-      background: transparent;
-      background-image: url("assets/thumbs-down.png");
-      background-repeat:no-repeat;
-      background-position:center;
-      background-size:contain;
-
-      box-shadow: 0 18px 40px rgba(91,44,255,.35);
-      border:1px solid rgba(255,255,255,.12);
-      position:relative;
-      overflow:hidden;
+      width:54px;
+      height:54px;
+      display:block;
+      flex:0 0 auto;
+      border:0;
+      border-radius:0;
+      background:transparent;
+      object-fit:contain;
+      filter: drop-shadow(0 16px 26px rgba(0,0,0,.45));
     }
-    .logoMark::after{
-      content:"";
-      position:absolute; inset:0;
-      border-radius:12px;
-      background: radial-gradient(circle at 20% 10%, rgba(255,255,255,.45), transparent 40%);
-      opacity:.6;
+    @media (max-width: 520px){
+      .logoMark{ width:48px; height:48px; }
     }
 
     .brand h3{ margin:0; font-size:14px; letter-spacing:.3px; }
@@ -418,7 +412,8 @@
     <div class="wrap">
       <div class="container inner">
         <div class="brand">
-          <div class="logoMark"></div>
+          <!-- ✅ bigger, no pill box -->
+          <img class="logoMark" src="assets/thumbs-down.png" alt="Planet Fatness thumbs down" />
           <div>
             <h3>$PHAT — Planet Fatness Gym</h3>
             <p>snack-first • couch-certified • rewards for grinders</p>
