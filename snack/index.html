@@ -224,7 +224,10 @@
       padding:12px 14px;
       font-weight:800;
       cursor:pointer;
+      text-align:center;
     }
+    .ghost:active{ transform: translateY(1px); }
+    a.ghost{ text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
 
     .banner{
       position:absolute;
@@ -258,7 +261,7 @@
     <div class="topbar">
       <div class="titleBox">
         <div class="titleLine">$PHAT — Conveyor Munch</div>
-        <div class="subLine">Drag the correct snack into his mouth. Miss = pain. Streak = glory.</div>
+        <div class="subLine">Drag the correct snack into his mouth. <strong>Missed meals kill gains.</strong></div>
       </div>
       <button class="btn" id="resetBtn">Run it back</button>
     </div>
@@ -302,7 +305,7 @@
 
       <div class="rowBtns">
         <button class="ghost" id="shareBtn">Share score</button>
-        <button class="ghost" id="debugBtn">Toggle debug</button>
+        <a class="ghost" id="backBtn" href="/">Back to Planet Fatness</a>
       </div>
 
       <div class="toast">
@@ -352,10 +355,7 @@
 
   const resetBtn = document.getElementById('resetBtn');
   const shareBtn = document.getElementById('shareBtn');
-  const debugBtn = document.getElementById('debugBtn');
   const resetInEl = document.getElementById('resetIn');
-
-  let debug = false;
 
   let foodsOnBelt = []; // {id, def, el, x}
   let nextId = 1;
@@ -474,14 +474,6 @@
 
     stage.appendChild(el);
     foodsOnBelt.push({ id, def, el, x });
-
-    if (debug){
-      el.style.outline = (def.key === currentTarget.key)
-        ? '2px solid rgba(109,255,179,.85)'
-        : '2px solid rgba(255,255,255,.14)';
-    } else {
-      el.style.outline = 'none';
-    }
 
     return true;
   }
@@ -713,16 +705,6 @@
     return `${hh}:${mm}:${ss}`;
   }
   setInterval(() => resetInEl.textContent = fmt(timeToMidnight()), 250);
-
-  debugBtn.addEventListener('click', () => {
-    debug = !debug;
-    for (const f of foodsOnBelt){
-      f.el.style.outline = debug
-        ? (f.def.key===currentTarget.key ? '2px solid rgba(109,255,179,.85)' : '2px solid rgba(255,255,255,.14)')
-        : 'none';
-    }
-    setBanner(debug ? 'DEBUG ON' : 'DEBUG OFF', '#fff');
-  });
 
   resetBtn.addEventListener('click', reset);
   shareBtn.addEventListener('click', share);
