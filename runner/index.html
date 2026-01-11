@@ -15,6 +15,13 @@
       --muted:rgba(255,255,255,.70);
     }
 
+    /* ✅ kill iOS highlight/selection while holding */
+    *{
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
+    }
+
     html,body{
       margin:0;
       height:100%;
@@ -72,6 +79,18 @@
     }
     .btn:active{ transform: scale(.98); }
 
+    /* ✅ global ghost button (used for "Back") */
+    .btnGhost{
+      padding:10px 14px;
+      border-radius:14px;
+      background: rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.14);
+      color:rgba(255,255,255,.9);
+      font-weight:1000;
+      cursor:pointer;
+    }
+    .btnGhost:active{ transform: scale(.98); }
+
     #stage{ position:relative; width:min(920px,100%); }
 
     /* ===== Scene (GIF) ===== */
@@ -92,6 +111,8 @@
       transform-origin: center bottom;
       will-change: transform, filter;
       filter: drop-shadow(0 26px 42px rgba(0,0,0,.55));
+      -webkit-user-drag: none;
+      user-drag: none;
     }
 
     #beltFx{
@@ -158,6 +179,8 @@
       box-shadow:0 30px 90px rgba(0,0,0,.55);
       touch-action:manipulation;
       display:block;
+      -webkit-user-select:none;
+      user-select:none;
     }
 
     .hint{
@@ -218,16 +241,6 @@
       flex-wrap:wrap;
       justify-content:flex-start;
     }
-    .btnGhost{
-      padding:10px 14px;
-      border-radius:14px;
-      background: rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.14);
-      color:rgba(255,255,255,.9);
-      font-weight:1000;
-      cursor:pointer;
-    }
-    .btnGhost:active{ transform: scale(.98); }
 
     #footerHint{
       padding:0 18px 18px;
@@ -243,12 +256,16 @@
     <div class="row">
       <div class="pill">$PHAT — Treadmill Rage Runner</div>
       <div class="pill" id="status">Tap to start</div>
+
+      <!-- ✅ NEW: back button to main site -->
+      <button class="btnGhost" id="backBtn">← Gym</button>
+
       <button class="btn" id="restartBtn">Restart</button>
     </div>
 
     <div id="stage">
       <div id="runnerWrap">
-        <img id="runnerGif" src="../assets/runner.gif" alt="Planet Fatness Treadmill Scene" />
+        <img id="runnerGif" src="../assets/runner.gif" alt="Planet Fatness Treadmill Scene" draggable="false" />
         <div id="beltFx"></div>
         <div id="speedLines"></div>
         <div id="vignette"></div>
@@ -258,7 +275,7 @@
 
     <div class="hint">
       <div class="pill">Controls: Tap / Click / Space • Hold = auto-run (mobile)</div>
-      <div class="pill">Best: <span id="best">0.0s</span></div>
+      <div class="pill">Best: <span id="best">0.0s</span> • <span id="bestMi">0.00mi</span></div>
     </div>
   </div>
 
@@ -274,6 +291,13 @@
           <div class="k">Run Time</div>
           <div class="v" id="mTime">0.0s</div>
           <div class="note">Rank: <span id="mRank">NEW YEAR SIGNUP</span></div>
+        </div>
+
+        <!-- ✅ NEW: miles -->
+        <div class="card">
+          <div class="k">Miles (this run)</div>
+          <div class="v" id="mMiles">0.00mi</div>
+          <div class="note">3 minutes = ~1 mile baseline • intensity boosts it a bit</div>
         </div>
 
         <div class="card">
@@ -312,6 +336,7 @@ const ctx = canvas.getContext('2d');
 
 const statusEl = document.getElementById('status');
 const bestEl = document.getElementById('best');
+const bestMiEl = document.getElementById('bestMi');
 const restartBtn = document.getElementById('restartBtn');
 
 const gif = document.getElementById('runnerGif');
@@ -322,6 +347,7 @@ const vignette = document.getElementById('vignette');
 const modalBack = document.getElementById('modalBack');
 const mTime = document.getElementById('mTime');
 const mRank = document.getElementById('mRank');
+const mMiles = document.getElementById('mMiles');
 const mCals = document.getElementById('mCals');
 const mCad = document.getElementById('mCad');
 const mIncl = document.getElementById('mIncl');
@@ -329,11 +355,22 @@ const mIncl = document.getElementById('mIncl');
 const runBackBtn = document.getElementById('runBackBtn');
 const closeBtn = document.getElementById('closeBtn');
 const lbBtn = document.getElementById('lbBtn');
+const backBtn = document.getElementById('backBtn');
+
+/* ✅ Back to main gym */
+backBtn.addEventListener('click', () => {
+  window.location.href = '../index.html#gym';
+});
 
 /* ===== BEST ===== */
 const BEST_KEY = 'phat_treadmill_best_seconds';
 let best = Number(localStorage.getItem(BEST_KEY) || 0);
 bestEl.textContent = best.toFixed(1) + 's';
+
+/* ✅ NEW: best miles */
+const BEST_MILES_KEY = 'phat_treadmill_best_miles';
+let bestMiles = Number(localStorage.getItem(BEST_MILES_KEY) || 0);
+bestMiEl.textContent = bestMiles.toFixed(2) + 'mi';
 
 /* ===== INPUT TUNING ===== */
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
@@ -362,6 +399,22 @@ let beltPhase=0;
 let inclinePeak=0;
 let caloriesThisRun=0;
 
+/* ✅ NEW: miles tracking (doesn't change core logic) */
+let milesThisRun = 0;
+
+function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+
+function computeMiles(sec){
+  // baseline: 3 minutes of survival ≈ 1 mile
+  const base = sec / 180;
+
+  // mild intensity boost using existing signals (speed + incline)
+  const multRaw = 0.85 + 0.35 * clamp01(speed) + 0.20 * clamp01(incline);
+  const mult = Math.min(1.35, Math.max(0.75, multRaw));
+
+  return base * mult;
+}
+
 function showModal(){
   resultsOpen = true;
   modalBack.style.display = 'flex';
@@ -389,6 +442,7 @@ function resetGame(){
   beltPhase=0;
   inclinePeak=0;
   caloriesThisRun=0;
+  milesThisRun=0;
 
   holding=false;
   holdAccumulator=0;
@@ -428,11 +482,13 @@ function tapOnce(){
 }
 
 /* Pointer events */
-window.addEventListener('pointerdown', () => {
+window.addEventListener('pointerdown', (e) => {
+  // prevent long-press selection/drag in iOS
+  if (e && typeof e.preventDefault === 'function') e.preventDefault();
   if (resultsOpen || nowMs() < inputLockedUntil) return;
   holding = true;
   tapOnce();
-}, {passive:true});
+}, {passive:false});
 
 window.addEventListener('pointerup',   () => { holding = false; }, {passive:true});
 window.addEventListener('pointercancel',() => { holding = false; }, {passive:true});
@@ -468,6 +524,9 @@ function update(dt){
 
   t += dt;
   grace = Math.max(0, grace - dt);
+
+  /* ✅ miles derived from existing state (no gameplay changes) */
+  milesThisRun = computeMiles(t);
 
   /* hold-to-run auto taps (disabled when results open) */
   if (holding && !gameOver && !resultsOpen){
@@ -520,9 +579,17 @@ function update(dt){
         bestEl.textContent = best.toFixed(1) + 's';
       }
 
+      // ✅ best miles (derived)
+      if (milesThisRun > bestMiles){
+        bestMiles = milesThisRun;
+        localStorage.setItem(BEST_MILES_KEY, String(bestMiles));
+        bestMiEl.textContent = bestMiles.toFixed(2) + 'mi';
+      }
+
       const cadence = taps / Math.max(0.1, t);
       mTime.textContent = t.toFixed(1) + 's';
       mRank.textContent = rankFromTime(t);
+      mMiles.textContent = milesThisRun.toFixed(2) + 'mi';
       mCals.textContent = Math.max(0, Math.round(caloriesThisRun)).toString();
       mCad.textContent = cadence.toFixed(1) + '/s';
       mIncl.textContent = (inclinePeak * 10).toFixed(1) + '%';
@@ -592,14 +659,29 @@ function drawHUD(){
   ctx.font = '800 13px system-ui';
   ctx.fillText('Cadence: ' + cadence.toFixed(1) + '/s', 34, 78);
 
+  // ✅ miles + pace
+  const mi = milesThisRun || 0;
+  const paceMinPerMi = mi > 0.0001 ? (t / 60) / mi : 0;
+  const paceStr = mi > 0.0001 ? formatPace(paceMinPerMi) : '—';
+
+  ctx.fillText('Miles: ' + mi.toFixed(2) + ' • Pace: ' + paceStr + '/mi', 34, 102);
+
   let sub = 'Warm-up… build rhythm and speed.';
   if (!running && !gameOver) sub = 'Tap to start. Hold your finger to auto-run.';
   if (gameOver) sub = 'Ejected. Check your stats.';
   if (!gameOver && grace<=0 && (speed < required+0.01 || stamina < 0.12)) sub = 'WARNING: keep speed up or you’re getting launched.';
-  ctx.fillText(sub, 34, 102);
+  ctx.fillText(sub, 34, 126);
 
   drawBar(40, 450, 380, 22, speed, 'Speed', true);
   drawBar(480, 450, 380, 22, stamina, 'Stamina', false);
+}
+
+function formatPace(minPerMi){
+  if (!isFinite(minPerMi) || minPerMi <= 0) return '—';
+  const totalSec = Math.max(0, Math.round(minPerMi * 60));
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return m + ':' + String(s).padStart(2,'0');
 }
 
 function drawBar(x,y,w,h,p,label,isSpeed){
