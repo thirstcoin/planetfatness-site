@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Planet Fatness — Three-Point Snack Contest</title>
+  <title>Planet Fatness — Streak Shot</title>
   <style>
     :root{
       --pf-purple:#6b2cff;
@@ -22,17 +22,14 @@
         radial-gradient(1200px 900px at 50% 15%, rgba(107,44,255,.35), transparent 55%),
         radial-gradient(1000px 700px at 50% 90%, rgba(255,212,0,.18), transparent 55%),
         linear-gradient(180deg, var(--pf-ink), #05050c);
-      color:#fff;
-      overflow:hidden;
+      color:#fff; overflow:hidden;
     }
-
     .wrap{
       position:fixed; inset:0;
       display:flex; flex-direction:column;
       padding: calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bottom));
       gap:10px;
     }
-
     header{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       padding:10px 12px;
@@ -42,12 +39,10 @@
       border-radius:16px;
       box-shadow: 0 18px 48px rgba(0,0,0,.35);
     }
-
     .left,.right{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
     .brand{display:flex; flex-direction:column; line-height:1.05;}
     .brand .t1{font-weight:900; letter-spacing:.4px; font-size:14px;}
     .brand .t2{font-size:12px; color:var(--pf-muted); font-weight:700;}
-
     .pill{
       display:inline-flex; align-items:center; gap:8px;
       padding:8px 10px; border-radius:999px;
@@ -56,7 +51,6 @@
       font-weight:1000; font-size:12px; user-select:none;
     }
     .pill strong{color:var(--pf-yellow);}
-
     .btn{
       appearance:none; border:none;
       padding:10px 12px; border-radius:12px;
@@ -73,7 +67,6 @@
       box-shadow:none;
     }
     .btn:active{transform: translateY(1px);}
-
     .hud{
       display:flex; gap:10px; flex-wrap:wrap;
       justify-content:space-between;
@@ -93,7 +86,6 @@
     .label{font-size:11px; color:var(--pf-muted); font-weight:1000; letter-spacing:.35px;}
     .value{font-size:16px; font-weight:1200; letter-spacing:.2px;}
     .value span{color:var(--pf-yellow);}
-
     .canvasWrap{
       position:relative;
       flex:1;
@@ -107,7 +99,6 @@
       box-shadow: 0 22px 70px rgba(0,0,0,.55);
     }
     canvas{display:block;width:100%;height:100%;}
-
     .toast{
       position:absolute; left:50%; bottom:14px;
       transform:translateX(-50%);
@@ -126,7 +117,6 @@
       white-space:nowrap;
     }
     .toast.show{opacity:1; transform:translateX(-50%) translateY(-2px);}
-
     .overlay{
       position:absolute; inset:0;
       display:none; align-items:center; justify-content:center;
@@ -135,7 +125,6 @@
       padding:16px;
     }
     .overlay.show{display:flex;}
-
     .card{
       width:min(560px,100%);
       border-radius:18px;
@@ -148,9 +137,8 @@
     .card p{margin:0 0 12px;color:var(--pf-muted);font-weight:900;font-size:13px;line-height:1.35;}
     .row{display:flex;gap:10px;flex-wrap:wrap;}
     .divider{height:1px;background: rgba(255,255,255,.10);margin:12px 0;}
-
     .leader{
-      max-height: 180px; overflow:auto;
+      max-height: 200px; overflow:auto;
       border-radius:14px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.18);
@@ -159,19 +147,31 @@
     .leader table{width:100%;border-collapse:collapse;font-size:13px;}
     .leader th,.leader td{padding:8px 6px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08);}
     .leader th{color:var(--pf-muted);font-size:11px;letter-spacing:.35px;}
+    .hint{
+      position:absolute; left:12px; bottom:12px;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.30);
+      color: rgba(255,255,255,.78);
+      font-weight:900;
+      font-size:12px;
+      backdrop-filter: blur(10px);
+      user-select:none;
+    }
   </style>
 </head>
-
 <body>
 <div class="wrap">
   <header>
     <div class="left">
       <div class="brand">
         <div class="t1">PLANET FATNESS</div>
-        <div class="t2">Three-Point Snack Contest</div>
+        <div class="t2">Streak Shot</div>
       </div>
-      <div class="pill">RACK <strong id="rackTxt">1/5</strong></div>
-      <div class="pill">SHOTS <strong id="shotsTxt">25</strong></div>
+      <div class="pill">STREAK <strong id="streakTxt">0</strong></div>
+      <div class="pill">BEST <strong id="bestTxt">0</strong></div>
+      <div class="pill">SCORE <strong id="scoreTxt">0</strong></div>
     </div>
     <div class="right">
       <button class="btn secondary" id="btnMain">← Main</button>
@@ -182,23 +182,24 @@
 
   <div class="hud">
     <div class="group">
-      <div class="panel"><div><div class="label">SCORE</div><div class="value"><span id="scoreTxt">0</span></div></div></div>
-      <div class="panel"><div><div class="label">TIME</div><div class="value"><span id="timeTxt">45.0</span>s</div></div></div>
-      <div class="panel"><div><div class="label">STREAK</div><div class="value"><span id="streakTxt">0</span></div></div></div>
+      <div class="panel"><div><div class="label">ACTIVE FOOD</div><div class="value" id="foodTxt">—</div></div></div>
+      <div class="panel"><div><div class="label">MULTI</div><div class="value"><span id="multiTxt">1×</span></div></div></div>
     </div>
     <div class="group">
-      <div class="panel"><div><div class="label">ACTIVE FOOD</div><div class="value" id="foodTxt">—</div></div></div>
+      <div class="panel"><div><div class="label">MOVING RIM</div><div class="value"><span id="rimTxt">ON</span></div></div></div>
+      <div class="panel"><div><div class="label">MODE</div><div class="value"><span>Endless</span></div></div></div>
     </div>
   </div>
 
   <div class="canvasWrap" id="stage">
     <canvas id="cv"></canvas>
     <div class="toast" id="toast"></div>
+    <div class="hint">Drag to aim + power • Release to shoot • Golden donut = 2×</div>
 
     <div class="overlay show" id="overlayStart">
       <div class="card">
-        <h2>Drag from the rack to shoot.</h2>
-        <p>Guide shows ascent only. Rack 5 is Golden Rack (2× points, no guide).</p>
+        <h2>One shooter. Rim moves every shot.</h2>
+        <p>Chase the <b>highest streak</b>. Golden donuts are worth <b>double</b>. Miss resets streak but you can grind for a legendary run.</p>
         <div class="row">
           <button class="btn" id="btnGo" style="flex:1;">Run It</button>
           <button class="btn secondary" id="btnCloseStart" style="flex:1;">Not Yet</button>
@@ -206,29 +207,11 @@
       </div>
     </div>
 
-    <div class="overlay" id="overlayEnd">
-      <div class="card">
-        <h2>Run complete.</h2>
-        <p id="endLine">Run it back.</p>
-        <div class="row">
-          <div class="panel" style="flex:1;"><div><div class="label">FINAL SCORE</div><div class="value"><span id="finalScoreTxt">0</span></div></div></div>
-          <div class="panel" style="flex:1;"><div><div class="label">BEST RACK</div><div class="value"><span id="bestRackTxt">—</span></div></div></div>
-        </div>
-        <div class="divider"></div>
-        <div class="leader" id="leaderBox"></div>
-        <div class="divider"></div>
-        <div class="row">
-          <button class="btn" id="btnAgain" style="flex:1;">Run It Back</button>
-          <button class="btn secondary" id="btnCloseEnd" style="flex:1;">Close</button>
-        </div>
-      </div>
-    </div>
-
     <div class="overlay" id="overlayBoard">
       <div class="card">
         <h2>Leaderboard</h2>
-        <p>Local device leaderboard for now.</p>
-        <div class="leader" id="leaderBox2"></div>
+        <p>Local device leaderboard (best streak + best score).</p>
+        <div class="leader" id="leaderBox"></div>
         <div class="divider"></div>
         <div class="row">
           <button class="btn secondary" id="btnResetLB" style="flex:1;">Reset Local Board</button>
@@ -236,353 +219,224 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
 <script>
 (() => {
-  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
-  const lerp  = (a,b,t)=>a+(b-a)*t;
-  const rnd   = (a,b)=>a+Math.random()*(b-a);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const rnd=(a,b)=>a+Math.random()*(b-a);
 
-  const cv = document.getElementById('cv');
-  const stage = document.getElementById('stage');
-  const ctx = cv.getContext('2d');
+  const stage=document.getElementById('stage');
+  const cv=document.getElementById('cv');
+  const ctx=cv.getContext('2d');
 
-  const rackTxt = document.getElementById('rackTxt');
-  const shotsTxt = document.getElementById('shotsTxt');
-  const scoreTxt = document.getElementById('scoreTxt');
-  const timeTxt = document.getElementById('timeTxt');
-  const streakTxt = document.getElementById('streakTxt');
-  const foodTxt = document.getElementById('foodTxt');
-  const toast = document.getElementById('toast');
+  const streakTxt=document.getElementById('streakTxt');
+  const bestTxt=document.getElementById('bestTxt');
+  const scoreTxt=document.getElementById('scoreTxt');
+  const foodTxt=document.getElementById('foodTxt');
+  const multiTxt=document.getElementById('multiTxt');
+  const rimTxt=document.getElementById('rimTxt');
 
-  const overlayStart = document.getElementById('overlayStart');
-  const overlayEnd = document.getElementById('overlayEnd');
-  const overlayBoard = document.getElementById('overlayBoard');
+  const toast=document.getElementById('toast');
 
-  const btnStart = document.getElementById('btnStart');
-  const btnGo = document.getElementById('btnGo');
-  const btnCloseStart = document.getElementById('btnCloseStart');
-  const btnAgain = document.getElementById('btnAgain');
-  const btnCloseEnd = document.getElementById('btnCloseEnd');
-  const btnBoard = document.getElementById('btnBoard');
-  const btnCloseBoard = document.getElementById('btnCloseBoard');
-  const btnResetLB = document.getElementById('btnResetLB');
-  const btnMain = document.getElementById('btnMain');
+  const overlayStart=document.getElementById('overlayStart');
+  const overlayBoard=document.getElementById('overlayBoard');
+  const leaderBox=document.getElementById('leaderBox');
 
-  const finalScoreTxt = document.getElementById('finalScoreTxt');
-  const bestRackTxt = document.getElementById('bestRackTxt');
-  const leaderBox = document.getElementById('leaderBox');
-  const leaderBox2 = document.getElementById('leaderBox2');
-  const endLine = document.getElementById('endLine');
+  const btnStart=document.getElementById('btnStart');
+  const btnGo=document.getElementById('btnGo');
+  const btnCloseStart=document.getElementById('btnCloseStart');
+  const btnBoard=document.getElementById('btnBoard');
+  const btnCloseBoard=document.getElementById('btnCloseBoard');
+  const btnResetLB=document.getElementById('btnResetLB');
+  const btnMain=document.getElementById('btnMain');
 
-  function resize() {
-    const r = stage.getBoundingClientRect();
-    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    cv.width = Math.floor(r.width * dpr);
-    cv.height = Math.floor(r.height * dpr);
-    cv.style.width = r.width + 'px';
-    cv.style.height = r.height + 'px';
+  function resize(){
+    const r=stage.getBoundingClientRect();
+    const dpr=Math.max(1, Math.min(2, window.devicePixelRatio||1));
+    cv.width=Math.floor(r.width*dpr);
+    cv.height=Math.floor(r.height*dpr);
+    cv.style.width=r.width+'px';
+    cv.style.height=r.height+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   window.addEventListener('resize', resize, {passive:true});
   resize();
 
-  const w = ()=>stage.getBoundingClientRect().width;
-  const h = ()=>stage.getBoundingClientRect().height;
+  const W=()=>stage.getBoundingClientRect().width;
+  const H=()=>stage.getBoundingClientRect().height;
 
-  const GAME = { totalRacks:5, ballsPerRack:5, totalShots:25, timeLimit:45.0 };
-
-  // ✅ Real 3pt arc around rim (correct curve direction on all screens)
-  function layout(){
-    const W=w(), H=h();
-    const rim = { x: W*0.50, y: H*0.16 };
-    const R = Math.min(W*0.44, H*0.50);
-
-    const anglesDeg = [150, 125, 90, 55, 30];
-    const names = ['Left Corner','Left Wing','Top Key','Right Wing','Right Corner'];
-
-    const racks = anglesDeg.map((deg,i)=>{
-      const a = deg * Math.PI/180;
-      return { name:names[i], x: rim.x + R*Math.cos(a), y: rim.y + R*Math.sin(a) };
-    });
-
-    // clamp into play area
-    for(const r of racks){
-      r.x = clamp(r.x, W*0.10, W*0.90);
-      r.y = clamp(r.y, H*0.44, H*0.82);
-    }
-
-    const rClean  = W * 0.032;
-    const rRattle = W * 0.052;
-
-    return {W,H,rim,racks,rClean,rRattle,arcR:R};
-  }
-
-  // Food physics (tuned so every rack + food can reach)
-  const FOOD = {
-    COOKIE:   { label:'🍪 Cookie',      g:1.00, drag:0.988, radius:14, stickyRim:0.00, color:'#ffd9a6' },
-    DONUT:    { label:'🍩 Donut',       g:0.86, drag:0.975, radius:14, stickyRim:0.00, color:'#ff9adf' },
-    MEATBALL: { label:'🍖 Meatball',    g:1.12, drag:0.990, radius:14, stickyRim:0.00, color:'#b54a3a' },
-    PIZZA:    { label:'🍕 Deep Dish',   g:1.05, drag:0.985, radius:15, stickyRim:0.15, color:'#ffcc66' },
-    GOLD:     { label:'⭐ Golden Donut', g:0.95, drag:0.980, radius:14, stickyRim:0.05, color:'#ffd400', golden:true }
-  };
-
-  let run=null;
-
-  const LB_KEY='pf_snack_threepoint_lb_v4';
+  // ---- leaderboard (local) ----
+  const LB_KEY='pf_streakshot_lb_v1';
   const loadLB=()=>{try{return JSON.parse(localStorage.getItem(LB_KEY)||'[]');}catch{return[];}};
   const saveLB=(rows)=>localStorage.setItem(LB_KEY,JSON.stringify(rows));
-  const addLB=(score,bestRack)=>{
+  function addLB(bestStreak, bestScore){
     const rows=loadLB();
-    rows.push({score,bestRack,at:Date.now()});
-    rows.sort((a,b)=>b.score-a.score);
-    const top=rows.slice(0,20);
-    saveLB(top); return top;
-  };
-  function renderLB(el){
+    rows.push({bestStreak, bestScore, at:Date.now()});
+    rows.sort((a,b)=> (b.bestStreak-a.bestStreak) || (b.bestScore-a.bestScore));
+    saveLB(rows.slice(0,25));
+  }
+  function renderLB(){
     const rows=loadLB();
-    if(!rows.length){ el.innerHTML='<div style="color:rgba(255,255,255,.7);font-weight:1000;">No scores yet.</div>'; return; }
+    if(!rows.length){
+      leaderBox.innerHTML='<div style="color:rgba(255,255,255,.7);font-weight:1000;">No runs yet.</div>';
+      return;
+    }
     const fmt=(ts)=>{const d=new Date(ts);return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});};
-    let html='<table><thead><tr><th>#</th><th>Score</th><th>Best</th><th>When</th></tr></thead><tbody>';
-    rows.forEach((r,i)=>{html+=`<tr><td>${i+1}</td><td style="font-weight:1200;color:var(--pf-yellow)">${r.score}</td><td>${r.bestRack||'—'}</td><td style="color:rgba(255,255,255,.65)">${fmt(r.at)}</td></tr>`;});
+    let html='<table><thead><tr><th>#</th><th>Best Streak</th><th>Best Score</th><th>When</th></tr></thead><tbody>';
+    rows.forEach((r,i)=>{
+      html+=`<tr>
+        <td>${i+1}</td>
+        <td style="font-weight:1200;color:rgba(255,212,0,.95)">${r.bestStreak}</td>
+        <td>${r.bestScore}</td>
+        <td style="color:rgba(255,255,255,.65)">${fmt(r.at)}</td>
+      </tr>`;
+    });
     html+='</tbody></table>';
-    el.innerHTML=html;
+    leaderBox.innerHTML=html;
   }
 
+  // ---- toast ----
   let toastT=0;
   const showToast=(msg)=>{toast.textContent=msg;toast.classList.add('show');toastT=1.25;};
 
-  const openStart=()=>overlayStart.classList.add('show');
-  const closeStart=()=>overlayStart.classList.remove('show');
-  const openEnd=()=>overlayEnd.classList.add('show');
-  const closeEnd=()=>overlayEnd.classList.remove('show');
-  const openBoard=()=>{overlayBoard.classList.add('show');renderLB(leaderBox2);};
-  const closeBoard=()=>overlayBoard.classList.remove('show');
+  // ---- food ----
+  const FOOD = {
+    COOKIE:   { label:'🍪 Cookie',    g:1.02, drag:0.989, r:14, color:'#ffd9a6' },
+    DONUT:    { label:'🍩 Donut',     g:0.90, drag:0.978, r:14, color:'#ff9adf' },
+    MEATBALL: { label:'🍖 Meatball',  g:1.12, drag:0.992, r:14, color:'#b54a3a' },
+    PIZZA:    { label:'🍕 Deep Dish', g:1.06, drag:0.986, r:15, color:'#ffcc66' },
+    GOLD:     { label:'⭐ Golden',     g:0.96, drag:0.980, r:14, color:'#ffd400', golden:true }
+  };
 
-  btnStart.onclick=()=>openStart();
-  btnGo.onclick=()=>{closeStart(); startRun();};
-  btnCloseStart.onclick=()=>closeStart();
-  btnAgain.onclick=()=>{closeEnd(); startRun();};
-  btnCloseEnd.onclick=()=>closeEnd();
-  btnBoard.onclick=()=>openBoard();
-  btnCloseBoard.onclick=()=>closeBoard();
-  btnResetLB.onclick=()=>{saveLB([]);renderLB(leaderBox2);showToast('Local leaderboard reset.');};
+  function pickFood(){
+    // ~10% golden
+    const t=Math.random();
+    if(t<0.10) return 'GOLD';
+    const r=Math.random();
+    if(r<0.35) return 'COOKIE';
+    if(r<0.68) return 'DONUT';
+    if(r<0.86) return 'MEATBALL';
+    return 'PIZZA';
+  }
 
-  // If your main page is not "/", change this one line.
-  btnMain.onclick=()=>{ window.location.href='/'; };
+  // ---- layout ----
+  function layout(){
+    const w=W(), h=H();
+    const shooter = { x: w*0.16, y: h*0.78 };
+    const rimR = Math.max(30, w*0.05);
+    return { w,h, shooter, rimR };
+  }
+
+  // rim “stations” (moves each shot)
+  function rimStations(L){
+    const w=L.w, h=L.h;
+    return [
+      {x:w*0.62, y:h*0.22},
+      {x:w*0.78, y:h*0.30},
+      {x:w*0.54, y:h*0.30},
+      {x:w*0.70, y:h*0.40},
+      {x:w*0.86, y:h*0.44},
+      {x:w*0.58, y:h*0.42},
+    ];
+  }
+
+  // ---- state ----
+  let run=null;
 
   function newRun(){
-    const seed=Math.floor(Math.random()*1e9);
-    const pizzaSlotByRack=[0,1,2,3].map((_,i)=>(seed+i*97)%5);
-    pizzaSlotByRack.push(-1);
+    const L=layout();
+    const stations=rimStations(L);
+    const first=stations[Math.floor(Math.random()*stations.length)];
     return {
-      seed,
-      playing:true, ended:false,
-      rackIndex:0, ballIndex:0,
-      shotsLeft:GAME.totalShots,
-      score:0, streak:0,
-      timeLeft:GAME.timeLimit,
-
-      rackMakes:[0,0,0,0,0],
-      rackRattles:[0,0,0,0,0],
-      rackShots:[0,0,0,0,0],
-      rackScore:[0,0,0,0,0],
+      playing:true,
+      streak:0,
+      bestStreak:0,
+      score:0,
+      bestScore:0,
 
       aiming:false,
-      aimStart:{x:0,y:0},   // ✅ anchored to rack center (fixes drift)
       aimNow:{x:0,y:0},
 
+      foodKey: pickFood(),
       ball:null,
-      pizzaSlotByRack,
-      goldenMode:false,
 
-      mouth:{chomp:0,annoyed:0,glow:0},
-      grease:[]
+      rim:{ x:first.x, y:first.y, tx:first.x, ty:first.y, t:1 },
+      rimMoving:true,
+
+      mouth:{chomp:0, annoyed:0, glow:0},
+      seed: Math.floor(Math.random()*1e9)
     };
   }
 
-  function startRun(){
+  function start(){
     run=newRun();
-    scoreTxt.textContent='0';
-    timeTxt.textContent=run.timeLeft.toFixed(1);
-    streakTxt.textContent='0';
-    shotsTxt.textContent=String(run.shotsLeft);
-    rackTxt.textContent='1/5';
-    foodTxt.textContent='—';
-    showToast('Drag from the rack to shoot.');
+    updateHUD();
+    showToast('Lock in. Chase the streak.');
   }
 
-  function endRun(){
-    if(!run||run.ended) return;
-    run.ended=true; run.playing=false;
-
-    let best={idx:0,score:-1};
-    for(let i=0;i<5;i++){ if(run.rackScore[i]>best.score) best={idx:i,score:run.rackScore[i]}; }
-    const bestLabel=`Rack ${best.idx+1}`;
-
-    finalScoreTxt.textContent=String(run.score);
-    bestRackTxt.textContent=`${bestLabel} (${best.score})`;
-
-    addLB(run.score,bestLabel);
-    renderLB(leaderBox);
-
-    const scores=loadLB().map(r=>r.score);
-    const all=[...scores,run.score].sort((a,b)=>a-b);
-    const rank=all.indexOf(run.score)+1;
-    const pct=Math.round((rank/all.length)*100);
-    endLine.textContent=`You beat ${pct}% of local runs. Run it back.`;
-
-    openEnd();
-  }
-
-  function foodForShot(rackIndex, ballIndex){
-    if(rackIndex===4) return 'GOLD';
-    const pizzaSlot=run.pizzaSlotByRack[rackIndex];
-    if(ballIndex===pizzaSlot) return 'PIZZA';
-    const r=(rackIndex*7 + ballIndex*11 + run.seed)%100;
-    if(r<40) return 'COOKIE';
-    if(r<75) return 'DONUT';
-    return 'MEATBALL';
-  }
-
-  // ✅ Buffed pull + speed ensures every rack/food can reach
-  function getShotVelocity(start, aimPos, rackIdx, foodKey){
-    const L=layout();
-    const dx = start.x - aimPos.x;
-    const dy = start.y - aimPos.y;
-
-    const dist=Math.hypot(dx,dy);
-    const maxPull=Math.max(200, L.W*0.36);
-    const pull=clamp(dist,0,maxPull);
-
-    const nx=dx/(dist||1);
-    const ny=dy/(dist||1);
-
-    const power=pull/maxPull;
-    const speed=lerp(680, 1780, power*power);
-
-    const rackMul=1 + rackIdx*0.02;
-
-    let vx=nx*speed;
-    let vy=ny*speed;
-
-    const f=FOOD[foodKey];
-    if(f.golden){
-      vx *= (1 + rnd(-0.02,0.02));
-      vy *= (1 + rnd(-0.02,0.02));
-    }
-    return {vx,vy,rackMul};
-  }
-
-  function shoot(){
-    const L=layout();
-    const rack=L.racks[run.rackIndex];
-
-    const foodKey=foodForShot(run.rackIndex, run.ballIndex);
-    const f=FOOD[foodKey];
-
-    const {vx,vy,rackMul}=getShotVelocity(run.aimStart, run.aimNow, run.rackIndex, foodKey);
-
-    run.ball={
-      x:rack.x, y:rack.y,
-      vx, vy,
-      rackMul,
-      key:foodKey,
-      r:f.radius,
-      life:0
-    };
-
-    run.rackShots[run.rackIndex] += 1;
-    run.shotsLeft -= 1;
-    shotsTxt.textContent=String(run.shotsLeft);
+  function updateHUD(){
+    streakTxt.textContent=String(run.streak);
+    bestTxt.textContent=String(run.bestStreak);
+    scoreTxt.textContent=String(run.score);
+    const f=FOOD[run.foodKey];
     foodTxt.textContent=f.label;
-
-    if(Math.random()<0.22){
-      run.grease.push({x:rack.x+rnd(-12,12),y:rack.y+rnd(-10,10),a:0.18,t:0,rot:rnd(-0.6,0.6)});
-      if(run.grease.length>16) run.grease.shift();
-    }
+    multiTxt.textContent = f.golden ? '2×' : '1×';
+    rimTxt.textContent = run.rimMoving ? 'ON' : 'OFF';
   }
 
-  function applyRackBonuses(rackIdx){
-    const makes=run.rackMakes[rackIdx];
-    const rattles=run.rackRattles[rackIdx];
-    let bonus=0;
-    if(makes===5) bonus+=3;               // perfect rack
-    if(makes>0 && rattles===0) bonus+=2;  // all-swish rack (no rattles)
-    if(bonus>0){
-      run.score+=bonus;
-      run.rackScore[rackIdx]+=bonus;
-      scoreTxt.textContent=String(run.score);
-      showToast(`Rack bonus +${bonus}!`);
+  function moveRim(){
+    const L=layout();
+    const stations=rimStations(L);
+    // pick a different station than current target
+    let pick=stations[Math.floor(Math.random()*stations.length)];
+    let tries=0;
+    while(tries++<6 && Math.hypot(pick.x-run.rim.tx, pick.y-run.rim.ty) < L.w*0.08){
+      pick=stations[Math.floor(Math.random()*stations.length)];
     }
+    run.rim.tx=pick.x;
+    run.rim.ty=pick.y;
+    run.rim.t=0; // tween start
   }
 
-  function advanceRackIfNeeded(){
-    const r=run.rackIndex;
-    if(run.ball) return;
-
-    if(run.rackShots[r] >= GAME.ballsPerRack){
-      applyRackBonuses(r);
-
-      if(r===4){
-        endRun();
-        return;
-      }
-
-      run.rackIndex += 1;
-      run.ballIndex = 0;
-      rackTxt.textContent = `${run.rackIndex+1}/5`;
-
-      if(run.rackIndex===4){
-        run.goldenMode=true;
-        showToast('GOLDEN RACK: 2× points. No guide.');
-      } else {
-        showToast(`Rack ${run.rackIndex+1}.`);
-      }
-    }
+  function nextShotSetup(){
+    run.foodKey = pickFood();
+    run.ball = null;
+    if(run.rimMoving) moveRim();
+    updateHUD();
   }
 
-  function resolve(result){
-    const rackIdx=run.rackIndex;
-
-    if(result==='MAKE' || result==='RATTLE_IN'){
-      const pts = (rackIdx===4) ? 2 : 1;
-      run.score += pts;
-      run.rackScore[rackIdx] += pts;
-      run.streak += 1;
-
-      run.rackMakes[rackIdx] += 1;
-      if(result==='RATTLE_IN') run.rackRattles[rackIdx] += 1;
-
-      run.mouth.chomp=0.22;
-      run.mouth.glow=0.55;
-
-      scoreTxt.textContent=String(run.score);
-      streakTxt.textContent=String(run.streak);
-      showToast(result==='MAKE' ? `Swish +${pts}` : `Rattle +${pts}`);
-    } else {
-      run.streak=0;
-      streakTxt.textContent='0';
-      run.mouth.annoyed=0.22;
-      showToast('Miss.');
-    }
-
-    run.ball=null;
-    run.ballIndex += 1;
-
-    if(run.shotsLeft<=0){
-      applyRackBonuses(run.rackIndex);
-      endRun();
-      return;
-    }
-
-    advanceRackIfNeeded();
+  function miss(){
+    run.streak=0;
+    run.mouth.annoyed=0.22;
+    showToast('Miss. Streak reset.');
+    nextShotSetup();
   }
 
-  function canAim(){ return run && run.playing && !run.ended && !run.ball; }
+  function make(isGolden){
+    const pts = isGolden ? 2 : 1;
+    run.score += pts;
+    run.streak += 1;
+    run.bestStreak = Math.max(run.bestStreak, run.streak);
+    run.bestScore = Math.max(run.bestScore, run.score);
+
+    run.mouth.chomp=0.22;
+    run.mouth.glow=0.55;
+
+    showToast(isGolden ? `GOLDEN +2 (Streak ${run.streak})` : `+1 (Streak ${run.streak})`);
+
+    // save occasionally so “50 in a row” feels recorded
+    if(run.streak===10 || run.streak===25 || run.streak===50 || run.streak===75 || run.streak===100){
+      addLB(run.bestStreak, run.bestScore);
+    }
+
+    nextShotSetup();
+  }
+
+  // ---- aiming + shooting ----
+  function canAim(){ return run && run.playing && !run.ball; }
 
   function getPos(e){
     const rect=stage.getBoundingClientRect();
@@ -595,17 +449,8 @@
   function onDown(e){
     if(!canAim()) return;
     e.preventDefault();
-
-    const L=layout();
-    const rack=L.racks[run.rackIndex];
-    const p=getPos(e);
-
-    const pickR=Math.max(56, L.W*0.060);
-    if(Math.hypot(p.x-rack.x, p.y-rack.y) > pickR) return;
-
     run.aiming=true;
-    run.aimStart={x:rack.x,y:rack.y}; // ✅ anchor
-    run.aimNow=p;
+    run.aimNow=getPos(e);
   }
   function onMove(e){
     if(!run || !run.aiming) return;
@@ -629,124 +474,153 @@
   stage.addEventListener('touchend', onUp, {passive:false});
   stage.addEventListener('touchcancel', ()=>{ if(run) run.aiming=false; }, {passive:true});
 
-  CanvasRenderingContext2D.prototype.roundRect = CanvasRenderingContext2D.prototype.roundRect || function(x,y,w,h,r){
-    r=Math.min(r,w/2,h/2);
-    this.beginPath();
-    this.moveTo(x+r,y);
-    this.arcTo(x+w,y,x+w,y+h,r);
-    this.arcTo(x+w,y+h,x,y+h,r);
-    this.arcTo(x,y+h,x,y,r);
-    this.arcTo(x,y,x+w,y,r);
-    this.closePath();
-    return this;
-  };
+  function shoot(){
+    const L=layout();
+    const s=L.shooter;
+    const a=run.aimNow;
 
-  function drawCourt(L){
-    // speckle crowd
-    ctx.save();
-    ctx.globalAlpha=0.16;
-    const seed=run?run.seed:12345;
-    for(let i=0;i<120;i++){
-      const x=(i*97 + seed)%L.W;
-      const y=(i*131 + (seed^0x9e3779b9))%L.H;
-      const rr=1+((i*7)%2);
-      ctx.beginPath();
-      ctx.fillStyle=(i%3===0)?'rgba(255,212,0,.35)':'rgba(107,44,255,.35)';
-      ctx.arc(x,y,rr,0,Math.PI*2);
-      ctx.fill();
+    // vector from finger to shooter (pull back)
+    const dx = s.x - a.x;
+    const dy = s.y - a.y;
+    const dist = Math.hypot(dx,dy);
+
+    const maxPull = Math.max(200, L.w*0.36);
+    const pull = clamp(dist, 0, maxPull);
+    const power = pull / maxPull;
+
+    const nx = dx / (dist||1);
+    const ny = dy / (dist||1);
+
+    // tuned for “basket boy” feel
+    const speed = lerp(700, 1750, power*power);
+
+    const key=run.foodKey;
+    const f=FOOD[key];
+
+    run.ball = {
+      x:s.x, y:s.y,
+      vx:nx*speed,
+      vy:ny*speed,
+      r:f.r,
+      key,
+      life:0
+    };
+  }
+
+  // ---- sim ----
+  function step(dt){
+    if(!run) return;
+
+    // toast
+    if(toastT>0){ toastT-=dt; if(toastT<=0) toast.classList.remove('show'); }
+
+    // mouth anim
+    run.mouth.chomp=Math.max(0,run.mouth.chomp-dt);
+    run.mouth.annoyed=Math.max(0,run.mouth.annoyed-dt);
+    run.mouth.glow=Math.max(0,run.mouth.glow-dt);
+
+    // rim tween
+    if(run.rim.t < 1){
+      // quick ease
+      run.rim.t = Math.min(1, run.rim.t + dt*6.0);
+      const t = 1 - Math.pow(1-run.rim.t, 3);
+      run.rim.x = lerp(run.rim.x, run.rim.tx, t);
+      run.rim.y = lerp(run.rim.y, run.rim.ty, t);
+    } else {
+      run.rim.x = run.rim.tx; run.rim.y = run.rim.ty;
     }
-    ctx.globalAlpha=1;
 
-    // lines
+    if(run.ball){
+      const L=layout();
+      const b=run.ball;
+      const f=FOOD[b.key];
+
+      const g = 980 * f.g;
+
+      b.vx *= f.drag;
+      b.vy *= f.drag;
+
+      b.vy += g*dt;
+      b.x += b.vx*dt;
+      b.y += b.vy*dt;
+      b.life += dt;
+
+      // collision check only on descent
+      const dx=b.x-run.rim.x, dy=b.y-run.rim.y;
+      const d=Math.hypot(dx,dy);
+
+      const clean = L.rimR*0.55;
+      const rattle = L.rimR*0.90;
+
+      if(b.vy>0 && dy>-20 && dy<140){
+        if(d <= clean){
+          make(!!f.golden);
+          return;
+        } else if(d <= rattle){
+          // rattle chance (pizza a bit sticky)
+          let chance = 0.58 + (b.key==='PIZZA'?0.10:0) + (b.key==='GOLD'?0.06:0);
+          chance = clamp(chance, 0.35, 0.88);
+          if(Math.random()<chance) make(!!f.golden);
+          else miss();
+          return;
+        }
+      }
+
+      // out of bounds
+      const margin=90;
+      if(b.x<-margin || b.x>L.w+margin || b.y<-margin || b.y>L.h+margin || b.life>4.2){
+        miss(); return;
+      }
+    }
+  }
+
+  // ---- drawing ----
+  function draw(){
+    const L=layout();
+    ctx.clearRect(0,0,L.w,L.h);
+
+    // subtle court arc + dots
+    ctx.save();
+    ctx.globalAlpha=0.18;
     ctx.lineWidth=2;
-    ctx.strokeStyle='rgba(255,255,255,0.12)';
-
-    // ✅ arc matches rack orbit
+    ctx.strokeStyle='rgba(255,255,255,0.14)';
     ctx.beginPath();
-    ctx.arc(L.rim.x, L.rim.y, L.arcR, 30*Math.PI/180, 150*Math.PI/180);
-    ctx.stroke();
-
-    // lane hint
-    ctx.globalAlpha=0.16;
-    const keyW=L.W*0.28, keyH=L.H*0.26;
-    ctx.beginPath();
-    ctx.roundRect(L.W*0.5-keyW/2, L.H*0.22, keyW, keyH, 18);
+    ctx.arc(L.w*0.70, L.h*0.18, Math.min(L.w*0.52, L.h*0.52), 0.15*Math.PI, 0.85*Math.PI);
     ctx.stroke();
     ctx.globalAlpha=1;
-
     ctx.restore();
-  }
 
-  function drawGrease(){
-    if(!run || !run.grease.length) return;
+    // shooter “character”
+    const s=L.shooter;
     ctx.save();
-    for(const g of run.grease){
-      ctx.globalAlpha=g.a;
-      ctx.fillStyle='rgba(255,212,0,0.33)';
-      ctx.beginPath();
-      ctx.ellipse(g.x,g.y,18,11,g.rot,0,Math.PI*2);
-      ctx.fill();
-      ctx.globalAlpha=g.a*0.7;
-      ctx.fillStyle='rgba(107,44,255,0.18)';
-      ctx.beginPath();
-      ctx.ellipse(g.x+7,g.y+3,11,8,-g.rot,0,Math.PI*2);
-      ctx.fill();
-    }
+    // body
+    ctx.globalAlpha=0.85;
+    ctx.fillStyle='rgba(255,255,255,0.10)';
+    ctx.beginPath();
+    ctx.roundRect(s.x-18, s.y-48, 36, 58, 12);
+    ctx.fill();
+    // head
+    ctx.fillStyle='rgba(255,212,0,0.85)';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y-58, 14, 0, Math.PI*2);
+    ctx.fill();
     ctx.restore();
-  }
 
-  function drawRacks(L){
-    for(let i=0;i<L.racks.length;i++){
-      const r=L.racks[i];
-      const isActive=run && i===run.rackIndex;
-      const alpha=isActive?1:0.55;
-      const rr=Math.max(48, L.W*0.052);
-
-      ctx.save();
-      ctx.globalAlpha=alpha;
-      ctx.beginPath();
-      ctx.arc(r.x,r.y,rr,0,Math.PI*2);
-      ctx.lineWidth=isActive?4:2;
-      ctx.strokeStyle=isActive?'rgba(255,212,0,0.75)':'rgba(255,255,255,0.16)';
-      ctx.stroke();
-
-      ctx.globalAlpha=isActive?0.9:0.35;
-      ctx.fillStyle=isActive?'rgba(255,212,0,0.85)':'rgba(255,255,255,0.55)';
-      ctx.beginPath();
-      ctx.arc(r.x,r.y,5,0,Math.PI*2);
-      ctx.fill();
-
-      ctx.restore();
-    }
-
-    if(run && run.playing && !run.ended){
-      ctx.save();
-      ctx.globalAlpha=0.85;
-      ctx.font='1200 16px ui-sans-serif, system-ui';
-      ctx.fillStyle='rgba(255,255,255,0.85)';
-      ctx.textAlign='left';
-      ctx.fillText(`RACK ${run.rackIndex+1}/5`, L.W*0.06, L.H*0.10);
-      ctx.restore();
-    }
-  }
-
-  function drawMouth(L){
-    const m=run?run.mouth:{chomp:0,annoyed:0,glow:0};
-    const x=L.rim.x, y=L.rim.y;
-    const baseR=Math.max(34, L.W*0.055);
+    // rim mouth
+    const baseR=L.rimR;
     const breath=Math.sin((performance.now()/1000)*2.0)*0.03;
-    const chomp=m.chomp||0;
-    const annoyed=m.annoyed||0;
-    const glow=m.glow||0;
+    const chomp=run?run.mouth.chomp:0;
+    const annoyed=run?run.mouth.annoyed:0;
+    const glow=run?run.mouth.glow:0;
 
-    const wig=annoyed>0?Math.sin((1-annoyed)*22)*3:0;
+    const wig = annoyed>0 ? Math.sin((1-annoyed)*22)*3 : 0;
 
     ctx.save();
-    ctx.translate(x+wig,y);
+    ctx.translate(run?run.rim.x + wig : L.w*0.70, run?run.rim.y : L.h*0.28);
 
     if(glow>0){
-      ctx.globalAlpha=0.22+glow*0.35;
-      ctx.fillStyle='rgba(255,212,0,0.65)';
+      ctx.globalAlpha=0.20 + glow*0.35;
+      ctx.fillStyle='rgba(255,212,0,0.70)';
       ctx.beginPath();
       ctx.arc(0,0,baseR*1.6,0,Math.PI*2);
       ctx.fill();
@@ -754,216 +628,139 @@
     }
 
     ctx.beginPath();
-    ctx.fillStyle='rgba(107,44,255,0.65)';
+    ctx.fillStyle='rgba(107,44,255,0.68)';
     ctx.arc(0,0,baseR*(1+breath),0,Math.PI*2);
     ctx.fill();
 
     ctx.lineWidth=4;
-    ctx.strokeStyle='rgba(255,212,0,0.78)';
+    ctx.strokeStyle='rgba(255,212,0,0.80)';
     ctx.stroke();
 
-    const open=lerp(0.50,0.28,clamp(chomp*4,0,1));
+    const open=lerp(0.52,0.30, clamp(chomp*4,0,1));
     ctx.fillStyle='rgba(0,0,0,0.55)';
     ctx.beginPath();
-    ctx.ellipse(0,baseR*0.08,baseR*0.72,baseR*open,0,0,Math.PI*2);
+    ctx.ellipse(0,baseR*0.10,baseR*0.72,baseR*open,0,0,Math.PI*2);
     ctx.fill();
 
     const blink=annoyed>0?clamp(1-annoyed*6,0.2,1):1;
     ctx.fillStyle='rgba(255,255,255,0.85)';
     ctx.beginPath();
     ctx.ellipse(-baseR*0.28,-baseR*0.46,baseR*0.12,baseR*0.08*blink,0,0,Math.PI*2);
-    ctx.ellipse(baseR*0.28,-baseR*0.46,baseR*0.12,baseR*0.08*blink,0,0,Math.PI*2);
+    ctx.ellipse( baseR*0.28,-baseR*0.46,baseR*0.12,baseR*0.08*blink,0,0,Math.PI*2);
     ctx.fill();
 
     ctx.restore();
-  }
 
-  function drawBall(ball){
-    const f=FOOD[ball.key];
-    ctx.save();
-    ctx.translate(ball.x,ball.y);
+    // aiming preview (dotted)
+    if(run && run.aiming && !run.ball){
+      const a=run.aimNow;
+      const dx = s.x - a.x;
+      const dy = s.y - a.y;
+      const dist = Math.hypot(dx,dy);
 
-    ctx.beginPath();
-    ctx.fillStyle=f.color;
-    ctx.arc(0,0,ball.r,0,Math.PI*2);
-    ctx.fill();
+      const maxPull = Math.max(200, L.w*0.36);
+      const pull = clamp(dist, 0, maxPull);
+      const power = pull/maxPull;
 
-    ctx.globalAlpha=0.55;
-    ctx.strokeStyle='rgba(255,255,255,0.55)';
-    ctx.lineWidth=2;
-    ctx.stroke();
-    ctx.globalAlpha=1;
+      const nx=dx/(dist||1);
+      const ny=dy/(dist||1);
 
-    ctx.font='1200 14px ui-sans-serif, system-ui';
-    ctx.textAlign='center';
-    ctx.textBaseline='middle';
-    ctx.fillStyle='rgba(0,0,0,0.55)';
-    const glyph=(ball.key==='COOKIE')?'C':(ball.key==='DONUT')?'D':(ball.key==='MEATBALL')?'M':(ball.key==='PIZZA')?'P':'G';
-    ctx.fillText(glyph,0,1);
+      const speed = lerp(700, 1750, power*power);
+      const key=run.foodKey;
+      const f=FOOD[key];
+      let vx=nx*speed, vy=ny*speed;
 
-    ctx.restore();
-  }
+      let x=s.x, y=s.y;
+      const g=980*f.g;
+      const simDt=1/60;
 
-  // ✅ Ascent-only guideline (stops at apex). No guide on golden rack.
-  function drawGuide(L){
-    if(!run || !run.aiming) return;
-    if(run.goldenMode) return;
+      ctx.save();
+      ctx.fillStyle='rgba(255,255,255,0.70)';
+      for(let i=0;i<28;i++){
+        // small dotted points
+        ctx.globalAlpha = 0.80 * (1 - i/30);
+        ctx.beginPath();
+        ctx.arc(x, y, i===0?3:2.2, 0, Math.PI*2);
+        ctx.fill();
 
-    const rack=L.racks[run.rackIndex];
-    const start={x:rack.x,y:rack.y};
+        vx*=f.drag; vy*=f.drag;
+        vy+=g*simDt;
+        x+=vx*simDt; y+=vy*simDt;
+      }
+      ctx.restore();
 
-    const previewKey=foodForShot(run.rackIndex, run.ballIndex);
-    const f=FOOD[previewKey];
-
-    const {vx:svx, vy:svy, rackMul}=getShotVelocity(start, run.aimNow, run.rackIndex, previewKey);
-
-    let x=start.x, y=start.y, vx=svx, vy=svy;
-    const g=980 * f.g * rackMul;
-    const pts=[];
-    const simDt=1/60;
-
-    for(let i=0;i<140;i++){
-      if(vy>=0) break; // stop at apex
-      pts.push({x,y});
-      vx*=f.drag; vy*=f.drag;
-      vy+=g*simDt;
-      x+=vx*simDt; y+=vy*simDt;
-    }
-
-    ctx.save();
-    ctx.lineWidth=3;
-    ctx.strokeStyle='rgba(255,212,0,0.65)';
-    ctx.setLineDash([6,8]);
-    ctx.lineCap='round';
-
-    ctx.beginPath();
-    pts.forEach((p,i)=>{ if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
-    ctx.stroke();
-
-    if(pts.length){
-      const last=pts[pts.length-1];
-      ctx.setLineDash([]);
-      ctx.globalAlpha=0.55;
-      ctx.fillStyle='rgba(255,212,0,0.85)';
+      // pull ring
+      ctx.save();
+      ctx.globalAlpha=0.40;
+      ctx.strokeStyle='rgba(255,212,0,0.85)';
+      ctx.lineWidth=3;
       ctx.beginPath();
-      ctx.arc(last.x,last.y,5,0,Math.PI*2);
+      ctx.arc(s.x, s.y, 32 + power*22, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // ball
+    if(run && run.ball){
+      const b=run.ball;
+      const f=FOOD[b.key];
+      ctx.save();
+      ctx.translate(b.x,b.y);
+      ctx.beginPath();
+      ctx.fillStyle=f.color;
+      ctx.arc(0,0,b.r,0,Math.PI*2);
       ctx.fill();
+      ctx.globalAlpha=0.55;
+      ctx.strokeStyle='rgba(255,255,255,0.55)';
+      ctx.lineWidth=2;
+      ctx.stroke();
       ctx.globalAlpha=1;
-    }
-    ctx.restore();
-  }
 
-  // Physics + rim forgiveness
-  function stepBall(dt){
-    const L=layout();
-    const b=run.ball;
-    if(!b) return;
-
-    const f=FOOD[b.key];
-    const g=980 * f.g * b.rackMul;
-
-    b.vx *= f.drag;
-    b.vy *= f.drag;
-    b.vy += g*dt;
-    b.x += b.vx*dt;
-    b.y += b.vy*dt;
-    b.life += dt;
-
-    // rim check on descent
-    const dx=b.x-L.rim.x, dy=b.y-L.rim.y;
-    const dist=Math.hypot(dx,dy);
-
-    if(b.vy>0 && dy>-20 && dy<150){
-      if(dist <= L.rClean){
-        resolve('MAKE');
-        return;
-      } else if(dist <= L.rRattle){
-        let chance = 0.62 - run.rackIndex*0.05;
-        chance += (f.stickyRim||0);
-        chance = clamp(chance,0.30,0.88);
-        if(Math.random()<chance) resolve('RATTLE_IN');
-        else resolve('MISS');
-        return;
-      }
-    }
-
-    // fail bounds
-    const margin=70;
-    if(b.x<-margin || b.x>L.W+margin || b.y<-margin || b.y>L.H+margin || b.life>4.2){
-      resolve('MISS');
-      return;
+      ctx.font='1200 14px ui-sans-serif, system-ui';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillStyle='rgba(0,0,0,0.55)';
+      const glyph=(b.key==='COOKIE')?'C':(b.key==='DONUT')?'D':(b.key==='MEATBALL')?'M':(b.key==='PIZZA')?'P':'G';
+      ctx.fillText(glyph,0,1);
+      ctx.restore();
     }
   }
 
-  // Timer + UI
-  function tick(dt){
-    if(!run) return;
-
-    // mouth anim timers
-    run.mouth.chomp=Math.max(0,run.mouth.chomp-dt);
-    run.mouth.annoyed=Math.max(0,run.mouth.annoyed-dt);
-    run.mouth.glow=Math.max(0,run.mouth.glow-dt);
-
-    if(run.grease){
-      for(const g of run.grease){ g.t+=dt; g.a = Math.max(0.06, g.a - dt*0.01); }
-    }
-
-    if(run.playing && !run.ended){
-      run.timeLeft -= dt;
-      if(run.timeLeft<0) run.timeLeft=0;
-      timeTxt.textContent=run.timeLeft.toFixed(1);
-
-      if(run.timeLeft<=0){
-        applyRackBonuses(run.rackIndex);
-        endRun();
-      }
-    }
-
-    if(run.ball && run.playing && !run.ended){
-      stepBall(dt);
-    }
-  }
-
-  // ---------- loop ----------
+  // loop
   let last=performance.now();
   function loop(now){
     requestAnimationFrame(loop);
     const dt=Math.min(0.033,(now-last)/1000);
     last=now;
-
-    if(toastT>0){ toastT-=dt; if(toastT<=0) toast.classList.remove('show'); }
-
-    const L=layout();
-    ctx.clearRect(0,0,L.W,L.H);
-
-    if(run && run.goldenMode){
-      ctx.save();
-      ctx.fillStyle='rgba(255,212,0,0.08)';
-      ctx.fillRect(0,0,L.W,L.H);
-      ctx.restore();
+    if(run){
+      step(dt);
+      draw();
+    } else {
+      // idle draw
+      run = newRun();
+      run.playing=false;
+      draw();
+      run = null;
     }
-
-    drawCourt(L);
-    drawGrease();
-    drawRacks(L);
-    drawMouth(L);
-
-    if(run && run.ball) drawBall(run.ball);
-    drawGuide(L);
-
-    tick(dt);
   }
   requestAnimationFrame(loop);
 
-  // ---------- buttons ----------
-  document.getElementById('btnGo').addEventListener('click', ()=>{ overlayStart.classList.remove('show'); startRun(); });
-  document.getElementById('btnCloseStart').addEventListener('click', ()=> overlayStart.classList.remove('show'));
-  document.getElementById('btnAgain').addEventListener('click', ()=>{ overlayEnd.classList.remove('show'); startRun(); });
-  document.getElementById('btnCloseEnd').addEventListener('click', ()=> overlayEnd.classList.remove('show'));
-  document.getElementById('btnCloseBoard').addEventListener('click', ()=> overlayBoard.classList.remove('show'));
-  document.getElementById('btnStart').addEventListener('click', ()=> overlayStart.classList.add('show'));
-  document.getElementById('btnBoard').addEventListener('click', ()=>{ overlayBoard.classList.add('show'); renderLB(leaderBox2); });
-  document.getElementById('btnResetLB').addEventListener('click', ()=>{ saveLB([]); renderLB(leaderBox2); showToast('Local leaderboard reset.'); });
+  // buttons
+  btnStart.onclick=()=>overlayStart.classList.add('show');
+  btnGo.onclick=()=>{overlayStart.classList.remove('show'); start();};
+  btnCloseStart.onclick=()=>overlayStart.classList.remove('show');
+
+  btnBoard.onclick=()=>{overlayBoard.classList.add('show'); renderLB();};
+  btnCloseBoard.onclick=()=>overlayBoard.classList.remove('show');
+  btnResetLB.onclick=()=>{saveLB([]); renderLB(); showToast('Local leaderboard reset.');};
+
+  // change this if your main path differs
+  btnMain.onclick=()=>{ window.location.href='/'; };
+
+  // when leaving a run, save bests
+  window.addEventListener('beforeunload', ()=>{
+    if(run) addLB(run.bestStreak, run.bestScore);
+  });
 
 })();
 </script>
