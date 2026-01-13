@@ -9,7 +9,6 @@
       --pf-purple:#5b2cff;
       --pf-purple-2:#2b0f7a;
       --pf-yellow:#ffd400;
-      --pf-yellow-2:#ffea7a;
       --pf-ink:#0b0614;
       --pf-white:#ffffff;
     }
@@ -104,87 +103,6 @@
       max-width: 92%;
     }
     .toast.show{ opacity:1; }
-
-    .modal{
-      position:fixed; inset:0;
-      background: rgba(0,0,0,.55);
-      display:none;
-      align-items:flex-end;
-      justify-content:center;
-      padding: 16px;
-      z-index: 50;
-    }
-    .modal.show{ display:flex; }
-    .sheet{
-      width: min(720px, 100%);
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(0,0,0,.40));
-      border: 1px solid rgba(255,255,255,.14);
-      box-shadow: 0 28px 80px rgba(0,0,0,.50);
-      overflow:hidden;
-    }
-    .sheetHeader{
-      display:flex; align-items:center; justify-content:space-between;
-      padding: 12px 14px;
-      background: rgba(0,0,0,.30);
-      border-bottom: 1px solid rgba(255,255,255,.10);
-    }
-    .sheetHeader .h{
-      font-weight:1000; letter-spacing:.5px; text-transform:uppercase;
-      color: var(--pf-yellow);
-      font-size: 13px;
-    }
-    .sheetHeader .x{
-      cursor:pointer;
-      font-weight:1000;
-      border-radius: 12px;
-      padding: 10px 12px;
-      border: 1px solid rgba(255,255,255,.15);
-      background: rgba(0,0,0,.25);
-      user-select:none;
-    }
-    .sheetBody{ padding: 12px 14px 14px; }
-    .tabs{ display:flex; gap:8px; margin-bottom:10px; }
-    .tab{
-      flex:1;
-      text-align:center;
-      padding: 10px 8px;
-      border-radius: 14px;
-      font-weight:900;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.18);
-      user-select:none;
-    }
-    .tab.active{
-      background: linear-gradient(180deg, rgba(255,212,0,.95), rgba(255,212,0,.65));
-      color:#1a1033;
-      border: 1px solid rgba(0,0,0,.25);
-    }
-    table{
-      width:100%;
-      border-collapse: collapse;
-      overflow:hidden;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
-    }
-    th,td{
-      padding: 10px 10px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      font-size: 13px;
-    }
-    th{
-      text-transform:uppercase;
-      font-size: 11px;
-      letter-spacing:.6px;
-      color: rgba(255,255,255,.85);
-      background: rgba(0,0,0,.22);
-    }
-    tr:last-child td{ border-bottom:none; }
-    .me{ color: var(--pf-yellow); font-weight:1000; }
-    .muted{ opacity:.85; font-weight:800; }
-    .footerNote{ margin-top:10px; font-size: 12px; opacity:.9; line-height:1.35; }
-    .footerNote b{ color:var(--pf-yellow); }
   </style>
 </head>
 <body>
@@ -212,47 +130,13 @@
     </div>
 
     <div class="bottombar">
-      <!-- Best practice: link to root so it works no matter folder depth -->
-      <a class="btn" id="backBtn" href="/">⬅ Back to Main</a>
-      <a class="btn yellow" id="lbBtn" href="javascript:void(0)">🏆 Leaderboards</a>
-    </div>
-  </div>
-
-  <!-- Leaderboards -->
-  <div class="modal" id="modal">
-    <div class="sheet">
-      <div class="sheetHeader">
-        <div class="h">Snack Contest Leaderboards</div>
-        <div class="x" id="closeModal">Close</div>
-      </div>
-      <div class="sheetBody">
-        <div class="tabs">
-          <div class="tab active" data-tab="daily">Daily</div>
-          <div class="tab" data-tab="weekly">Weekly</div>
-          <div class="tab" data-tab="all">All-Time</div>
-        </div>
-        <div id="lbTableWrap"></div>
-
-        <div class="footerNote" id="profileNote"></div>
-        <div class="footerNote muted">
-          Local leaderboards for now (device-based). Later we’ll swap this to a global backend leaderboard + the full gym burn tracker.
-        </div>
-      </div>
+      <a class="btn" href="/">⬅ Back to Main</a>
+      <a class="btn yellow" href="javascript:void(0)" onclick="alert('Local leaderboard can be added next — game physics + racks are fixed now.')">🏆 Leaderboards</a>
     </div>
   </div>
 
 <script>
-/* Planet Fatness — Three-Point Snack Contest
-   Single-file build: HTML+CSS+JS in one index.html
-   - Drag aim + release
-   - Real projectile physics (parabolic arc)
-   - 5 spots, 25 shots, golden donut last shot in each rack (2x points)
-   - Silent-first polish: particles, text pop, screen pulse
-   - Soft lazy timer: idle too long => snack slips (auto miss)
-   - LocalStorage: Gym Member profile + lifetime calories + local leaderboards
-*/
 (() => {
-  // DOM
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
 
@@ -260,477 +144,415 @@
   const shotsVal = document.getElementById('shotsVal');
   const toastEl  = document.getElementById('toast');
 
-  const modal = document.getElementById('modal');
-  const lbBtn = document.getElementById('lbBtn');
-  const closeModal = document.getElementById('closeModal');
-  const lbTableWrap = document.getElementById('lbTableWrap');
-  const profileNote = document.getElementById('profileNote');
-
-  // Sizing
   function resize() {
     const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
     const rect = canvas.getBoundingClientRect();
     canvas.width = Math.floor(rect.width * dpr);
     canvas.height = Math.floor(rect.height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   window.addEventListener('resize', () => { resize(); computeLayout(); });
   resize();
 
-  // Theme
   const THEME = {
     yellow: '#ffd400',
     white: '#ffffff'
   };
 
-  // Storage / Profile
-  const STORAGE_KEY = 'planetFatness.profile.v1';
-  const LB_KEY = 'planetFatness.basket.lb.v1';
+  // Contest rules
+  const RUN = { totalShots: 25, racks: 5, shotsPerRack: 5 };
 
-  function todayKey() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  }
-  function weekKey() {
-    const d = new Date();
-    const onejan = new Date(d.getFullYear(),0,1);
-    const day = Math.floor((d - onejan) / 86400000);
-    const week = Math.floor((day + onejan.getDay()) / 7) + 1;
-    return `${d.getFullYear()}-W${String(week).padStart(2,'0')}`;
-  }
-
-  function loadProfile() {
-    let p = null;
-    try { p = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch {}
-    if (!p) {
-      const id = `PF-${String(Math.floor(Math.random()*100000000)).padStart(8,'0')}`;
-      p = {
-        memberId: id,
-        createdAt: Date.now(),
-        lifetimeCalories: 0,
-        sessionsPlayed: 0,
-        basket: {
-          bestAllTimeScore: 0,
-          bestDaily: { key: todayKey(), score: 0 },
-          bestWeekly:{ key: weekKey(), score: 0 }
-        }
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
-    }
-    return p;
-  }
-  function saveProfile(p) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
-  }
-  function loadLB() {
-    let lb = null;
-    try { lb = JSON.parse(localStorage.getItem(LB_KEY) || 'null'); } catch {}
-    if (!lb) {
-      lb = { daily: {}, weekly: {}, all: [] };
-      localStorage.setItem(LB_KEY, JSON.stringify(lb));
-    }
-    return lb;
-  }
-  function saveLB(lb) { localStorage.setItem(LB_KEY, JSON.stringify(lb)); }
-
-  function submitToLeaderboards(profile, run) {
-    const lb = loadLB();
-    const day = todayKey();
-    const week = weekKey();
-
-    lb.daily[day] = lb.daily[day] || [];
-    lb.weekly[week] = lb.weekly[week] || [];
-    lb.all = lb.all || [];
-
-    const entry = {
-      memberId: profile.memberId,
-      score: run.score,
-      goldenMade: run.goldenMade,
-      swishes: run.swishes,
-      ts: Date.now()
-    };
-
-    function insertTop(arr) {
-      arr.push(entry);
-      arr.sort((a,b) => (b.score - a.score) || (b.goldenMade - a.goldenMade) || (b.swishes - a.swishes) || (a.ts - b.ts));
-      return arr.slice(0, 25);
-    }
-
-    lb.daily[day] = insertTop(lb.daily[day]);
-    lb.weekly[week] = insertTop(lb.weekly[week]);
-    lb.all = insertTop(lb.all);
-
-    saveLB(lb);
-  }
-
-  // Game constants
-  const RUN = { totalShots: 25, shotsPerSpot: 5 };
-  const PHYS = { gravity: 1600, velScale: 7.2, minDrag: 18, maxDrag: 130, maxDt: 0.033 };
-  const LAZY = { aimIdleMax: 5.0, noInputMax: 8.0 };
-  const SCORE = { normal: 1, golden: 2, swishBonus: 1, baseCalories: 40, calPerPoint: 12, runCapCalories: 420 };
-
-  // Snacks
-  const SNACKS = {
-    donut:    { key:'donut',    name:'Donut',        speedMul:1.00, gravityMul:1.00, r:11, color:'#ffd400' },
-    meatball: { key:'meatball', name:'Meatball',     speedMul:0.94, gravityMul:1.18, r:10, color:'#b24b2a' },
-    cookie:   { key:'cookie',   name:'Cookie',       speedMul:0.98, gravityMul:0.86, r:11, color:'#d6a06a' },
-    pizza:    { key:'pizza',    name:'Pizza',        speedMul:0.90, gravityMul:0.72, r:13, color:'#ffb14a' },
-    burger:   { key:'burger',   name:'Burger',       speedMul:0.90, gravityMul:1.05, r:14, color:'#d98c4a' },
-    gold:     { key:'gold',     name:'Golden Donut', speedMul:1.00, gravityMul:1.00, r:12, color:'#ffea00', glow:true }
+  // Physics tuning
+  const PHYS = {
+    gravity: 1700,           // base gravity
+    maxDt: 0.033,
+    // angle limits for ballistic solve (degrees)
+    minAngleDeg: 18,
+    maxAngleDeg: 78,
+    // how much your drag affects "power feel" (scales the computed speed)
+    powerMin: 0.85,
+    powerMax: 1.18,
+    // drag constraints
+    minDrag: 18,
+    maxDrag: 140
   };
 
-  const baseRackPool = ['donut','meatball','cookie','pizza','burger'];
-  const profile = loadProfile();
+  // Lazy timer (optional but keeps it degen)
+  const LAZY = { aimIdleMax: 6.0, noInputMax: 10.0 };
+
+  // Scoring
+  const SCORE = { normal: 1, golden: 2, swishBonus: 1 };
+
+  // Snacks (still different feel, BUT always solvable)
+  const SNACKS = {
+    donut:    { key:'donut',    name:'Donut',        gravMul:1.00, r:11, color:'#ffd400' },
+    meatball: { key:'meatball', name:'Meatball',     gravMul:1.12, r:10, color:'#b24b2a' },
+    cookie:   { key:'cookie',   name:'Cookie',       gravMul:0.92, r:11, color:'#d6a06a' },
+    pizza:    { key:'pizza',    name:'Pizza',        gravMul:0.82, r:13, color:'#ffb14a' },
+    burger:   { key:'burger',   name:'Burger',       gravMul:1.05, r:14, color:'#d98c4a' },
+    gold:     { key:'gold',     name:'Golden Donut', gravMul:1.00, r:12, color:'#ffea00', glow:true }
+  };
+
+  // Rack order per position (last ball gold)
+  const basePool = ['donut','meatball','cookie','pizza','burger'];
+  function rackForIndex(i){
+    // rotate per rack so it feels varied but consistent
+    const rot = (arr,n)=>arr.map((_,k)=>arr[(k+n)%arr.length]);
+    const pool = rot(basePool, i);
+    return [SNACKS[pool[0]], SNACKS[pool[2]], SNACKS[pool[4]], SNACKS[pool[1]], SNACKS.gold];
+  }
 
   // State
   const state = {
-    w: 0, h: 0,
-    player: { x: 0, y: 0 },
-    mouth:  { x: 0, y: 0, r: 26, bobT: 0 },
-    spots: [],
-    mouthBase: { x:0, y:0 },
-
-    shotIndex: 0,
-    spotIndex: 0,
-    shotInRack: 0,
+    w:0,h:0,
+    floorY:0,
+    player:{x:0,y:0},
+    hoop:{x:0,y:0,r:26, bobT:0},
+    racks:[],           // rack positions along arc
+    rackIndex:0,
+    shotIndex:0,
+    shotInRack:0,
     currentSnack: SNACKS.donut,
-    currentRack: null,
-
-    aiming: false,
-    aimStart: { x:0, y:0 },
-    aimNow:   { x:0, y:0 },
-    aimHoldTime: 0,
-    idleTime: 0,
-
-    proj: null,
-    trail: [],
-
-    score: 0,
-    swishes: 0,
-    goldenMade: 0,
-
-    particles: [],
-    pops: [],
-    screenPulse: 0,
-
-    tryHard: { streak: 0, siren: 0, dampShots: 0 },
-
-    phase: 'play',
-    end: { calories: 0 }
+    aiming:false,
+    aimStart:{x:0,y:0},
+    aimNow:{x:0,y:0},
+    aimHold:0,
+    idle:0,
+    proj:null,
+    score:0,
+    swishes:0,
+    goldMade:0,
+    particles:[],
+    pulse:0
   };
 
-  function computeLayout() {
+  function computeLayout(){
     const rect = canvas.getBoundingClientRect();
     state.w = rect.width;
     state.h = rect.height;
+    state.floorY = state.h * 0.80;
 
-    const floorY = state.h * 0.78;
+    // hoop/basket-mouth on right side
+    state.hoop.x = state.w * 0.78;
+    state.hoop.y = state.h * 0.36;
+    state.hoop.r = Math.max(22, Math.min(34, state.w * 0.04));
 
-    state.mouth.x = state.w * 0.78;
-    state.mouth.y = state.h * 0.38;
-    state.mouth.r = Math.max(22, Math.min(34, state.w * 0.04));
+    // 5 rack spots along a "three point arc"
+    // (screen-friendly approximation that looks like real racks on the arc)
+    const left = state.w * 0.16;
+    const right = state.w * 0.54;
+    const mid = (left + right)/2;
 
-    const cx = state.w * 0.30;
-    const spread = state.w * 0.18;
-    const spotY = floorY;
-
-    state.spots = [
-      { x: cx - spread*0.55, y: spotY },
-      { x: cx - spread*0.10, y: spotY - state.h*0.02 },
-      { x: cx + spread*0.25, y: spotY - state.h*0.04 },
-      { x: cx + spread*0.55, y: spotY - state.h*0.02 },
-      { x: cx + spread*0.95, y: spotY }
+    state.racks = [
+      { x:left,  y:state.floorY,               label:'Corner L' },
+      { x:state.w*0.25, y:state.floorY - state.h*0.08, label:'Wing L' },
+      { x:mid,   y:state.floorY - state.h*0.14, label:'Top' },
+      { x:state.w*0.45, y:state.floorY - state.h*0.08, label:'Wing R' },
+      { x:right, y:state.floorY,               label:'Corner R' }
     ];
 
-    const s = state.spots[state.spotIndex] || state.spots[0];
-    state.player.x = s.x;
-    state.player.y = s.y;
-
-    state.mouthBase = { x: state.mouth.x, y: state.mouth.y };
+    const r = state.racks[state.rackIndex] || state.racks[0];
+    state.player.x = r.x;
+    state.player.y = r.y;
   }
   computeLayout();
 
-  // Rack generator
-  function rackForSpot(spotIdx) {
-    const rotate = (arr, n) => arr.map((_,i)=>arr[(i+n)%arr.length]);
-    const pool = rotate(baseRackPool, spotIdx);
-    return [
-      SNACKS[pool[0]],
-      SNACKS[pool[2]],
-      SNACKS[pool[4]],
-      SNACKS[pool[1]],
-      SNACKS.gold
-    ];
-  }
-
-  function loadNextSnack() {
-    state.spotIndex = Math.floor(state.shotIndex / RUN.shotsPerSpot);
-    state.shotInRack = state.shotIndex % RUN.shotsPerSpot;
-
-    state.currentRack = rackForSpot(state.spotIndex);
-    state.currentSnack = state.currentRack[state.shotInRack];
-
-    const spot = state.spots[state.spotIndex];
-    state.player.x = spot.x;
-    state.player.y = spot.y;
-
-    state.aimHoldTime = 0;
-    state.idleTime = 0;
+  // HUD
+  function hud(){
+    scoreVal.textContent = String(state.score);
+    shotsVal.textContent = `${state.shotIndex}/${RUN.totalShots}`;
   }
 
   // Toast
   let toastTimer = 0;
-  function toast(msg) {
+  function toast(msg){
     toastEl.textContent = msg;
     toastEl.classList.add('show');
-    toastTimer = 1.15;
+    toastTimer = 1.2;
+  }
+
+  // Pick current snack based on rack + shot
+  function refreshSnack(){
+    state.rackIndex = Math.floor(state.shotIndex / RUN.shotsPerRack);
+    state.shotInRack = state.shotIndex % RUN.shotsPerRack;
+
+    const rack = rackForIndex(state.rackIndex);
+    state.currentSnack = rack[state.shotInRack];
+
+    // move player to rack spot
+    const r = state.racks[state.rackIndex];
+    state.player.x = r.x;
+    state.player.y = r.y;
+
+    state.aimHold = 0;
+    state.idle = 0;
   }
 
   // Input helpers
-  function getPos(e) {
+  function getPos(e){
     const r = canvas.getBoundingClientRect();
     const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
     const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
-    return { x, y };
+    return {x,y};
   }
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
 
-  // Input events
-  function pointerDown(e) {
-    if (state.phase !== 'play') return;
-    if (state.proj && state.proj.alive) return;
+  function down(e){
+    if (state.proj) return;
+    if (state.shotIndex >= RUN.totalShots) return;
 
     const p = getPos(e);
     state.aiming = true;
     state.aimStart.x = state.player.x;
     state.aimStart.y = state.player.y - 18;
-    state.aimNow.x = p.x;
-    state.aimNow.y = p.y;
-    state.aimHoldTime = 0;
-    state.idleTime = 0;
-
-    state.screenPulse = 0.12;
+    state.aimNow = p;
+    state.aimHold = 0;
+    state.idle = 0;
+    state.pulse = 0.12;
     e.preventDefault?.();
   }
-  function pointerMove(e) {
+  function move(e){
     if (!state.aiming) return;
-    const p = getPos(e);
-    state.aimNow.x = p.x;
-    state.aimNow.y = p.y;
-    state.idleTime = 0;
+    state.aimNow = getPos(e);
+    state.idle = 0;
     e.preventDefault?.();
   }
-  function pointerUp(e) {
+  function up(e){
     if (!state.aiming) return;
     state.aiming = false;
-    fireShotFromAim();
+    fireBallistic();
     e.preventDefault?.();
   }
 
-  canvas.addEventListener('mousedown', pointerDown);
-  canvas.addEventListener('mousemove', pointerMove);
-  window.addEventListener('mouseup', pointerUp);
+  canvas.addEventListener('mousedown', down);
+  canvas.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', up);
 
-  canvas.addEventListener('touchstart', pointerDown, { passive:false });
-  canvas.addEventListener('touchmove', pointerMove, { passive:false });
-  window.addEventListener('touchend', pointerUp, { passive:false });
+  canvas.addEventListener('touchstart', down, {passive:false});
+  canvas.addEventListener('touchmove', move, {passive:false});
+  window.addEventListener('touchend', up, {passive:false});
 
-  // Math helpers
-  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  // -------- FIX #1: Ballistic solve (always reachable) --------
+  // Use your drag direction to choose an angle, then compute speed that would hit the hoop.
+  function fireBallistic(){
+    const x0 = state.aimStart.x;
+    const y0 = state.aimStart.y;
 
-  // Fire shot
-  function fireShotFromAim() {
-    const handX = state.aimStart.x;
-    const handY = state.aimStart.y;
-    const dx = handX - state.aimNow.x;
-    const dy = handY - state.aimNow.y;
+    // Target: hoop "mouth"
+    const xt = state.hoop.x;
+    const yt = state.hoop.y + 10;
 
-    const dist = Math.hypot(dx, dy);
+    // Pull vector (drag backwards)
+    const dxPull = x0 - state.aimNow.x;
+    const dyPull = y0 - state.aimNow.y;
+
+    const dist = Math.hypot(dxPull, dyPull);
     const d = clamp(dist, PHYS.minDrag, PHYS.maxDrag);
 
-    if (dist < 10) {
-      doSlipMiss("BRO... AIM AT LEAST A LITTLE.");
+    // If they barely drag, slip miss
+    if (dist < 10){
+      slipMiss("BRO DRAG TO AIM.");
       return;
     }
 
-    const dirX = dx / (dist || 1);
-    const dirY = dy / (dist || 1);
+    // Determine desired shooting angle from pull direction (pointing toward hoop)
+    // We'll convert pull into a positive-right launch direction.
+    // Angle is measured from +X axis, up is negative Y (screen coords).
+    let theta = Math.atan2(-dyPull, dxPull); // "forward" angle
+    // clamp angle to a usable range
+    const minA = PHYS.minAngleDeg * Math.PI/180;
+    const maxA = PHYS.maxAngleDeg * Math.PI/180;
+    theta = clamp(theta, minA, maxA);
 
-    const snack = state.currentSnack || SNACKS.donut;
+    const snack = state.currentSnack;
+    const g = PHYS.gravity * snack.gravMul;
 
-    let vx = dirX * d * PHYS.velScale * snack.speedMul;
-    let vy = dirY * d * PHYS.velScale * snack.speedMul;
+    // Horizontal distance to target must be positive (shooting right)
+    const dx = xt - x0;
+    const dy = yt - y0;
 
-    if (state.tryHard.dampShots > 0) {
-      const damp = 0.92;
-      vx *= damp;
-      vy *= damp;
-      state.tryHard.dampShots--;
+    if (dx <= 10){
+      slipMiss("STOP SHOOTING BACKWARDS.");
+      return;
     }
 
+    // ballistic formula:
+    // v^2 = g*dx^2 / (2*cos^2(theta)*(dx*tan(theta) - dy))
+    // If denominator <= 0, angle can't hit target -> nudge angle toward viable window.
+    function solveV(thetaTry){
+      const cos = Math.cos(thetaTry);
+      const sin = Math.sin(thetaTry);
+      const tan = sin / Math.max(0.0001, cos);
+      const denom = 2 * cos*cos * (dx * tan - dy);
+      if (denom <= 0.0001) return null;
+      const v2 = g * dx*dx / denom;
+      if (v2 <= 0) return null;
+      return Math.sqrt(v2);
+    }
+
+    let v = solveV(theta);
+    if (!v){
+      // nudge angle upward until solvable (this is the core “always reachable” fix)
+      let found = false;
+      for (let a = theta; a <= maxA; a += 0.02){
+        const vv = solveV(a);
+        if (vv){ theta = a; v = vv; found = true; break; }
+      }
+      if (!found){
+        for (let a = theta; a >= minA; a -= 0.02){
+          const vv = solveV(a);
+          if (vv){ theta = a; v = vv; found = true; break; }
+        }
+      }
+      if (!found){
+        slipMiss("THIS ANGLE AIN’T IT.");
+        return;
+      }
+    }
+
+    // Apply a “power feel” from drag amount (small range so it stays solvable)
+    const t = (d - PHYS.minDrag) / (PHYS.maxDrag - PHYS.minDrag);
+    const powerMul = PHYS.powerMin + (PHYS.powerMax - PHYS.powerMin) * clamp(t,0,1);
+    v *= powerMul;
+
+    const vx = v * Math.cos(theta);
+    const vy = -v * Math.sin(theta);
+
     state.proj = {
-      x: handX,
-      y: handY,
+      x:x0, y:y0,
       vx, vy,
-      snack,
-      alive: true,
       r: snack.r,
-      alreadyScored: false,
-      forcedMiss: false
+      snack,
+      scored:false,
+      alive:true
     };
 
-    state.trail.length = 0;
-    state.screenPulse = 0.20;
+    state.pulse = 0.20;
   }
 
-  function doSlipMiss(msg) {
-    const handX = state.player.x;
-    const handY = state.player.y - 18;
-    const snack = state.currentSnack || SNACKS.donut;
-
-    state.proj = {
-      x: handX,
-      y: handY,
-      vx: 120 + Math.random()*60,
-      vy: -200 - Math.random()*60,
-      snack,
-      alive: true,
-      r: snack.r,
-      alreadyScored: true,
-      forcedMiss: true
-    };
+  function slipMiss(msg){
     toast(msg);
-    state.screenPulse = 0.12;
-  }
-
-  // Arc prediction
-  function predictArcPoints(handX, handY, vx, vy, g, steps=18, dt=0.085) {
-    const pts = [];
-    for (let i = 1; i <= steps; i++) {
-      const t = i * dt;
-      const x = handX + vx * t;
-      const y = handY + vy * t + 0.5 * g * t * t;
-      pts.push({ x, y });
-    }
-    return pts;
+    // toss it somewhere dumb
+    const snack = state.currentSnack;
+    state.proj = {
+      x: state.player.x, y: state.player.y-18,
+      vx: 160 + Math.random()*80,
+      vy: -220 - Math.random()*120,
+      r: snack.r,
+      snack,
+      scored:true, // mark so it can’t score
+      alive:true,
+      forced:true
+    };
   }
 
   // Particles
-  function spawnParticles(x, y, count, color) {
+  function pop(x,y,count,color){
     for (let i=0;i<count;i++){
       state.particles.push({
-        x, y,
-        vx: (Math.random()*2-1)*260,
-        vy: (Math.random()*2-1)*260 - 80,
-        a: 1,
-        life: 0.55 + Math.random()*0.35,
-        r: 2 + Math.random()*2.5,
+        x,y,
+        vx:(Math.random()*2-1)*260,
+        vy:(Math.random()*2-1)*260-80,
+        a:1,
+        life:0.6+Math.random()*0.35,
+        r:2+Math.random()*2.5,
         color
       });
     }
   }
 
-  // HUD
-  function updateHUD() {
-    scoreVal.textContent = String(state.score);
-    shotsVal.textContent = `${state.shotIndex}/${RUN.totalShots}`;
+  // Scoring check
+  function checkScore(p){
+    const mx = state.hoop.x;
+    const my = state.hoop.y + 10;
+    const R = state.hoop.r;
+
+    const dx = p.x - mx;
+    const dy = p.y - my;
+    const dist2 = dx*dx + dy*dy;
+
+    const hitR = R + p.r*0.55;
+    if (!p.scored && dist2 <= hitR*hitR){
+      p.scored = true;
+
+      const swishR = R * 0.55;
+      const swish = dist2 <= swishR*swishR;
+
+      const isGold = p.snack.key === 'gold';
+      const base = isGold ? SCORE.golden : SCORE.normal;
+      const bonus = swish ? SCORE.swishBonus : 0;
+
+      state.score += (base + bonus);
+      if (swish) state.swishes++;
+      if (isGold) state.goldMade++;
+
+      toast(isGold ? `GOLD DONUT +${base}` : `+${base}${swish ? ' SWISH +1' : ''}`);
+      pop(mx,my, isGold ? 18 : 12, isGold ? THEME.yellow : 'rgba(255,255,255,.75)');
+      state.pulse = 0.22;
+
+      // bounce out
+      p.vx *= 0.25;
+      p.vy = -420;
+      hud();
+    }
   }
 
-  // End run
-  function endRun() {
-    state.phase = 'end';
-
-    let cal = SCORE.baseCalories + state.score * SCORE.calPerPoint;
-    cal = Math.min(cal, SCORE.runCapCalories);
-    if (state.tryHard.siren > 0) cal = Math.max(20, Math.floor(cal * 0.88));
-    state.end.calories = cal;
-
-    profile.sessionsPlayed += 1;
-    profile.lifetimeCalories += cal;
-
-    if (state.score > profile.basket.bestAllTimeScore) profile.basket.bestAllTimeScore = state.score;
-
-    const dKey = todayKey();
-    if (profile.basket.bestDaily.key !== dKey) profile.basket.bestDaily = { key: dKey, score: 0 };
-    if (state.score > profile.basket.bestDaily.score) profile.basket.bestDaily.score = state.score;
-
-    const wKey = weekKey();
-    if (profile.basket.bestWeekly.key !== wKey) profile.basket.bestWeekly = { key: wKey, score: 0 };
-    if (state.score > profile.basket.bestWeekly.score) profile.basket.bestWeekly.score = state.score;
-
-    saveProfile(profile);
-
-    submitToLeaderboards(profile, { score: state.score, goldenMade: state.goldenMade, swishes: state.swishes });
-
-    showLeaderboards('daily', true);
+  // End shot
+  function nextShot(){
+    state.shotIndex++;
+    hud();
+    if (state.shotIndex >= RUN.totalShots){
+      toast(`RUN OVER: ${state.score} PTS`);
+      // reset after a short pause
+      setTimeout(reset, 700);
+      return;
+    }
+    refreshSnack();
   }
 
-  // Leaderboards UI
-  function showLeaderboards(which='daily', includeResults=false) {
-    const lb = loadLB();
-    const day = todayKey();
-    const week = weekKey();
+  // -------- FIX #2: Draw racks spaced on the 3pt arc --------
+  function drawRackVisual(r, idx){
+    const active = idx === state.rackIndex;
+    const baseW = 64;
+    const baseH = 18;
 
-    let arr = [];
-    let title = '';
+    ctx.save();
+    ctx.globalAlpha = active ? 0.95 : 0.35;
 
-    if (which === 'daily') { arr = (lb.daily[day] || []); title = `Daily — ${day}`; }
-    if (which === 'weekly'){ arr = (lb.weekly[week] || []); title = `Weekly — ${week}`; }
-    if (which === 'all')   { arr = (lb.all || []); title = `All-Time`; }
+    // rack base
+    ctx.fillStyle = active ? 'rgba(255,212,0,.18)' : 'rgba(255,255,255,.10)';
+    ctx.strokeStyle = active ? 'rgba(255,212,0,.50)' : 'rgba(255,255,255,.14)';
+    ctx.lineWidth = 2;
 
-    const meId = profile.memberId;
+    // slight tilt to feel like real rack
+    const tilt = (idx < 2) ? -0.08 : (idx > 2 ? 0.08 : 0);
+    ctx.translate(r.x, r.y);
+    ctx.rotate(tilt);
 
-    const rows = arr.map((e, idx) => {
-      const me = e.memberId === meId;
-      return `
-        <tr>
-          <td class="${me ? 'me':''}">#${idx+1}</td>
-          <td class="${me ? 'me':''}">${e.memberId}</td>
-          <td class="${me ? 'me':''}">${e.score}</td>
-          <td class="${me ? 'me':''}">${e.goldenMade}</td>
-        </tr>
-      `;
-    }).join('');
+    roundRect(-baseW/2, -baseH/2, baseW, baseH, 8);
+    ctx.fill();
+    ctx.stroke();
 
-    lbTableWrap.innerHTML = `
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-        <div style="font-weight:1000; letter-spacing:.3px;">${title}</div>
-        ${includeResults ? `<div style="font-weight:1000; color: var(--pf-yellow);">Run: ${state.score} pts • +${state.end.calories} cal</div>` : ''}
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Gym ID</th>
-            <th>Score</th>
-            <th>Gold</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows || `<tr><td colspan="4" style="text-align:center; opacity:.85;">No scores yet. Be the first degen.</td></tr>`}
-        </tbody>
-      </table>
-    `;
+    // balls on rack (5)
+    const balls = rackForIndex(idx);
+    for (let i=0;i<5;i++){
+      const b = balls[i];
+      const x = -baseW/2 + 10 + i*11;
+      const y = 0;
+      ctx.beginPath();
+      ctx.fillStyle = b.key === 'gold' ? 'rgba(255,234,0,.95)' : 'rgba(255,255,255,.35)';
+      ctx.arc(x, y, 4.2, 0, Math.PI*2);
+      ctx.fill();
+      if (b.key === 'gold'){
+        ctx.strokeStyle = 'rgba(255,212,0,.7)';
+        ctx.stroke();
+      }
+    }
 
-    profileNote.innerHTML = `
-      <b>${profile.memberId}</b> • Lifetime Calories: <b>${profile.lifetimeCalories}</b> • Best Score: <b>${profile.basket.bestAllTimeScore}</b>
-    `;
-
-    modal.classList.add('show');
-
-    document.querySelectorAll('.tab').forEach(t => {
-      t.classList.toggle('active', t.dataset.tab === which);
-    });
+    ctx.restore();
   }
 
-  lbBtn.addEventListener('click', () => showLeaderboards('daily', false));
-  closeModal.addEventListener('click', () => modal.classList.remove('show'));
-  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
-  document.querySelectorAll('.tab').forEach(t => {
-    t.addEventListener('click', () => showLeaderboards(t.dataset.tab, state.phase === 'end'));
-  });
-
-  // Drawing
-  function roundRect(x,y,w,h,r) {
+  function roundRect(x,y,w,h,r){
     ctx.beginPath();
     ctx.moveTo(x+r, y);
     ctx.arcTo(x+w, y, x+w, y+h, r);
@@ -740,352 +562,307 @@
     ctx.closePath();
   }
 
-  function drawCourt() {
-    const floorY = state.h * 0.78;
-
+  // Court / player / hoop
+  function drawCourt(){
     ctx.save();
+    // floor line
     ctx.globalAlpha = 0.35;
     ctx.strokeStyle = 'rgba(255,212,0,.30)';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(state.w*0.04, floorY);
-    ctx.lineTo(state.w*0.96, floorY);
+    ctx.moveTo(state.w*0.04, state.floorY);
+    ctx.lineTo(state.w*0.96, state.floorY);
     ctx.stroke();
 
+    // 3pt arc hint
     ctx.globalAlpha = 0.18;
     ctx.beginPath();
-    ctx.arc(state.w*0.78, floorY+180, state.w*0.55, Math.PI*1.15, Math.PI*1.95);
+    ctx.arc(state.hoop.x, state.floorY+180, state.w*0.55, Math.PI*1.15, Math.PI*1.95);
     ctx.stroke();
     ctx.restore();
 
-    ctx.save();
-    for (let i=0;i<state.spots.length;i++){
-      const s = state.spots[i];
-      ctx.globalAlpha = (i === state.spotIndex) ? 0.85 : 0.28;
-      ctx.fillStyle = (i === state.spotIndex) ? THEME.yellow : 'rgba(255,255,255,.45)';
-      ctx.beginPath();
-      ctx.arc(s.x, s.y+2, 6, 0, Math.PI*2);
-      ctx.fill();
+    // racks
+    for (let i=0;i<state.racks.length;i++){
+      drawRackVisual(state.racks[i], i);
     }
-    ctx.restore();
   }
 
-  function drawPlayer() {
+  function drawPlayer(){
     const x = state.player.x;
     const y = state.player.y;
-
     ctx.save();
+
+    // shadow
     ctx.globalAlpha = 0.35;
     ctx.fillStyle = '#000';
     ctx.beginPath();
     ctx.ellipse(x, y+8, 26, 10, 0, 0, Math.PI*2);
     ctx.fill();
-    ctx.restore();
 
-    ctx.save();
+    // body
+    ctx.globalAlpha = 1;
     ctx.fillStyle = 'rgba(255,255,255,.10)';
     ctx.strokeStyle = 'rgba(255,255,255,.18)';
     ctx.lineWidth = 2;
     roundRect(x-18, y-58, 36, 56, 12);
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
+    ctx.fill(); ctx.stroke();
 
-    ctx.save();
+    // head
     ctx.fillStyle = 'rgba(255,212,0,.95)';
     ctx.beginPath();
     ctx.arc(x, y-70, 14, 0, Math.PI*2);
     ctx.fill();
-    ctx.restore();
 
-    ctx.save();
+    // hand
     ctx.fillStyle = 'rgba(255,255,255,.55)';
     ctx.beginPath();
     ctx.arc(x, y-18, 4, 0, Math.PI*2);
     ctx.fill();
+
     ctx.restore();
   }
 
-  function drawEater() {
-    const base = state.mouthBase;
-    state.mouth.bobT += 0.016;
-    const bob = Math.sin(state.mouth.bobT) * 6;
-    const lean = Math.sin(state.mouth.bobT * 0.7) * 8;
+  function drawHoop(){
+    // bobbing “fat guy mouth hoop”
+    state.hoop.bobT += 0.016;
+    const bob = Math.sin(state.hoop.bobT)*6;
+    const lean = Math.sin(state.hoop.bobT*0.7)*8;
 
-    state.mouth.x = base.x + lean;
-    state.mouth.y = base.y + bob;
-
-    const x = state.mouth.x;
-    const y = state.mouth.y;
+    const x = state.hoop.x + lean;
+    const y = state.hoop.y + bob;
 
     ctx.save();
+    // face blob
     ctx.fillStyle = 'rgba(255,255,255,.08)';
     ctx.strokeStyle = 'rgba(255,255,255,.16)';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.ellipse(x, y, 64, 58, 0, 0, Math.PI*2);
-    ctx.fill();
-    ctx.stroke();
+    ctx.fill(); ctx.stroke();
 
+    // mouth
     ctx.fillStyle = 'rgba(0,0,0,.55)';
     ctx.beginPath();
-    ctx.ellipse(x, y+10, state.mouth.r*1.1, state.mouth.r*0.8, 0, 0, Math.PI*2);
+    ctx.ellipse(x, y+10, state.hoop.r*1.1, state.hoop.r*0.8, 0, 0, Math.PI*2);
     ctx.fill();
 
     ctx.strokeStyle = 'rgba(255,212,0,.35)';
-    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.ellipse(x, y+10, state.mouth.r*1.15, state.mouth.r*0.85, 0, 0, Math.PI*2);
+    ctx.ellipse(x, y+10, state.hoop.r*1.15, state.hoop.r*0.85, 0, 0, Math.PI*2);
     ctx.stroke();
-
     ctx.restore();
+
+    // update mouth target position
+    state.hoop.drawX = x;
+    state.hoop.drawY = y;
   }
 
-  function drawSnack(snack, x, y, r) {
+  function drawSnack(snack,x,y,r){
     ctx.save();
-    if (snack.glow) {
+    if (snack.glow){
       ctx.shadowColor = 'rgba(255,212,0,.85)';
       ctx.shadowBlur = 22;
     }
-    ctx.fillStyle = snack.color || THEME.yellow;
+    ctx.fillStyle = snack.color;
     ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.arc(x,y,r,0,Math.PI*2);
     ctx.fill();
 
-    if (snack.key === 'donut' || snack.key === 'gold') {
+    if (snack.key === 'donut' || snack.key === 'gold'){
       ctx.shadowBlur = 0;
       ctx.fillStyle = 'rgba(0,0,0,.30)';
       ctx.beginPath();
-      ctx.arc(x, y, Math.max(4, r*0.45), 0, Math.PI*2);
+      ctx.arc(x,y,Math.max(4,r*0.45),0,Math.PI*2);
       ctx.fill();
     }
     ctx.restore();
   }
 
-  function drawAimAssist() {
-    const handX = state.aimStart.x;
-    const handY = state.aimStart.y;
-    const dx = handX - state.aimNow.x;
-    const dy = handY - state.aimNow.y;
+  // Aim preview (now uses ballistic solve too, so preview matches reality)
+  function aimPreview(){
+    const x0 = state.aimStart.x;
+    const y0 = state.aimStart.y;
 
-    const dist = Math.hypot(dx, dy);
+    const xt = state.hoop.x;
+    const yt = state.hoop.y + 10;
+
+    const dxPull = x0 - state.aimNow.x;
+    const dyPull = y0 - state.aimNow.y;
+
+    const dist = Math.hypot(dxPull, dyPull);
     const d = clamp(dist, PHYS.minDrag, PHYS.maxDrag);
 
-    const dirX = dx / (dist || 1);
-    const dirY = dy / (dist || 1);
+    let theta = Math.atan2(-dyPull, dxPull);
+    const minA = PHYS.minAngleDeg * Math.PI/180;
+    const maxA = PHYS.maxAngleDeg * Math.PI/180;
+    theta = clamp(theta, minA, maxA);
 
-    const snack = state.currentSnack || SNACKS.donut;
-    let vx = dirX * d * PHYS.velScale * snack.speedMul;
-    let vy = dirY * d * PHYS.velScale * snack.speedMul;
-    const g = PHYS.gravity * snack.gravityMul;
+    const snack = state.currentSnack;
+    const g = PHYS.gravity * snack.gravMul;
+    const dx = xt - x0;
+    const dy = yt - y0;
 
+    if (dx <= 10) return;
+
+    function solveV(thetaTry){
+      const cos = Math.cos(thetaTry);
+      const sin = Math.sin(thetaTry);
+      const tan = sin / Math.max(0.0001, cos);
+      const denom = 2 * cos*cos * (dx * tan - dy);
+      if (denom <= 0.0001) return null;
+      const v2 = g * dx*dx / denom;
+      if (v2 <= 0) return null;
+      return Math.sqrt(v2);
+    }
+
+    let v = solveV(theta);
+    if (!v) return;
+
+    const t = (d - PHYS.minDrag) / (PHYS.maxDrag - PHYS.minDrag);
+    const powerMul = PHYS.powerMin + (PHYS.powerMax - PHYS.powerMin) * clamp(t,0,1);
+    v *= powerMul;
+
+    const vx = v * Math.cos(theta);
+    const vy = -v * Math.sin(theta);
+
+    // draw pull line
     ctx.save();
     ctx.globalAlpha = 0.85;
-    ctx.strokeStyle = snack.key === 'gold' ? THEME.yellow : 'rgba(255,255,255,.65)';
+    ctx.strokeStyle = snack.key==='gold' ? THEME.yellow : 'rgba(255,255,255,.65)';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(handX, handY);
+    ctx.moveTo(x0,y0);
     ctx.lineTo(state.aimNow.x, state.aimNow.y);
     ctx.stroke();
 
-    const pts = predictArcPoints(handX, handY, vx, vy, g, 18, 0.085);
-    for (let i=0;i<pts.length;i++){
-      const p = pts[i];
-      const a = 0.9 - i/pts.length;
-      ctx.globalAlpha = a * 0.9;
-      ctx.fillStyle = snack.key === 'gold' ? THEME.yellow : 'rgba(255,255,255,.85)';
+    // arc dots
+    for (let i=1;i<=18;i++){
+      const tt = i*0.09;
+      const x = x0 + vx*tt;
+      const y = y0 + vy*tt + 0.5*g*tt*tt;
+      const a = 0.85 - i/22;
+      ctx.globalAlpha = a;
+      ctx.fillStyle = snack.key==='gold' ? THEME.yellow : 'rgba(255,255,255,.85)';
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 3.4 - i*0.08, 0, Math.PI*2);
+      ctx.arc(x,y, 3.4 - i*0.08, 0, Math.PI*2);
       ctx.fill();
     }
     ctx.restore();
   }
 
-  function render() {
+  // Update loop
+  let last = performance.now();
+  function tick(now){
+    const dt = Math.min((now-last)/1000, PHYS.maxDt);
+    last = now;
+
+    // pulse overlay
+    if (state.pulse > 0) state.pulse = Math.max(0, state.pulse - dt);
+
+    // particles
+    for (let i=state.particles.length-1;i>=0;i--){
+      const p = state.particles[i];
+      p.x += p.vx*dt;
+      p.y += p.vy*dt;
+      p.vy += 900*dt;
+      p.a -= dt/p.life;
+      if (p.a <= 0) state.particles.splice(i,1);
+    }
+
+    // toast
+    if (toastTimer > 0){
+      toastTimer -= dt;
+      if (toastTimer <= 0) toastEl.classList.remove('show');
+    }
+
+    // lazy timers
+    if (state.shotIndex < RUN.totalShots){
+      state.idle += dt;
+      if (state.aiming) state.aimHold += dt;
+
+      if (!state.aiming && !state.proj && state.idle > LAZY.noInputMax){
+        slipMiss("BRO SHOOT OR GO HOME.");
+        state.idle = 0;
+      }
+      if (state.aiming && state.aimHold > LAZY.aimIdleMax){
+        state.aiming = false;
+        slipMiss("STOP THINKING. JUST YEET IT.");
+        state.aimHold = 0;
+        state.idle = 0;
+      }
+    }
+
+    // projectile
+    if (state.proj){
+      const p = state.proj;
+      const g = PHYS.gravity * p.snack.gravMul;
+
+      p.vy += g*dt;
+      p.x += p.vx*dt;
+      p.y += p.vy*dt;
+
+      if (!p.scored && !p.forced) checkScore(p);
+
+      if (p.x < -120 || p.x > state.w+120 || p.y < -220 || p.y > state.h+160){
+        state.proj = null;
+        nextShot();
+      }
+    }
+
+    // render
     ctx.clearRect(0,0,state.w,state.h);
 
-    if (state.screenPulse > 0) {
+    if (state.pulse > 0){
       ctx.save();
-      ctx.globalAlpha = Math.min(0.22, state.screenPulse);
+      ctx.globalAlpha = Math.min(0.22, state.pulse);
       ctx.fillStyle = THEME.yellow;
       ctx.fillRect(0,0,state.w,state.h);
       ctx.restore();
     }
 
     drawCourt();
-    drawEater();
+    drawHoop();
     drawPlayer();
 
-    if (state.phase === 'play' && state.aiming && (!state.proj || !state.proj.alive)) {
-      drawAimAssist();
-    }
+    if (state.aiming && !state.proj) aimPreview();
 
-    if (state.proj && state.proj.alive) {
+    if (state.proj){
       drawSnack(state.proj.snack, state.proj.x, state.proj.y, state.proj.r);
     }
 
-    for (const p of state.particles) {
+    // particles on top
+    for (const p of state.particles){
       ctx.save();
       ctx.globalAlpha = Math.max(0,p.a);
       ctx.fillStyle = p.color;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
       ctx.fill();
       ctx.restore();
     }
+
+    requestAnimationFrame(tick);
   }
 
-  // Physics + scoring
-  function checkMouthCollision(pr) {
-    const mx = state.mouth.x;
-    const my = state.mouth.y + 10;
-    const mouthR = state.mouth.r;
-
-    const dx = pr.x - mx;
-    const dy = pr.y - my;
-    const dist2 = dx*dx + dy*dy;
-
-    const hitR = mouthR + pr.r * 0.55;
-    if (dist2 <= hitR*hitR) {
-      pr.alreadyScored = true;
-
-      const swishR = mouthR * 0.55;
-      const isSwish = dist2 <= swishR*swishR;
-
-      const isGolden = pr.snack.key === 'gold';
-      const basePts = isGolden ? SCORE.golden : SCORE.normal;
-      const bonus = isSwish ? SCORE.swishBonus : 0;
-
-      state.score += (basePts + bonus);
-      if (isSwish) state.swishes += 1;
-      if (isGolden) state.goldenMade += 1;
-
-      if (isSwish) state.tryHard.streak += 1;
-      else state.tryHard.streak = 0;
-
-      if (state.tryHard.streak >= 6 || (state.shotInRack === 4 && isSwish)) {
-        state.tryHard.siren += 1;
-        state.tryHard.dampShots = Math.max(state.tryHard.dampShots, 2);
-        toast("🚨 TRY-HARD DETECTED. RELAX.");
-      }
-
-      state.screenPulse = 0.22;
-      spawnParticles(mx, my, isGolden ? 18 : 12, isGolden ? THEME.yellow : 'rgba(255,255,255,.75)');
-
-      updateHUD();
-
-      pr.vx *= 0.25;
-      pr.vy = -420;
-    }
-  }
-
-  function finalizeShot(pr) {
-    state.shotIndex += 1;
-    updateHUD();
-
-    if (state.shotIndex >= RUN.totalShots) {
-      endRun();
-      return;
-    }
-    loadNextSnack();
-  }
-
-  // Main loop
-  let last = performance.now();
-  function update(dt) {
-    if (state.screenPulse > 0) state.screenPulse = Math.max(0, state.screenPulse - dt);
-
-    for (let i=state.particles.length-1;i>=0;i--){
-      const p = state.particles[i];
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.vy += 900 * dt;
-      p.a -= dt / p.life;
-      if (p.a <= 0) state.particles.splice(i,1);
-    }
-
-    if (toastTimer > 0) {
-      toastTimer -= dt;
-      if (toastTimer <= 0) toastEl.classList.remove('show');
-    }
-
-    if (state.phase !== 'play') return;
-
-    state.idleTime += dt;
-    if (state.aiming) state.aimHoldTime += dt;
-
-    if (!state.aiming && (!state.proj || !state.proj.alive) && state.idleTime > LAZY.noInputMax) {
-      doSlipMiss("BRO SHOOT OR GO HOME.");
-      state.idleTime = 0;
-    }
-
-    if (state.aiming && state.aimHoldTime > LAZY.aimIdleMax) {
-      state.aiming = false;
-      doSlipMiss("STOP THINKING. JUST YEET IT.");
-      state.aimHoldTime = 0;
-      state.idleTime = 0;
-    }
-
-    if (state.proj && state.proj.alive) {
-      const pr = state.proj;
-      const snack = pr.snack;
-
-      const g = PHYS.gravity * snack.gravityMul;
-      pr.vy += g * dt;
-      pr.x  += pr.vx * dt;
-      pr.y  += pr.vy * dt;
-
-      if (!pr.alreadyScored && !pr.forcedMiss) checkMouthCollision(pr);
-
-      if (pr.x < -100 || pr.x > state.w + 100 || pr.y > state.h + 120 || pr.y < -200) {
-        pr.alive = false;
-        finalizeShot(pr);
-        state.proj = null;
-      }
-    }
-  }
-
-  function loop(now) {
-    const dt = Math.min((now - last) / 1000, PHYS.maxDt);
-    last = now;
-    update(dt);
-    render();
-    requestAnimationFrame(loop);
-  }
-
-  // Reset run
-  function resetRun() {
-    state.phase = 'play';
-    state.shotIndex = 0;
+  function reset(){
     state.score = 0;
+    state.shotIndex = 0;
     state.swishes = 0;
-    state.goldenMade = 0;
-    state.tryHard = { streak: 0, siren: 0, dampShots: 0 };
+    state.goldMade = 0;
     state.proj = null;
     state.particles.length = 0;
-    state.idleTime = 0;
-    state.aimHoldTime = 0;
-    updateHUD();
-    loadNextSnack();
+    state.aiming = false;
+    state.idle = 0;
+    state.aimHold = 0;
+    state.pulse = 0;
+    refreshSnack();
+    hud();
   }
 
-  // Restart by tapping canvas when end state (optional)
-  canvas.addEventListener('click', () => {
-    if (state.phase === 'end') {
-      modal.classList.remove('show');
-      resetRun();
-      toast("NEW RUN. NO CARDIO.");
-    }
-  });
-
-  // Modal events
-  closeModal.addEventListener('click', () => modal.classList.remove('show'));
-
-  // Kickoff
-  resetRun();
-  requestAnimationFrame(loop);
+  // start
+  reset();
+  requestAnimationFrame(tick);
 })();
 </script>
-
 </body>
 </html>
