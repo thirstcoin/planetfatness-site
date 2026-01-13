@@ -10,7 +10,6 @@
       --pf-yellow:#ffd400;
       --pf-ink:#0b0b12;
       --pf-muted: rgba(255,255,255,.72);
-      --pf-dim: rgba(255,255,255,.45);
       --safe-top: env(safe-area-inset-top);
       --safe-bottom: env(safe-area-inset-bottom);
     }
@@ -117,6 +116,18 @@
       white-space:nowrap;
     }
     .toast.show{opacity:1; transform:translateX(-50%) translateY(-2px);}
+    .hint{
+      position:absolute; left:12px; bottom:12px;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.30);
+      color: rgba(255,255,255,.78);
+      font-weight:900;
+      font-size:12px;
+      backdrop-filter: blur(10px);
+      user-select:none;
+    }
     .overlay{
       position:absolute; inset:0;
       display:none; align-items:center; justify-content:center;
@@ -138,7 +149,7 @@
     .row{display:flex;gap:10px;flex-wrap:wrap;}
     .divider{height:1px;background: rgba(255,255,255,.10);margin:12px 0;}
     .leader{
-      max-height: 200px; overflow:auto;
+      max-height: 220px; overflow:auto;
       border-radius:14px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.18);
@@ -147,17 +158,8 @@
     .leader table{width:100%;border-collapse:collapse;font-size:13px;}
     .leader th,.leader td{padding:8px 6px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08);}
     .leader th{color:var(--pf-muted);font-size:11px;letter-spacing:.35px;}
-    .hint{
-      position:absolute; left:12px; bottom:12px;
-      padding:8px 10px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.30);
-      color: rgba(255,255,255,.78);
-      font-weight:900;
-      font-size:12px;
-      backdrop-filter: blur(10px);
-      user-select:none;
+    .mini{
+      display:flex; gap:10px; flex-wrap:wrap;
     }
   </style>
 </head>
@@ -170,8 +172,8 @@
         <div class="t2">Streak Shot</div>
       </div>
       <div class="pill">STREAK <strong id="streakTxt">0</strong></div>
-      <div class="pill">BEST <strong id="bestTxt">0</strong></div>
       <div class="pill">SCORE <strong id="scoreTxt">0</strong></div>
+      <div class="pill">RUN BEST <strong id="runBestTxt">0</strong></div>
     </div>
     <div class="right">
       <button class="btn secondary" id="btnMain">← Main</button>
@@ -186,20 +188,21 @@
       <div class="panel"><div><div class="label">MULTI</div><div class="value"><span id="multiTxt">1×</span></div></div></div>
     </div>
     <div class="group">
-      <div class="panel"><div><div class="label">MOVING RIM</div><div class="value"><span id="rimTxt">ON</span></div></div></div>
-      <div class="panel"><div><div class="label">MODE</div><div class="value"><span>Endless</span></div></div></div>
+      <div class="panel"><div><div class="label">RIM</div><div class="value"><span id="rimTxt">MOVING</span></div></div></div>
+      <div class="panel"><div><div class="label">RULE</div><div class="value"><span>Miss = End</span></div></div></div>
     </div>
   </div>
 
   <div class="canvasWrap" id="stage">
     <canvas id="cv"></canvas>
     <div class="toast" id="toast"></div>
-    <div class="hint">Drag to aim + power • Release to shoot • Golden donut = 2×</div>
+    <div class="hint">Drag to aim + power • Release to shoot • Miss ends run • Golden = 2×</div>
 
+    <!-- Start -->
     <div class="overlay show" id="overlayStart">
       <div class="card">
-        <h2>One shooter. Rim moves every shot.</h2>
-        <p>Chase the <b>highest streak</b>. Golden donuts are worth <b>double</b>. Miss resets streak but you can grind for a legendary run.</p>
+        <h2>One miss ends the run.</h2>
+        <p>Chase the highest streak. Golden donuts are double. After a miss, you can save + share your run.</p>
         <div class="row">
           <button class="btn" id="btnGo" style="flex:1;">Run It</button>
           <button class="btn secondary" id="btnCloseStart" style="flex:1;">Not Yet</button>
@@ -207,10 +210,42 @@
       </div>
     </div>
 
+    <!-- End -->
+    <div class="overlay" id="overlayEnd">
+      <div class="card">
+        <h2>Run over.</h2>
+        <p id="endLine">Save it or run it back.</p>
+
+        <div class="mini">
+          <div class="panel" style="flex:1;"><div><div class="label">FINAL STREAK</div><div class="value"><span id="finalStreakTxt">0</span></div></div></div>
+          <div class="panel" style="flex:1;"><div><div class="label">FINAL SCORE</div><div class="value"><span id="finalScoreTxt">0</span></div></div></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row">
+          <button class="btn" id="btnSave" style="flex:1;">Save to Leaderboard</button>
+          <button class="btn secondary" id="btnShare" style="flex:1;">Share</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="leader" id="leaderBoxEnd"></div>
+
+        <div class="divider"></div>
+
+        <div class="row">
+          <button class="btn" id="btnAgain" style="flex:1;">Run It Back</button>
+          <button class="btn secondary" id="btnCloseEnd" style="flex:1;">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Board -->
     <div class="overlay" id="overlayBoard">
       <div class="card">
         <h2>Leaderboard</h2>
-        <p>Local device leaderboard (best streak + best score).</p>
+        <p>Local device leaderboard (best streak first, then score).</p>
         <div class="leader" id="leaderBox"></div>
         <div class="divider"></div>
         <div class="row">
@@ -233,8 +268,8 @@
   const ctx=cv.getContext('2d');
 
   const streakTxt=document.getElementById('streakTxt');
-  const bestTxt=document.getElementById('bestTxt');
   const scoreTxt=document.getElementById('scoreTxt');
+  const runBestTxt=document.getElementById('runBestTxt');
   const foodTxt=document.getElementById('foodTxt');
   const multiTxt=document.getElementById('multiTxt');
   const rimTxt=document.getElementById('rimTxt');
@@ -242,8 +277,15 @@
   const toast=document.getElementById('toast');
 
   const overlayStart=document.getElementById('overlayStart');
+  const overlayEnd=document.getElementById('overlayEnd');
   const overlayBoard=document.getElementById('overlayBoard');
+
+  const finalStreakTxt=document.getElementById('finalStreakTxt');
+  const finalScoreTxt=document.getElementById('finalScoreTxt');
+  const endLine=document.getElementById('endLine');
+
   const leaderBox=document.getElementById('leaderBox');
+  const leaderBoxEnd=document.getElementById('leaderBoxEnd');
 
   const btnStart=document.getElementById('btnStart');
   const btnGo=document.getElementById('btnGo');
@@ -252,6 +294,11 @@
   const btnCloseBoard=document.getElementById('btnCloseBoard');
   const btnResetLB=document.getElementById('btnResetLB');
   const btnMain=document.getElementById('btnMain');
+
+  const btnAgain=document.getElementById('btnAgain');
+  const btnCloseEnd=document.getElementById('btnCloseEnd');
+  const btnSave=document.getElementById('btnSave');
+  const btnShare=document.getElementById('btnShare');
 
   function resize(){
     const r=stage.getBoundingClientRect();
@@ -268,39 +315,41 @@
   const W=()=>stage.getBoundingClientRect().width;
   const H=()=>stage.getBoundingClientRect().height;
 
-  // ---- leaderboard (local) ----
-  const LB_KEY='pf_streakshot_lb_v1';
+  // ---- leaderboard ----
+  const LB_KEY='pf_streakshot_miss_ends_v1';
   const loadLB=()=>{try{return JSON.parse(localStorage.getItem(LB_KEY)||'[]');}catch{return[];}};
   const saveLB=(rows)=>localStorage.setItem(LB_KEY,JSON.stringify(rows));
-  function addLB(bestStreak, bestScore){
+
+  function addLB(streak, score){
     const rows=loadLB();
-    rows.push({bestStreak, bestScore, at:Date.now()});
-    rows.sort((a,b)=> (b.bestStreak-a.bestStreak) || (b.bestScore-a.bestScore));
-    saveLB(rows.slice(0,25));
+    rows.push({streak, score, at:Date.now()});
+    rows.sort((a,b)=> (b.streak-a.streak) || (b.score-a.score));
+    saveLB(rows.slice(0,30));
   }
-  function renderLB(){
+
+  function renderLB(el){
     const rows=loadLB();
     if(!rows.length){
-      leaderBox.innerHTML='<div style="color:rgba(255,255,255,.7);font-weight:1000;">No runs yet.</div>';
+      el.innerHTML='<div style="color:rgba(255,255,255,.7);font-weight:1000;">No runs yet.</div>';
       return;
     }
     const fmt=(ts)=>{const d=new Date(ts);return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});};
-    let html='<table><thead><tr><th>#</th><th>Best Streak</th><th>Best Score</th><th>When</th></tr></thead><tbody>';
+    let html='<table><thead><tr><th>#</th><th>Streak</th><th>Score</th><th>When</th></tr></thead><tbody>';
     rows.forEach((r,i)=>{
       html+=`<tr>
         <td>${i+1}</td>
-        <td style="font-weight:1200;color:rgba(255,212,0,.95)">${r.bestStreak}</td>
-        <td>${r.bestScore}</td>
+        <td style="font-weight:1200;color:rgba(255,212,0,.95)">${r.streak}</td>
+        <td>${r.score}</td>
         <td style="color:rgba(255,255,255,.65)">${fmt(r.at)}</td>
       </tr>`;
     });
     html+='</tbody></table>';
-    leaderBox.innerHTML=html;
+    el.innerHTML=html;
   }
 
   // ---- toast ----
   let toastT=0;
-  const showToast=(msg)=>{toast.textContent=msg;toast.classList.add('show');toastT=1.25;};
+  const showToast=(msg)=>{toast.textContent=msg;toast.classList.add('show');toastT=1.1;};
 
   // ---- food ----
   const FOOD = {
@@ -310,11 +359,8 @@
     PIZZA:    { label:'🍕 Deep Dish', g:1.06, drag:0.986, r:15, color:'#ffcc66' },
     GOLD:     { label:'⭐ Golden',     g:0.96, drag:0.980, r:14, color:'#ffd400', golden:true }
   };
-
   function pickFood(){
-    // ~10% golden
-    const t=Math.random();
-    if(t<0.10) return 'GOLD';
+    if(Math.random()<0.10) return 'GOLD';
     const r=Math.random();
     if(r<0.35) return 'COOKIE';
     if(r<0.68) return 'DONUT';
@@ -329,8 +375,6 @@
     const rimR = Math.max(30, w*0.05);
     return { w,h, shooter, rimR };
   }
-
-  // rim “stations” (moves each shot)
   function rimStations(L){
     const w=L.w, h=L.h;
     return [
@@ -345,6 +389,7 @@
 
   // ---- state ----
   let run=null;
+  let lastRun=null; // stored run results to save/share after miss
 
   function newRun(){
     const L=layout();
@@ -352,10 +397,12 @@
     const first=stations[Math.floor(Math.random()*stations.length)];
     return {
       playing:true,
+      ended:false,
+      saved:false,
+
       streak:0,
-      bestStreak:0,
       score:0,
-      bestScore:0,
+      runBest:0,
 
       aiming:false,
       aimNow:{x:0,y:0},
@@ -367,30 +414,30 @@
       rimMoving:true,
 
       mouth:{chomp:0, annoyed:0, glow:0},
-      seed: Math.floor(Math.random()*1e9)
     };
-  }
-
-  function start(){
-    run=newRun();
-    updateHUD();
-    showToast('Lock in. Chase the streak.');
   }
 
   function updateHUD(){
     streakTxt.textContent=String(run.streak);
-    bestTxt.textContent=String(run.bestStreak);
     scoreTxt.textContent=String(run.score);
+    runBestTxt.textContent=String(run.runBest);
     const f=FOOD[run.foodKey];
     foodTxt.textContent=f.label;
     multiTxt.textContent = f.golden ? '2×' : '1×';
-    rimTxt.textContent = run.rimMoving ? 'ON' : 'OFF';
+    rimTxt.textContent = run.rimMoving ? 'MOVING' : 'FIXED';
+  }
+
+  function start(){
+    run=newRun();
+    lastRun=null;
+    overlayEnd.classList.remove('show');
+    updateHUD();
+    showToast('Lock in. One miss ends it.');
   }
 
   function moveRim(){
     const L=layout();
     const stations=rimStations(L);
-    // pick a different station than current target
     let pick=stations[Math.floor(Math.random()*stations.length)];
     let tries=0;
     while(tries++<6 && Math.hypot(pick.x-run.rim.tx, pick.y-run.rim.ty) < L.w*0.08){
@@ -398,46 +445,53 @@
     }
     run.rim.tx=pick.x;
     run.rim.ty=pick.y;
-    run.rim.t=0; // tween start
+    run.rim.t=0;
   }
 
-  function nextShotSetup(){
-    run.foodKey = pickFood();
-    run.ball = null;
+  function setupNextShot(){
+    run.foodKey=pickFood();
+    run.ball=null;
     if(run.rimMoving) moveRim();
     updateHUD();
   }
 
-  function miss(){
-    run.streak=0;
-    run.mouth.annoyed=0.22;
-    showToast('Miss. Streak reset.');
-    nextShotSetup();
+  function endRun(reason){
+    if(!run || run.ended) return;
+    run.ended=true;
+    run.playing=false;
+
+    lastRun = { streak: run.streak, score: run.score, at: Date.now(), reason: reason||'MISS' };
+
+    finalStreakTxt.textContent = String(lastRun.streak);
+    finalScoreTxt.textContent = String(lastRun.score);
+    endLine.textContent = (reason==='MISS') ? 'Missed. Run ended.' : 'Run ended.';
+
+    renderLB(leaderBoxEnd);
+    overlayEnd.classList.add('show');
   }
 
-  function make(isGolden){
-    const pts = isGolden ? 2 : 1;
+  function miss(){
+    showToast('Miss.');
+    endRun('MISS');
+  }
+
+  function make(){
+    const f=FOOD[run.foodKey];
+    const pts=f.golden?2:1;
+
     run.score += pts;
     run.streak += 1;
-    run.bestStreak = Math.max(run.bestStreak, run.streak);
-    run.bestScore = Math.max(run.bestScore, run.score);
+    run.runBest = Math.max(run.runBest, run.streak);
 
     run.mouth.chomp=0.22;
     run.mouth.glow=0.55;
 
-    showToast(isGolden ? `GOLDEN +2 (Streak ${run.streak})` : `+1 (Streak ${run.streak})`);
-
-    // save occasionally so “50 in a row” feels recorded
-    if(run.streak===10 || run.streak===25 || run.streak===50 || run.streak===75 || run.streak===100){
-      addLB(run.bestStreak, run.bestScore);
-    }
-
-    nextShotSetup();
+    showToast(f.golden ? `GOLDEN +2 (Streak ${run.streak})` : `+1 (Streak ${run.streak})`);
+    setupNextShot();
   }
 
-  // ---- aiming + shooting ----
-  function canAim(){ return run && run.playing && !run.ball; }
-
+  // ---- input ----
+  function canAim(){ return run && run.playing && !run.ended && !run.ball; }
   function getPos(e){
     const rect=stage.getBoundingClientRect();
     const t=e.touches && e.touches[0];
@@ -445,7 +499,6 @@
     const cy=t? t.clientY : e.clientY;
     return {x: cx-rect.left, y: cy-rect.top};
   }
-
   function onDown(e){
     if(!canAim()) return;
     e.preventDefault();
@@ -463,7 +516,6 @@
     run.aiming=false;
     shoot();
   }
-
   stage.addEventListener('mousedown', onDown);
   stage.addEventListener('mousemove', onMove);
   stage.addEventListener('mouseup', onUp);
@@ -479,25 +531,23 @@
     const s=L.shooter;
     const a=run.aimNow;
 
-    // vector from finger to shooter (pull back)
-    const dx = s.x - a.x;
-    const dy = s.y - a.y;
-    const dist = Math.hypot(dx,dy);
+    const dx=s.x-a.x;
+    const dy=s.y-a.y;
+    const dist=Math.hypot(dx,dy);
 
-    const maxPull = Math.max(200, L.w*0.36);
-    const pull = clamp(dist, 0, maxPull);
-    const power = pull / maxPull;
+    const maxPull=Math.max(200, L.w*0.36);
+    const pull=clamp(dist,0,maxPull);
+    const power=pull/maxPull;
 
-    const nx = dx / (dist||1);
-    const ny = dy / (dist||1);
+    const nx=dx/(dist||1);
+    const ny=dy/(dist||1);
 
-    // tuned for “basket boy” feel
-    const speed = lerp(700, 1750, power*power);
+    const speed=lerp(700, 1750, power*power);
 
     const key=run.foodKey;
     const f=FOOD[key];
 
-    run.ball = {
+    run.ball={
       x:s.x, y:s.y,
       vx:nx*speed,
       vy:ny*speed,
@@ -507,27 +557,23 @@
     };
   }
 
-  // ---- sim ----
+  // ---- sim + draw ----
   function step(dt){
     if(!run) return;
 
-    // toast
     if(toastT>0){ toastT-=dt; if(toastT<=0) toast.classList.remove('show'); }
 
-    // mouth anim
     run.mouth.chomp=Math.max(0,run.mouth.chomp-dt);
     run.mouth.annoyed=Math.max(0,run.mouth.annoyed-dt);
     run.mouth.glow=Math.max(0,run.mouth.glow-dt);
 
-    // rim tween
-    if(run.rim.t < 1){
-      // quick ease
-      run.rim.t = Math.min(1, run.rim.t + dt*6.0);
-      const t = 1 - Math.pow(1-run.rim.t, 3);
-      run.rim.x = lerp(run.rim.x, run.rim.tx, t);
-      run.rim.y = lerp(run.rim.y, run.rim.ty, t);
+    if(run.rim.t<1){
+      run.rim.t=Math.min(1, run.rim.t + dt*6.0);
+      const t=1-Math.pow(1-run.rim.t,3);
+      run.rim.x=lerp(run.rim.x, run.rim.tx, t);
+      run.rim.y=lerp(run.rim.y, run.rim.ty, t);
     } else {
-      run.rim.x = run.rim.tx; run.rim.y = run.rim.ty;
+      run.rim.x=run.rim.tx; run.rim.y=run.rim.ty;
     }
 
     if(run.ball){
@@ -535,38 +581,32 @@
       const b=run.ball;
       const f=FOOD[b.key];
 
-      const g = 980 * f.g;
+      const g=980*f.g;
 
-      b.vx *= f.drag;
-      b.vy *= f.drag;
+      b.vx*=f.drag;
+      b.vy*=f.drag;
+      b.vy+=g*dt;
+      b.x+=b.vx*dt;
+      b.y+=b.vy*dt;
+      b.life+=dt;
 
-      b.vy += g*dt;
-      b.x += b.vx*dt;
-      b.y += b.vy*dt;
-      b.life += dt;
-
-      // collision check only on descent
       const dx=b.x-run.rim.x, dy=b.y-run.rim.y;
       const d=Math.hypot(dx,dy);
 
-      const clean = L.rimR*0.55;
-      const rattle = L.rimR*0.90;
+      const clean=L.rimR*0.55;
+      const rattle=L.rimR*0.90;
 
       if(b.vy>0 && dy>-20 && dy<140){
-        if(d <= clean){
-          make(!!f.golden);
-          return;
-        } else if(d <= rattle){
-          // rattle chance (pizza a bit sticky)
-          let chance = 0.58 + (b.key==='PIZZA'?0.10:0) + (b.key==='GOLD'?0.06:0);
-          chance = clamp(chance, 0.35, 0.88);
-          if(Math.random()<chance) make(!!f.golden);
+        if(d<=clean){ make(); return; }
+        if(d<=rattle){
+          let chance=0.58 + (b.key==='PIZZA'?0.10:0) + (b.key==='GOLD'?0.06:0);
+          chance=clamp(chance,0.35,0.88);
+          if(Math.random()<chance) make();
           else miss();
           return;
         }
       }
 
-      // out of bounds
       const margin=90;
       if(b.x<-margin || b.x>L.w+margin || b.y<-margin || b.y>L.h+margin || b.life>4.2){
         miss(); return;
@@ -574,32 +614,29 @@
     }
   }
 
-  // ---- drawing ----
   function draw(){
     const L=layout();
     ctx.clearRect(0,0,L.w,L.h);
 
-    // subtle court arc + dots
+    // court hint
     ctx.save();
     ctx.globalAlpha=0.18;
     ctx.lineWidth=2;
     ctx.strokeStyle='rgba(255,255,255,0.14)';
     ctx.beginPath();
-    ctx.arc(L.w*0.70, L.h*0.18, Math.min(L.w*0.52, L.h*0.52), 0.15*Math.PI, 0.85*Math.PI);
+    ctx.arc(L.w*0.72, L.h*0.18, Math.min(L.w*0.52, L.h*0.52), 0.15*Math.PI, 0.85*Math.PI);
     ctx.stroke();
-    ctx.globalAlpha=1;
     ctx.restore();
 
-    // shooter “character”
+    // shooter
     const s=L.shooter;
     ctx.save();
-    // body
     ctx.globalAlpha=0.85;
     ctx.fillStyle='rgba(255,255,255,0.10)';
     ctx.beginPath();
     ctx.roundRect(s.x-18, s.y-48, 36, 58, 12);
     ctx.fill();
-    // head
+
     ctx.fillStyle='rgba(255,212,0,0.85)';
     ctx.beginPath();
     ctx.arc(s.x, s.y-58, 14, 0, Math.PI*2);
@@ -607,19 +644,19 @@
     ctx.restore();
 
     // rim mouth
-    const baseR=L.rimR;
     const breath=Math.sin((performance.now()/1000)*2.0)*0.03;
-    const chomp=run?run.mouth.chomp:0;
-    const annoyed=run?run.mouth.annoyed:0;
-    const glow=run?run.mouth.glow:0;
+    const chomp=run.mouth.chomp;
+    const annoyed=run.mouth.annoyed;
+    const glow=run.mouth.glow;
+    const wig=annoyed>0?Math.sin((1-annoyed)*22)*3:0;
 
-    const wig = annoyed>0 ? Math.sin((1-annoyed)*22)*3 : 0;
+    const baseR=L.rimR;
 
     ctx.save();
-    ctx.translate(run?run.rim.x + wig : L.w*0.70, run?run.rim.y : L.h*0.28);
+    ctx.translate(run.rim.x+wig, run.rim.y);
 
     if(glow>0){
-      ctx.globalAlpha=0.20 + glow*0.35;
+      ctx.globalAlpha=0.20+glow*0.35;
       ctx.fillStyle='rgba(255,212,0,0.70)';
       ctx.beginPath();
       ctx.arc(0,0,baseR*1.6,0,Math.PI*2);
@@ -651,57 +688,44 @@
 
     ctx.restore();
 
-    // aiming preview (dotted)
-    if(run && run.aiming && !run.ball){
+    // aim preview dots
+    if(run.aiming && !run.ball && run.playing && !run.ended){
       const a=run.aimNow;
-      const dx = s.x - a.x;
-      const dy = s.y - a.y;
-      const dist = Math.hypot(dx,dy);
+      const dx=s.x-a.x, dy=s.y-a.y;
+      const dist=Math.hypot(dx,dy);
 
-      const maxPull = Math.max(200, L.w*0.36);
-      const pull = clamp(dist, 0, maxPull);
-      const power = pull/maxPull;
+      const maxPull=Math.max(200, L.w*0.36);
+      const pull=clamp(dist,0,maxPull);
+      const power=pull/maxPull;
 
-      const nx=dx/(dist||1);
-      const ny=dy/(dist||1);
+      const nx=dx/(dist||1), ny=dy/(dist||1);
+      const speed=lerp(700, 1750, power*power);
 
-      const speed = lerp(700, 1750, power*power);
       const key=run.foodKey;
       const f=FOOD[key];
-      let vx=nx*speed, vy=ny*speed;
 
+      let vx=nx*speed, vy=ny*speed;
       let x=s.x, y=s.y;
+
       const g=980*f.g;
       const simDt=1/60;
 
       ctx.save();
       ctx.fillStyle='rgba(255,255,255,0.70)';
       for(let i=0;i<28;i++){
-        // small dotted points
-        ctx.globalAlpha = 0.80 * (1 - i/30);
+        ctx.globalAlpha=0.80*(1-i/30);
         ctx.beginPath();
-        ctx.arc(x, y, i===0?3:2.2, 0, Math.PI*2);
+        ctx.arc(x,y,i===0?3:2.2,0,Math.PI*2);
         ctx.fill();
-
         vx*=f.drag; vy*=f.drag;
         vy+=g*simDt;
         x+=vx*simDt; y+=vy*simDt;
       }
       ctx.restore();
-
-      // pull ring
-      ctx.save();
-      ctx.globalAlpha=0.40;
-      ctx.strokeStyle='rgba(255,212,0,0.85)';
-      ctx.lineWidth=3;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, 32 + power*22, 0, Math.PI*2);
-      ctx.stroke();
-      ctx.restore();
     }
 
     // ball
-    if(run && run.ball){
+    if(run.ball){
       const b=run.ball;
       const f=FOOD[b.key];
       ctx.save();
@@ -726,41 +750,70 @@
     }
   }
 
-  // loop
   let last=performance.now();
   function loop(now){
     requestAnimationFrame(loop);
     const dt=Math.min(0.033,(now-last)/1000);
     last=now;
+
     if(run){
-      step(dt);
+      if(run.playing && !run.ended) step(dt);
       draw();
     } else {
-      // idle draw
-      run = newRun();
-      run.playing=false;
-      draw();
-      run = null;
+      // idle
+      const tmp=newRun();
+      tmp.playing=false;
+      run=tmp; draw(); run=null;
     }
   }
   requestAnimationFrame(loop);
 
-  // buttons
+  // ---- share + save ----
+  async function shareRun(){
+    if(!lastRun) return;
+    const text = `Planet Fatness — Streak Shot\n🔥 Streak: ${lastRun.streak}\n🍩 Score: ${lastRun.score}\nCan you beat it?`;
+    const url = location.href;
+
+    if(navigator.share){
+      try{ await navigator.share({ title:'Planet Fatness — Streak Shot', text, url }); }
+      catch(e){}
+    } else {
+      try{
+        await navigator.clipboard.writeText(text + `\n` + url);
+        showToast('Copied share text.');
+      } catch(e){
+        showToast('Share not supported here.');
+      }
+    }
+  }
+
+  function saveRun(){
+    if(!lastRun) return;
+    // prevent spam double-save on same end screen
+    if(run && run.saved) return;
+    addLB(lastRun.streak, lastRun.score);
+    if(run) run.saved=true;
+    renderLB(leaderBoxEnd);
+    showToast('Saved to leaderboard.');
+  }
+
+  // ---- overlays / buttons ----
   btnStart.onclick=()=>overlayStart.classList.add('show');
   btnGo.onclick=()=>{overlayStart.classList.remove('show'); start();};
   btnCloseStart.onclick=()=>overlayStart.classList.remove('show');
 
-  btnBoard.onclick=()=>{overlayBoard.classList.add('show'); renderLB();};
+  btnBoard.onclick=()=>{overlayBoard.classList.add('show'); renderLB(leaderBox);};
   btnCloseBoard.onclick=()=>overlayBoard.classList.remove('show');
-  btnResetLB.onclick=()=>{saveLB([]); renderLB(); showToast('Local leaderboard reset.');};
+  btnResetLB.onclick=()=>{saveLB([]); renderLB(leaderBox); showToast('Local leaderboard reset.');};
 
-  // change this if your main path differs
+  btnAgain.onclick=()=>{overlayEnd.classList.remove('show'); start();};
+  btnCloseEnd.onclick=()=>overlayEnd.classList.remove('show');
+
+  btnSave.onclick=saveRun;
+  btnShare.onclick=shareRun;
+
+  // set your main path if needed
   btnMain.onclick=()=>{ window.location.href='/'; };
-
-  // when leaving a run, save bests
-  window.addEventListener('beforeunload', ()=>{
-    if(run) addLB(run.bestStreak, run.bestScore);
-  });
 
 })();
 </script>
