@@ -415,9 +415,8 @@
   }
 
   // ---- layout ----
-  // slight nudge down+right by ~1px
-  const HAND_OX = -17;   // was -18
-  const HAND_OY = -39;   // was -40
+  const HAND_OX = -17;
+  const HAND_OY = -39;
 
   function layout(){
     const w=W(), h=H();
@@ -589,12 +588,8 @@
   stage.addEventListener('touchend', onUp, {passive:false});
   stage.addEventListener('touchcancel', ()=>{ if(run) run.aiming=false; }, {passive:true});
 
-  // ✅ soft-control shot (lower min speed + close rim max cap) + prev pos tracking
-  function shoot(){
-    const L=layout();
-    const s=L.hand;
-    const a=run.aimNow;
-
+  // ✅ shared power model (used by BOTH shoot() and aim preview)
+  function computeShotSpeed(L, s, a){
     const dx=s.x-a.x;
     const dy=s.y-a.y;
     const dist=Math.hypot(dx,dy);
@@ -605,9 +600,6 @@
     let power=pull/maxPull;
     power = Math.pow(power, 1.35);
 
-    const nx=dx/(dist||1);
-    const ny=dy/(dist||1);
-
     const rimDist = Math.hypot(run.rim.x - s.x, run.rim.y - s.y);
     const closeFactor = clamp(rimDist / Math.max(220, L.w*0.55), 0.55, 1.0);
 
@@ -615,13 +607,25 @@
     const maxSpeed = 1650 * closeFactor;
 
     const speed = lerp(minSpeed, maxSpeed, power);
+    return { dx, dy, dist, speed };
+  }
+
+  function shoot(){
+    const L=layout();
+    const s=L.hand;
+    const a=run.aimNow;
+
+    const { dx, dy, dist, speed } = computeShotSpeed(L, s, a);
+
+    const nx=dx/(dist||1);
+    const ny=dy/(dist||1);
 
     const key=run.foodKey;
     const f=FOOD[key];
 
     run.ball={
       x:s.x, y:s.y,
-      px:s.x, py:s.y,          // prev position for crossing checks
+      px:s.x, py:s.y,
       vx:nx*speed,
       vy:ny*speed,
       r:f.r,
@@ -652,7 +656,6 @@
 
       const g=980*f.g;
 
-      // store previous position (for mouth-plane crossing)
       b.px=b.x; b.py=b.y;
 
       b.vx*=f.drag;
@@ -662,11 +665,9 @@
       b.y+=b.vy*dt;
       b.life+=dt;
 
-      // ---- make logic (more "real hoop" & less false misses) ----
       const mouthY = run.rim.y + (L.rimR*0.10);
       const mouthHalfW = L.rimR*0.72;
 
-      // if descending and crossed the mouth plane this frame, and x is inside -> MAKE
       const crossed = (b.py < mouthY && b.y >= mouthY);
       if(b.vy>0 && crossed){
         const xAt = b.px + (b.x-b.px) * ((mouthY - b.py) / ((b.y-b.py)||1));
@@ -675,7 +676,6 @@
         }
       }
 
-      // keep your old "clean/rattle" logic too, but make it less trigger-happy
       const dx=b.x-run.rim.x, dy=b.y-run.rim.y;
       const d=Math.hypot(dx,dy);
 
@@ -693,9 +693,8 @@
         }
       }
 
-      // ✅ less trigger-happy "gone" check
-      const margin=160;     // was 90
-      const maxLife=5.2;    // was 4.2
+      const margin=160;
+      const maxLife=5.2;
       if(b.x<-margin || b.x>L.w+margin || b.y<-margin || b.y>L.h+margin || b.life>maxLife){
         miss(); return;
       }
@@ -733,7 +732,7 @@
     const f=FOOD[run.foodKey];
     if(IMG.ready){
       const img = IMG[f.imgKey];
-      const size = (f.r * 4.8); // 2x visual size
+      const size = (f.r * 4.8);
       drawImageCentered(img, L.hand.x, L.hand.y, size);
     }
   }
@@ -742,7 +741,6 @@
     const L=layout();
     ctx.clearRect(0,0,L.w,L.h);
 
-    // (leave your current canvasWrap bg as-is; this keeps setup intact)
     // court hint
     ctx.save();
     ctx.globalAlpha=0.18;
@@ -772,19 +770,13 @@
       ctx.restore();
     }
 
-    // aim dots (keep original feel)
+    // ✅ aim dots now reflect TRUE shot power (same speed model as shoot())
     if(run.aiming && !run.ball && run.playing && !run.ended){
       const s=L.hand;
       const a=run.aimNow;
-      const dx=s.x-a.x, dy=s.y-a.y;
-      const dist=Math.hypot(dx,dy);
 
-      const maxPull=Math.max(200, L.w*0.36);
-      const pull=clamp(dist,0,maxPull);
-      const power=pull/maxPull;
-
+      const { dx, dy, dist, speed } = computeShotSpeed(L, s, a);
       const nx=dx/(dist||1), ny=dy/(dist||1);
-      const speed=lerp(700, 1750, power*power);
 
       const key=run.foodKey;
       const f=FOOD[key];
@@ -815,7 +807,7 @@
 
       if(IMG.ready){
         const img = IMG[f.imgKey];
-        const size = b.r * 4.8; // 2x visual size
+        const size = b.r * 4.8;
         drawImageCentered(img, b.x, b.y, size);
       } else {
         ctx.save();
