@@ -623,6 +623,7 @@
     const key=run.foodKey;
     const f=FOOD[key];
 
+    // ✅ CHANGE #1: add rim-state flags for proper rim collision + grace window
     run.ball={
       x:s.x, y:s.y,
       px:s.x, py:s.y,
@@ -630,11 +631,14 @@
       vy:ny*speed,
       r:f.r,
       key,
-      life:0
+      life:0,
+      touchedRim:false,
+      enteredRimZone:false
     };
   }
 
   // ---- sim + draw ----
+  // ✅ CHANGE #2: replace step() with rim-ring collision + grace window (prevents premature misses)
   function step(dt){
     if(!run) return;
 
@@ -649,54 +653,100 @@
       run.rim.x=run.rim.tx; run.rim.y=run.rim.ty;
     }
 
-    if(run.ball){
-      const L=layout();
-      const b=run.ball;
-      const f=FOOD[b.key];
+    if(!run.ball) return;
 
-      const g=980*f.g;
+    const L=layout();
+    const b=run.ball;
+    const f=FOOD[b.key];
 
-      b.px=b.x; b.py=b.y;
+    const g=980*f.g;
 
-      b.vx*=f.drag;
-      b.vy*=f.drag;
-      b.vy+=g*dt;
-      b.x+=b.vx*dt;
-      b.y+=b.vy*dt;
-      b.life+=dt;
+    b.px=b.x; b.py=b.y;
 
-      const mouthY = run.rim.y + (L.rimR*0.10);
-      const mouthHalfW = L.rimR*0.72;
+    b.vx*=f.drag;
+    b.vy*=f.drag;
+    b.vy+=g*dt;
+    b.x+=b.vx*dt;
+    b.y+=b.vy*dt;
+    b.life+=dt;
 
-      const crossed = (b.py < mouthY && b.y >= mouthY);
-      if(b.vy>0 && crossed){
-        const xAt = b.px + (b.x-b.px) * ((mouthY - b.py) / ((b.y-b.py)||1));
-        if(Math.abs(xAt - run.rim.x) <= mouthHalfW){
-          make(); return;
+    // mouth geometry (matches your fallback ellipse)
+    const mouthY = run.rim.y + (L.rimR*0.10);
+    const mouthHalfW = L.rimR*0.72;
+
+    // imaginary rim ring around mouth (for bounces/clanks)
+    const rimCX = run.rim.x;
+    const rimCY = run.rim.y + (L.rimR*0.10);
+    const rimR  = L.rimR*0.92;
+    const rimZonePad = L.rimR*1.45;
+
+    const distToRim = Math.hypot(b.x - rimCX, b.y - rimCY);
+    if(distToRim < rimZonePad) b.enteredRimZone = true;
+
+    // 1) make check: descending + crosses mouth plane
+    const crossed = (b.py < mouthY && b.y >= mouthY);
+    if(b.vy > 0 && crossed){
+      const t = (mouthY - b.py) / ((b.y - b.py) || 1);
+      const xAt = b.px + (b.x - b.px) * t;
+
+      if(Math.abs(xAt - run.rim.x) <= mouthHalfW){
+        make();
+        return;
+      }
+      // if it crosses outside width, don't insta-miss; let rim/physics handle it
+    }
+
+    // 2) rim collision: bounce off ring (prevents "ghost miss" and adds real clank feel)
+    const nearRim = (b.y < run.rim.y + L.rimR*2.2) && (b.y > run.rim.y - L.rimR*2.2);
+    if(nearRim){
+      const dx = b.x - rimCX;
+      const dy = b.y - rimCY;
+      const d  = Math.hypot(dx,dy) || 1;
+
+      const hitDist = rimR + (b.r*0.85);
+      if(d < hitDist){
+        const nx = dx / d;
+        const ny = dy / d;
+        const overlap = (hitDist - d);
+
+        b.x += nx * overlap;
+        b.y += ny * overlap;
+
+        const vn = b.vx*nx + b.vy*ny;
+        if(vn < 0){
+          const restitution = 0.55;
+          const tangFric    = 0.88;
+
+          b.vx -= (1 + restitution) * vn * nx;
+          b.vy -= (1 + restitution) * vn * ny;
+
+          b.vx *= tangFric;
+          b.vy *= tangFric;
+
+          b.touchedRim = true;
         }
       }
+    }
 
-      const dx=b.x-run.rim.x, dy=b.y-run.rim.y;
-      const d=Math.hypot(dx,dy);
+    // 3) miss rule: less trigger-happy; if it entered rim zone, give it time to finish the story
+    const margin=180;
+    const maxLife=6.0;
 
-      const clean=L.rimR*0.58;
-      const rattle=L.rimR*0.96;
+    const offScreen = (b.x < -margin || b.x > L.w + margin || b.y < -margin || b.y > L.h + margin);
+    const timedOut  = (b.life > maxLife);
 
-      if(b.vy>0 && dy>-30 && dy<170){
-        if(d<=clean){ make(); return; }
-        if(d<=rattle){
-          let chance=0.58 + (b.key==='PIZZA'?0.10:0) + (b.key==='GOLD'?0.06:0);
-          chance=clamp(chance,0.35,0.88);
-          if(Math.random()<chance) make();
-          else miss();
+    const fellBelowRim = (b.y > run.rim.y + L.rimR*2.3 && b.vy > 0);
+
+    if(offScreen || timedOut){
+      if(b.enteredRimZone){
+        if(fellBelowRim || b.y > L.h + margin){
+          miss();
           return;
         }
-      }
-
-      const margin=160;
-      const maxLife=5.2;
-      if(b.x<-margin || b.x>L.w+margin || b.y<-margin || b.y>L.h+margin || b.life>maxLife){
-        miss(); return;
+        // still in grace window; keep simulating
+      } else {
+        miss();
+        return;
       }
     }
   }
@@ -770,7 +820,7 @@
       ctx.restore();
     }
 
-    // ✅ aim dots now reflect TRUE shot power (same speed model as shoot())
+    // ✅ aim dots reflect TRUE shot power (already using shared speed model)
     if(run.aiming && !run.ball && run.playing && !run.ended){
       const s=L.hand;
       const a=run.aimNow;
@@ -787,10 +837,13 @@
       const g=980*f.g;
       const simDt=1/60;
 
+      // ✅ CHANGE #3: adapt dot count to speed so soft shots don't "promise" a full arc
+      const dots = Math.round(lerp(12, 30, clamp(speed / 1300, 0, 1)));
+
       ctx.save();
       ctx.fillStyle='rgba(255,255,255,0.70)';
-      for(let i=0;i<28;i++){
-        ctx.globalAlpha=0.80*(1-i/30);
+      for(let i=0;i<dots;i++){
+        ctx.globalAlpha=0.80*(1-i/(dots+2));
         ctx.beginPath();
         ctx.arc(x,y,i===0?3:2.2,0,Math.PI*2);
         ctx.fill();
