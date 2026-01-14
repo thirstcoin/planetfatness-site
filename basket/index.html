@@ -419,10 +419,10 @@
   }
 
   // ---- layout ----
-  // These two numbers are your alignment knobs.
-  // If food is still low/right: move X more negative, move Y more negative.
-  const HAND_OX = -18;   // px
-  const HAND_OY = -40;   // px
+  // Slight nudge requested: down + right by ~1px
+  // (your previous was -18, -40; this nudges down/right by 1)
+  const HAND_OX = -17;   // px
+  const HAND_OY = -39;   // px
 
   function layout(){
     const w=W(), h=H();
@@ -434,7 +434,6 @@
     const playerH = Math.max(160, h*0.30);
 
     // Hand anchor derived from playerBase + offsets.
-    // (We compute this after we know player size so it scales right.)
     const hand = {
       x: playerBase.x + playerH*0.78 + HAND_OX,
       y: playerBase.y - playerH*0.72 + HAND_OY
@@ -603,7 +602,7 @@
 
   function shoot(){
     const L=layout();
-    const s=L.hand; // ✅ shoot from hands
+    const s=L.hand; // shoot from hands
     const a=run.aimNow;
 
     const dx=s.x-a.x;
@@ -698,7 +697,6 @@
   function drawPlayer(L){
     if(!IMG.ready || !IMG.player) return;
 
-    // Draw player with bottom-left anchor at playerBase
     const img=IMG.player;
     const iw=img.naturalWidth||img.width;
     const ih=img.naturalHeight||img.height;
@@ -710,6 +708,50 @@
     ctx.drawImage(img, L.playerBase.x, L.playerBase.y - dh, dw, dh);
   }
 
+  // ---- polished arcade backdrop (fixes dull grey) ----
+  function drawBackdrop(L){
+    ctx.save();
+
+    // soft spotlight glow
+    const g = ctx.createRadialGradient(
+      L.w*0.55, L.h*0.35, 40,
+      L.w*0.55, L.h*0.35, Math.max(L.w, L.h)*0.75
+    );
+    g.addColorStop(0, 'rgba(255,212,0,0.10)');
+    g.addColorStop(0.45, 'rgba(107,44,255,0.10)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,L.w,L.h);
+
+    // faint floor line
+    ctx.globalAlpha = 0.20;
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, L.h*0.78);
+    ctx.lineTo(L.w, L.h*0.78);
+    ctx.stroke();
+
+    // subtle arc line
+    ctx.globalAlpha = 0.16;
+    ctx.beginPath();
+    ctx.arc(L.w*0.70, L.h*0.18, Math.min(L.w*0.55, L.h*0.55), 0.12*Math.PI, 0.88*Math.PI);
+    ctx.stroke();
+
+    // vignette
+    ctx.globalAlpha = 1;
+    const v = ctx.createRadialGradient(
+      L.w/2, L.h/2, Math.min(L.w, L.h)*0.2,
+      L.w/2, L.h/2, Math.max(L.w, L.h)*0.65
+    );
+    v.addColorStop(0, 'rgba(0,0,0,0)');
+    v.addColorStop(1, 'rgba(0,0,0,0.28)');
+    ctx.fillStyle = v;
+    ctx.fillRect(0,0,L.w,L.h);
+
+    ctx.restore();
+  }
+
   function drawHeldFood(L){
     if(!run) return;
     if(run.ball) return; // once shot is fired, we draw the flying ball instead
@@ -717,7 +759,7 @@
     const f=FOOD[run.foodKey];
     if(IMG.ready){
       const img = IMG[f.imgKey];
-      const size = (f.r * 2.4); // same visual size as ball
+      const size = (f.r * 4.8); // ✅ 2x bigger
       drawImageCentered(img, L.hand.x, L.hand.y, size);
     }
   }
@@ -726,15 +768,8 @@
     const L=layout();
     ctx.clearRect(0,0,L.w,L.h);
 
-    // court hint
-    ctx.save();
-    ctx.globalAlpha=0.18;
-    ctx.lineWidth=2;
-    ctx.strokeStyle='rgba(255,255,255,0.14)';
-    ctx.beginPath();
-    ctx.arc(L.w*0.72, L.h*0.18, Math.min(L.w*0.52, L.h*0.52), 0.15*Math.PI, 0.85*Math.PI);
-    ctx.stroke();
-    ctx.restore();
+    // ✅ upgraded background (less dull)
+    drawBackdrop(L);
 
     // draw player
     drawPlayer(L);
@@ -803,7 +838,7 @@
 
       if(IMG.ready){
         const img = IMG[f.imgKey];
-        const size = b.r * 2.4;
+        const size = b.r * 4.8; // ✅ 2x bigger
         drawImageCentered(img, b.x, b.y, size);
       } else {
         ctx.save();
