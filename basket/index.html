@@ -359,12 +359,8 @@
   const ASSET_PATH = '/assets/';
 
   const ASSETS = {
-    // ✅ your rim file
     basket: ASSET_PATH + 'basket_mouth.png',
-
-    // ✅ your new shooter sprite (must exist in /assets/)
     player: ASSET_PATH + 'basket_player_idle.png',
-
     cookie: ASSET_PATH + 'food_cookie_ball.png',
     donut:  ASSET_PATH + 'food_donut_pink_ball.png',
     meat:   ASSET_PATH + 'food_meatball_ball.png',
@@ -419,21 +415,15 @@
   }
 
   // ---- layout ----
-  // Slight nudge requested: down + right by ~1px
-  // (your previous was -18, -40; this nudges down/right by 1)
-  const HAND_OX = -17;   // px
-  const HAND_OY = -39;   // px
+  // slight nudge down+right by ~1px
+  const HAND_OX = -17;   // was -18
+  const HAND_OY = -39;   // was -40
 
   function layout(){
     const w=W(), h=H();
-
-    // Where the PLAYER sits (bottom-left anchor).
     const playerBase = { x: w*0.06, y: h*0.93 };
-
-    // How big the player draws (responsive).
     const playerH = Math.max(160, h*0.30);
 
-    // Hand anchor derived from playerBase + offsets.
     const hand = {
       x: playerBase.x + playerH*0.78 + HAND_OX,
       y: playerBase.y - playerH*0.72 + HAND_OY
@@ -563,7 +553,6 @@
     return {x: cx-rect.left, y: cy-rect.top};
   }
 
-  // Only begin aim if user starts the drag near the held food
   function isNearHeldFood(p){
     const L=layout();
     const hx=L.hand.x, hy=L.hand.y;
@@ -600,9 +589,10 @@
   stage.addEventListener('touchend', onUp, {passive:false});
   stage.addEventListener('touchcancel', ()=>{ if(run) run.aiming=false; }, {passive:true});
 
+  // ✅ soft-control shot (lower min speed + close rim max cap) + prev pos tracking
   function shoot(){
     const L=layout();
-    const s=L.hand; // shoot from hands
+    const s=L.hand;
     const a=run.aimNow;
 
     const dx=s.x-a.x;
@@ -611,18 +601,27 @@
 
     const maxPull=Math.max(200, L.w*0.36);
     const pull=clamp(dist,0,maxPull);
-    const power=pull/maxPull;
+
+    let power=pull/maxPull;
+    power = Math.pow(power, 1.35);
 
     const nx=dx/(dist||1);
     const ny=dy/(dist||1);
 
-    const speed=lerp(700, 1750, power*power);
+    const rimDist = Math.hypot(run.rim.x - s.x, run.rim.y - s.y);
+    const closeFactor = clamp(rimDist / Math.max(220, L.w*0.55), 0.55, 1.0);
+
+    const minSpeed = 240;
+    const maxSpeed = 1650 * closeFactor;
+
+    const speed = lerp(minSpeed, maxSpeed, power);
 
     const key=run.foodKey;
     const f=FOOD[key];
 
     run.ball={
       x:s.x, y:s.y,
+      px:s.x, py:s.y,          // prev position for crossing checks
       vx:nx*speed,
       vy:ny*speed,
       r:f.r,
@@ -653,6 +652,9 @@
 
       const g=980*f.g;
 
+      // store previous position (for mouth-plane crossing)
+      b.px=b.x; b.py=b.y;
+
       b.vx*=f.drag;
       b.vy*=f.drag;
       b.vy+=g*dt;
@@ -660,13 +662,27 @@
       b.y+=b.vy*dt;
       b.life+=dt;
 
+      // ---- make logic (more "real hoop" & less false misses) ----
+      const mouthY = run.rim.y + (L.rimR*0.10);
+      const mouthHalfW = L.rimR*0.72;
+
+      // if descending and crossed the mouth plane this frame, and x is inside -> MAKE
+      const crossed = (b.py < mouthY && b.y >= mouthY);
+      if(b.vy>0 && crossed){
+        const xAt = b.px + (b.x-b.px) * ((mouthY - b.py) / ((b.y-b.py)||1));
+        if(Math.abs(xAt - run.rim.x) <= mouthHalfW){
+          make(); return;
+        }
+      }
+
+      // keep your old "clean/rattle" logic too, but make it less trigger-happy
       const dx=b.x-run.rim.x, dy=b.y-run.rim.y;
       const d=Math.hypot(dx,dy);
 
-      const clean=L.rimR*0.55;
-      const rattle=L.rimR*0.90;
+      const clean=L.rimR*0.58;
+      const rattle=L.rimR*0.96;
 
-      if(b.vy>0 && dy>-20 && dy<140){
+      if(b.vy>0 && dy>-30 && dy<170){
         if(d<=clean){ make(); return; }
         if(d<=rattle){
           let chance=0.58 + (b.key==='PIZZA'?0.10:0) + (b.key==='GOLD'?0.06:0);
@@ -677,8 +693,10 @@
         }
       }
 
-      const margin=90;
-      if(b.x<-margin || b.x>L.w+margin || b.y<-margin || b.y>L.h+margin || b.life>4.2){
+      // ✅ less trigger-happy "gone" check
+      const margin=160;     // was 90
+      const maxLife=5.2;    // was 4.2
+      if(b.x<-margin || b.x>L.w+margin || b.y<-margin || b.y>L.h+margin || b.life>maxLife){
         miss(); return;
       }
     }
@@ -708,58 +726,14 @@
     ctx.drawImage(img, L.playerBase.x, L.playerBase.y - dh, dw, dh);
   }
 
-  // ---- polished arcade backdrop (fixes dull grey) ----
-  function drawBackdrop(L){
-    ctx.save();
-
-    // soft spotlight glow
-    const g = ctx.createRadialGradient(
-      L.w*0.55, L.h*0.35, 40,
-      L.w*0.55, L.h*0.35, Math.max(L.w, L.h)*0.75
-    );
-    g.addColorStop(0, 'rgba(255,212,0,0.10)');
-    g.addColorStop(0.45, 'rgba(107,44,255,0.10)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0,0,L.w,L.h);
-
-    // faint floor line
-    ctx.globalAlpha = 0.20;
-    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, L.h*0.78);
-    ctx.lineTo(L.w, L.h*0.78);
-    ctx.stroke();
-
-    // subtle arc line
-    ctx.globalAlpha = 0.16;
-    ctx.beginPath();
-    ctx.arc(L.w*0.70, L.h*0.18, Math.min(L.w*0.55, L.h*0.55), 0.12*Math.PI, 0.88*Math.PI);
-    ctx.stroke();
-
-    // vignette
-    ctx.globalAlpha = 1;
-    const v = ctx.createRadialGradient(
-      L.w/2, L.h/2, Math.min(L.w, L.h)*0.2,
-      L.w/2, L.h/2, Math.max(L.w, L.h)*0.65
-    );
-    v.addColorStop(0, 'rgba(0,0,0,0)');
-    v.addColorStop(1, 'rgba(0,0,0,0.28)');
-    ctx.fillStyle = v;
-    ctx.fillRect(0,0,L.w,L.h);
-
-    ctx.restore();
-  }
-
   function drawHeldFood(L){
     if(!run) return;
-    if(run.ball) return; // once shot is fired, we draw the flying ball instead
+    if(run.ball) return;
 
     const f=FOOD[run.foodKey];
     if(IMG.ready){
       const img = IMG[f.imgKey];
-      const size = (f.r * 4.8); // ✅ 2x bigger
+      const size = (f.r * 4.8); // 2x visual size
       drawImageCentered(img, L.hand.x, L.hand.y, size);
     }
   }
@@ -768,16 +742,20 @@
     const L=layout();
     ctx.clearRect(0,0,L.w,L.h);
 
-    // ✅ upgraded background (less dull)
-    drawBackdrop(L);
+    // (leave your current canvasWrap bg as-is; this keeps setup intact)
+    // court hint
+    ctx.save();
+    ctx.globalAlpha=0.18;
+    ctx.lineWidth=2;
+    ctx.strokeStyle='rgba(255,255,255,0.14)';
+    ctx.beginPath();
+    ctx.arc(L.w*0.72, L.h*0.18, Math.min(L.w*0.52, L.h*0.52), 0.15*Math.PI, 0.85*Math.PI);
+    ctx.stroke();
+    ctx.restore();
 
-    // draw player
     drawPlayer(L);
-
-    // held food in hands (before shot)
     drawHeldFood(L);
 
-    // basket sprite at rim
     if(IMG.ready && IMG.basket){
       const bx = run.rim.x;
       const by = run.rim.y - (L.rimR*0.35);
@@ -794,7 +772,7 @@
       ctx.restore();
     }
 
-    // aim dots
+    // aim dots (keep original feel)
     if(run.aiming && !run.ball && run.playing && !run.ended){
       const s=L.hand;
       const a=run.aimNow;
@@ -831,14 +809,13 @@
       ctx.restore();
     }
 
-    // flying ball sprite
     if(run.ball){
       const b=run.ball;
       const f=FOOD[b.key];
 
       if(IMG.ready){
         const img = IMG[f.imgKey];
-        const size = b.r * 4.8; // ✅ 2x bigger
+        const size = b.r * 4.8; // 2x visual size
         drawImageCentered(img, b.x, b.y, size);
       } else {
         ctx.save();
