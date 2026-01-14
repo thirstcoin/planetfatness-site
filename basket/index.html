@@ -355,9 +355,7 @@
     });
   }
 
-  // Use the MAIN site assets folder (root /assets/)
   const ASSET_PATH = '/assets/';
-
   const ASSETS = {
     basket: ASSET_PATH + 'basket_mouth.png',
     player: ASSET_PATH + 'basket_player_idle.png',
@@ -542,6 +540,28 @@
     setupNextShot();
   }
 
+  // ✅ shared power model (used by BOTH shoot() and aim preview)
+  function computeShotSpeed(L, s, a){
+    const dx=s.x-a.x;
+    const dy=s.y-a.y;
+    const dist=Math.hypot(dx,dy);
+
+    const maxPull=Math.max(200, L.w*0.36);
+    const pull=clamp(dist,0,maxPull);
+
+    let power=pull/maxPull;
+    power = Math.pow(power, 1.35);
+
+    const rimDist = Math.hypot(run.rim.x - s.x, run.rim.y - s.y);
+    const closeFactor = clamp(rimDist / Math.max(220, L.w*0.55), 0.55, 1.0);
+
+    const minSpeed = 240;
+    const maxSpeed = 1650 * closeFactor;
+
+    const speed = lerp(minSpeed, maxSpeed, power);
+    return { dx, dy, dist, speed };
+  }
+
   // ---- input ----
   function canAim(){ return run && run.playing && !run.ended && !run.ball; }
   function getPos(e){
@@ -588,28 +608,6 @@
   stage.addEventListener('touchend', onUp, {passive:false});
   stage.addEventListener('touchcancel', ()=>{ if(run) run.aiming=false; }, {passive:true});
 
-  // ✅ shared power model (used by BOTH shoot() and aim preview)
-  function computeShotSpeed(L, s, a){
-    const dx=s.x-a.x;
-    const dy=s.y-a.y;
-    const dist=Math.hypot(dx,dy);
-
-    const maxPull=Math.max(200, L.w*0.36);
-    const pull=clamp(dist,0,maxPull);
-
-    let power=pull/maxPull;
-    power = Math.pow(power, 1.35);
-
-    const rimDist = Math.hypot(run.rim.x - s.x, run.rim.y - s.y);
-    const closeFactor = clamp(rimDist / Math.max(220, L.w*0.55), 0.55, 1.0);
-
-    const minSpeed = 240;
-    const maxSpeed = 1650 * closeFactor;
-
-    const speed = lerp(minSpeed, maxSpeed, power);
-    return { dx, dy, dist, speed };
-  }
-
   function shoot(){
     const L=layout();
     const s=L.hand;
@@ -623,7 +621,6 @@
     const key=run.foodKey;
     const f=FOOD[key];
 
-    // ✅ CHANGE #1: add rim-state flags for proper rim collision + grace window
     run.ball={
       x:s.x, y:s.y,
       px:s.x, py:s.y,
@@ -632,13 +629,12 @@
       r:f.r,
       key,
       life:0,
-      touchedRim:false,
-      enteredRimZone:false
+      enteredRimZone:false,
+      floorBounced:false
     };
   }
 
   // ---- sim + draw ----
-  // ✅ CHANGE #2: replace step() with rim-ring collision + grace window (prevents premature misses)
   function step(dt){
     if(!run) return;
 
@@ -674,80 +670,60 @@
     const mouthY = run.rim.y + (L.rimR*0.10);
     const mouthHalfW = L.rimR*0.72;
 
-    // imaginary rim ring around mouth (for bounces/clanks)
-    const rimCX = run.rim.x;
-    const rimCY = run.rim.y + (L.rimR*0.10);
-    const rimR  = L.rimR*0.92;
-    const rimZonePad = L.rimR*1.45;
+    // mark that the shot got near the rim/mouth zone (prevents premature miss feeling)
+    const zonePad = L.rimR*1.05;
+    if(Math.abs(b.x-run.rim.x) < zonePad && Math.abs(b.y-mouthY) < zonePad) b.enteredRimZone = true;
 
-    const distToRim = Math.hypot(b.x - rimCX, b.y - rimCY);
-    if(distToRim < rimZonePad) b.enteredRimZone = true;
-
-    // 1) make check: descending + crosses mouth plane
+    // ✅ MAKE CHECK (kept): descending + crosses mouth plane inside zone
     const crossed = (b.py < mouthY && b.y >= mouthY);
-    if(b.vy > 0 && crossed){
+    if(b.vy>0 && crossed){
       const t = (mouthY - b.py) / ((b.y - b.py) || 1);
       const xAt = b.px + (b.x - b.px) * t;
-
       if(Math.abs(xAt - run.rim.x) <= mouthHalfW){
-        make();
-        return;
-      }
-      // if it crosses outside width, don't insta-miss; let rim/physics handle it
-    }
-
-    // 2) rim collision: bounce off ring (prevents "ghost miss" and adds real clank feel)
-    const nearRim = (b.y < run.rim.y + L.rimR*2.2) && (b.y > run.rim.y - L.rimR*2.2);
-    if(nearRim){
-      const dx = b.x - rimCX;
-      const dy = b.y - rimCY;
-      const d  = Math.hypot(dx,dy) || 1;
-
-      const hitDist = rimR + (b.r*0.85);
-      if(d < hitDist){
-        const nx = dx / d;
-        const ny = dy / d;
-        const overlap = (hitDist - d);
-
-        b.x += nx * overlap;
-        b.y += ny * overlap;
-
-        const vn = b.vx*nx + b.vy*ny;
-        if(vn < 0){
-          const restitution = 0.55;
-          const tangFric    = 0.88;
-
-          b.vx -= (1 + restitution) * vn * nx;
-          b.vy -= (1 + restitution) * vn * ny;
-
-          b.vx *= tangFric;
-          b.vy *= tangFric;
-
-          b.touchedRim = true;
-        }
+        make(); return;
       }
     }
 
-    // 3) miss rule: less trigger-happy; if it entered rim zone, give it time to finish the story
+    // ✅ REMOVE ALL RIM/HEAD BOUNCE/COLLISION COMPLETELY (no force field)
+
+    // ✅ FLOOR BOUNCE ONLY (when miss falls and hits floor)
+    const floorY = L.h * 0.78;
+    if(!b.floorBounced && b.vy>0 && (b.y + b.r) >= floorY){
+      b.floorBounced = true;
+      b.y = floorY - b.r;
+
+      // bounce
+      b.vy *= -0.42;
+      b.vx *= 0.78;
+
+      // if it's basically dead after bounce, end run
+      if(Math.abs(b.vy) < 140){
+        miss(); return;
+      }
+    }
+
+    // miss rule: less trigger-happy + allow it to drop past rim area
     const margin=180;
     const maxLife=6.0;
 
     const offScreen = (b.x < -margin || b.x > L.w + margin || b.y < -margin || b.y > L.h + margin);
     const timedOut  = (b.life > maxLife);
 
-    const fellBelowRim = (b.y > run.rim.y + L.rimR*2.3 && b.vy > 0);
+    const fellBelowRim = (b.y > run.rim.y + L.rimR*2.6 && b.vy > 0);
 
     if(offScreen || timedOut){
       if(b.enteredRimZone){
         if(fellBelowRim || b.y > L.h + margin){
-          miss();
-          return;
+          miss(); return;
         }
-        // still in grace window; keep simulating
       } else {
-        miss();
-        return;
+        miss(); return;
       }
+    }
+
+    // if it already bounced and is falling again below floor, end
+    if(b.floorBounced && b.vy>0 && (b.y > floorY + 40)){
+      miss(); return;
     }
   }
 
@@ -820,7 +796,7 @@
       ctx.restore();
     }
 
-    // ✅ aim dots reflect TRUE shot power (already using shared speed model)
+    // aim dots reflect TRUE shot power
     if(run.aiming && !run.ball && run.playing && !run.ended){
       const s=L.hand;
       const a=run.aimNow;
@@ -837,13 +813,10 @@
       const g=980*f.g;
       const simDt=1/60;
 
-      // ✅ CHANGE #3: adapt dot count to speed so soft shots don't "promise" a full arc
-      const dots = Math.round(lerp(12, 30, clamp(speed / 1300, 0, 1)));
-
       ctx.save();
       ctx.fillStyle='rgba(255,255,255,0.70)';
-      for(let i=0;i<dots;i++){
-        ctx.globalAlpha=0.80*(1-i/(dots+2));
+      for(let i=0;i<28;i++){
+        ctx.globalAlpha=0.80*(1-i/30);
         ctx.beginPath();
         ctx.arc(x,y,i===0?3:2.2,0,Math.PI*2);
         ctx.fill();
