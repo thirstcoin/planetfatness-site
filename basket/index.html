@@ -310,7 +310,7 @@
   const H=()=>stage.getBoundingClientRect().height;
 
   // ---- leaderboard ----
-  const LB_KEY='pf_streakshot_miss_ends_v2_playerhands';
+  const LB_KEY='pf_streakshot_miss_ends_v1';
   const loadLB=()=>{try{return JSON.parse(localStorage.getItem(LB_KEY)||'[]');}catch{return[];}};
   const saveLB=(rows)=>localStorage.setItem(LB_KEY,JSON.stringify(rows));
 
@@ -355,17 +355,16 @@
     });
   }
 
-  // Use main /assets/ folder (your repo already has it)
+  // Use the MAIN site assets folder (root /assets/)
   const ASSET_PATH = '/assets/';
 
-  // IMPORTANT:
-  // - mouth.png exists in your assets list already
-  // - rename your new player file to basket_player_idle.png
   const ASSETS = {
-    player: ASSET_PATH + 'basket_player_idle.png',
-    basket: ASSET_PATH + 'mouth.png',
+    // ✅ your rim file
+    basket: ASSET_PATH + 'basket_mouth.png',
 
-    // These are defaults. If your filenames differ, just change the right side.
+    // ✅ your new shooter sprite (must exist in /assets/)
+    player: ASSET_PATH + 'basket_player_idle.png',
+
     cookie: ASSET_PATH + 'food_cookie_ball.png',
     donut:  ASSET_PATH + 'food_donut_pink_ball.png',
     meat:   ASSET_PATH + 'food_meatball_ball.png',
@@ -377,17 +376,17 @@
 
   async function preload(){
     try{
-      const [player,basket,cookie,donut,meat,pizza,gold] = await Promise.all([
-        loadImage(ASSETS.player),
+      const [basket,player,cookie,donut,meat,pizza,gold] = await Promise.all([
         loadImage(ASSETS.basket),
+        loadImage(ASSETS.player),
         loadImage(ASSETS.cookie),
         loadImage(ASSETS.donut),
         loadImage(ASSETS.meat),
         loadImage(ASSETS.pizza),
         loadImage(ASSETS.gold),
       ]);
-      IMG.player=player;
       IMG.basket=basket;
+      IMG.player=player;
       IMG.cookie=cookie;
       IMG.donut=donut;
       IMG.meat=meat;
@@ -419,54 +418,30 @@
     return 'PIZZA';
   }
 
-  // ---- layout / positioning ----
-  // TWEAK THESE if the food is not perfectly in his hands:
-  // These are RELATIVE offsets inside the drawn player sprite.
-  // 0.00 = far left/top of player sprite, 1.00 = far right/bottom of player sprite.
-  const HAND_X = 0.72;   // move right/left in the sprite
-  const HAND_Y = 0.18;   // move up/down in the sprite
-
-  // How close the touch must start to the hand-food to begin aiming (Basket Boy vibe)
-  const GRAB_RADIUS = 60;
-
-  function fitSprite(img, maxW, maxH){
-    if(!img) return {dw:0, dh:0};
-    const iw=img.naturalWidth||img.width;
-    const ih=img.naturalHeight||img.height;
-    const s = Math.min(maxW/iw, maxH/ih);
-    return {dw: iw*s, dh: ih*s};
-  }
+  // ---- layout ----
+  // These two numbers are your alignment knobs.
+  // If food is still low/right: move X more negative, move Y more negative.
+  const HAND_OX = -18;   // px
+  const HAND_OY = -40;   // px
 
   function layout(){
     const w=W(), h=H();
 
-    // Player anchors bottom-left. We keep him big and readable.
-    const playerMaxW = w * 0.42;
-    const playerMaxH = h * 0.48;
+    // Where the PLAYER sits (bottom-left anchor).
+    const playerBase = { x: w*0.06, y: h*0.93 };
 
-    let pW = 160, pH = 220;
-    if(IMG.ready && IMG.player){
-      const fitted = fitSprite(IMG.player, playerMaxW, playerMaxH);
-      pW = fitted.dw;
-      pH = fitted.dh;
-    } else {
-      // fallback proportions if image not loaded yet
-      pW = playerMaxW;
-      pH = playerMaxH;
-    }
+    // How big the player draws (responsive).
+    const playerH = Math.max(160, h*0.30);
 
-    const playerX = w*0.06;
-    const playerY = h - pH - h*0.06;
-
-    // Hand point (this becomes shooter origin + idle food position)
+    // Hand anchor derived from playerBase + offsets.
+    // (We compute this after we know player size so it scales right.)
     const hand = {
-      x: playerX + pW*HAND_X,
-      y: playerY + pH*HAND_Y
+      x: playerBase.x + playerH*0.78 + HAND_OX,
+      y: playerBase.y - playerH*0.72 + HAND_OY
     };
 
     const rimR = Math.max(34, w*0.055);
-
-    return { w,h, rimR, player:{x:playerX,y:playerY,w:pW,h:pH}, hand };
+    return { w,h, playerBase, playerH, hand, rimR };
   }
 
   function rimStations(L){
@@ -581,7 +556,6 @@
 
   // ---- input ----
   function canAim(){ return run && run.playing && !run.ended && !run.ball; }
-
   function getPos(e){
     const rect=stage.getBoundingClientRect();
     const t=e.touches && e.touches[0];
@@ -590,34 +564,33 @@
     return {x: cx-rect.left, y: cy-rect.top};
   }
 
+  // Only begin aim if user starts the drag near the held food
+  function isNearHeldFood(p){
+    const L=layout();
+    const hx=L.hand.x, hy=L.hand.y;
+    const d=Math.hypot(p.x-hx, p.y-hy);
+    return d < Math.max(46, L.w*0.07);
+  }
+
   function onDown(e){
     if(!canAim()) return;
     e.preventDefault();
-
     const p=getPos(e);
-    const L=layout();
-
-    // Only allow starting the drag near the food in his hands (arcade feel)
-    const d = Math.hypot(p.x - L.hand.x, p.y - L.hand.y);
-    if(d > GRAB_RADIUS) return;
-
+    if(!isNearHeldFood(p)) return;
     run.aiming=true;
     run.aimNow=p;
   }
-
   function onMove(e){
     if(!run || !run.aiming) return;
     e.preventDefault();
     run.aimNow=getPos(e);
   }
-
   function onUp(e){
     if(!run || !run.aiming) return;
     e.preventDefault();
     run.aiming=false;
     shoot();
   }
-
   stage.addEventListener('mousedown', onDown);
   stage.addEventListener('mousemove', onMove);
   stage.addEventListener('mouseup', onUp);
@@ -630,7 +603,7 @@
 
   function shoot(){
     const L=layout();
-    const s=L.hand;
+    const s=L.hand; // ✅ shoot from hands
     const a=run.aimNow;
 
     const dx=s.x-a.x;
@@ -659,7 +632,7 @@
     };
   }
 
-  // ---- sim ----
+  // ---- sim + draw ----
   function step(dt){
     if(!run) return;
 
@@ -712,7 +685,6 @@
     }
   }
 
-  // ---- draw helpers ----
   function drawImageCentered(img, x, y, size){
     if(!img) return;
     const w=img.naturalWidth||img.width;
@@ -723,11 +695,38 @@
     ctx.drawImage(img, x - dw/2, y - dh/2, dw, dh);
   }
 
+  function drawPlayer(L){
+    if(!IMG.ready || !IMG.player) return;
+
+    // Draw player with bottom-left anchor at playerBase
+    const img=IMG.player;
+    const iw=img.naturalWidth||img.width;
+    const ih=img.naturalHeight||img.height;
+
+    const scale = L.playerH / ih;
+    const dw = iw * scale;
+    const dh = ih * scale;
+
+    ctx.drawImage(img, L.playerBase.x, L.playerBase.y - dh, dw, dh);
+  }
+
+  function drawHeldFood(L){
+    if(!run) return;
+    if(run.ball) return; // once shot is fired, we draw the flying ball instead
+
+    const f=FOOD[run.foodKey];
+    if(IMG.ready){
+      const img = IMG[f.imgKey];
+      const size = (f.r * 2.4); // same visual size as ball
+      drawImageCentered(img, L.hand.x, L.hand.y, size);
+    }
+  }
+
   function draw(){
     const L=layout();
     ctx.clearRect(0,0,L.w,L.h);
 
-    // subtle court arc hint
+    // court hint
     ctx.save();
     ctx.globalAlpha=0.18;
     ctx.lineWidth=2;
@@ -737,47 +736,30 @@
     ctx.stroke();
     ctx.restore();
 
-    // player
-    if(IMG.ready && IMG.player){
-      ctx.save();
-      ctx.globalAlpha=0.98;
-      ctx.drawImage(IMG.player, L.player.x, L.player.y, L.player.w, L.player.h);
-      ctx.restore();
-    } else {
-      // fallback silhouette
-      ctx.save();
-      ctx.globalAlpha=0.18;
-      ctx.fillStyle='rgba(255,255,255,0.25)';
-      ctx.fillRect(L.player.x, L.player.y, L.player.w, L.player.h);
-      ctx.restore();
-    }
+    // draw player
+    drawPlayer(L);
 
-    // basket mouth at rim
+    // held food in hands (before shot)
+    drawHeldFood(L);
+
+    // basket sprite at rim
     if(IMG.ready && IMG.basket){
       const bx = run.rim.x;
       const by = run.rim.y - (L.rimR*0.35);
       const size = L.rimR * 4.2;
       drawImageCentered(IMG.basket, bx, by, size);
     } else {
-      // fallback target
       ctx.save();
       ctx.translate(run.rim.x, run.rim.y);
       ctx.fillStyle='rgba(107,44,255,0.68)';
       ctx.beginPath(); ctx.arc(0,0,L.rimR,0,Math.PI*2); ctx.fill();
       ctx.lineWidth=4; ctx.strokeStyle='rgba(255,212,0,0.80)'; ctx.stroke();
+      ctx.fillStyle='rgba(0,0,0,0.55)';
+      ctx.beginPath(); ctx.ellipse(0,L.rimR*0.10,L.rimR*0.72,L.rimR*0.42,0,0,Math.PI*2); ctx.fill();
       ctx.restore();
     }
 
-    // idle food in hands (this is the big missing “feel”)
-    if(run && run.playing && !run.ended && !run.ball && IMG.ready){
-      const f=FOOD[run.foodKey];
-      const img=IMG[f.imgKey];
-      // size based on player scale
-      const size = Math.max(42, L.player.w * 0.18);
-      drawImageCentered(img, L.hand.x, L.hand.y, size);
-    }
-
-    // aim dots from the hand position
+    // aim dots
     if(run.aiming && !run.ball && run.playing && !run.ended){
       const s=L.hand;
       const a=run.aimNow;
@@ -814,30 +796,27 @@
       ctx.restore();
     }
 
-    // flying food
+    // flying ball sprite
     if(run.ball){
       const b=run.ball;
       const f=FOOD[b.key];
 
       if(IMG.ready){
         const img = IMG[f.imgKey];
-        const size = b.r * 2.6;
+        const size = b.r * 2.4;
         drawImageCentered(img, b.x, b.y, size);
       } else {
         ctx.save();
+        ctx.translate(b.x,b.y);
         ctx.beginPath();
         ctx.fillStyle='rgba(255,255,255,0.85)';
-        ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+        ctx.arc(0,0,b.r,0,Math.PI*2);
         ctx.fill();
         ctx.restore();
       }
     }
-
-    // (optional) debug: show hand point
-    // ctx.save(); ctx.fillStyle='rgba(255,0,0,0.4)'; ctx.beginPath(); ctx.arc(L.hand.x,L.hand.y,8,0,Math.PI*2); ctx.fill(); ctx.restore();
   }
 
-  // ---- loop ----
   let last=performance.now();
   function loop(now){
     requestAnimationFrame(loop);
