@@ -54,7 +54,6 @@
 
     /* ===========================
        MOBILE OMBRÉ SEAM FIX + ARENA GLOW
-       (single fixed backdrop avoids “bands” on iOS scroll)
        =========================== */
     body::before{
       content:"";
@@ -108,7 +107,6 @@
       min-width: 240px;
     }
 
-    /* ✅ TOP-LEFT LOGO (bigger + no pill box) */
     .logoMark{
       width:216px;
       height:216px;
@@ -158,7 +156,6 @@
     }
     .cta:hover{ transform: translateY(-2px); box-shadow: 0 18px 46px rgba(255,212,0,.38); filter: saturate(1.08); }
 
-    /* Panels */
     .panel{
       border-radius: var(--radius);
       background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
@@ -252,7 +249,6 @@
     .miniRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; color: rgba(255,255,255,.70); font-size: 13px; }
     .miniRow span{ padding: 8px 10px; border-radius: 999px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.04); }
 
-    /* Logo */
     .logoFrame{ display:flex; align-items:center; justify-content:center; padding: 14px; min-height: 360px; }
     .logoCard{
       width:100%;
@@ -294,7 +290,6 @@
       font-weight: 1000;
     }
 
-    /* Sections */
     section{ padding: 16px 0; }
     .sectionTitle{
       display:flex; align-items:flex-end; justify-content:space-between; gap:14px; flex-wrap:wrap;
@@ -326,7 +321,6 @@
     .card h3{ position:relative; margin:0 0 6px; font-size:16px; }
     .card p{ position:relative; margin:0; color: rgba(255,255,255,.72); font-size: 13px; line-height:1.45; }
 
-    /* Game cards */
     .gameGrid{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 940px){ .gameGrid{ grid-template-columns: 1fr; } }
     .gameCard{
@@ -348,7 +342,6 @@
     }
     .gamePad{ position:relative; padding:18px; display:flex; gap:14px; align-items:center; }
 
-    /* ✅ swap decorative gradient box -> thumbs-down.png */
     .gameIcon{
       width:52px; height:52px; border-radius:18px;
       border:1px solid rgba(255,255,255,.12);
@@ -375,7 +368,6 @@
     .gameDesc{ margin:6px 0 0; color: rgba(255,255,255,.72); font-size:13px; line-height:1.45; }
     .gameBtns{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
 
-    /* Stats */
     .statGrid{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 520px){ .statGrid{ grid-template-columns: 1fr; } }
     .stat{
@@ -398,7 +390,6 @@
     .addr{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size:12px; color: rgba(255,255,255,.80); }
     .muted{ color: rgba(255,255,255,.68); }
 
-    /* Official links strip */
     .linkStrip{
       display:flex; gap:10px; flex-wrap:wrap;
       margin-top: 10px;
@@ -532,7 +523,7 @@
               <a class="btn" href="https://planetfatness.fit/runner/">🏃‍♂️ Rage Treadmill</a>
               <a class="btn" href="https://planetfatness.fit/lift/">💪 Ego Lift Buffet</a>
               <a class="btn" href="https://planetfatness.fit/snack/">🍔 Conveyor Munch</a>
-              <a class="btn" href="https://planetfatness.fit/streakshot/">🏀 Streak Shot</a>
+              <a class="btn" href="https://planetfatness.fit/basket/">🏀 Streak Shot</a>
             </div>
 
             <div class="miniRow">
@@ -545,7 +536,6 @@
               <span>💸 Rewards for grinders</span>
             </div>
 
-            <!-- ✅ Official links area (placeholders OK for now) -->
             <div style="margin-top:14px;">
               <div class="sectionTitle" style="margin:0 0 8px;">
                 <h2 style="font-size:15px;">Official Links</h2>
@@ -632,7 +622,6 @@
             </div>
           </div>
 
-          <!-- ✅ NEW GAME CARD: Streak Shot -->
           <div class="gameCard">
             <div class="gamePad">
               <div class="gameIcon"></div>
@@ -640,8 +629,8 @@
                 <h3 class="gameTitle">🏀 Streak Shot</h3>
                 <p class="gameDesc">One miss ends the run. Drag, aim, and feed the mouth. Stack streaks like snacks on a cheat day.</p>
                 <div class="gameBtns">
-                  <a class="btn btnPrimary" href="https://planetfatness.fit/streakshot/">Play Streak Shot</a>
-                  <a class="btn" href="#leaderboard">Chase #1</a>
+                  <a class="btn btnPrimary" href="https://planetfatness.fit/basket/">Play Streak Shot</a>
+                  <a class="btn" href="https://planetfatness.fit/basket/">Chase #1</a>
                 </div>
                 <p class="gameDesc" style="margin-top:8px; font-size:12px; color:rgba(255,255,255,.66);">
                   Arena asset loaded: <span style="font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;">/assets/streakshot_bg_gym.png</span>
@@ -686,7 +675,7 @@
               <a class="btn btnPrimary" href="https://planetfatness.fit/runner/">🏃‍♂️ Run it</a>
               <a class="btn" href="https://planetfatness.fit/lift/">💪 Lift it</a>
               <a class="btn" href="https://planetfatness.fit/snack/">🍔 Munch it</a>
-              <a class="btn" href="https://planetfatness.fit/streakshot/">🏀 Streak it</a>
+              <a class="btn" href="https://planetfatness.fit/basket/">🏀 Streak it</a>
               <button class="btn" id="refreshMeBtn">Refresh</button>
               <button class="btn" id="logoutBtn">Logout</button>
             </div>
@@ -820,13 +809,12 @@
             <a class="link" href="https://planetfatness.fit/runner/">Runner</a>
             <a class="link" href="https://planetfatness.fit/lift/">Lift</a>
             <a class="link" href="https://planetfatness.fit/snack/">Munch</a>
-            <a class="link" href="https://planetfatness.fit/streakshot/">Streak Shot</a>
+            <a class="link" href="https://planetfatness.fit/basket/">Streak Shot</a>
             <a class="link" href="#leaderboard">Leaderboard</a>
             <a class="link" href="#rewards">Rewards</a>
           </div>
         </div>
 
-        <!-- ✅ FUNNY, ON-BRAND DISCLAIMER (polished) -->
         <div class="disclaimer">
           <b>Gym Disclaimer:</b> $PHAT is a meme. The workouts are real (your thumb will feel it). Nothing on this site is financial advice, nutrition advice, or “get shredded” advice.
           Do your own research, hydrate responsibly, and never trust a token launched by a gym that celebrates naps.
@@ -914,4 +902,101 @@
 
         const ch = await fetch(API_BASE + "/auth/challenge", {
           method:"POST",
-         
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ address })
+        }).then(r => r.json());
+
+        if (ch.error) { toast(ch.error); return; }
+
+        const msgBytes = new TextEncoder().encode(ch.message);
+        const signed = await provider.signMessage(msgBytes, "utf8");
+        const sigB64 = btoa(String.fromCharCode(...signed.signature));
+
+        const v = await fetch(API_BASE + "/auth/verify", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ address, nonce: ch.nonce, signature: sigB64 })
+        }).then(r => r.json());
+
+        if (!v.token){
+          toast(v.error || "Login failed");
+          return;
+        }
+
+        setSession(address, v.token);
+        toast("Gym card locked ✅ " + shortAddr(address));
+        setAuthUI();
+        await loadMe();
+        await loadLeaderboard();
+
+      } catch(e){
+        console.error(e);
+        toast("All good — you can connect anytime.");
+      }
+    }
+
+    async function loadMe(){
+      const token = getToken();
+      const addr = getAddr();
+      if (!token || !addr){ setAuthUI(); return; }
+
+      try{
+        const me = await fetch(API_BASE + "/activity/me", {
+          headers:{ "Authorization":"Bearer " + token }
+        }).then(r => r.json());
+
+        if (me.error){ toast(me.error); return; }
+
+        meWalletEl.textContent = shortAddr(me.address);
+        meCaloriesEl.textContent = Number(me.totalCalories || "0").toLocaleString();
+        meBestEl.textContent = (Number(me.bestSeconds || 0)).toFixed(1) + "s";
+        meRankHintEl.textContent = "Stack calories. Climb ranks. Get rewarded.";
+
+      } catch(e){
+        console.error(e);
+        toast("Couldn’t load your gym card.");
+      }
+    }
+
+    async function loadLeaderboard(){
+      try{
+        const top = await fetch(API_BASE + "/leaderboard").then(r => r.json());
+        if (!Array.isArray(top)) throw new Error("Bad leaderboard");
+
+        if (top.length === 0){
+          lbBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet. First gym rat gets bragging rights.</td></tr>`;
+          return;
+        }
+
+        lbBody.innerHTML = top.slice(0, 30).map((u, i) => {
+          const addr = u.address || "";
+          const cals = Number(u.totalCalories || "0");
+          const best = Number(u.bestSeconds || 0);
+          return `
+            <tr>
+              <td class="rank">${i+1}</td>
+              <td class="addr">${addr.slice(0,4)}…${addr.slice(-4)}</td>
+              <td>${cals.toLocaleString()}</td>
+              <td>${best.toFixed(1)}s</td>
+            </tr>
+          `;
+        }).join("");
+
+      } catch(e){
+        console.error(e);
+        lbBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+      }
+    }
+
+    function logout(){
+      clearSession();
+      setAuthUI();
+      toast("Logged out.");
+    }
+
+    setAuthUI();
+    loadLeaderboard();
+    loadMe();
+  </script>
+</body>
+</html>
