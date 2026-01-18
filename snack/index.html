@@ -179,6 +179,36 @@
       z-index:20;
     }
 
+    /* NEW: subtle moving belt stripes so speed increases are obvious */
+    .beltFx{
+      position:absolute;
+      left:0;
+      top: calc(86% - 64px);
+      width:100%;
+      height: 90px;
+      pointer-events:none;
+      z-index:19;
+      opacity:.55;
+      overflow:hidden;
+      mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+      -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    }
+    .beltFx::before{
+      content:"";
+      position:absolute;
+      inset:-40px -120px -40px -120px;
+      background:
+        repeating-linear-gradient(
+          115deg,
+          rgba(255,212,77,.0) 0px,
+          rgba(255,212,77,.0) 12px,
+          rgba(255,212,77,.22) 12px,
+          rgba(255,212,77,.22) 18px
+        );
+      filter: blur(0.2px);
+      transform: translateX(var(--beltShift, 0px));
+    }
+
     .food{
       position:absolute;
       top:0;
@@ -252,6 +282,7 @@
       .food{ width: 140px; }
       .dropZone{ width: 230px; height: 140px; }
       .targetCluster{ top: 8%; }
+      .beltFx{ top: calc(86% - 58px); height: 86px; }
     }
   </style>
 </head>
@@ -298,6 +329,7 @@
           </div>
         </div>
 
+        <div class="beltFx" id="beltFx"></div>
         <div class="beltLane" id="beltLane"></div>
         <div class="dropZone" id="dropZone"></div>
         <div class="banner" id="banner">MISSED</div>
@@ -311,6 +343,8 @@
       <div class="toast">
         <strong>How it plays:</strong> The thought bubble shows what he wants. The belt feeds a nonstop stream of snacks.
         Grab the correct one between the wrong choices and drag it to his mouth before it rolls away.
+        <br><br>
+        <strong>Heads up:</strong> Every correct munch makes the belt faster. 🔥
       </div>
     </div>
   </div>
@@ -342,6 +376,7 @@
 
   const stage      = document.getElementById('stage');
   const beltLane   = document.getElementById('beltLane');
+  const beltFx     = document.getElementById('beltFx');
   const dropZoneEl = document.getElementById('dropZone');
   const banner     = document.getElementById('banner');
 
@@ -357,13 +392,17 @@
   const shareBtn = document.getElementById('shareBtn');
   const resetInEl = document.getElementById('resetIn');
 
-  let foodsOnBelt = []; // {id, def, el, x}
+  // NOTE: prevX + active flags to prevent "ghost/random miss"
+  let foodsOnBelt = []; // {id, def, el, x, prevX, active}
   let nextId = 1;
 
   let running = true;
   let streak = 0;
   let score = 0;
   let speedMult = 1.00;
+
+  // NEW: flash HUD + show banner callouts when belt speeds up
+  let speedFlashUntil = 0;
 
   // PRESSURE TUNING
   const baseSpeed = 160;
@@ -403,7 +442,11 @@
 
   function updateHUD(){
     runScoreEl.textContent = score;
-    runSubEl.textContent = `Streak: ${streak} · Speed: ${speedMult.toFixed(2)}x`;
+
+    const now = performance.now();
+    runSubEl.textContent = `Streak: ${streak} · Belt: ${speedMult.toFixed(2)}x`;
+    runSubEl.style.color = (now < speedFlashUntil) ? 'var(--accent)' : 'var(--muted)';
+
     goalEl.textContent = `${Math.min(score, goalTarget)} / ${goalTarget}`;
   }
 
@@ -416,7 +459,7 @@
 
   function pickTarget(){
     const def = FOODS[Math.floor(Math.random()*FOODS.length)];
-    targetText.textContent = def.name.toUpperCase(); // no truncation like "STRAWBERRY"
+    targetText.textContent = def.name.toUpperCase();
     bubbleFood.src = def.src;
     targetSetAt = performance.now();
     return def;
@@ -426,6 +469,7 @@
 
   function canSpawnAt(x){
     for (const f of foodsOnBelt){
+      if (!f.active) continue;
       if (Math.abs(f.x - x) < minGap) return false;
     }
     return true;
@@ -450,7 +494,6 @@
       }
     }
 
-    // Try a few candidate spawn X positions
     let x = null;
     for (let tries=0; tries<6; tries++){
       const candidate = s.width + 140 + Math.random()*120;
@@ -473,20 +516,20 @@
     el.addEventListener('pointerdown', (e) => onPointerDown(e, id));
 
     stage.appendChild(el);
-    foodsOnBelt.push({ id, def, el, x });
+    foodsOnBelt.push({ id, def, el, x, prevX: x, active: true });
 
     return true;
   }
 
-  // ✅ SAFE: bounded attempts (no infinite loops => no Safari crash)
   function fillBelt(){
     if (!running) return;
-    const need = Math.max(0, targetFlowCount - foodsOnBelt.length);
+    const activeCount = foodsOnBelt.filter(f => f.active).length;
+    const need = Math.max(0, targetFlowCount - activeCount);
     if (need === 0) return;
 
     let spawned = 0;
     let attempts = 0;
-    const maxAttempts = 22; // hard cap per call
+    const maxAttempts = 22;
 
     while (spawned < need && attempts < maxAttempts){
       attempts++;
@@ -497,7 +540,6 @@
   function ensureTargetSoon(){
     const now = performance.now();
     if ((now - targetSetAt) > targetMustAppearWithinMs){
-      // Try a few times to force-spawn target (bounded)
       for (let i=0;i<6;i++){
         if (spawnFood(true)) break;
       }
@@ -506,6 +548,7 @@
   }
 
   function removeFood(food){
+    food.active = false;
     try { food.el.remove(); } catch {}
     foodsOnBelt = foodsOnBelt.filter(f => f.id !== food.id);
   }
@@ -534,7 +577,14 @@
     score += 1;
     streak += 1;
 
+    const prevSpeed = speedMult;
     speedMult = clamp(speedMult + speedStep, 1.00, speedCap);
+
+    // NEW: communicate belt speed up in HUD + banner so it never feels like a glitch
+    speedFlashUntil = performance.now() + 800;
+    if (speedMult > prevSpeed + 0.0001){
+      setBanner(`BELT +${(speedMult - prevSpeed).toFixed(2)}x`, 'var(--accent)');
+    }
 
     currentTarget = pickTarget();
 
@@ -545,7 +595,6 @@
     }
 
     updateHUD();
-    setBanner('NICE', getComputedStyle(document.documentElement).getPropertyValue('--good'));
 
     fillBelt();
     ensureTargetSoon();
@@ -554,7 +603,7 @@
   function onPointerDown(e, id){
     if (!running) return;
     const food = foodsOnBelt.find(f => f.id === id);
-    if (!food) return;
+    if (!food || !food.active) return;
 
     lastPointerId = e.pointerId;
     food.el.classList.add('dragging');
@@ -572,6 +621,7 @@
   function onPointerMove(e){
     if (!activeDrag || e.pointerId !== lastPointerId) return;
     const { food, offsetX, offsetY } = activeDrag;
+    if (!food.active) return;
     const s = stageRect();
 
     const x = (e.clientX - s.left) - offsetX;
@@ -589,6 +639,8 @@
     const { food } = activeDrag;
     activeDrag = null;
     lastPointerId = null;
+
+    if (!food.active) return;
 
     food.el.classList.remove('dragging');
 
@@ -619,25 +671,54 @@
   stage.addEventListener('pointerup', onPointerUp);
   stage.addEventListener('pointercancel', onPointerUp);
 
+  const OFFSCREEN_X = -180;
+
+  // NEW: belt stripe animation state (visual speed cue)
+  let beltShift = 0;
+
+  // ✅ dt clamp to prevent random “teleport past miss line” spikes on iOS
   let lastT = performance.now();
   function loop(now){
-    const dt = (now - lastT) / 1000;
+    const rawDt = (now - lastT) / 1000;
+    const dt = Math.min(rawDt, 0.033);
     lastT = now;
 
     if (running){
       const y = laneY();
+      const beltDx = (baseSpeed * speedMult) * dt;
 
+      // Move belt stripes (obvious visual progression)
+      beltShift -= beltDx * 0.65;
+      if (beltShift < -120) beltShift += 120;
+      beltFx.style.setProperty('--beltShift', `${beltShift}px`);
+
+      // Update positions
       for (const f of foodsOnBelt){
-        if (activeDrag && activeDrag.food.id === f.id) continue;
-        f.x -= (baseSpeed * speedMult) * dt;
-        f.el.style.left = `${f.x}px`;
-        f.el.style.top  = `${y}px`;
-        f.el.style.transform = 'translate(-50%, -100%)';
+        if (!f.active) continue;
+
+        if (!Number.isFinite(f.x)) { removeFood(f); continue; }
+
+        f.prevX = f.x;
+        f.x -= beltDx;
+
+        // IMPORTANT: even if dragging, belt still pulls it left (makes difficulty obvious)
+        if (activeDrag && activeDrag.food.id === f.id){
+          const curLeft = parseFloat(f.el.style.left) || f.x;
+          f.el.style.left = `${curLeft - beltDx}px`;
+          // keep whatever top/transform drag set
+        } else {
+          f.el.style.left = `${f.x}px`;
+          f.el.style.top  = `${y}px`;
+          f.el.style.transform = 'translate(-50%, -100%)';
+        }
       }
 
       // Remove offscreen; target miss ends game
       for (const f of [...foodsOnBelt]){
-        if (f.x < -180){
+        if (!f.active) continue;
+
+        const crossed = (Number.isFinite(f.prevX) ? (f.prevX >= OFFSCREEN_X && f.x < OFFSCREEN_X) : (f.x < OFFSCREEN_X));
+        if (crossed){
           if (f.def.key === currentTarget.key){
             gameOver();
             break;
@@ -649,7 +730,6 @@
 
       acc += dt * 1000;
 
-      // bounded upkeep (safe)
       fillBelt();
       ensureTargetSoon();
 
@@ -667,21 +747,23 @@
     streak = 0;
     score = 0;
     speedMult = 1.00;
+    speedFlashUntil = 0;
+    beltShift = 0;
+
     currentTarget = pickTarget();
     updateHUD();
 
     for (const f of [...foodsOnBelt]) removeFood(f);
 
-    // Prime belt (bounded; safe)
     for (let i=0;i<8;i++){
-      spawnFood(i===2); // inject target early
+      spawnFood(i===2);
     }
     fillBelt();
     ensureTargetSoon();
   }
 
   function share(){
-    const txt = `$PHAT Conveyor Munch — ${score} correct · streak ${streak} · speed ${speedMult.toFixed(2)}x\nplanetfatness.fit/snack`;
+    const txt = `$PHAT Conveyor Munch — ${score} correct · streak ${streak} · belt ${speedMult.toFixed(2)}x\nplanetfatness.fit/snack`;
     if (navigator.share){
       navigator.share({ text: txt }).catch(()=>{});
     } else {
