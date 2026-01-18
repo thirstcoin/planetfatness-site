@@ -37,6 +37,7 @@
       backdrop-filter: blur(10px);
       border-radius:16px;
       box-shadow: 0 18px 48px rgba(0,0,0,.35);
+      z-index: 10;
     }
     .left,.right{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
     .brand{display:flex; flex-direction:column; line-height:1.05;}
@@ -69,6 +70,7 @@
     .hud{
       display:flex; gap:10px; flex-wrap:wrap;
       justify-content:space-between;
+      z-index: 10;
     }
     .group{display:flex; gap:10px; flex-wrap:wrap;}
     .panel{
@@ -85,6 +87,7 @@
     .label{font-size:11px; color:var(--pf-muted); font-weight:1000; letter-spacing:.35px;}
     .value{font-size:16px; font-weight:1200; letter-spacing:.2px;}
     .value span{color:var(--pf-yellow);}
+
     .canvasWrap{
       position:relative;
       flex:1;
@@ -97,7 +100,43 @@
         rgba(0,0,0,.18);
       box-shadow: 0 22px 70px rgba(0,0,0,.55);
     }
-    canvas{display:block;width:100%;height:100%;}
+
+    /* ✅ VIDEO BACKGROUND (behind canvas) */
+    .arenaVideo{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      z-index:0;
+      /* tiny boost so it pops under overlays */
+      filter: saturate(1.05) contrast(1.03);
+      transform: translateZ(0);
+    }
+    .arenaVignette{
+      position:absolute;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      background:
+        radial-gradient(1200px 700px at 50% 10%, rgba(255,212,0,.10), transparent 55%),
+        radial-gradient(1200px 700px at 50% 100%, rgba(107,44,255,.14), transparent 60%),
+        linear-gradient(180deg, rgba(0,0,0,.20), rgba(0,0,0,.42));
+      mix-blend-mode: multiply;
+    }
+
+    /* ✅ keep canvas above the video */
+    canvas{
+      position:relative;
+      z-index:1;
+      display:block;
+      width:100%;
+      height:100%;
+    }
+
+    /* ✅ overlays + UI above everything */
+    .toast, .hint, .overlay{ z-index:2; }
+
     .toast{
       position:absolute; left:50%; bottom:14px;
       transform:translateX(-50%);
@@ -192,6 +231,21 @@
   </div>
 
   <div class="canvasWrap" id="stage">
+    <!-- ✅ NEW: CROWD VIDEO BACKGROUND -->
+    <video
+      class="arenaVideo"
+      id="arenaVid"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+      poster="/assets/streakshot_bg_gym.png"
+    >
+      <source src="/assets/arena-crowd-loop.mp4" type="video/mp4" />
+    </video>
+    <div class="arenaVignette"></div>
+
     <canvas id="cv"></canvas>
     <div class="toast" id="toast"></div>
     <div class="hint">Drag from the food in his hands • Release to shoot • Miss ends run • Golden = 2×</div>
@@ -260,6 +314,15 @@
   const stage=document.getElementById('stage');
   const cv=document.getElementById('cv');
   const ctx=cv.getContext('2d');
+
+  // ✅ ensure iOS actually plays the background video
+  const arenaVid = document.getElementById('arenaVid');
+  if (arenaVid){
+    const tryPlay = async () => { try { await arenaVid.play(); } catch(e){} };
+    document.addEventListener('touchstart', tryPlay, { once:true, passive:true });
+    document.addEventListener('click', tryPlay, { once:true, passive:true });
+    tryPlay();
+  }
 
   const streakTxt=document.getElementById('streakTxt');
   const scoreTxt=document.getElementById('scoreTxt');
@@ -357,7 +420,6 @@
 
   const ASSET_PATH = '/assets/';
   const ASSETS = {
-    arena:  ASSET_PATH + 'streakshot_bg_gym.png', // ✅ NEW ARENA BACKGROUND
     basket: ASSET_PATH + 'basket_mouth.png',
     player: ASSET_PATH + 'basket_player_idle.png',
     cookie: ASSET_PATH + 'food_cookie_ball.png',
@@ -371,8 +433,7 @@
 
   async function preload(){
     try{
-      const [arena,basket,player,cookie,donut,meat,pizza,gold] = await Promise.all([
-        loadImage(ASSETS.arena),   // ✅ NEW
+      const [basket,player,cookie,donut,meat,pizza,gold] = await Promise.all([
         loadImage(ASSETS.basket),
         loadImage(ASSETS.player),
         loadImage(ASSETS.cookie),
@@ -381,7 +442,6 @@
         loadImage(ASSETS.pizza),
         loadImage(ASSETS.gold),
       ]);
-      IMG.arena=arena;            // ✅ NEW
       IMG.basket=basket;
       IMG.player=player;
       IMG.cookie=cookie;
@@ -543,7 +603,7 @@
     setupNextShot();
   }
 
-  // ✅ shared power model (used by BOTH shoot() and aim preview)
+  // shared power model
   function computeShotSpeed(L, s, a){
     const dx=s.x-a.x;
     const dy=s.y-a.y;
@@ -669,15 +729,12 @@
     b.y+=b.vy*dt;
     b.life+=dt;
 
-    // mouth geometry (matches your fallback ellipse)
     const mouthY = run.rim.y + (L.rimR*0.10);
     const mouthHalfW = L.rimR*0.72;
 
-    // mark that the shot got near the rim/mouth zone (prevents premature miss feeling)
     const zonePad = L.rimR*1.05;
     if(Math.abs(b.x-run.rim.x) < zonePad && Math.abs(b.y-mouthY) < zonePad) b.enteredRimZone = true;
 
-    // ✅ MAKE CHECK (kept): descending + crosses mouth plane inside zone
     const crossed = (b.py < mouthY && b.y >= mouthY);
     if(b.vy>0 && crossed){
       const t = (mouthY - b.py) / ((b.y - b.py) || 1);
@@ -687,23 +744,19 @@
       }
     }
 
-    // ✅ FLOOR BOUNCE ONLY (when miss falls and hits floor)
     const floorY = L.h * 0.78;
     if(!b.floorBounced && b.vy>0 && (b.y + b.r) >= floorY){
       b.floorBounced = true;
       b.y = floorY - b.r;
 
-      // bounce
       b.vy *= -0.42;
       b.vx *= 0.78;
 
-      // if it's basically dead after bounce, end run
       if(Math.abs(b.vy) < 140){
         miss(); return;
       }
     }
 
-    // miss rule: less trigger-happy + allow it to drop past rim area
     const margin=180;
     const maxLife=6.0;
 
@@ -722,7 +775,6 @@
       }
     }
 
-    // if it already bounced and is falling again below floor, end
     if(b.floorBounced && b.vy>0 && (b.y > floorY + 40)){
       miss(); return;
     }
@@ -768,11 +820,6 @@
     const L=layout();
     ctx.clearRect(0,0,L.w,L.h);
 
-    // ✅ NEW: ARENA BACKGROUND DRAWN FIRST
-    if(IMG.ready && IMG.arena){
-      ctx.drawImage(IMG.arena, 0, 0, L.w, L.h);
-    }
-
     // court hint
     ctx.save();
     ctx.globalAlpha=0.18;
@@ -802,7 +849,6 @@
       ctx.restore();
     }
 
-    // aim dots reflect TRUE shot power
     if(run.aiming && !run.ball && run.playing && !run.ended){
       const s=L.hand;
       const a=run.aimNow;
