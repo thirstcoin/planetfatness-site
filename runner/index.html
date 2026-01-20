@@ -15,7 +15,6 @@
       --muted:rgba(255,255,255,.70);
     }
 
-    /* ✅ kill iOS highlight/selection while holding */
     *{
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
@@ -79,7 +78,6 @@
     }
     .btn:active{ transform: scale(.98); }
 
-    /* ✅ global ghost button (used for "Back") */
     .btnGhost{
       padding:10px 14px;
       border-radius:14px;
@@ -93,7 +91,6 @@
 
     #stage{ position:relative; width:min(920px,100%); }
 
-    /* ===== Scene (GIF) ===== */
     #runnerWrap{
       position:absolute;
       inset:0;
@@ -191,7 +188,6 @@
       flex-wrap:wrap;
     }
 
-    /* ===== Results Modal ===== */
     #modalBack{
       position:fixed;
       inset:0;
@@ -257,9 +253,7 @@
       <div class="pill">$PHAT — Treadmill Rage Runner</div>
       <div class="pill" id="status">Tap to start</div>
 
-      <!-- ✅ back button to main site -->
       <button class="btnGhost" id="backBtn">← Gym</button>
-
       <button class="btn" id="restartBtn">Restart</button>
     </div>
 
@@ -330,19 +324,18 @@
 
 <script>
 /* =========================================================
-   Planet Fatness Runner — Calorie Economy Update (client)
-   - Low, sane per-second calorie preview (no more 200 in 25s)
-   - Sends a "session receipt" to backend when logged in
-   - Backend should remain the source of truth long-term
+   Runner — now matches Lift/Snack economy:
+   1) shared daily keys + midnight reset (phat_today/phat_reset, cap 1000)
+   2) at game-over: preview caloriesThisRun -> credited calories (min with remaining cap)
    ========================================================= */
 
 /* ===== API (safe / optional) ===== */
 const API_BASE =
   (window.PF_API_BASE) ||
   (localStorage.getItem('pf_api_base')) ||
-  ''; // leave blank to disable submits
+  '';
 
-const TOKEN_KEY = 'pf_token'; // store JWT here when you wire login
+const TOKEN_KEY = 'pf_token';
 function getToken(){
   try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; }
 }
@@ -367,6 +360,26 @@ async function submitSessionReceipt(payload){
   }catch(e){
     return { ok:false, error:String(e && e.message ? e.message : e) };
   }
+}
+
+/* ===== SHARED DAILY CAP (MATCH LIFT/SNACK) ===== */
+const DAILY_CAP = 1000;
+const KEY_RESET = "phat_reset";
+const KEY_TODAY = "phat_today";
+
+function nextMidnight(){
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
+}
+
+let resetAt = Number(localStorage.getItem(KEY_RESET) || nextMidnight());
+let today = Number(localStorage.getItem(KEY_TODAY) || 0);
+
+if (Date.now() > resetAt){
+  today = 0;
+  resetAt = nextMidnight();
+  localStorage.setItem(KEY_RESET, resetAt);
+  localStorage.setItem(KEY_TODAY, today);
 }
 
 /* ===== DOM ===== */
@@ -397,7 +410,6 @@ const closeBtn = document.getElementById('closeBtn');
 const lbBtn = document.getElementById('lbBtn');
 const backBtn = document.getElementById('backBtn');
 
-/* Back to main gym */
 backBtn.addEventListener('click', () => {
   window.location.href = '../index.html#gym';
 });
@@ -407,7 +419,6 @@ const BEST_KEY = 'phat_treadmill_best_seconds';
 let best = Number(localStorage.getItem(BEST_KEY) || 0);
 bestEl.textContent = best.toFixed(1) + 's';
 
-/* best miles */
 const BEST_MILES_KEY = 'phat_treadmill_best_miles';
 let bestMiles = Number(localStorage.getItem(BEST_MILES_KEY) || 0);
 bestMiEl.textContent = bestMiles.toFixed(2) + 'mi';
@@ -434,14 +445,9 @@ let tapPulse=0, wobble=0, grace=2.35;
 
 let taps=0;
 let beltPhase=0;
-
 let inclinePeak=0;
 
-/* ===== NEW CALORIE ECONOMY (client preview) =====
-   Your old system could output hundreds per minute.
-   This new system is tuned so 20–30s feels like ~20–40 cals (depending on intensity).
-   Backend should later be the final authority, but this fixes the visible number immediately.
-*/
+/* preview calories */
 let caloriesThisRun=0;
 
 /* miles tracking (derived) */
@@ -450,13 +456,9 @@ let milesThisRun = 0;
 function clamp01(x){ return Math.max(0, Math.min(1, x)); }
 
 function computeMiles(sec){
-  // baseline: 3 minutes ≈ 1 mile
   const base = sec / 180;
-
-  // mild intensity boost (bounded)
   const multRaw = 0.85 + 0.35 * clamp01(speed) + 0.20 * clamp01(incline);
   const mult = Math.min(1.35, Math.max(0.75, multRaw));
-
   return base * mult;
 }
 
@@ -506,14 +508,12 @@ function resetGame(){
   last=performance.now();
 }
 
-/* tap that respects results lock + cooldown */
 function tapOnce(){
   const n = nowMs();
   if (resultsOpen || n < inputLockedUntil) return;
 
-  if (gameOver){
-    return;
-  }
+  if (gameOver) return;
+
   if (!running){
     running = true;
     statusEl.textContent = 'RUN';
@@ -524,7 +524,6 @@ function tapOnce(){
   taps++;
 }
 
-/* Pointer events */
 window.addEventListener('pointerdown', (e) => {
   if (e && typeof e.preventDefault === 'function') e.preventDefault();
   if (resultsOpen || nowMs() < inputLockedUntil) return;
@@ -539,7 +538,6 @@ window.addEventListener('keydown', e => {
   if (e.code === 'Space') tapOnce();
 });
 
-/* Buttons */
 restartBtn.addEventListener('click', () => resetGame());
 
 runBackBtn.addEventListener('click', () => {
@@ -567,10 +565,8 @@ function update(dt){
   t += dt;
   grace = Math.max(0, grace - dt);
 
-  /* miles derived (no gameplay changes) */
   milesThisRun = computeMiles(t);
 
-  /* hold-to-run auto taps */
   if (holding && !gameOver && !resultsOpen){
     holdAccumulator += dt * HOLD_TAPS_PER_SEC;
     while (holdAccumulator >= 1){
@@ -580,36 +576,25 @@ function update(dt){
     }
   }
 
-  /* difficulty ramp */
   const ramp = 1 - Math.exp(-t/40);
   incline = 0.04 + 0.85*ramp;
   required = 0.30 + 0.55*ramp;
-
   inclinePeak = Math.max(inclinePeak, incline);
 
-  /* tapPulse decay */
   tapPulse = Math.max(0, tapPulse - (0.78 + 0.95*incline)*dt);
 
-  /* speed target */
   const target = 0.22 + 0.78*(tapPulse/1.25)*(0.62 + 0.38*stamina);
   speed += (target - speed) * 3.1 * dt;
 
-  /* friction + incline gravity */
   speed = Math.max(0, speed - (0.17 + 0.52*incline) * dt);
 
-  /* stamina drain + recovery */
   stamina = Math.max(0, stamina - (0.045 + 0.20*incline + 0.095*speed) * dt);
   if (tapPulse > 0.70) stamina = Math.min(1, stamina + 0.065*dt);
 
-  /* ===== NEW CALORIES (preview economy) =====
-     Old: intensity * 7.2 * dt  => huge.
-     New: a low per-second baseline + bounded intensity multiplier.
-  */
-  const intensity = (0.80 + 0.75*speed + 0.55*incline); // typically ~1.0–1.9
-  const calPerSec = 0.95; // economy knob (tune later across all games)
+  const intensity = (0.80 + 0.75*speed + 0.55*incline);
+  const calPerSec = 0.95;
   caloriesThisRun += intensity * calPerSec * dt;
 
-  /* fail */
   if (grace <= 0 && (speed < required - 0.02 || stamina <= 0)){
     wobble += dt * 3.2;
     if (wobble > 1){
@@ -633,50 +618,53 @@ function update(dt){
 
       const cadence = taps / Math.max(0.1, t);
 
+      // ✅ shared midnight reset guard (in case tab stayed open)
+      if (Date.now() > resetAt){
+        today = 0;
+        resetAt = nextMidnight();
+      }
+
+      // ✅ convert preview -> credited calories (match Lift)
+      const raw = Math.max(0, Math.round(caloriesThisRun));
+      const credited = Math.max(0, Math.min(raw, DAILY_CAP - today));
+      today += credited;
+
+      localStorage.setItem(KEY_RESET, resetAt);
+      localStorage.setItem(KEY_TODAY, today);
+
       mTime.textContent = t.toFixed(1) + 's';
       mRank.textContent = rankFromTime(t);
       mMiles.textContent = milesThisRun.toFixed(2) + 'mi';
-      mCals.textContent = Math.max(0, Math.round(caloriesThisRun)).toString();
+      mCals.textContent = credited.toString();
       mCad.textContent = cadence.toFixed(1) + '/s';
       mIncl.textContent = (inclinePeak * 10).toFixed(1) + '%';
 
-      // lock input briefly
       inputLockedUntil = nowMs() + 450;
 
-      // Optional: submit receipt if logged in (won't break anything if not)
-// IMPORTANT: include calories so lifetime totals increase
-const receipt = {
-  game: "runner",
-  durationMs: Math.max(0, Math.round(t * 1000)),
+      // ✅ submit credited (not raw)
+      const receipt = {
+        game: "runner",
+        durationMs: Math.max(0, Math.round(t * 1000)),
+        calories: credited,
+        miles: Number(milesThisRun.toFixed(4)),
+        bestSeconds: Number(t.toFixed(3)),
+        score: Number(t.toFixed(3))
+      };
 
-  // lifetime rollups (backend aliases supported)
-  calories: Math.max(0, Math.round(caloriesThisRun)),
-  miles: Number(milesThisRun.toFixed(4)),
-  bestSeconds: Number(t.toFixed(3)),
-
-  // session metric (v2 leaderboard can use)
-  score: Number(t.toFixed(3))
-};
-
-      // Update modal note depending on auth
       const hasToken = !!getToken();
       if (hasToken && API_BASE){
-        mCalsNote.textContent = "Submitting run… (backend will stack your totals)";
+        mCalsNote.textContent = `Submitting run… (${credited} credited • today ${today}/${DAILY_CAP})`;
         submitSessionReceipt(receipt).then((r)=>{
           if (r && r.ok && r.data){
-            // backend returns lifetime totals from /activity/add (your current API)
-            mCalsNote.textContent =
-              "Run logged ✅ Your totals updated on the leaderboard.";
+            mCalsNote.textContent = `Run logged ✅ (${credited} credited • today ${today}/${DAILY_CAP})`;
           } else if (r && r.skipped){
-            mCalsNote.textContent =
-              "Connect your wallet on the site to stack lifetime calories.";
+            mCalsNote.textContent = `Connect your wallet on the site to stack lifetime calories. (${credited} credited • today ${today}/${DAILY_CAP})`;
           } else {
-            mCalsNote.textContent =
-              "Couldn’t submit right now — totals will update once connected.";
+            mCalsNote.textContent = `Couldn’t submit right now — totals update once connected. (${credited} credited • today ${today}/${DAILY_CAP})`;
           }
         });
       } else {
-        mCalsNote.textContent = "Connect your wallet on the site to stack lifetime calories";
+        mCalsNote.textContent = `Connect your wallet on the site to stack lifetime calories. (${credited} credited • today ${today}/${DAILY_CAP})`;
       }
 
       showModal();
@@ -741,13 +729,12 @@ function drawHUD(){
   ctx.font = '800 13px system-ui';
   ctx.fillText('Cadence: ' + cadence.toFixed(1) + '/s', 34, 78);
 
-  // miles + pace
   const mi = milesThisRun || 0;
   const paceMinPerMi = mi > 0.0001 ? (t / 60) / mi : 0;
   const paceStr = mi > 0.0001 ? formatPace(paceMinPerMi) : '—';
   ctx.fillText('Miles: ' + mi.toFixed(2) + ' • Pace: ' + paceStr + '/mi', 34, 102);
 
-  // (optional) show calories preview in HUD (small, non-intrusive)
+  // preview (still fine to show while running; credited only at end)
   const calsPreview = Math.max(0, Math.round(caloriesThisRun));
   ctx.fillText('Calories: ' + calsPreview, 34, 126);
 
