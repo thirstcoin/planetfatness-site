@@ -183,7 +183,7 @@
       left:50%;
       top:49%;
       transform:translate(-50%, -50%);
-      width:38%;           /* ✅ bigger so it reads better */
+      width:38%;
       height:auto;
       user-select:none;
       -webkit-user-drag:none;
@@ -211,8 +211,6 @@
       user-select:none;
       -webkit-user-drag:none;
       z-index:25;
-
-      /* slightly cleaner shadow than before */
       filter: drop-shadow(0 8px 10px rgba(0,0,0,.22));
     }
     .food.dragging{
@@ -262,7 +260,6 @@
     .ghost:active{ transform: translateY(1px); }
     a.ghost{ text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
 
-    /* ✅ Run it back moved under stage but keep it “primary” */
     .ghostPrimary{
       background: var(--accent);
       color:#231400;
@@ -288,7 +285,6 @@
     }
     .banner.show{ display:block; }
 
-    /* ✅ one-time tap overlay */
     .tapStart{
       position:absolute; inset:0;
       z-index:90;
@@ -296,12 +292,9 @@
       align-items:center;
       justify-content:center;
       padding:18px;
-
-      /* more “cinematic” */
       background:
         radial-gradient(900px 760px at 50% 35%, rgba(0,0,0,.18), rgba(0,0,0,.40) 70%),
         rgba(0,0,0,.22);
-
       backdrop-filter: blur(5px);
       -webkit-backdrop-filter: blur(5px);
     }
@@ -348,8 +341,6 @@
       .dropZone{ width: 230px; height: 140px; }
       .targetCluster{ top: 8%; }
       :root{ --beltY: 88.8%; }
-
-      /* buttons stack cleaner on iPhone */
       .rowBtns{ flex-direction:column; }
       .ghost{ width:100%; }
     }
@@ -363,14 +354,13 @@
         <div class="titleLine">$PHAT — Conveyor Munch</div>
         <div class="subLine">Drag the correct snack into his mouth. <strong>Missed meals kill gains.</strong></div>
       </div>
-      <!-- ✅ removed top Run it back (moved under stage) -->
     </div>
 
     <div class="stats">
       <div class="stat">
         <h4>RUN</h4>
         <div class="big" id="runScore">0</div>
-        <div class="sub" id="runSub">Streak: 0 · Speed: 1.00x</div>
+        <div class="sub" id="runSub">Streak: 0 · Belt: 1.00x · Cals: 0</div>
       </div>
       <div class="stat">
         <h4>BEST</h4>
@@ -380,7 +370,7 @@
       <div class="stat">
         <h4>DAILY GOAL</h4>
         <div class="big" id="goalScore">0 / 30</div>
-        <div class="sub" id="goalSub">Resets in <span id="resetIn">--:--:--</span></div>
+        <div class="sub" id="goalSub">Today cals: <span id="todayCals">0</span> / <span id="cap">1000</span> · Resets in <span id="resetIn">--:--:--</span></div>
       </div>
     </div>
 
@@ -402,7 +392,6 @@
         <div class="targetCluster">
           <div class="targetLabel" id="targetText">—</div>
           <div class="bubbleWrap">
-            <!-- ✅ absolute path so iOS never “loses” it -->
             <img class="bubble" src="/assets/thought-bubble.png" alt="thought bubble" />
             <img class="bubbleFood" id="bubbleFood" src="" alt="target food"/>
           </div>
@@ -421,7 +410,6 @@
         </div>
       </div>
 
-      <!-- ✅ Run it back moved here with the other buttons -->
       <div class="rowBtns">
         <button class="ghost ghostPrimary" id="resetBtn">Run it back</button>
         <button class="ghost" id="shareBtn">Share score</button>
@@ -432,7 +420,7 @@
         <strong>How it plays:</strong> The thought bubble shows what he wants. The belt feeds a nonstop stream of snacks.
         Grab the correct one between the wrong choices and drag it to his mouth before it rolls away.
         <br><br>
-        <strong>Heads up:</strong> Every correct munch makes the belt faster. 🔥
+        <strong>Fair calories:</strong> You earn calories for correct munches, but it <em>diminishes</em> the longer you keep going — and the daily cap keeps it honest.
       </div>
     </div>
   </div>
@@ -462,6 +450,74 @@
     { key:'sub',           name:'Sub',              src:'/assets/food_sub.png' },
   ];
 
+  // ===== OPTIONAL BACKEND SUBMIT (SAFE) =====
+  // If you store these on your main site, snack will auto-submit.
+  const API_BASE =
+    (window.PF_API_BASE) ||
+    localStorage.getItem('pf_api_base') ||
+    ''; // e.g. https://planetfatness-backend.onrender.com
+
+  const JWT =
+    localStorage.getItem('pf_token') ||
+    localStorage.getItem('token') ||
+    ''; // whatever you used on your main site
+
+  async function submitSession({ calories, score, durationMs }) {
+    if (!API_BASE || !JWT) return;
+    try {
+      await fetch(`${API_BASE.replace(/\/$/,'')}/activity/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${JWT}`,
+        },
+        body: JSON.stringify({
+          game: 'snack',
+          calories,
+          score,
+          durationMs,
+        }),
+      });
+    } catch {}
+  }
+
+  // ===== DAILY CAP (SHARED ACROSS GAMES) =====
+  const DAILY_CAP = 1000;
+  const KEY_RESET = "phat_reset";
+  const KEY_TODAY = "phat_today";
+
+  function nextMidnight(){
+    const d=new Date();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
+  }
+
+  let resetAt = Number(localStorage.getItem(KEY_RESET) || nextMidnight());
+  let today = Number(localStorage.getItem(KEY_TODAY) || 0);
+  if (Date.now() > resetAt){
+    today = 0;
+    resetAt = nextMidnight();
+    localStorage.setItem(KEY_RESET, resetAt);
+    localStorage.setItem(KEY_TODAY, today);
+  }
+
+  // ===== FAIR CALORIE FORMULA (SNACK) =====
+  // Earn only on correct munch. Diminishing per correct.
+  // Small speed bonus (but capped) so higher difficulty feels worth it.
+  function caloriesForCorrect(correctIndex, speedMult){
+    // correctIndex starts at 1
+    let base;
+    if (correctIndex <= 10) base = 12;
+    else if (correctIndex <= 25) base = 6;
+    else base = 3;
+
+    // mild bonus for speed (max +40%)
+    const bonus = 1 + Math.min(0.40, Math.max(0, (speedMult - 1) * 0.28));
+    return Math.round(base * bonus);
+  }
+
+  // Hard cap per round so a single god-run can’t nuke the economy
+  const ROUND_CAP = 220;
+
   const stage      = document.getElementById('stage');
   const beltLane   = document.getElementById('beltLane');
   const dropZoneEl = document.getElementById('dropZone');
@@ -473,7 +529,11 @@
   const runScoreEl = document.getElementById('runScore');
   const runSubEl   = document.getElementById('runSub');
   const bestEl     = document.getElementById('bestScore');
+  const bestSubEl  = document.getElementById('bestSub');
   const goalEl     = document.getElementById('goalScore');
+
+  const todayCalsEl = document.getElementById('todayCals');
+  const capEl = document.getElementById('cap');
 
   const resetBtn = document.getElementById('resetBtn');
   const shareBtn = document.getElementById('shareBtn');
@@ -482,6 +542,9 @@
   const v = document.getElementById('snackLoop');
   const tapStart = document.getElementById('tapStart');
   const tapBtn = document.getElementById('tapBtn');
+
+  capEl.textContent = DAILY_CAP;
+  todayCalsEl.textContent = today;
 
   let unlocked = false;
 
@@ -492,6 +555,12 @@
   let streak = 0;
   let score = 0;
   let speedMult = 1.00;
+
+  // calories
+  let runCals = 0;
+
+  // duration
+  let roundStartAt = 0;
 
   let speedFlashUntil = 0;
 
@@ -544,13 +613,15 @@
   const saveBest = (v) => localStorage.setItem(todayKey(), String(v));
   let best = loadBest();
   bestEl.textContent = best;
+  bestSubEl.textContent = `Daily best: ${best}`;
 
   function updateHUD(){
     runScoreEl.textContent = score;
     const now = performance.now();
-    runSubEl.textContent = `Streak: ${streak} · Belt: ${speedMult.toFixed(2)}x`;
+    runSubEl.textContent = `Streak: ${streak} · Belt: ${speedMult.toFixed(2)}x · Cals: ${runCals}`;
     runSubEl.style.color = (now < speedFlashUntil) ? 'var(--accent)' : 'var(--muted)';
     goalEl.textContent = `${Math.min(score, goalTarget)} / ${goalTarget}`;
+    todayCalsEl.textContent = today;
   }
 
   function setBanner(text, cssColor){
@@ -655,13 +726,31 @@
     foodsOnBelt = foodsOnBelt.filter(f => f.id !== food.id);
   }
 
-  function gameOver(){
+  async function endRound(reasonText){
     if (!running) return;
     running = false;
     freezeLoop();
-    setBanner('MISSED', getComputedStyle(document.documentElement).getPropertyValue('--bad'));
+
+    const dur = Math.max(0, Math.floor(performance.now() - roundStartAt));
+
+    // persist shared daily
+    localStorage.setItem(KEY_RESET, resetAt);
+    localStorage.setItem(KEY_TODAY, today);
+
+    if (reasonText) setBanner(reasonText, getComputedStyle(document.documentElement).getPropertyValue('--bad'));
+
+    // optional backend submit (safe)
+    // only submit if you actually earned something
+    if (runCals > 0 || score > 0){
+      submitSession({ calories: runCals, score, durationMs: dur });
+    }
+
     activeDrag = null;
     lastPointerId = null;
+  }
+
+  function gameOver(){
+    endRound('MISSED');
   }
 
   function winCorrect(food){
@@ -683,6 +772,21 @@
     const prevSpeed = speedMult;
     speedMult = clamp(speedMult + speedStep, 1.00, speedCap);
 
+    // ===== calories award (fair) =====
+    // only award if daily + round caps allow
+    if (today < DAILY_CAP && runCals < ROUND_CAP){
+      const add = caloriesForCorrect(score, speedMult);
+      const roomDaily = DAILY_CAP - today;
+      const roomRound = ROUND_CAP - runCals;
+      const actualAdd = Math.max(0, Math.min(add, roomDaily, roomRound));
+      runCals += actualAdd;
+      today += actualAdd;
+
+      if (actualAdd > 0 && (score % 5 === 0)){
+        setBanner(`+${actualAdd} CALS`, 'var(--good)');
+      }
+    }
+
     speedFlashUntil = performance.now() + 800;
     if (speedMult > prevSpeed + 0.0001){
       setBanner(`BELT +${(speedMult - prevSpeed).toFixed(2)}x`, 'var(--accent)');
@@ -693,6 +797,7 @@
     if (score > best){
       best = score;
       bestEl.textContent = best;
+      bestSubEl.textContent = `Daily best: ${best}`;
       saveBest(best);
     }
 
@@ -832,6 +937,10 @@
     score = 0;
     speedMult = 1.00;
     speedFlashUntil = 0;
+
+    runCals = 0;
+    roundStartAt = performance.now();
+
     currentTarget = pickTarget();
     updateHUD();
 
@@ -861,7 +970,10 @@
   }
 
   function share(){
-    const txt = `$PHAT Conveyor Munch — ${score} correct · streak ${streak} · belt ${speedMult.toFixed(2)}x\nplanetfatness.fit/snack`;
+    const txt =
+      `$PHAT Conveyor Munch — ${score} correct · streak ${streak} · belt ${speedMult.toFixed(2)}x · cals ${runCals}\n` +
+      `Today: ${today}/${DAILY_CAP}\n` +
+      `planetfatness.fit/snack`;
     if (navigator.share){
       navigator.share({ text: txt }).catch(()=>{});
     } else {
@@ -898,7 +1010,6 @@
 
   updateHUD();
   pickTarget();
-
   requestAnimationFrame(loop);
 })();
 </script>
