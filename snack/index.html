@@ -100,19 +100,20 @@
         linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,0));
     }
 
+    /* MP4 scene background (purple baked in) */
     .scene{
       position:absolute; inset:0;
-      display:flex; align-items:flex-end; justify-content:center;
       pointer-events:none;
       z-index:10;
     }
-    .scene img{
+    .scene video{
       width:100%;
       height:100%;
       object-fit:contain;
-      object-position: center bottom;
+      object-position:center bottom;
       user-select:none;
       -webkit-user-drag:none;
+      display:block;
     }
 
     .targetCluster{
@@ -168,7 +169,7 @@
       pointer-events:none;
     }
 
-    /* BELT LANE — adjust this only if needed */
+    /* BELT LANE — adjust only if needed to match MP4 belt surface */
     .beltLane{
       position:absolute;
       left:0;
@@ -177,36 +178,7 @@
       top: 86%;
       pointer-events:none;
       z-index:20;
-    }
-
-    /* NEW: subtle moving belt stripes so speed increases are obvious */
-    .beltFx{
-      position:absolute;
-      left:0;
-      top: calc(86% - 64px);
-      width:100%;
-      height: 90px;
-      pointer-events:none;
-      z-index:19;
-      opacity:.55;
-      overflow:hidden;
-      mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
-      -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
-    }
-    .beltFx::before{
-      content:"";
-      position:absolute;
-      inset:-40px -120px -40px -120px;
-      background:
-        repeating-linear-gradient(
-          115deg,
-          rgba(255,212,77,.0) 0px,
-          rgba(255,212,77,.0) 12px,
-          rgba(255,212,77,.22) 12px,
-          rgba(255,212,77,.22) 18px
-        );
-      filter: blur(0.2px);
-      transform: translateX(var(--beltShift, 0px));
+      opacity:0;
     }
 
     .food{
@@ -282,7 +254,6 @@
       .food{ width: 140px; }
       .dropZone{ width: 230px; height: 140px; }
       .targetCluster{ top: 8%; }
-      .beltFx{ top: calc(86% - 58px); height: 86px; }
     }
   </style>
 </head>
@@ -317,8 +288,17 @@
 
     <div class="panel">
       <div class="stage" id="stage">
+        <!-- UPDATED: MP4 loop background (path matches your repo: /assets/snack-loop.mp4) -->
         <div class="scene">
-          <img src="../assets/stack_scene.png" alt="scene" />
+          <video
+            id="snackLoop"
+            src="../assets/snack-loop.mp4"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="auto"
+          ></video>
         </div>
 
         <div class="targetCluster">
@@ -329,7 +309,6 @@
           </div>
         </div>
 
-        <div class="beltFx" id="beltFx"></div>
         <div class="beltLane" id="beltLane"></div>
         <div class="dropZone" id="dropZone"></div>
         <div class="banner" id="banner">MISSED</div>
@@ -376,7 +355,6 @@
 
   const stage      = document.getElementById('stage');
   const beltLane   = document.getElementById('beltLane');
-  const beltFx     = document.getElementById('beltFx');
   const dropZoneEl = document.getElementById('dropZone');
   const banner     = document.getElementById('banner');
 
@@ -580,7 +558,7 @@
     const prevSpeed = speedMult;
     speedMult = clamp(speedMult + speedStep, 1.00, speedCap);
 
-    // NEW: communicate belt speed up in HUD + banner so it never feels like a glitch
+    // communicate belt speed up in HUD + banner so it never feels like a glitch
     speedFlashUntil = performance.now() + 800;
     if (speedMult > prevSpeed + 0.0001){
       setBanner(`BELT +${(speedMult - prevSpeed).toFixed(2)}x`, 'var(--accent)');
@@ -673,9 +651,6 @@
 
   const OFFSCREEN_X = -180;
 
-  // NEW: belt stripe animation state (visual speed cue)
-  let beltShift = 0;
-
   // ✅ dt clamp to prevent random “teleport past miss line” spikes on iOS
   let lastT = performance.now();
   function loop(now){
@@ -686,11 +661,6 @@
     if (running){
       const y = laneY();
       const beltDx = (baseSpeed * speedMult) * dt;
-
-      // Move belt stripes (obvious visual progression)
-      beltShift -= beltDx * 0.65;
-      if (beltShift < -120) beltShift += 120;
-      beltFx.style.setProperty('--beltShift', `${beltShift}px`);
 
       // Update positions
       for (const f of foodsOnBelt){
@@ -748,7 +718,6 @@
     score = 0;
     speedMult = 1.00;
     speedFlashUntil = 0;
-    beltShift = 0;
 
     currentTarget = pickTarget();
     updateHUD();
@@ -790,6 +759,14 @@
 
   resetBtn.addEventListener('click', reset);
   shareBtn.addEventListener('click', share);
+
+  // Make sure iOS Safari actually plays it inline reliably
+  const v = document.getElementById('snackLoop');
+  if (v){
+    v.addEventListener('loadeddata', () => {
+      try { v.play(); } catch {}
+    });
+  }
 
   reset();
   requestAnimationFrame(loop);
