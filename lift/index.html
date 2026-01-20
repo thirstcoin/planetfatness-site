@@ -319,7 +319,7 @@ a{color:inherit; text-decoration:none}
 <div id="wrap">
   <div class="row">
     <div class="pill">$PHAT — Ego Lift Buffet</div>
-    <div class="pill" id="status">Tap & release on green. Miss once = pinned.</div>
+    <div class="pill" id="status">Tap once to wake up. Then release on green. Miss once = pinned.</div>
     <div style="display:flex; gap:10px; flex-wrap:wrap">
       <a class="btn2" href="https://planetfatness.fit/">Back to Gym</a>
       <button class="btn" id="restartBtn">Run it back</button>
@@ -377,7 +377,7 @@ a{color:inherit; text-decoration:none}
       <div class="card">
         <div class="k">Calories earned</div>
         <div class="v" id="mRunCals">0</div>
-        <div class="s">this run’s damage</div>
+        <div class="s">low & fair so nobody can farm this game</div>
       </div>
       <div class="card">
         <div class="k">Today total</div>
@@ -407,26 +407,77 @@ a{color:inherit; text-decoration:none}
 const IDLE_SRC = "../assets/lift_idle.png";
 const REP_SRC  = "../assets/lift_hero.gif";
 
-/* ========= CALORIES + FAIRNESS =========
-   - Survival mode: ends on first miss
-   - Diminishing calories per rep (stops farm bots)
-   - Daily cap (stops nolife advantage)
+/* ========= OPTIONAL BACKEND (OFF BY DEFAULT) =========
+   - If you later want to log session receipts:
+     window.PF_API_BASE = "https://YOUR-RENDER.onrender.com"
+     localStorage.setItem("pf_token", "JWT_HERE")
+*/
+const API_BASE = (window.PF_API_BASE || localStorage.getItem("pf_api_base") || "").trim();
+function getToken(){ return (localStorage.getItem("pf_token") || "").trim(); }
+
+async function submitReceipt(receipt){
+  if (!API_BASE) return null;
+  const token = getToken();
+  if (!token) return null;
+
+  try{
+    const r = await fetch(API_BASE + "/activity/add", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + token
+      },
+      body: JSON.stringify(receipt)
+    });
+    if (!r.ok) return null;
+    return await r.json();
+  }catch{
+    return null;
+  }
+}
+
+/* ========= FAIR CALORIES (NEW) =========
+   Goal: this can't be the easiest farm.
+   - mostly time-based
+   - small skill multiplier from difficulty
+   - still capped daily
 */
 const DAILY_CAP = 1000;
 
-/* diminishing curve */
-function caloriesForRep(repIndex){
-  // repIndex starts at 1
-  if (repIndex <= 10) return 25;
-  if (repIndex <= 25) return 15;
-  if (repIndex <= 50) return 8;
-  return 4;
+// Rough target pacing:
+// good player in 20–30s run -> ~25–60 cals
+// cracked long run -> 80–140 cals (takes time + difficulty)
+function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
+function roundInt(n){ return Math.max(0, Math.round(n)); }
+
+function caloriesForRep(repIndex, zoneW, loopSeconds){
+  // base per rep is small
+  // difficulty boosts are mild, not crazy
+  // diminishing after early reps
+
+  const BASE_ZONE_W = 0.18;
+  const BASE_LOOP = 1.85;
+
+  // difficulty: smaller zone and faster loop
+  const zoneHard = clamp((BASE_ZONE_W / Math.max(0.035, zoneW)) - 1, 0, 3.0);      // 0..3
+  const speedHard = clamp((BASE_LOOP / Math.max(0.70, loopSeconds)) - 1, 0, 1.6);  // 0..1.6
+
+  const skillBoost = 1 + (0.22 * zoneHard) + (0.18 * speedHard); // mild
+
+  // diminishing by rep count so bots can't print
+  let diminish = 1.0;
+  if (repIndex >= 16) diminish = 0.70;
+  if (repIndex >= 31) diminish = 0.45;
+  if (repIndex >= 51) diminish = 0.30;
+
+  // small streak spice every 5 reps
+  const streakBonus = (repIndex % 5 === 0) ? 1 : 0;
+
+  const raw = (3.0 * skillBoost * diminish) + streakBonus; // ~2–7 range normally
+  return roundInt(raw);
 }
 
-/* ========= DIFFICULTY =========
-   - zone shrinks
-   - needle speeds up
-*/
+/* ========= DIFFICULTY ========= */
 const BASE_LOOP = 1.85;   // seconds for a full needle sweep
 const MIN_LOOP  = 0.85;
 
@@ -548,11 +599,9 @@ function rerollZone(){
 }
 
 function setDifficulty(){
-  // shrink more early, then taper
   const shrink = reps <= 20 ? SHRINK_EARLY : SHRINK_LATE;
   zoneW = Math.max(MIN_ZONE_W, zoneW - shrink);
 
-  // speed up needle
   const t = Math.min(1, reps/22);
   loopSeconds = Math.max(MIN_LOOP, BASE_LOOP - (BASE_LOOP - MIN_LOOP)*t);
 
@@ -564,16 +613,12 @@ function playRep(){
   if (lock || over) return;
   lock = true;
 
-  // show gif immediately (even if it’s still loading, it’ll pop in)
   heroIdle.style.opacity = 0;
   heroGif.style.opacity = 1;
 
-  // clear old timer
   if (repTimer){ clearTimeout(repTimer); repTimer = null; }
 
-  // set onload BEFORE updating src
   heroGif.onload = () => {
-    // keep gif visible for a consistent time AFTER it actually loads
     if (repTimer) clearTimeout(repTimer);
     repTimer = setTimeout(()=>{
       heroGif.style.opacity = 0;
@@ -587,7 +632,7 @@ function playRep(){
   heroGif.src = REP_SRC + "?r=" + repSeq;
 }
 
-function endRun(reason){
+async function endRun(reason){
   over = true;
   vignette.style.opacity = 1;
 
@@ -603,11 +648,9 @@ function endRun(reason){
 
   bestReps = Math.max(bestReps, reps);
 
-  // persist daily
   localStorage.setItem(KEY_RESET, resetAt);
   localStorage.setItem(KEY_TODAY, today);
 
-  // modal stats
   mBestEl.textContent = bestReps;
   mZoneEl.textContent = Math.round(smallestZone*100) + "%";
   mRunCalsEl.textContent = runCals;
@@ -622,19 +665,29 @@ function endRun(reason){
 
   shareLine.textContent = `Rep streak: ${bestReps} • Zone: ${Math.round(smallestZone*100)}% • Calories: ${runCals}`;
   modalBack.style.display = "flex";
-
-  // store for share/copy buttons
   window.__shareText = shareText;
+
+  // Optional receipt (won't submit unless API_BASE + token exist)
+  const durationMs = Math.max(0, Math.round((performance.now() - start)));
+  const receipt = {
+    game: "lift",
+    durationMs,
+    calories: runCals,
+    score: bestReps,         // lift score = rep streak
+  };
+  submitReceipt(receipt).then((r)=>{
+    // silent. later we can display "synced" toast if you want.
+  });
 }
 
-/* Input: release only (prevents hold-to-win) */
+/* Input: release only */
 function onRelease(){
   if (over) return;
+
   if (!running){
     running = true;
     start = performance.now();
     statusEl.textContent = "Release on green. Miss once and you’re done.";
-    // preload gif for first rep
     const pre = new Image(); pre.src = REP_SRC;
     return;
   }
@@ -649,9 +702,9 @@ function onRelease(){
     reps++;
     repStreakEl.textContent = reps;
 
-    const add = caloriesForRep(reps);
+    const add = caloriesForRep(reps, zoneW, loopSeconds);
 
-    if (today < DAILY_CAP){
+    if (today < DAILY_CAP && add > 0){
       const actualAdd = Math.min(add, DAILY_CAP - today);
       runCals += actualAdd;
       today += actualAdd;
@@ -675,11 +728,11 @@ window.addEventListener("pointerup", onRelease);
 window.addEventListener("keyup", (e)=>{ if(e.code==="Space") onRelease(); });
 
 /* Buttons */
-el("restartBtn").onclick = ()=>location.reload();
-el("againBtn").onclick = ()=>location.reload();
-el("closeBtn").onclick = ()=>{ modalBack.style.display="none"; };
+document.getElementById("restartBtn").onclick = ()=>location.reload();
+document.getElementById("againBtn").onclick = ()=>location.reload();
+document.getElementById("closeBtn").onclick = ()=>{ modalBack.style.display="none"; };
 
-el("copyBtn").onclick = async ()=>{
+document.getElementById("copyBtn").onclick = async ()=>{
   try{
     await navigator.clipboard.writeText(window.__shareText || "");
     toast("Copied. Post the flex.");
@@ -688,12 +741,10 @@ el("copyBtn").onclick = async ()=>{
   }
 };
 
-el("shareBtn").onclick = async ()=>{
+document.getElementById("shareBtn").onclick = async ()=>{
   const text = window.__shareText || "";
   if (navigator.share){
-    try{
-      await navigator.share({ text });
-    }catch{}
+    try{ await navigator.share({ text }); }catch{}
     return;
   }
   try{
@@ -733,7 +784,7 @@ function loop(){
 
 /* Init UI */
 heroIdle.src = IDLE_SRC;
-heroGif.src  = REP_SRC;      // base preload
+heroGif.src  = REP_SRC;
 runCalsEl.textContent = "0";
 repStreakEl.textContent = "0";
 zoneW = BASE_ZONE_W;
@@ -741,9 +792,6 @@ loopSeconds = BASE_LOOP;
 smallestZone = zoneW;
 rerollZone();
 requestAnimationFrame(loop);
-
-/* Friendly nudge */
-statusEl.textContent = "Tap once to wake up. Then release on green to curl.";
 </script>
 </body>
 </html>
