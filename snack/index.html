@@ -16,15 +16,14 @@
       --good:#6dffb3;
       --bad:#ff6d8a;
 
-      /* MP4 purple vibe (used to blend any letterbox areas) */
       --mp4-top:#6f3cff;
       --mp4-mid:#6a36ff;
       --mp4-bot:#6431ff;
 
-      /* ✅ ONE KNOB for food ride height (tweak in tiny steps like 0.2%) */
+      /* Ride height knob */
       --beltY: 88.4%;
 
-      /* ✅ Keep head safe: use contain (no crop) */
+      /* Head safe: no crop */
       --videoFit: contain;
       --videoPosY: 100%;
     }
@@ -108,14 +107,11 @@
       max-height: 820px;
       border-radius:22px;
       overflow:hidden;
-
-      /* ✅ Polished stage backdrop that matches MP4 lighting */
       background:
         radial-gradient(700px 520px at 50% 18%, rgba(255,255,255,.12), transparent 55%),
         linear-gradient(180deg, var(--mp4-top) 0%, var(--mp4-mid) 45%, var(--mp4-bot) 100%);
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
     }
-    /* subtle vignette so any “flat” areas feel intentional */
     .stage::after{
       content:"";
       position:absolute; inset:0;
@@ -137,8 +133,6 @@
       height:100%;
       object-fit: var(--videoFit);
       object-position: 50% var(--videoPosY);
-      user-select:none;
-      -webkit-user-drag:none;
       display:block;
       background: transparent;
     }
@@ -196,7 +190,6 @@
       pointer-events:none;
     }
 
-    /* Belt lane is the Y anchor for food */
     .beltLane{
       position:absolute;
       left:0;
@@ -275,14 +268,59 @@
     }
     .banner.show{ display:block; }
 
+    /* ✅ iOS “autoplay” blocker fix: one-time tap overlay */
+    .tapStart{
+      position:absolute; inset:0;
+      z-index:90;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background: rgba(0,0,0,.25);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    .tapStart.hidden{ display:none; }
+    .tapCard{
+      max-width: 360px;
+      width: min(360px, 92%);
+      background: rgba(0,0,0,.45);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 20px;
+      padding: 16px 16px 14px;
+      text-align:center;
+      box-shadow: 0 14px 34px rgba(0,0,0,.35);
+    }
+    .tapCard .big{
+      font-weight: 950;
+      letter-spacing:.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .tapCard .small{
+      color: rgba(255,255,255,.78);
+      line-height: 1.35;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .tapCard .tapBtn{
+      width:100%;
+      border:0;
+      background: var(--accent);
+      color:#231400;
+      font-weight: 950;
+      border-radius: 16px;
+      padding: 12px 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.25);
+    }
+    .tapCard .tapBtn:active{ transform: translateY(1px); }
+
     @media (max-width:520px){
       .stats{ grid-template-columns: 1fr; }
       .stage{ aspect-ratio: 9/12; }
       .food{ width: 140px; }
       .dropZone{ width: 230px; height: 140px; }
       .targetCluster{ top: 8%; }
-
-      /* iPhone tweak (a touch lower to sit perfectly on belt) */
       :root{ --beltY: 88.8%; }
     }
   </style>
@@ -327,7 +365,7 @@
             preload="auto"
             webkit-playsinline
           >
-            <source src="/assets/snack-loop.mp4?v=5" type="video/mp4" />
+            <source src="/assets/snack-loop.mp4?v=6" type="video/mp4" />
           </video>
         </div>
 
@@ -342,6 +380,15 @@
         <div class="beltLane" id="beltLane"></div>
         <div class="dropZone" id="dropZone"></div>
         <div class="banner" id="banner">MISSED</div>
+
+        <!-- ✅ one-time tap to unlock video play on iOS -->
+        <div class="tapStart" id="tapStart">
+          <div class="tapCard">
+            <div class="big">Tap to start</div>
+            <div class="small">iPhone blocks autoplay — one tap unlocks the animated belt.</div>
+            <button class="tapBtn" id="tapBtn">Start Round</button>
+          </div>
+        </div>
       </div>
 
       <div class="rowBtns">
@@ -401,19 +448,21 @@
   const resetInEl = document.getElementById('resetIn');
 
   const v = document.getElementById('snackLoop');
+  const tapStart = document.getElementById('tapStart');
+  const tapBtn = document.getElementById('tapBtn');
 
-  // NOTE: prevX + active flags to prevent "ghost/random miss"
-  let foodsOnBelt = []; // {id, def, el, x, prevX, active}
+  let unlocked = false;
+
+  let foodsOnBelt = [];
   let nextId = 1;
 
-  let running = false;   // ✅ start paused; round start triggers video
+  let running = false;
   let streak = 0;
   let score = 0;
   let speedMult = 1.00;
 
   let speedFlashUntil = 0;
 
-  // PRESSURE TUNING
   const baseSpeed = 160;
   const speedStep = 0.045;
   const speedCap  = 2.25;
@@ -427,7 +476,7 @@
   const targetMustAppearWithinMs = 6000;
   let targetSetAt = 0;
 
-  let activeDrag = null; // {food, offsetX, offsetY}
+  let activeDrag = null;
   let lastPointerId = null;
 
   const goalTarget = 30;
@@ -440,19 +489,19 @@
     return (r.top - s.top);
   }
 
-  function playLoop(){
-    if (!v) return;
-    try {
-      v.currentTime = 0;
-    } catch {}
-    try { v.play(); } catch {}
-  }
-
   function freezeLoop(){
     if (!v) return;
     try { v.pause(); } catch {}
-    // show static first frame if possible
     try { v.currentTime = 0; } catch {}
+  }
+
+  async function playLoop(){
+    if (!v) return;
+    try { v.currentTime = 0; } catch {}
+    try {
+      const p = v.play();
+      if (p && typeof p.then === 'function') await p;
+    } catch {}
   }
 
   const todayKey = () => {
@@ -577,10 +626,7 @@
   function gameOver(){
     if (!running) return;
     running = false;
-
-    // ✅ stop animation + freeze
     freezeLoop();
-
     setBanner('MISSED', getComputedStyle(document.documentElement).getPropertyValue('--bad'));
     activeDrag = null;
     lastPointerId = null;
@@ -737,7 +783,6 @@
       }
 
       acc += dt * 1000;
-
       fillBelt();
       ensureTargetSoon();
 
@@ -750,26 +795,41 @@
     requestAnimationFrame(loop);
   }
 
-  function reset(){
-    running = true;
+  function resetRoundState(){
     streak = 0;
     score = 0;
     speedMult = 1.00;
     speedFlashUntil = 0;
-
-    // ✅ start loop only when round starts
-    playLoop();
-
     currentTarget = pickTarget();
     updateHUD();
 
     for (const f of [...foodsOnBelt]) removeFood(f);
-
-    for (let i=0;i<8;i++){
-      spawnFood(i===2);
-    }
+    for (let i=0;i<8;i++) spawnFood(i===2);
     fillBelt();
     ensureTargetSoon();
+  }
+
+  async function startRoundFromGesture(){
+    unlocked = true;
+    tapStart.classList.add('hidden');
+
+    running = true;
+
+    // MUST be in a user gesture for iOS
+    await playLoop();
+
+    resetRoundState();
+  }
+
+  function runItBack(){
+    if (!unlocked){
+      // show overlay until they tap
+      tapStart.classList.remove('hidden');
+      return;
+    }
+    running = true;
+    playLoop();
+    resetRoundState();
   }
 
   function share(){
@@ -798,18 +858,22 @@
   }
   setInterval(() => resetInEl.textContent = fmt(timeToMidnight()), 250);
 
-  resetBtn.addEventListener('click', reset);
+  resetBtn.addEventListener('click', runItBack);
   shareBtn.addEventListener('click', share);
 
-  // iOS: allow frame 0 to show while paused
+  // tap overlay button (real user gesture)
+  tapBtn.addEventListener('click', startRoundFromGesture);
+  tapStart.addEventListener('click', startRoundFromGesture);
+
+  // start STATIC on load (expected on iPhone)
   if (v){
-    v.addEventListener('loadedmetadata', () => {
-      freezeLoop(); // start static until first reset() fires
-    });
+    v.addEventListener('loadedmetadata', () => freezeLoop());
   }
 
-  // start the first round immediately
-  reset();
+  // initialize HUD + target without starting round
+  updateHUD();
+  pickTarget();
+
   requestAnimationFrame(loop);
 })();
 </script>
