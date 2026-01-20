@@ -112,14 +112,26 @@
         linear-gradient(180deg, var(--mp4-top) 0%, var(--mp4-mid) 45%, var(--mp4-bot) 100%);
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
     }
+
+    /* (2) POLISH: extra vignette/gloss so the box looks “premium” */
+    .stage::before{
+      content:"";
+      position:absolute; inset:0;
+      pointer-events:none;
+      z-index:11;
+      background:
+        radial-gradient(120% 92% at 50% 18%, rgba(255,255,255,.10), rgba(255,255,255,0) 42%),
+        radial-gradient(120% 120% at 50% 60%, rgba(0,0,0,0), rgba(0,0,0,.22) 70%);
+      opacity:.75;
+    }
     .stage::after{
       content:"";
       position:absolute; inset:0;
       pointer-events:none;
       z-index:12;
       background:
-        radial-gradient(900px 760px at 50% 30%, rgba(0,0,0,0), rgba(0,0,0,.18) 70%),
-        linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,0) 35%, rgba(0,0,0,.10));
+        linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,0) 35%, rgba(0,0,0,.12)),
+        radial-gradient(900px 760px at 50% 30%, rgba(0,0,0,0), rgba(0,0,0,.16) 70%);
       mix-blend-mode: multiply;
     }
 
@@ -128,6 +140,8 @@
       pointer-events:none;
       z-index:10;
     }
+
+    /* (4) POLISH: crossfade static↔video (static is your stage gradient) */
     .scene video{
       width:100%;
       height:100%;
@@ -135,7 +149,12 @@
       object-position: 50% var(--videoPosY);
       display:block;
       background: transparent;
+
+      opacity: 0;
+      transition: opacity 220ms ease;
+      will-change: opacity;
     }
+    .scene video.playing{ opacity: 1; }
 
     .targetCluster{
       position:absolute;
@@ -201,6 +220,7 @@
       opacity:0;
     }
 
+    /* (3) POLISH: food shadow tuned down + add “contact shadow” element */
     .food{
       position:absolute;
       top:0;
@@ -211,9 +231,32 @@
       user-select:none;
       -webkit-user-drag:none;
       z-index:25;
-      filter: drop-shadow(0 10px 12px rgba(0,0,0,.25));
+
+      /* reduced float shadow */
+      filter: drop-shadow(0 6px 7px rgba(0,0,0,.20));
     }
-    .food.dragging{ z-index:60; filter: drop-shadow(0 16px 18px rgba(0,0,0,.35)); }
+    .food.dragging{
+      z-index:60;
+      filter: drop-shadow(0 14px 14px rgba(0,0,0,.34));
+    }
+
+    /* contact shadow that “pins” snack to the belt */
+    .foodShadow{
+      position:absolute;
+      width: 72px;
+      height: 16px;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      background: rgba(0,0,0,.34);
+      filter: blur(7px);
+      opacity: .62;
+      z-index:24;
+      pointer-events:none;
+    }
+    .foodShadow.dragging{
+      opacity:.35;
+      filter: blur(10px);
+    }
 
     .dropZone{
       position:absolute;
@@ -268,7 +311,7 @@
     }
     .banner.show{ display:block; }
 
-    /* ✅ iOS “autoplay” blocker fix: one-time tap overlay */
+    /* ✅ one-time tap to unlock video play on iOS (copy rewritten to be in-lore) */
     .tapStart{
       position:absolute; inset:0;
       z-index:90;
@@ -276,15 +319,17 @@
       align-items:center;
       justify-content:center;
       padding:18px;
-      background: rgba(0,0,0,.25);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      background:
+        radial-gradient(900px 720px at 50% 30%, rgba(0,0,0,.08), rgba(0,0,0,.34)),
+        rgba(0,0,0,.15);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
     }
     .tapStart.hidden{ display:none; }
     .tapCard{
       max-width: 360px;
       width: min(360px, 92%);
-      background: rgba(0,0,0,.45);
+      background: rgba(12,8,22,.52);
       border: 1px solid rgba(255,255,255,.18);
       border-radius: 20px;
       padding: 16px 16px 14px;
@@ -293,12 +338,12 @@
     }
     .tapCard .big{
       font-weight: 950;
-      letter-spacing:.08em;
+      letter-spacing:.10em;
       text-transform: uppercase;
       margin-bottom: 8px;
     }
     .tapCard .small{
-      color: rgba(255,255,255,.78);
+      color: rgba(255,255,255,.80);
       line-height: 1.35;
       font-size: 14px;
       margin-bottom: 12px;
@@ -384,9 +429,9 @@
         <!-- ✅ one-time tap to unlock video play on iOS -->
         <div class="tapStart" id="tapStart">
           <div class="tapCard">
-            <div class="big">Tap to start</div>
-            <div class="small">iPhone blocks autoplay — one tap unlocks the animated belt.</div>
-            <button class="tapBtn" id="tapBtn">Start Round</button>
+            <div class="big">CLOCK IN</div>
+            <div class="small">Start the belt and feed the beast. No excuses.</div>
+            <button class="tapBtn" id="tapBtn">START SHIFT</button>
           </div>
         </div>
       </div>
@@ -453,6 +498,7 @@
 
   let unlocked = false;
 
+  // {id, def, el, shadowEl, x, prevX, active}
   let foodsOnBelt = [];
   let nextId = 1;
 
@@ -493,6 +539,8 @@
     if (!v) return;
     try { v.pause(); } catch {}
     try { v.currentTime = 0; } catch {}
+    // (4) crossfade back to static
+    v.classList.remove('playing');
   }
 
   async function playLoop(){
@@ -502,6 +550,8 @@
       const p = v.play();
       if (p && typeof p.then === 'function') await p;
     } catch {}
+    // (4) crossfade to video
+    v.classList.add('playing');
   }
 
   const todayKey = () => {
@@ -575,6 +625,12 @@
     }
     if (x === null) return false;
 
+    // (3) contact shadow element
+    const shadowEl = document.createElement('div');
+    shadowEl.className = 'foodShadow';
+    shadowEl.style.left = `${x}px`;
+    shadowEl.style.top  = `${y + 8}px`; // sits slightly below snack base
+
     const el = document.createElement('img');
     el.className = 'food';
     el.src = def.src;
@@ -586,8 +642,11 @@
     const id = nextId++;
     el.addEventListener('pointerdown', (e) => onPointerDown(e, id));
 
+    // order matters: shadow below snack
+    stage.appendChild(shadowEl);
     stage.appendChild(el);
-    foodsOnBelt.push({ id, def, el, x, prevX: x, active: true });
+
+    foodsOnBelt.push({ id, def, el, shadowEl, x, prevX: x, active: true });
     return true;
   }
 
@@ -620,6 +679,7 @@
   function removeFood(food){
     food.active = false;
     try { food.el.remove(); } catch {}
+    try { food.shadowEl?.remove(); } catch {}
     foodsOnBelt = foodsOnBelt.filter(f => f.id !== food.id);
   }
 
@@ -638,11 +698,19 @@
     const targetX = (z.left - s.left) + (z.width/2);
     const targetY = (z.top  - s.top ) + (z.height/2);
 
+    // move snack
     food.el.style.transition = 'left 140ms ease, top 140ms ease, transform 140ms ease, opacity 140ms ease';
     food.el.style.left = `${targetX}px`;
     food.el.style.top  = `${targetY}px`;
     food.el.style.transform = 'translate(-50%, -50%) scale(.65)';
     food.el.style.opacity = '0.25';
+
+    // fade shadow quickly
+    if (food.shadowEl){
+      food.shadowEl.style.transition = 'opacity 120ms ease';
+      food.shadowEl.style.opacity = '0';
+    }
+
     setTimeout(() => removeFood(food), 160);
 
     score += 1;
@@ -676,6 +744,7 @@
 
     lastPointerId = e.pointerId;
     food.el.classList.add('dragging');
+    food.shadowEl?.classList.add('dragging');
 
     const s = stageRect();
     const r = food.el.getBoundingClientRect();
@@ -700,6 +769,13 @@
     food.el.style.left = `${x}px`;
     food.el.style.top = `${y}px`;
     food.el.style.transform = 'translate(-50%, -50%)';
+
+    // keep contact shadow under snack while dragging (a bit looser)
+    if (food.shadowEl){
+      food.shadowEl.style.transition = 'none';
+      food.shadowEl.style.left = `${x}px`;
+      food.shadowEl.style.top = `${y + 58}px`;
+    }
   }
 
   function onPointerUp(e){
@@ -712,6 +788,7 @@
     if (!food.active) return;
 
     food.el.classList.remove('dragging');
+    food.shadowEl?.classList.remove('dragging');
 
     const fRect = food.el.getBoundingClientRect();
     const zRect = dropZoneEl.getBoundingClientRect();
@@ -725,6 +802,13 @@
       food.el.style.transition = 'top 120ms ease, transform 120ms ease';
       food.el.style.top = `${y}px`;
       food.el.style.transform = 'translate(-50%, -100%)';
+
+      if (food.shadowEl){
+        food.shadowEl.style.transition = 'top 120ms ease, opacity 120ms ease';
+        food.shadowEl.style.left = `${parseFloat(food.el.style.left) || food.x}px`;
+        food.shadowEl.style.top  = `${y + 8}px`;
+        food.shadowEl.style.opacity = '0.62';
+      }
       return;
     }
 
@@ -762,10 +846,21 @@
         if (activeDrag && activeDrag.food.id === f.id){
           const curLeft = parseFloat(f.el.style.left) || f.x;
           f.el.style.left = `${curLeft - beltDx}px`;
+
+          if (f.shadowEl){
+            const curShadowLeft = parseFloat(f.shadowEl.style.left) || curLeft;
+            f.shadowEl.style.left = `${curShadowLeft - beltDx}px`;
+          }
         } else {
           f.el.style.left = `${f.x}px`;
           f.el.style.top  = `${y}px`;
           f.el.style.transform = 'translate(-50%, -100%)';
+
+          if (f.shadowEl){
+            f.shadowEl.style.left = `${f.x}px`;
+            f.shadowEl.style.top  = `${y + 8}px`;
+            f.shadowEl.style.opacity = '0.62';
+          }
         }
       }
 
@@ -815,7 +910,7 @@
 
     running = true;
 
-    // MUST be in a user gesture for iOS
+    // must be in user gesture for iOS
     await playLoop();
 
     resetRoundState();
@@ -823,7 +918,6 @@
 
   function runItBack(){
     if (!unlocked){
-      // show overlay until they tap
       tapStart.classList.remove('hidden');
       return;
     }
