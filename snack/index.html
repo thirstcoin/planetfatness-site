@@ -15,6 +15,9 @@
       --accent:#ffd44d;
       --good:#6dffb3;
       --bad:#ff6d8a;
+
+      /* NEW: match the purple baked into your MP4 so there is no “two purple” seam */
+      --mp4-purple:#6f3cff;
     }
     *{ box-sizing:border-box; }
     body{
@@ -95,9 +98,9 @@
       max-height: 820px;
       border-radius:22px;
       overflow:hidden;
-      background:
-        radial-gradient(900px 700px at 50% 20%, rgba(255,255,255,.08), transparent 62%),
-        linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,0));
+
+      /* FIX: stage background matches MP4 so there’s no “purple box seam” if anything peeks */
+      background: var(--mp4-purple);
     }
 
     /* MP4 scene background (purple baked in) */
@@ -105,12 +108,18 @@
       position:absolute; inset:0;
       pointer-events:none;
       z-index:10;
+      background: var(--mp4-purple); /* extra safety */
     }
     .scene video{
       width:100%;
       height:100%;
-      object-fit:contain;
-      object-position:center bottom;
+
+      /* FIX: remove letterboxing so the darker stage bg never shows */
+      object-fit: cover;
+
+      /* keep belt/feet anchored to bottom */
+      object-position: 50% 100%;
+
       user-select:none;
       -webkit-user-drag:none;
       display:block;
@@ -169,13 +178,16 @@
       pointer-events:none;
     }
 
-    /* BELT LANE — adjust only if needed to match MP4 belt surface */
+    /* BELT LANE — FIXED: moved down to match MP4 belt surface */
     .beltLane{
       position:absolute;
       left:0;
       width:100%;
       height:1px;
-      top: 86%;
+
+      /* FIX: was 86% (too high). 89% lines foods up with belt in your MP4 */
+      top: 89%;
+
       pointer-events:none;
       z-index:20;
       opacity:0;
@@ -288,17 +300,19 @@
 
     <div class="panel">
       <div class="stage" id="stage">
-        <!-- UPDATED: MP4 loop background (path matches your repo: /assets/snack-loop.mp4) -->
+        <!-- UPDATED: MP4 loop background (cache-busted so iOS actually refreshes) -->
         <div class="scene">
           <video
             id="snackLoop"
-            src="../assets/snack-loop.mp4"
             autoplay
             muted
             loop
             playsinline
             preload="auto"
-          ></video>
+            webkit-playsinline
+          >
+            <source src="/assets/snack-loop.mp4?v=3" type="video/mp4" />
+          </video>
         </div>
 
         <div class="targetCluster">
@@ -379,7 +393,7 @@
   let score = 0;
   let speedMult = 1.00;
 
-  // NEW: flash HUD + show banner callouts when belt speeds up
+  // flash HUD when belt speeds up
   let speedFlashUntil = 0;
 
   // PRESSURE TUNING
@@ -651,7 +665,7 @@
 
   const OFFSCREEN_X = -180;
 
-  // ✅ dt clamp to prevent random “teleport past miss line” spikes on iOS
+  // dt clamp to prevent random “teleport past miss line” spikes on iOS
   let lastT = performance.now();
   function loop(now){
     const rawDt = (now - lastT) / 1000;
@@ -675,7 +689,6 @@
         if (activeDrag && activeDrag.food.id === f.id){
           const curLeft = parseFloat(f.el.style.left) || f.x;
           f.el.style.left = `${curLeft - beltDx}px`;
-          // keep whatever top/transform drag set
         } else {
           f.el.style.left = `${f.x}px`;
           f.el.style.top  = `${y}px`;
@@ -760,7 +773,7 @@
   resetBtn.addEventListener('click', reset);
   shareBtn.addEventListener('click', share);
 
-  // Make sure iOS Safari actually plays it inline reliably
+  // iOS Safari inline play reliability
   const v = document.getElementById('snackLoop');
   if (v){
     v.addEventListener('loadeddata', () => {
