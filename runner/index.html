@@ -644,14 +644,19 @@ function update(dt){
       inputLockedUntil = nowMs() + 450;
 
       // Optional: submit receipt if logged in (won't break anything if not)
-      // We send duration+miles+score; backend can compute calories fairly later.
-      const receipt = {
-        game: "runner",
-        durationMs: Math.max(0, Math.round(t * 1000)),
-        miles: Number(milesThisRun.toFixed(4)),
-        bestSeconds: Number(t.toFixed(3)),
-        score: Number(t.toFixed(3))
-      };
+// IMPORTANT: include calories so lifetime totals increase
+const receipt = {
+  game: "runner",
+  durationMs: Math.max(0, Math.round(t * 1000)),
+
+  // lifetime rollups (backend aliases supported)
+  calories: Math.max(0, Math.round(caloriesThisRun)),
+  miles: Number(milesThisRun.toFixed(4)),
+  bestSeconds: Number(t.toFixed(3)),
+
+  // session metric (v2 leaderboard can use)
+  score: Number(t.toFixed(3))
+};
 
       // Update modal note depending on auth
       const hasToken = !!getToken();
