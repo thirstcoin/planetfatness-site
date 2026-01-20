@@ -16,9 +16,14 @@
       --good:#6dffb3;
       --bad:#ff6d8a;
 
-      /* NEW: match the purple baked into your MP4 so there is no “two purple” seam */
+      /* match the purple baked into your MP4 so there is no seam */
       --mp4-purple:#6f3cff;
+
+      /* FIX knobs (no logic changes) */
+      --beltY: 86.5%;          /* where foods ride */
+      --videoY: 100%;          /* keep full head visible (no crop) */
     }
+
     *{ box-sizing:border-box; }
     body{
       margin:0;
@@ -99,26 +104,25 @@
       border-radius:22px;
       overflow:hidden;
 
-      /* FIX: stage background matches MP4 so there’s no “purple box seam” if anything peeks */
+      /* FIX: match MP4 purple so any unused space blends perfectly */
       background: var(--mp4-purple);
     }
 
-    /* MP4 scene background (purple baked in) */
     .scene{
       position:absolute; inset:0;
       pointer-events:none;
       z-index:10;
-      background: var(--mp4-purple); /* extra safety */
+      background: var(--mp4-purple);
     }
     .scene video{
       width:100%;
       height:100%;
 
-      /* FIX: remove letterboxing so the darker stage bg never shows */
-      object-fit: cover;
+      /* FIX: stop zoom/cropping (keeps head intact) */
+      object-fit: contain;
 
-      /* keep belt/feet anchored to bottom */
-      object-position: 50% 100%;
+      /* keep composition anchored like your original art */
+      object-position: 50% var(--videoY);
 
       user-select:none;
       -webkit-user-drag:none;
@@ -178,16 +182,13 @@
       pointer-events:none;
     }
 
-    /* BELT LANE — FIXED: moved down to match MP4 belt surface */
+    /* BELT LANE (foods ride this line) */
     .beltLane{
       position:absolute;
       left:0;
       width:100%;
       height:1px;
-
-      /* FIX: was 86% (too high). 89% lines foods up with belt in your MP4 */
-      top: 89%;
-
+      top: var(--beltY);
       pointer-events:none;
       z-index:20;
       opacity:0;
@@ -266,6 +267,12 @@
       .food{ width: 140px; }
       .dropZone{ width: 230px; height: 140px; }
       .targetCluster{ top: 8%; }
+
+      /* iPhone screens: tiny nudge to keep food sitting perfectly on belt */
+      :root{
+        --beltY: 86.9%;
+        --videoY: 100%;
+      }
     }
   </style>
 </head>
@@ -300,7 +307,6 @@
 
     <div class="panel">
       <div class="stage" id="stage">
-        <!-- UPDATED: MP4 loop background (cache-busted so iOS actually refreshes) -->
         <div class="scene">
           <video
             id="snackLoop"
@@ -311,7 +317,7 @@
             preload="auto"
             webkit-playsinline
           >
-            <source src="/assets/snack-loop.mp4?v=3" type="video/mp4" />
+            <source src="/assets/snack-loop.mp4?v=4" type="video/mp4" />
           </video>
         </div>
 
@@ -384,7 +390,6 @@
   const shareBtn = document.getElementById('shareBtn');
   const resetInEl = document.getElementById('resetIn');
 
-  // NOTE: prevX + active flags to prevent "ghost/random miss"
   let foodsOnBelt = []; // {id, def, el, x, prevX, active}
   let nextId = 1;
 
@@ -393,17 +398,15 @@
   let score = 0;
   let speedMult = 1.00;
 
-  // flash HUD when belt speeds up
   let speedFlashUntil = 0;
 
-  // PRESSURE TUNING
   const baseSpeed = 160;
   const speedStep = 0.045;
   const speedCap  = 2.25;
 
-  const targetFlowCount = 10;    // aim ~8 on belt
+  const targetFlowCount = 10;
   const maxOnScreen = 14;
-  const minGap = 135;           // safe spacing to reduce mis-grab overlap
+  const minGap = 135;
   const spawnEveryMs = 260;
   let acc = 0;
 
@@ -572,7 +575,6 @@
     const prevSpeed = speedMult;
     speedMult = clamp(speedMult + speedStep, 1.00, speedCap);
 
-    // communicate belt speed up in HUD + banner so it never feels like a glitch
     speedFlashUntil = performance.now() + 800;
     if (speedMult > prevSpeed + 0.0001){
       setBanner(`BELT +${(speedMult - prevSpeed).toFixed(2)}x`, 'var(--accent)');
@@ -665,7 +667,6 @@
 
   const OFFSCREEN_X = -180;
 
-  // dt clamp to prevent random “teleport past miss line” spikes on iOS
   let lastT = performance.now();
   function loop(now){
     const rawDt = (now - lastT) / 1000;
@@ -676,16 +677,13 @@
       const y = laneY();
       const beltDx = (baseSpeed * speedMult) * dt;
 
-      // Update positions
       for (const f of foodsOnBelt){
         if (!f.active) continue;
-
         if (!Number.isFinite(f.x)) { removeFood(f); continue; }
 
         f.prevX = f.x;
         f.x -= beltDx;
 
-        // IMPORTANT: even if dragging, belt still pulls it left (makes difficulty obvious)
         if (activeDrag && activeDrag.food.id === f.id){
           const curLeft = parseFloat(f.el.style.left) || f.x;
           f.el.style.left = `${curLeft - beltDx}px`;
@@ -696,10 +694,8 @@
         }
       }
 
-      // Remove offscreen; target miss ends game
       for (const f of [...foodsOnBelt]){
         if (!f.active) continue;
-
         const crossed = (Number.isFinite(f.prevX) ? (f.prevX >= OFFSCREEN_X && f.x < OFFSCREEN_X) : (f.x < OFFSCREEN_X));
         if (crossed){
           if (f.def.key === currentTarget.key){
@@ -773,7 +769,6 @@
   resetBtn.addEventListener('click', reset);
   shareBtn.addEventListener('click', share);
 
-  // iOS Safari inline play reliability
   const v = document.getElementById('snackLoop');
   if (v){
     v.addEventListener('loadeddata', () => {
