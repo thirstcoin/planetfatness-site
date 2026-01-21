@@ -324,27 +324,51 @@
 
 <script>
 /* =========================================================
-   Runner — now matches Lift/Snack economy:
-   1) shared daily keys + midnight reset (phat_today/phat_reset, cap 1000)
-   2) at game-over: preview caloriesThisRun -> credited calories (min with remaining cap)
+   Runner — updated to match your backend logic:
+   - token:  phat_token
+   - base:   phat_api_base (or window.PF_API_BASE)
+   - reads:  GET  /daily/progress  (runner caps + today)
+   - writes: POST /activity/submit (server-computed calories + cap)
+   - layout/gameplay untouched
    ========================================================= */
 
 /* ===== API (safe / optional) ===== */
 const API_BASE =
   (window.PF_API_BASE) ||
-  (localStorage.getItem('pf_api_base')) ||
+  (localStorage.getItem('phat_api_base')) ||
   '';
 
-const TOKEN_KEY = 'pf_token';
+const TOKEN_KEY = 'phat_token';
 function getToken(){
-  try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; }
+  try { return (localStorage.getItem(TOKEN_KEY) || '').trim(); } catch { return ''; }
 }
-async function submitSessionReceipt(payload){
+function api(path){
+  const b = String(API_BASE || '').trim();
+  if (!b) return '';
+  return b.replace(/\/$/,'') + path;
+}
+
+async function fetchDailyProgress(){
   const token = getToken();
-  if (!API_BASE || !token) return { ok:false, skipped:true };
+  if (!API_BASE || !token) return null;
+  try{
+    const r = await fetch(api('/daily/progress'), {
+      headers: { 'Authorization':'Bearer ' + token }
+    });
+    const j = await r.json();
+    if (j && j.games && j.games.runner) return j;
+    return null;
+  }catch{
+    return null;
+  }
+}
+
+async function submitSecureRunner(payload){
+  const token = getToken();
+  if (!API_BASE || !token) return null;
 
   try{
-    const r = await fetch(API_BASE.replace(/\/$/,'') + '/activity/add', {
+    const r = await fetch(api('/activity/submit'), {
       method:'POST',
       headers:{
         'Content-Type':'application/json',
@@ -352,18 +376,16 @@ async function submitSessionReceipt(payload){
       },
       body: JSON.stringify(payload)
     });
-    if (!r.ok){
-      return { ok:false, status:r.status, error: await r.text().catch(()=>String(r.status)) };
-    }
-    const data = await r.json().catch(()=>null);
-    return { ok:true, data };
-  }catch(e){
-    return { ok:false, error:String(e && e.message ? e.message : e) };
+    const j = await r.json();
+    if (j && j.ok) return j;
+    return null;
+  }catch{
+    return null;
   }
 }
 
-/* ===== SHARED DAILY CAP (MATCH LIFT/SNACK) ===== */
-const DAILY_CAP = 1000;
+/* ===== SHARED DAILY CAP (fallback; server overrides when logged in) ===== */
+let DAILY_CAP = 1000;
 const KEY_RESET = "phat_reset";
 const KEY_TODAY = "phat_today";
 
@@ -378,6 +400,18 @@ let today = Number(localStorage.getItem(KEY_TODAY) || 0);
 if (Date.now() > resetAt){
   today = 0;
   resetAt = nextMidnight();
+  localStorage.setItem(KEY_RESET, resetAt);
+  localStorage.setItem(KEY_TODAY, today);
+}
+
+async function syncFromServer(){
+  const prog = await fetchDailyProgress();
+  if (!prog) return;
+
+  const g = prog.games.runner;
+  if (g?.caps?.dailyCapCalories != null) DAILY_CAP = Number(g.caps.dailyCapCalories || DAILY_CAP);
+  if (g?.today?.calories != null) today = Number(g.today.calories || 0);
+
   localStorage.setItem(KEY_RESET, resetAt);
   localStorage.setItem(KEY_TODAY, today);
 }
@@ -447,7 +481,7 @@ let taps=0;
 let beltPhase=0;
 let inclinePeak=0;
 
-/* preview calories */
+/* preview calories (UI only; server is truth when logged in) */
 let caloriesThisRun=0;
 
 /* miles tracking (derived) */
@@ -511,7 +545,6 @@ function resetGame(){
 function tapOnce(){
   const n = nowMs();
   if (resultsOpen || n < inputLockedUntil) return;
-
   if (gameOver) return;
 
   if (!running){
@@ -519,7 +552,11 @@ function tapOnce(){
     statusEl.textContent = 'RUN';
     last = performance.now();
     tapPulse = Math.max(tapPulse, 0.88);
+
+    // one quiet sync as soon as they start (doesn't block)
+    syncFromServer();
   }
+
   tapPulse = Math.min(2.0, tapPulse + TAP_BOOST);
   taps++;
 }
@@ -545,6 +582,8 @@ runBackBtn.addEventListener('click', () => {
   running = true;
   statusEl.textContent = 'RUN';
   tapPulse = 0.95;
+
+  syncFromServer();
 });
 
 closeBtn.addEventListener('click', () => hideModal());
@@ -618,16 +657,16 @@ function update(dt){
 
       const cadence = taps / Math.max(0.1, t);
 
-      // ✅ shared midnight reset guard (in case tab stayed open)
+      // midnight guard (tab left open)
       if (Date.now() > resetAt){
         today = 0;
         resetAt = nextMidnight();
       }
 
-      // ✅ convert preview -> credited calories (match Lift)
-      const raw = Math.max(0, Math.round(caloriesThisRun));
-      const credited = Math.max(0, Math.min(raw, DAILY_CAP - today));
-      today += credited;
+      // If NOT logged in, keep local credited calories as a fallback display.
+      const rawPreview = Math.max(0, Math.round(caloriesThisRun));
+      const creditedFallback = Math.max(0, Math.min(rawPreview, DAILY_CAP - today));
+      today += creditedFallback;
 
       localStorage.setItem(KEY_RESET, resetAt);
       localStorage.setItem(KEY_TODAY, today);
@@ -635,36 +674,51 @@ function update(dt){
       mTime.textContent = t.toFixed(1) + 's';
       mRank.textContent = rankFromTime(t);
       mMiles.textContent = milesThisRun.toFixed(2) + 'mi';
-      mCals.textContent = credited.toString();
       mCad.textContent = cadence.toFixed(1) + '/s';
       mIncl.textContent = (inclinePeak * 10).toFixed(1) + '%';
 
       inputLockedUntil = nowMs() + 450;
 
-      // ✅ submit credited (not raw)
-      const receipt = {
-        game: "runner",
-        durationMs: Math.max(0, Math.round(t * 1000)),
-        calories: credited,
-        miles: Number(milesThisRun.toFixed(4)),
-        bestSeconds: Number(t.toFixed(3)),
-        score: Number(t.toFixed(3))
-      };
+      // ===== SECURE SUBMIT (server decides earned calories) =====
+      const durationMs = Math.max(0, Math.round(t * 1000));
+      const milesSafe = Number(milesThisRun.toFixed(4));
+      const bestSeconds = Number(t.toFixed(3));
 
-      const hasToken = !!getToken();
-      if (hasToken && API_BASE){
-        mCalsNote.textContent = `Submitting run… (${credited} credited • today ${today}/${DAILY_CAP})`;
-        submitSessionReceipt(receipt).then((r)=>{
-          if (r && r.ok && r.data){
-            mCalsNote.textContent = `Run logged ✅ (${credited} credited • today ${today}/${DAILY_CAP})`;
-          } else if (r && r.skipped){
-            mCalsNote.textContent = `Connect your wallet on the site to stack lifetime calories. (${credited} credited • today ${today}/${DAILY_CAP})`;
+      const token = getToken();
+      const canSubmit = !!(API_BASE && token);
+
+      if (canSubmit){
+        mCalsNote.textContent = `Submitting run…`;
+        submitSecureRunner({
+          game: "runner",
+          durationMs,
+          miles: milesSafe,
+          bestSeconds,
+          // Optional extra signal (server currently uses miles/time anyway)
+          score: bestSeconds
+        }).then((res)=>{
+          if (res && res.ok){
+            const earned = Number(res.earnedCalories || 0);
+            const todayServer = Number(res.today?.calories ?? today);
+            const capServer = Number(res.caps?.dailyCapCalories ?? DAILY_CAP);
+
+            // reconcile UI to server truth
+            DAILY_CAP = capServer;
+            today = todayServer;
+            localStorage.setItem(KEY_TODAY, today);
+            localStorage.setItem(KEY_RESET, resetAt);
+
+            mCals.textContent = String(earned);
+            mCalsNote.textContent = `Run logged ✅ (${earned} credited • today ${today}/${DAILY_CAP})`;
           } else {
-            mCalsNote.textContent = `Couldn’t submit right now — totals update once connected. (${credited} credited • today ${today}/${DAILY_CAP})`;
+            // fallback stays
+            mCals.textContent = String(creditedFallback);
+            mCalsNote.textContent = `Couldn’t submit right now — still counted locally. (${creditedFallback} credited • today ${today}/${DAILY_CAP})`;
           }
         });
       } else {
-        mCalsNote.textContent = `Connect your wallet on the site to stack lifetime calories. (${credited} credited • today ${today}/${DAILY_CAP})`;
+        mCals.textContent = String(creditedFallback);
+        mCalsNote.textContent = `Connect your wallet on the site to stack lifetime calories. (${creditedFallback} credited • today ${today}/${DAILY_CAP})`;
       }
 
       showModal();
@@ -734,7 +788,7 @@ function drawHUD(){
   const paceStr = mi > 0.0001 ? formatPace(paceMinPerMi) : '—';
   ctx.fillText('Miles: ' + mi.toFixed(2) + ' • Pace: ' + paceStr + '/mi', 34, 102);
 
-  // preview (still fine to show while running; credited only at end)
+  // preview only
   const calsPreview = Math.max(0, Math.round(caloriesThisRun));
   ctx.fillText('Calories: ' + calsPreview, 34, 126);
 
@@ -786,6 +840,10 @@ function loop(now){
 }
 
 resetGame();
+
+// quiet sync on load (if logged in)
+syncFromServer();
+
 requestAnimationFrame(loop);
 </script>
 </body>
