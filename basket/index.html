@@ -101,7 +101,7 @@
       box-shadow: 0 22px 70px rgba(0,0,0,.55);
     }
 
-    /* ✅ VIDEO BACKGROUND (behind canvas) */
+    /* VIDEO BG */
     .arenaVideo{
       position:absolute;
       inset:0;
@@ -109,7 +109,6 @@
       height:100%;
       object-fit:cover;
       z-index:0;
-      /* tiny boost so it pops under overlays */
       filter: saturate(1.05) contrast(1.03);
       transform: translateZ(0);
     }
@@ -125,7 +124,6 @@
       mix-blend-mode: multiply;
     }
 
-    /* ✅ keep canvas above the video */
     canvas{
       position:relative;
       z-index:1;
@@ -134,7 +132,6 @@
       height:100%;
     }
 
-    /* ✅ overlays + UI above everything */
     .toast, .hint, .overlay{ z-index:2; }
 
     .toast{
@@ -231,7 +228,6 @@
   </div>
 
   <div class="canvasWrap" id="stage">
-    <!-- ✅ NEW: CROWD VIDEO BACKGROUND -->
     <video
       class="arenaVideo"
       id="arenaVid"
@@ -315,7 +311,7 @@
   const cv=document.getElementById('cv');
   const ctx=cv.getContext('2d');
 
-  // ✅ ensure iOS actually plays the background video
+  // iOS video kick
   const arenaVid = document.getElementById('arenaVid');
   if (arenaVid){
     const tryPlay = async () => { try { await arenaVid.play(); } catch(e){} };
@@ -372,7 +368,7 @@
   const W=()=>stage.getBoundingClientRect().width;
   const H=()=>stage.getBoundingClientRect().height;
 
-  // ---- leaderboard ----
+  // ---- local leaderboard (device only) ----
   const LB_KEY='pf_streakshot_miss_ends_v1';
   const loadLB=()=>{try{return JSON.parse(localStorage.getItem(LB_KEY)||'[]');}catch{return[];}};
   const saveLB=(rows)=>localStorage.setItem(LB_KEY,JSON.stringify(rows));
@@ -409,15 +405,14 @@
   const showToast=(msg)=>{toast.textContent=msg;toast.classList.add('show');toastT=1.1;};
 
   // =========================================================
-  // ✅ CALORIE ECONOMY (MATCH SNACK / LIFT / RUNNER DAILY CAP)
-  // - Shared daily keys: phat_today, phat_reset
-  // - DAILY_CAP = 1000
-  // - Basket credits calories ONLY on makes (like Snack/Lift)
-  // - Diminishing awards + per-round cap to keep it sane
-  // - Optional backend receipt to /activity/add if logged in
+  // OPTION A (SECURE): calories are NOT computed client-side
+  // Logged-in mode:
+  //   - we POST to /activity/submit with score + duration
+  //   - server returns earned calories (and optional cap info)
+  // Guest mode:
+  //   - we can show "0 cals (guest)" to keep it honest
   // =========================================================
 
-  // Optional backend submit (safe)
   const API_BASE =
     (window.PF_API_BASE) ||
     (localStorage.getItem('pf_api_base')) ||
@@ -428,65 +423,41 @@
     (localStorage.getItem('token')) ||
     '';
 
-  async function submitSession({ calories, score, durationMs }) {
-    if (!API_BASE || !JWT) return;
-    try {
-      await fetch(`${API_BASE.replace(/\/$/,'')}/activity/add`, {
+  function isLoggedIn(){
+    return !!(API_BASE && String(API_BASE).trim() && JWT && String(JWT).trim());
+  }
+
+  async function submitSecureSession({ score, streak, durationMs }){
+    if (!isLoggedIn()) return { ok:false, skipped:true };
+
+    try{
+      const url = `${String(API_BASE).replace(/\/$/,'')}/activity/submit`;
+      const r = await fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${JWT}`,
+          'Content-Type':'application/json',
+          'Authorization': `Bearer ${String(JWT).trim()}`,
         },
         body: JSON.stringify({
           game: 'basket',
-          calories,
           score,
-          durationMs,
-        }),
+          streak,
+          durationMs
+        })
       });
-    } catch {}
-  }
 
-  // Shared daily cap (same keys as Snack/Lift/Runner)
-  const DAILY_CAP = 1000;
-  const KEY_RESET = "phat_reset";
-  const KEY_TODAY = "phat_today";
+      // Expect JSON like:
+      // { ok:true, earnedCalories: number, today: number, cap: number, lifetime: number }
+      const data = await r.json().catch(()=>null);
 
-  function nextMidnight(){
-    const d=new Date();
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
-  }
-
-  let resetAt = Number(localStorage.getItem(KEY_RESET) || nextMidnight());
-  let today   = Number(localStorage.getItem(KEY_TODAY) || 0);
-
-  function rolloverIfNeeded(){
-    if (Date.now() > resetAt){
-      today = 0;
-      resetAt = nextMidnight();
-      localStorage.setItem(KEY_RESET, resetAt);
-      localStorage.setItem(KEY_TODAY, today);
+      if (!r.ok){
+        return { ok:false, status:r.status, data };
+      }
+      return { ok:true, data };
+    }catch(e){
+      return { ok:false, error:String(e && e.message ? e.message : e) };
     }
   }
-  function persistDaily(){
-    localStorage.setItem(KEY_RESET, resetAt);
-    localStorage.setItem(KEY_TODAY, today);
-  }
-
-  // Basket award curve (diminishing like Snack)
-  // makeIndex = number of successful makes (streak count in this game)
-  function caloriesForMake(makeIndex){
-    let base;
-    if (makeIndex <= 10) base = 6;
-    else if (makeIndex <= 25) base = 3;
-    else base = 2;
-    return base;
-  }
-
-  // Per-run cap (prevents one heater from nuking the economy)
-  const ROUND_CAP = 220;
-  let runCals = 0;
-  let runStartedAt = 0;
 
   // ---- asset loader ----
   function loadImage(src){
@@ -589,6 +560,9 @@
   let run=null;
   let lastRun=null;
 
+  let runStartedAt = 0;
+  let submitting = false;
+
   function newRun(){
     const L=layout();
     const stations=rimStations(L);
@@ -624,16 +598,14 @@
   }
 
   function start(){
-    rolloverIfNeeded();
-
     run=newRun();
     lastRun=null;
     overlayEnd.classList.remove('show');
-    runCals = 0;
     runStartedAt = performance.now();
+    submitting = false;
 
     updateHUD();
-    showToast('Lock in. One miss ends it.');
+    showToast(isLoggedIn() ? 'Lock in. Calories settle server-side.' : 'Guest mode. Connect to stack calories.');
   }
 
   function moveRim(){
@@ -659,8 +631,6 @@
   async function endRun(reason){
     if(!run || run.ended) return;
 
-    rolloverIfNeeded();
-
     run.ended=true;
     run.playing=false;
 
@@ -671,57 +641,71 @@
       score: run.score,
       at: Date.now(),
       reason: reason||'MISS',
-      calories: runCals,
-      today: today,
-      durationMs
+      calories: 0,            // will be filled by server if logged in
+      durationMs,
+      synced: false,
+      syncError: null,
+      capLine: ''
     };
 
     finalStreakTxt.textContent = String(lastRun.streak);
-    finalScoreTxt.textContent = String(lastRun.score);
+    finalScoreTxt.textContent  = String(lastRun.score);
 
-    const capLine = `Cals earned: ${runCals} • Today: ${today}/${DAILY_CAP}`;
-    endLine.textContent =
-      (reason==='MISS')
-        ? `Missed. Run ended. ${capLine}`
-        : `Run ended. ${capLine}`;
-
-    // Optional backend receipt (safe)
-    if (runCals > 0 || run.score > 0){
-      submitSession({ calories: runCals, score: run.score, durationMs });
+    // Default end line (updated once server replies)
+    if (isLoggedIn()){
+      endLine.textContent = `Missed. Run ended. Submitting…`;
+    } else {
+      endLine.textContent = `Missed. Run ended. Guest run (connect to stack calories).`;
     }
 
     renderLB(leaderBoxEnd);
     overlayEnd.classList.add('show');
+
+    // Secure submit
+    if (isLoggedIn() && !submitting){
+      submitting = true;
+      const res = await submitSecureSession({
+        score: lastRun.score,
+        streak: lastRun.streak,
+        durationMs
+      });
+
+      // Update UI with whatever server returns
+      if (res && res.ok && res.data){
+        const earned =
+          Number(res.data.earnedCalories ?? res.data.calories ?? 0) || 0;
+
+        const today =
+          (res.data.today !== undefined && res.data.today !== null) ? Number(res.data.today) : null;
+
+        const cap =
+          (res.data.cap !== undefined && res.data.cap !== null) ? Number(res.data.cap) : null;
+
+        lastRun.calories = Math.max(0, Math.round(earned));
+        lastRun.synced = true;
+
+        if (today !== null && cap !== null && isFinite(today) && isFinite(cap)){
+          lastRun.capLine = `Cals earned: ${lastRun.calories} • Today: ${today}/${cap}`;
+        } else {
+          lastRun.capLine = `Cals earned: ${lastRun.calories}`;
+        }
+
+        endLine.textContent = `Run ended. ${lastRun.capLine} ✅`;
+        showToast(`Synced ✅ +${lastRun.calories} cals`);
+      } else {
+        lastRun.synced = false;
+        lastRun.syncError = (res && (res.error || res.status)) ? String(res.error || res.status) : 'submit failed';
+        endLine.textContent = `Run ended. Couldn’t sync right now — try again later.`;
+        showToast('Couldn’t sync run.');
+      }
+
+      submitting = false;
+    }
   }
 
   function miss(){
     showToast('Miss.');
     endRun('MISS');
-  }
-
-  function awardCaloriesOnMake(isGolden){
-    rolloverIfNeeded();
-
-    if (today >= DAILY_CAP || runCals >= ROUND_CAP) return 0;
-
-    // Make index is streak AFTER increment (we call this after streak++)
-    const makeIndex = run.streak;
-
-    let add = caloriesForMake(makeIndex);
-
-    // tiny bonus for golden (still sane)
-    if (isGolden) add = Math.round(add * 1.25);
-
-    const roomDaily = DAILY_CAP - today;
-    const roomRound = ROUND_CAP - runCals;
-    const credited = Math.max(0, Math.min(add, roomDaily, roomRound));
-
-    if (credited > 0){
-      runCals += credited;
-      today += credited;
-      persistDaily();
-    }
-    return credited;
   }
 
   function make(){
@@ -732,13 +716,11 @@
     run.streak += 1;
     run.runBest = Math.max(run.runBest, run.streak);
 
-    // ✅ Calories (matches Snack/Lift style: credit on success)
-    const credited = awardCaloriesOnMake(!!f.golden);
-
+    // Secure mode: NO local calories. (Server settles at end.)
     if (f.golden){
-      showToast(`GOLDEN +2 (Streak ${run.streak})${credited ? ` • +${credited} cals` : ''}`);
+      showToast(`GOLDEN +2 (Streak ${run.streak})`);
     } else {
-      showToast(`+1 (Streak ${run.streak})${credited ? ` • +${credited} cals` : ''}`);
+      showToast(`+1 (Streak ${run.streak})`);
     }
 
     setupNextShot();
@@ -1061,13 +1043,15 @@
   async function shareRun(){
     if(!lastRun) return;
 
-    rolloverIfNeeded();
+    const syncLine = lastRun.synced
+      ? `🔥 Calories: ${lastRun.calories}`
+      : (isLoggedIn() ? `🔥 Calories: (pending sync)` : `🔥 Calories: (guest)`);
 
     const text =
       `Planet Fatness — Streak Shot\n` +
       `🔥 Streak: ${lastRun.streak}\n` +
       `🍩 Score: ${lastRun.score}\n` +
-      `🔥 Calories: ${lastRun.calories} (Today ${today}/${DAILY_CAP})\n` +
+      `${syncLine}\n` +
       `Can you beat it?`;
 
     const url = location.href;
