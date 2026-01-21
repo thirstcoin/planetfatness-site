@@ -408,6 +408,86 @@
   let toastT=0;
   const showToast=(msg)=>{toast.textContent=msg;toast.classList.add('show');toastT=1.1;};
 
+  // =========================================================
+  // ✅ CALORIE ECONOMY (MATCH SNACK / LIFT / RUNNER DAILY CAP)
+  // - Shared daily keys: phat_today, phat_reset
+  // - DAILY_CAP = 1000
+  // - Basket credits calories ONLY on makes (like Snack/Lift)
+  // - Diminishing awards + per-round cap to keep it sane
+  // - Optional backend receipt to /activity/add if logged in
+  // =========================================================
+
+  // Optional backend submit (safe)
+  const API_BASE =
+    (window.PF_API_BASE) ||
+    (localStorage.getItem('pf_api_base')) ||
+    '';
+
+  const JWT =
+    (localStorage.getItem('pf_token')) ||
+    (localStorage.getItem('token')) ||
+    '';
+
+  async function submitSession({ calories, score, durationMs }) {
+    if (!API_BASE || !JWT) return;
+    try {
+      await fetch(`${API_BASE.replace(/\/$/,'')}/activity/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${JWT}`,
+        },
+        body: JSON.stringify({
+          game: 'basket',
+          calories,
+          score,
+          durationMs,
+        }),
+      });
+    } catch {}
+  }
+
+  // Shared daily cap (same keys as Snack/Lift/Runner)
+  const DAILY_CAP = 1000;
+  const KEY_RESET = "phat_reset";
+  const KEY_TODAY = "phat_today";
+
+  function nextMidnight(){
+    const d=new Date();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
+  }
+
+  let resetAt = Number(localStorage.getItem(KEY_RESET) || nextMidnight());
+  let today   = Number(localStorage.getItem(KEY_TODAY) || 0);
+
+  function rolloverIfNeeded(){
+    if (Date.now() > resetAt){
+      today = 0;
+      resetAt = nextMidnight();
+      localStorage.setItem(KEY_RESET, resetAt);
+      localStorage.setItem(KEY_TODAY, today);
+    }
+  }
+  function persistDaily(){
+    localStorage.setItem(KEY_RESET, resetAt);
+    localStorage.setItem(KEY_TODAY, today);
+  }
+
+  // Basket award curve (diminishing like Snack)
+  // makeIndex = number of successful makes (streak count in this game)
+  function caloriesForMake(makeIndex){
+    let base;
+    if (makeIndex <= 10) base = 6;
+    else if (makeIndex <= 25) base = 3;
+    else base = 2;
+    return base;
+  }
+
+  // Per-run cap (prevents one heater from nuking the economy)
+  const ROUND_CAP = 220;
+  let runCals = 0;
+  let runStartedAt = 0;
+
   // ---- asset loader ----
   function loadImage(src){
     return new Promise((resolve,reject)=>{
@@ -544,9 +624,14 @@
   }
 
   function start(){
+    rolloverIfNeeded();
+
     run=newRun();
     lastRun=null;
     overlayEnd.classList.remove('show');
+    runCals = 0;
+    runStartedAt = performance.now();
+
     updateHUD();
     showToast('Lock in. One miss ends it.');
   }
@@ -571,16 +656,39 @@
     updateHUD();
   }
 
-  function endRun(reason){
+  async function endRun(reason){
     if(!run || run.ended) return;
+
+    rolloverIfNeeded();
+
     run.ended=true;
     run.playing=false;
 
-    lastRun = { streak: run.streak, score: run.score, at: Date.now(), reason: reason||'MISS' };
+    const durationMs = Math.max(0, Math.round(performance.now() - (runStartedAt || performance.now())));
+
+    lastRun = {
+      streak: run.streak,
+      score: run.score,
+      at: Date.now(),
+      reason: reason||'MISS',
+      calories: runCals,
+      today: today,
+      durationMs
+    };
 
     finalStreakTxt.textContent = String(lastRun.streak);
     finalScoreTxt.textContent = String(lastRun.score);
-    endLine.textContent = (reason==='MISS') ? 'Missed. Run ended.' : 'Run ended.';
+
+    const capLine = `Cals earned: ${runCals} • Today: ${today}/${DAILY_CAP}`;
+    endLine.textContent =
+      (reason==='MISS')
+        ? `Missed. Run ended. ${capLine}`
+        : `Run ended. ${capLine}`;
+
+    // Optional backend receipt (safe)
+    if (runCals > 0 || run.score > 0){
+      submitSession({ calories: runCals, score: run.score, durationMs });
+    }
 
     renderLB(leaderBoxEnd);
     overlayEnd.classList.add('show');
@@ -591,6 +699,31 @@
     endRun('MISS');
   }
 
+  function awardCaloriesOnMake(isGolden){
+    rolloverIfNeeded();
+
+    if (today >= DAILY_CAP || runCals >= ROUND_CAP) return 0;
+
+    // Make index is streak AFTER increment (we call this after streak++)
+    const makeIndex = run.streak;
+
+    let add = caloriesForMake(makeIndex);
+
+    // tiny bonus for golden (still sane)
+    if (isGolden) add = Math.round(add * 1.25);
+
+    const roomDaily = DAILY_CAP - today;
+    const roomRound = ROUND_CAP - runCals;
+    const credited = Math.max(0, Math.min(add, roomDaily, roomRound));
+
+    if (credited > 0){
+      runCals += credited;
+      today += credited;
+      persistDaily();
+    }
+    return credited;
+  }
+
   function make(){
     const f=FOOD[run.foodKey];
     const pts=f.golden?2:1;
@@ -599,7 +732,15 @@
     run.streak += 1;
     run.runBest = Math.max(run.runBest, run.streak);
 
-    showToast(f.golden ? `GOLDEN +2 (Streak ${run.streak})` : `+1 (Streak ${run.streak})`);
+    // ✅ Calories (matches Snack/Lift style: credit on success)
+    const credited = awardCaloriesOnMake(!!f.golden);
+
+    if (f.golden){
+      showToast(`GOLDEN +2 (Streak ${run.streak})${credited ? ` • +${credited} cals` : ''}`);
+    } else {
+      showToast(`+1 (Streak ${run.streak})${credited ? ` • +${credited} cals` : ''}`);
+    }
+
     setupNextShot();
   }
 
@@ -919,7 +1060,16 @@
   // ---- share + save ----
   async function shareRun(){
     if(!lastRun) return;
-    const text = `Planet Fatness — Streak Shot\n🔥 Streak: ${lastRun.streak}\n🍩 Score: ${lastRun.score}\nCan you beat it?`;
+
+    rolloverIfNeeded();
+
+    const text =
+      `Planet Fatness — Streak Shot\n` +
+      `🔥 Streak: ${lastRun.streak}\n` +
+      `🍩 Score: ${lastRun.score}\n` +
+      `🔥 Calories: ${lastRun.calories} (Today ${today}/${DAILY_CAP})\n` +
+      `Can you beat it?`;
+
     const url = location.href;
 
     if(navigator.share){
