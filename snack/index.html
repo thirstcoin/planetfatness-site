@@ -450,39 +450,62 @@
     { key:'sub',           name:'Sub',              src:'/assets/food_sub.png' },
   ];
 
-  // ===== OPTIONAL BACKEND SUBMIT (SAFE) =====
-  // If you store these on your main site, snack will auto-submit.
+  // =========================
+  // PHASE 2 BACKEND WIRING
+  // =========================
   const API_BASE =
     (window.PF_API_BASE) ||
-    localStorage.getItem('pf_api_base') ||
-    ''; // e.g. https://planetfatness-backend.onrender.com
+    localStorage.getItem('phat_api_base') ||
+    "https://YOUR-RENDER-BACKEND.onrender.com";
 
-  const JWT =
-    localStorage.getItem('pf_token') ||
-    localStorage.getItem('token') ||
-    ''; // whatever you used on your main site
+  const TOKEN_KEY = "phat_token";
 
-  async function submitSession({ calories, score, durationMs }) {
-    if (!API_BASE || !JWT) return;
-    try {
-      await fetch(`${API_BASE.replace(/\/$/,'')}/activity/add`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${JWT}`,
-        },
-        body: JSON.stringify({
-          game: 'snack',
-          calories,
-          score,
-          durationMs,
-        }),
+  const getToken = () => localStorage.getItem(TOKEN_KEY) || "";
+  const api = (path) => `${String(API_BASE || "").replace(/\/$/,'')}${path}`;
+
+  async function fetchDailyProgress(){
+    const token = getToken();
+    if (!token) return null;
+
+    try{
+      const r = await fetch(api("/daily/progress"), {
+        headers: { "Authorization": `Bearer ${token}` }
       });
-    } catch {}
+      const j = await r.json();
+      if (j && j.games && j.games.snack) return j;
+      return null;
+    } catch {
+      return null;
+    }
   }
 
-  // ===== DAILY CAP (SHARED ACROSS GAMES) =====
-  const DAILY_CAP = 1000;
+  async function submitSecureSnack({ score, durationMs }){
+    const token = getToken();
+    if (!token) return null;
+
+    try{
+      const r = await fetch(api("/activity/submit"), {
+        method: "POST",
+        headers: {
+          "Content-Type":"application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          game: "snack",
+          score: Number(score || 0),
+          durationMs: Math.max(0, Math.floor(Number(durationMs || 0)))
+        })
+      });
+      const j = await r.json();
+      if (j && j.ok) return j;
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  // ===== DAILY CAP (LOCAL FALLBACK; SERVER OVERRIDES IF LOGGED IN) =====
+  let DAILY_CAP = 1000; // fallback only
   const KEY_RESET = "phat_reset";
   const KEY_TODAY = "phat_today";
 
@@ -501,24 +524,17 @@
   }
 
   // ===== FAIR CALORIE FORMULA (SNACK) =====
-  // Earn only on correct munch. Diminishing per correct.
-  // Small speed bonus (but capped) so higher difficulty feels worth it.
+  // (kept for in-run feedback; server is final authority at end)
   function caloriesForCorrect(correctIndex, speedMult){
-    // correctIndex starts at 1
     let base;
-
-    // ✅ CHANGE #1: lower base calories
     if (correctIndex <= 10) base = 6;
     else if (correctIndex <= 25) base = 3;
     else base = 2;
 
-    // ✅ CHANGE #2: reduce speed bonus ceiling + slope (max +22%)
     const bonus = 1 + Math.min(0.22, Math.max(0, (speedMult - 1) * 0.18));
-
     return Math.round(base * bonus);
   }
 
-  // ✅ CHANGE #3: lower hard cap per round
   const ROUND_CAP = 160;
 
   const stage      = document.getElementById('stage');
@@ -546,6 +562,9 @@
   const tapStart = document.getElementById('tapStart');
   const tapBtn = document.getElementById('tapBtn');
 
+  // goal (default 30, server can override)
+  let goalTarget = 30;
+
   capEl.textContent = DAILY_CAP;
   todayCalsEl.textContent = today;
 
@@ -559,7 +578,7 @@
   let score = 0;
   let speedMult = 1.00;
 
-  // calories
+  // calories (local preview + server reconcile at end)
   let runCals = 0;
 
   // duration
@@ -582,8 +601,6 @@
 
   let activeDrag = null;
   let lastPointerId = null;
-
-  const goalTarget = 30;
 
   function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
   function stageRect(){ return stage.getBoundingClientRect(); }
@@ -625,6 +642,7 @@
     runSubEl.style.color = (now < speedFlashUntil) ? 'var(--accent)' : 'var(--muted)';
     goalEl.textContent = `${Math.min(score, goalTarget)} / ${goalTarget}`;
     todayCalsEl.textContent = today;
+    capEl.textContent = DAILY_CAP;
   }
 
   function setBanner(text, cssColor){
@@ -729,6 +747,20 @@
     foodsOnBelt = foodsOnBelt.filter(f => f.id !== food.id);
   }
 
+  async function syncFromServerIfLoggedIn(){
+    const prog = await fetchDailyProgress();
+    if (!prog) return;
+
+    const g = prog.games.snack;
+    if (g?.caps?.dailyCapCalories != null) DAILY_CAP = Number(g.caps.dailyCapCalories || DAILY_CAP);
+    if (g?.today?.calories != null) today = Number(g.today.calories || 0);
+    if (g?.goal?.goal != null) goalTarget = Number(g.goal.goal || goalTarget);
+
+    localStorage.setItem(KEY_RESET, resetAt);
+    localStorage.setItem(KEY_TODAY, today);
+    updateHUD();
+  }
+
   async function endRound(reasonText){
     if (!running) return;
     running = false;
@@ -736,16 +768,36 @@
 
     const dur = Math.max(0, Math.floor(performance.now() - roundStartAt));
 
-    // persist shared daily
+    // persist local fallback (server will override if logged in)
     localStorage.setItem(KEY_RESET, resetAt);
     localStorage.setItem(KEY_TODAY, today);
 
     if (reasonText) setBanner(reasonText, getComputedStyle(document.documentElement).getPropertyValue('--bad'));
 
-    // optional backend submit (safe)
-    // only submit if you actually earned something
-    if (runCals > 0 || score > 0){
-      submitSession({ calories: runCals, score, durationMs: dur });
+    // ✅ PHASE 2: secure submit (server computes + caps)
+    // If not logged in, nothing breaks (local-only run).
+    const res = await submitSecureSnack({ score, durationMs: dur });
+
+    if (res && res.ok){
+      // server is truth
+      const earned = Number(res.earnedCalories || 0);
+      runCals = earned;
+
+      // update today's calories + cap from server response
+      if (res.today && typeof res.today.calories === "number") today = Number(res.today.calories || 0);
+      if (res.caps && typeof res.caps.dailyCapCalories === "number") DAILY_CAP = Number(res.caps.dailyCapCalories || DAILY_CAP);
+      if (res.goal && typeof res.goal.goal === "number") goalTarget = Number(res.goal.goal || goalTarget);
+
+      updateHUD();
+
+      if (earned > 0){
+        setBanner(`+${earned} CALS`, 'var(--good)');
+      } else {
+        // keep it subtle—still feels like a real system
+        if (res.reason === "too_short") setBanner('TOO SHORT', 'var(--accent)');
+        else if (res.reason === "score_too_high") setBanner('TOO FAST', 'var(--accent)');
+        else setBanner('NO CALS', 'var(--accent)');
+      }
     }
 
     activeDrag = null;
@@ -775,8 +827,8 @@
     const prevSpeed = speedMult;
     speedMult = clamp(speedMult + speedStep, 1.00, speedCap);
 
-    // ===== calories award (fair) =====
-    // only award if daily + round caps allow
+    // ===== in-run calories (preview only; server final at end) =====
+    // still respects local caps so UI doesn't show insane numbers
     if (today < DAILY_CAP && runCals < ROUND_CAP){
       const add = caloriesForCorrect(score, speedMult);
       const roomDaily = DAILY_CAP - today;
@@ -785,6 +837,7 @@
       runCals += actualAdd;
       today += actualAdd;
 
+      // keep it lightweight
       if (actualAdd > 0 && (score % 5 === 0)){
         setBanner(`+${actualAdd} CALS`, 'var(--good)');
       }
@@ -957,6 +1010,9 @@
     unlocked = true;
     tapStart.classList.add('hidden');
 
+    // pull server caps/today/goal if logged in (doesn't block play)
+    syncFromServerIfLoggedIn();
+
     running = true;
     await playLoop();     // must be inside gesture on iOS
     resetRoundState();
@@ -967,6 +1023,10 @@
       tapStart.classList.remove('hidden');
       return;
     }
+
+    // refresh server totals if logged in
+    syncFromServerIfLoggedIn();
+
     running = true;
     playLoop();
     resetRoundState();
@@ -1014,6 +1074,9 @@
   updateHUD();
   pickTarget();
   requestAnimationFrame(loop);
+
+  // one quiet sync on load (if logged in)
+  syncFromServerIfLoggedIn();
 })();
 </script>
 
