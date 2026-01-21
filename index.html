@@ -828,8 +828,12 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
   <script>
     const API_BASE = "https://YOUR-RENDER-BACKEND.onrender.com";
 
-    const TOKEN_KEY = "phat_token";
-    const ADDR_KEY  = "phat_address";
+    // ✅ NEW: persist API base so mini-games can auto-submit without editing them
+    try { localStorage.setItem("pf_api_base", API_BASE); } catch {}
+
+    // ✅ UPDATED: unify keys with mini-games (runner/lift/snack/basket)
+    const TOKEN_KEY = "pf_token";
+    const ADDR_KEY  = "pf_address";
 
     const toastEl = document.getElementById("toast");
     const authStatusEl = document.getElementById("authStatus");
