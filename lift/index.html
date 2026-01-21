@@ -407,92 +407,105 @@ a{color:inherit; text-decoration:none}
 const IDLE_SRC = "../assets/lift_idle.png";
 const REP_SRC  = "../assets/lift_hero.gif";
 
-/* ========= OPTIONAL BACKEND (OFF BY DEFAULT) =========
-   - If you later want to log session receipts:
-     window.PF_API_BASE = "https://YOUR-RENDER.onrender.com"
-     localStorage.setItem("pf_token", "JWT_HERE")
-*/
-const API_BASE = (window.PF_API_BASE || localStorage.getItem("pf_api_base") || "").trim();
-function getToken(){ return (localStorage.getItem("pf_token") || "").trim(); }
+/* ========= BACKEND WIRING (MATCHES YOUR NEW API) ========= */
+const API_BASE =
+  (window.PF_API_BASE) ||
+  localStorage.getItem("phat_api_base") ||
+  ""; // optional
 
-async function submitReceipt(receipt){
-  if (!API_BASE) return null;
+const TOKEN_KEY = "phat_token";
+function getToken(){ return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
+function api(path){
+  const b = String(API_BASE || "").trim();
+  if (!b) return "";
+  return b.replace(/\/$/,"") + path;
+}
+
+async function fetchDailyProgress(){
   const token = getToken();
-  if (!token) return null;
+  if (!API_BASE || !token) return null;
 
   try{
-    const r = await fetch(API_BASE + "/activity/add", {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer " + token
-      },
-      body: JSON.stringify(receipt)
+    const r = await fetch(api("/daily/progress"), {
+      headers: { "Authorization": "Bearer " + token }
     });
-    if (!r.ok) return null;
-    return await r.json();
+    const j = await r.json();
+    if (j && j.games && j.games.lift) return j;
+    return null;
   }catch{
     return null;
   }
 }
 
-/* ========= FAIR CALORIES (NEW) =========
-   Goal: this can't be the easiest farm.
-   - mostly time-based
-   - small skill multiplier from difficulty
-   - still capped daily
-*/
-const DAILY_CAP = 1000;
+async function submitSecureLift({ score, durationMs }){
+  const token = getToken();
+  if (!API_BASE || !token) return null;
 
-// Rough target pacing:
-// good player in 20–30s run -> ~25–60 cals
-// cracked long run -> 80–140 cals (takes time + difficulty)
+  try{
+    const r = await fetch(api("/activity/submit"), {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + token
+      },
+      body: JSON.stringify({
+        game: "lift",
+        score: Number(score || 0),
+        durationMs: Math.max(0, Math.floor(Number(durationMs || 0)))
+      })
+    });
+    const j = await r.json();
+    if (j && j.ok) return j;
+    return null;
+  }catch{
+    return null;
+  }
+}
+
+/* ========= FAIR CALORIES (LOCAL PREVIEW ONLY) =========
+   Server decides final calories when we submit /activity/submit.
+*/
+let DAILY_CAP = 1000;
+
 function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
 function roundInt(n){ return Math.max(0, Math.round(n)); }
 
 function caloriesForRep(repIndex, zoneW, loopSeconds){
-  // base per rep is small
-  // difficulty boosts are mild, not crazy
-  // diminishing after early reps
-
   const BASE_ZONE_W = 0.18;
   const BASE_LOOP = 1.85;
 
-  // difficulty: smaller zone and faster loop
-  const zoneHard = clamp((BASE_ZONE_W / Math.max(0.035, zoneW)) - 1, 0, 3.0);      // 0..3
-  const speedHard = clamp((BASE_LOOP / Math.max(0.70, loopSeconds)) - 1, 0, 1.6);  // 0..1.6
+  const zoneHard = clamp((BASE_ZONE_W / Math.max(0.035, zoneW)) - 1, 0, 3.0);
+  const speedHard = clamp((BASE_LOOP / Math.max(0.70, loopSeconds)) - 1, 0, 1.6);
 
-  const skillBoost = 1 + (0.22 * zoneHard) + (0.18 * speedHard); // mild
+  const skillBoost = 1 + (0.22 * zoneHard) + (0.18 * speedHard);
 
-  // diminishing by rep count so bots can't print
   let diminish = 1.0;
   if (repIndex >= 16) diminish = 0.70;
   if (repIndex >= 31) diminish = 0.45;
   if (repIndex >= 51) diminish = 0.30;
 
-  // small streak spice every 5 reps
   const streakBonus = (repIndex % 5 === 0) ? 1 : 0;
 
-  const raw = (3.0 * skillBoost * diminish) + streakBonus; // ~2–7 range normally
+  const raw = (3.0 * skillBoost * diminish) + streakBonus;
   return roundInt(raw);
 }
 
 /* ========= DIFFICULTY ========= */
-const BASE_LOOP = 1.85;   // seconds for a full needle sweep
+const BASE_LOOP = 1.85;
 const MIN_LOOP  = 0.85;
 
-const BASE_ZONE_W = 0.18; // 18% of bar
-const MIN_ZONE_W  = 0.045;// 4.5% minimum
+const BASE_ZONE_W = 0.18;
+const MIN_ZONE_W  = 0.045;
 
-const SHRINK_EARLY = 0.007; // per rep early
-const SHRINK_LATE  = 0.003; // per rep later
+const SHRINK_EARLY = 0.007;
+const SHRINK_LATE  = 0.003;
 
-const JITTER = 0.12;        // zone slides around
-const CENTER = 0.62;        // average center
+const JITTER = 0.12;
+const CENTER = 0.62;
 
 /* ========= FEEL ========= */
-const REP_HOLD_MS = 1250;   // how long to keep gif visible AFTER it loads
-const COOLDOWN_MS = 90;     // prevents accidental double-triggers
+const REP_HOLD_MS = 1250;
+const COOLDOWN_MS = 90;
 const FLASH_MS    = 320;
 
 const el = (id)=>document.getElementById(id);
@@ -524,11 +537,11 @@ const mRunCalsEl= el("mRunCals");
 const mTodayEl  = el("mToday");
 const shareLine = el("shareLine");
 
-/* Shared daily keys (so treadmill + lift can share cap if you want later) */
+/* Shared daily keys (fallback if not logged in) */
 const KEY_RESET = "phat_reset";
 const KEY_TODAY = "phat_today";
 
-/* Init daily */
+/* Init daily (fallback) */
 function nextMidnight(){
   const d=new Date();
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
@@ -541,8 +554,6 @@ if (Date.now() > resetAt){
   localStorage.setItem(KEY_RESET, resetAt);
   localStorage.setItem(KEY_TODAY, today);
 }
-capEl.textContent = DAILY_CAP;
-todayCalsEl.textContent = today;
 
 /* Game state */
 let running = false;
@@ -563,6 +574,28 @@ let smallestZone = BASE_ZONE_W;
 
 let repTimer = null;
 let repSeq = 0;
+
+/* Sync caps/today from server if logged in */
+async function syncFromServer(){
+  const prog = await fetchDailyProgress();
+  if (!prog) {
+    capEl.textContent = DAILY_CAP;
+    todayCalsEl.textContent = today;
+    return;
+  }
+
+  const g = prog.games.lift;
+
+  if (g?.caps?.dailyCapCalories != null) DAILY_CAP = Number(g.caps.dailyCapCalories || DAILY_CAP);
+  if (g?.today?.calories != null) today = Number(g.today.calories || 0);
+
+  // update fallback storage too (keeps all games consistent even if server isn't hit again)
+  localStorage.setItem(KEY_RESET, resetAt);
+  localStorage.setItem(KEY_TODAY, today);
+
+  capEl.textContent = DAILY_CAP;
+  todayCalsEl.textContent = today;
+}
 
 /* Helpers */
 function toast(msg){
@@ -648,8 +681,29 @@ async function endRun(reason){
 
   bestReps = Math.max(bestReps, reps);
 
+  const durationMs = Math.max(0, Math.round((performance.now() - start)));
+
+  // persist fallback daily
   localStorage.setItem(KEY_RESET, resetAt);
   localStorage.setItem(KEY_TODAY, today);
+
+  // ===== SECURE SUBMIT (server is truth) =====
+  // If logged out, this returns null and we keep local numbers.
+  const res = await submitSecureLift({ score: bestReps, durationMs });
+
+  if (res && res.ok){
+    // server credited calories for this run
+    const earned = Number(res.earnedCalories || 0);
+    runCals = earned;
+
+    if (res.today && typeof res.today.calories === "number") today = Number(res.today.calories || 0);
+    if (res.caps && typeof res.caps.dailyCapCalories === "number") DAILY_CAP = Number(res.caps.dailyCapCalories || DAILY_CAP);
+
+    // update UI with server truth
+    runCalsEl.textContent = runCals;
+    todayCalsEl.textContent = today;
+    capEl.textContent = DAILY_CAP;
+  }
 
   mBestEl.textContent = bestReps;
   mZoneEl.textContent = Math.round(smallestZone*100) + "%";
@@ -667,17 +721,11 @@ async function endRun(reason){
   modalBack.style.display = "flex";
   window.__shareText = shareText;
 
-  // Optional receipt (won't submit unless API_BASE + token exist)
-  const durationMs = Math.max(0, Math.round((performance.now() - start)));
-  const receipt = {
-    game: "lift",
-    durationMs,
-    calories: runCals,
-    score: bestReps,         // lift score = rep streak
-  };
-  submitReceipt(receipt).then((r)=>{
-    // silent. later we can display "synced" toast if you want.
-  });
+  // Optional: tiny feedback if server gave nothing
+  if (res && res.ok && Number(res.earnedCalories||0) === 0){
+    if (res.reason === "too_short") toast("Too short. No calories.");
+    else if (res.reason === "score_too_high") toast("Too fast. No calories.");
+  }
 }
 
 /* Input: release only */
@@ -689,6 +737,9 @@ function onRelease(){
     start = performance.now();
     statusEl.textContent = "Release on green. Miss once and you’re done.";
     const pre = new Image(); pre.src = REP_SRC;
+
+    // refresh server totals once user starts (doesn't block)
+    syncFromServer();
     return;
   }
   if (lock) return;
@@ -702,6 +753,7 @@ function onRelease(){
     reps++;
     repStreakEl.textContent = reps;
 
+    // LOCAL preview calories (server will reconcile on end)
     const add = caloriesForRep(reps, zoneW, loopSeconds);
 
     if (today < DAILY_CAP && add > 0){
@@ -791,6 +843,13 @@ zoneW = BASE_ZONE_W;
 loopSeconds = BASE_LOOP;
 smallestZone = zoneW;
 rerollZone();
+
+capEl.textContent = DAILY_CAP;
+todayCalsEl.textContent = today;
+
+// one quiet sync on load (if logged in)
+syncFromServer();
+
 requestAnimationFrame(loop);
 </script>
 </body>
