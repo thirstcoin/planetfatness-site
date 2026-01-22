@@ -828,10 +828,10 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
   <script>
     const API_BASE = "https://planetfatness-backend.onrender.com";
 
-    // ✅ NEW: persist API base so mini-games can auto-submit without editing them
+    // ✅ persist API base so mini-games can auto-submit without editing them
     try { localStorage.setItem("pf_api_base", API_BASE); } catch {}
 
-    // ✅ UPDATED: unify keys with mini-games (runner/lift/snack/basket)
+    // ✅ unify keys with mini-games (runner/lift/snack/basket)
     const TOKEN_KEY = "pf_token";
     const ADDR_KEY  = "pf_address";
 
@@ -893,13 +893,26 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
       }
     }
 
+    // ===============================
+    // ✅ NEW: Phantom connect works on:
+    // - Desktop Phantom extension
+    // - Phantom in-app browser
+    // - iOS Safari / Android Chrome via deep-link into Phantom browser
+    // ===============================
+
     async function connectAndLogin(){
+      // 1) injected Phantom flow (desktop or Phantom in-app browser)
       const provider = window.solana;
-      if (!provider?.isPhantom){
-        toast("Phantom not found — grab Phantom and come back.");
-        return;
+      if (provider?.isPhantom) {
+        return await connectInjected(provider);
       }
 
+      // 2) fallback: open current page inside Phantom browser (mobile Safari/Chrome)
+      toast("Opening Phantom… (install Phantom if it doesn’t open)");
+      openInPhantomBrowser(window.location.href);
+    }
+
+    async function connectInjected(provider){
       try{
         const resp = await provider.connect();
         const address = resp.publicKey.toString();
@@ -916,7 +929,9 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
 
         const msgBytes = new TextEncoder().encode(ch.message);
         const signed = await provider.signMessage(msgBytes, "utf8");
-        const sigB64 = btoa(String.fromCharCode(...signed.signature));
+
+        // ✅ IMPORTANT: send signature as base64 (matches your backend decoder)
+        const sigB64 = bytesToBase64(signed.signature);
 
         const v = await fetch(API_BASE + "/auth/verify", {
           method:"POST",
@@ -937,9 +952,26 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
 
       } catch(e){
         console.error(e);
-        toast("All good — you can connect anytime.");
+        toast("Connect cancelled.");
       }
     }
+
+    function openInPhantomBrowser(url){
+      const target = encodeURIComponent(url);
+      const deepLink = `https://phantom.app/ul/browse/${target}`;
+      window.location.href = deepLink;
+    }
+
+    function bytesToBase64(bytes){
+      let bin = "";
+      const arr = new Uint8Array(bytes);
+      for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+      return btoa(bin);
+    }
+
+    // ===============================
+    // Existing data loads
+    // ===============================
 
     async function loadMe(){
       const token = getToken();
