@@ -324,24 +324,36 @@
 
 <script>
 /* =========================================================
-   Runner — updated to match your backend logic:
-   - token:  phat_token
-   - base:   phat_api_base (or window.PF_API_BASE)
-   - reads:  GET  /daily/progress  (runner caps + today)
-   - writes: POST /activity/submit (server-computed calories + cap)
-   - layout/gameplay untouched
+   Runner — FIXED for PlanetFatness production keys + backend
+   ✅ Uses the SAME localStorage keys as your main site:
+      - API base: pf_api_base
+      - token:    pf_token
+      - address:  pf_address (not required here, token is enough)
+   ✅ Submits to: POST /activity/submit (server-computed calories)
+   ✅ Pulls caps from: GET /daily/progress
+   ✅ Does NOT "double count" locally when logged in
+   ✅ Gameplay unchanged
    ========================================================= */
 
-/* ===== API (safe / optional) ===== */
+/* ===== API + AUTH (read both new + legacy keys) ===== */
+function readLS(key){
+  try { return (localStorage.getItem(key) || '').trim(); } catch { return ''; }
+}
+
+// Prefer your current site keys (pf_*), fall back to older phat_* if present
 const API_BASE =
   (window.PF_API_BASE) ||
-  (localStorage.getItem('phat_api_base')) ||
+  readLS('pf_api_base') ||
+  readLS('phat_api_base') ||
   '';
 
-const TOKEN_KEY = 'phat_token';
+const TOKEN_KEY_PRIMARY = 'pf_token';
+const TOKEN_KEY_LEGACY  = 'phat_token';
+
 function getToken(){
-  try { return (localStorage.getItem(TOKEN_KEY) || '').trim(); } catch { return ''; }
+  return readLS(TOKEN_KEY_PRIMARY) || readLS(TOKEN_KEY_LEGACY) || '';
 }
+
 function api(path){
   const b = String(API_BASE || '').trim();
   if (!b) return '';
@@ -378,30 +390,34 @@ async function submitSecureRunner(payload){
     });
     const j = await r.json();
     if (j && j.ok) return j;
-    return null;
+    return j || null; // return error payload if any
   }catch{
     return null;
   }
 }
 
-/* ===== SHARED DAILY CAP (fallback; server overrides when logged in) ===== */
+/* ===== DAILY (fallback local only when NOT logged in) ===== */
 let DAILY_CAP = 1000;
-const KEY_RESET = "phat_reset";
-const KEY_TODAY = "phat_today";
+
+// Use pf_* keys for runner daily cache (and accept legacy if it exists)
+const KEY_RESET = "pf_runner_reset";
+const KEY_TODAY = "pf_runner_today";
 
 function nextMidnight(){
   const d = new Date();
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
 }
 
-let resetAt = Number(localStorage.getItem(KEY_RESET) || nextMidnight());
-let today = Number(localStorage.getItem(KEY_TODAY) || 0);
+let resetAt = Number(readLS(KEY_RESET) || nextMidnight());
+let today = Number(readLS(KEY_TODAY) || 0);
 
 if (Date.now() > resetAt){
   today = 0;
   resetAt = nextMidnight();
-  localStorage.setItem(KEY_RESET, resetAt);
-  localStorage.setItem(KEY_TODAY, today);
+  try{
+    localStorage.setItem(KEY_RESET, String(resetAt));
+    localStorage.setItem(KEY_TODAY, String(today));
+  }catch{}
 }
 
 async function syncFromServer(){
@@ -412,8 +428,10 @@ async function syncFromServer(){
   if (g?.caps?.dailyCapCalories != null) DAILY_CAP = Number(g.caps.dailyCapCalories || DAILY_CAP);
   if (g?.today?.calories != null) today = Number(g.today.calories || 0);
 
-  localStorage.setItem(KEY_RESET, resetAt);
-  localStorage.setItem(KEY_TODAY, today);
+  try{
+    localStorage.setItem(KEY_RESET, String(resetAt));
+    localStorage.setItem(KEY_TODAY, String(today));
+  }catch{}
 }
 
 /* ===== DOM ===== */
@@ -449,12 +467,12 @@ backBtn.addEventListener('click', () => {
 });
 
 /* ===== BEST ===== */
-const BEST_KEY = 'phat_treadmill_best_seconds';
-let best = Number(localStorage.getItem(BEST_KEY) || 0);
+const BEST_KEY = 'pf_treadmill_best_seconds';
+let best = Number(readLS(BEST_KEY) || 0);
 bestEl.textContent = best.toFixed(1) + 's';
 
-const BEST_MILES_KEY = 'phat_treadmill_best_miles';
-let bestMiles = Number(localStorage.getItem(BEST_MILES_KEY) || 0);
+const BEST_MILES_KEY = 'pf_treadmill_best_miles';
+let bestMiles = Number(readLS(BEST_MILES_KEY) || 0);
 bestMiEl.textContent = bestMiles.toFixed(2) + 'mi';
 
 /* ===== INPUT TUNING ===== */
@@ -553,7 +571,7 @@ function tapOnce(){
     last = performance.now();
     tapPulse = Math.max(tapPulse, 0.88);
 
-    // one quiet sync as soon as they start (doesn't block)
+    // quiet sync (doesn't block)
     syncFromServer();
   }
 
@@ -582,7 +600,6 @@ runBackBtn.addEventListener('click', () => {
   running = true;
   statusEl.textContent = 'RUN';
   tapPulse = 0.95;
-
   syncFromServer();
 });
 
@@ -645,13 +662,13 @@ function update(dt){
 
       if (t > best){
         best = t;
-        localStorage.setItem(BEST_KEY, String(best));
+        try { localStorage.setItem(BEST_KEY, String(best)); } catch {}
         bestEl.textContent = best.toFixed(1) + 's';
       }
 
       if (milesThisRun > bestMiles){
         bestMiles = milesThisRun;
-        localStorage.setItem(BEST_MILES_KEY, String(bestMiles));
+        try { localStorage.setItem(BEST_MILES_KEY, String(bestMiles)); } catch {}
         bestMiEl.textContent = bestMiles.toFixed(2) + 'mi';
       }
 
@@ -662,14 +679,6 @@ function update(dt){
         today = 0;
         resetAt = nextMidnight();
       }
-
-      // If NOT logged in, keep local credited calories as a fallback display.
-      const rawPreview = Math.max(0, Math.round(caloriesThisRun));
-      const creditedFallback = Math.max(0, Math.min(rawPreview, DAILY_CAP - today));
-      today += creditedFallback;
-
-      localStorage.setItem(KEY_RESET, resetAt);
-      localStorage.setItem(KEY_TODAY, today);
 
       mTime.textContent = t.toFixed(1) + 's';
       mRank.textContent = rankFromTime(t);
@@ -687,15 +696,20 @@ function update(dt){
       const token = getToken();
       const canSubmit = !!(API_BASE && token);
 
+      const rawPreview = Math.max(0, Math.round(caloriesThisRun));
+
       if (canSubmit){
+        // IMPORTANT: do NOT add local "today" here (prevents double counting)
+        mCals.textContent = "…";
         mCalsNote.textContent = `Submitting run…`;
+
         submitSecureRunner({
           game: "runner",
           durationMs,
           miles: milesSafe,
           bestSeconds,
-          // Optional extra signal (server currently uses miles/time anyway)
-          score: bestSeconds
+          // optional signal (server rules ignore score for runner; harmless)
+          score: Math.floor(bestSeconds)
         }).then((res)=>{
           if (res && res.ok){
             const earned = Number(res.earnedCalories || 0);
@@ -705,20 +719,43 @@ function update(dt){
             // reconcile UI to server truth
             DAILY_CAP = capServer;
             today = todayServer;
-            localStorage.setItem(KEY_TODAY, today);
-            localStorage.setItem(KEY_RESET, resetAt);
+
+            try{
+              localStorage.setItem(KEY_TODAY, String(today));
+              localStorage.setItem(KEY_RESET, String(resetAt));
+            }catch{}
 
             mCals.textContent = String(earned);
             mCalsNote.textContent = `Run logged ✅ (${earned} credited • today ${today}/${DAILY_CAP})`;
           } else {
-            // fallback stays
+            // submit failed -> fall back to local *single* credit
+            const creditedFallback = Math.max(0, Math.min(rawPreview, DAILY_CAP - today));
+            today += creditedFallback;
+
+            try{
+              localStorage.setItem(KEY_TODAY, String(today));
+              localStorage.setItem(KEY_RESET, String(resetAt));
+            }catch{}
+
             mCals.textContent = String(creditedFallback);
-            mCalsNote.textContent = `Couldn’t submit right now — still counted locally. (${creditedFallback} credited • today ${today}/${DAILY_CAP})`;
+            const errMsg = (res && (res.error || res.message)) ? String(res.error || res.message) : '';
+            mCalsNote.textContent =
+              `Couldn’t submit right now — counted locally. (${creditedFallback} credited • today ${today}/${DAILY_CAP})` +
+              (errMsg ? ` • ${errMsg}` : ``);
           }
         });
       } else {
+        // guest run -> local preview credit (not lifetime)
+        const creditedFallback = Math.max(0, Math.min(rawPreview, DAILY_CAP - today));
+        today += creditedFallback;
+
+        try{
+          localStorage.setItem(KEY_TODAY, String(today));
+          localStorage.setItem(KEY_RESET, String(resetAt));
+        }catch{}
+
         mCals.textContent = String(creditedFallback);
-        mCalsNote.textContent = `Connect your wallet on the site to stack lifetime calories. (${creditedFallback} credited • today ${today}/${DAILY_CAP})`;
+        mCalsNote.textContent = `Connect your wallet on the main site to stack lifetime calories. (${creditedFallback} credited • today ${today}/${DAILY_CAP})`;
       }
 
       showModal();
