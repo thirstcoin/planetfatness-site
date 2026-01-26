@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>$PHAT — Treadmill Rage Runner</title>
 
+  <!-- ✅ Shared UI -->
+  <link rel="stylesheet" href="/assets/pf-ui.css">
+  <script src="/assets/pf-ui.js" defer></script>
+
   <style>
     :root{
       --purple:#5b2cff;
@@ -33,63 +37,23 @@
       overflow:hidden;
     }
 
-    #wrap{
+    /* ===== Page shell (keeps game centered like other games) ===== */
+    .pf-wrap{
       height:100%;
       display:flex;
-      flex-direction:column;
-      align-items:center;
       justify-content:center;
-      gap:12px;
-      padding:14px;
+      align-items:flex-start;
+      padding: 16px 0 26px;
     }
-
-    .row{
-      width:min(920px,100%);
+    .pf-container{
+      width:min(980px, 94vw);
       display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
+      flex-direction:column;
+      gap:12px;
     }
 
-    .pill{
-      padding:10px 14px;
-      border-radius:999px;
-      background:var(--panel);
-      border:1px solid var(--stroke);
-      font-size:13px;
-      font-weight:900;
-      color:var(--muted);
-      backdrop-filter: blur(10px);
-      box-shadow:0 18px 60px rgba(0,0,0,.35);
-      user-select:none;
-      white-space:nowrap;
-    }
-
-    .btn{
-      padding:10px 16px;
-      border-radius:14px;
-      font-weight:1000;
-      background:linear-gradient(180deg, var(--yellow), #ffbf00);
-      color:#1b1400;
-      border:none;
-      box-shadow:0 14px 30px rgba(255,212,0,.45);
-      cursor:pointer;
-    }
-    .btn:active{ transform: scale(.98); }
-
-    .btnGhost{
-      padding:10px 14px;
-      border-radius:14px;
-      background: rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.14);
-      color:rgba(255,255,255,.9);
-      font-weight:1000;
-      cursor:pointer;
-    }
-    .btnGhost:active{ transform: scale(.98); }
-
-    #stage{ position:relative; width:min(920px,100%); }
+    /* ===== Runner stage ===== */
+    #stage{ position:relative; width:100%; }
 
     #runnerWrap{
       position:absolute;
@@ -180,14 +144,27 @@
       user-select:none;
     }
 
-    .hint{
-      width:min(920px,100%);
+    /* ===== Small hint row (matches your vibe but won’t fight pf-ui) ===== */
+    .pf-hints{
       display:flex;
       justify-content:space-between;
       gap:10px;
       flex-wrap:wrap;
     }
+    .pf-hintPill{
+      padding:10px 14px;
+      border-radius:999px;
+      background:var(--panel);
+      border:1px solid var(--stroke);
+      font-size:13px;
+      font-weight:900;
+      color:var(--muted);
+      backdrop-filter: blur(10px);
+      box-shadow:0 18px 60px rgba(0,0,0,.35);
+      white-space:nowrap;
+    }
 
+    /* ===== Modal (unchanged) ===== */
     #modalBack{
       position:fixed;
       inset:0;
@@ -238,6 +215,30 @@
       justify-content:flex-start;
     }
 
+    /* modal buttons keep your old style */
+    .btn{
+      padding:10px 16px;
+      border-radius:14px;
+      font-weight:1000;
+      background:linear-gradient(180deg, var(--yellow), #ffbf00);
+      color:#1b1400;
+      border:none;
+      box-shadow:0 14px 30px rgba(255,212,0,.45);
+      cursor:pointer;
+    }
+    .btn:active{ transform: scale(.98); }
+
+    .btnGhost{
+      padding:10px 14px;
+      border-radius:14px;
+      background: rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.14);
+      color:rgba(255,255,255,.9);
+      font-weight:1000;
+      cursor:pointer;
+    }
+    .btnGhost:active{ transform: scale(.98); }
+
     #footerHint{
       padding:0 18px 18px;
       color:rgba(255,255,255,.75);
@@ -248,28 +249,42 @@
 </head>
 
 <body>
-  <div id="wrap">
-    <div class="row">
-      <div class="pill">$PHAT — Treadmill Rage Runner</div>
-      <div class="pill" id="status">Tap to start</div>
+  <div class="pf-wrap">
+    <div class="pf-container">
 
-      <button class="btnGhost" id="backBtn">← Gym</button>
-      <button class="btn" id="restartBtn">Restart</button>
-    </div>
+      <!-- ✅ Shared-style header card (pf-ui.css should style these classes consistently across games) -->
+      <div class="pf-top">
+        <div class="pf-title">
+          <div class="pf-titleLine">$PHAT — Treadmill Rage Runner</div>
+          <div class="pf-subLine">Tap to sprint. Hold to auto-run. The belt is disrespectful.</div>
+        </div>
 
-    <div id="stage">
-      <div id="runnerWrap">
-        <img id="runnerGif" src="../assets/runner.gif?v=9" alt="Planet Fatness Treadmill Scene" draggable="false" />
-        <div id="beltFx"></div>
-        <div id="speedLines"></div>
-        <div id="vignette"></div>
+        <!-- status chip stays identical across pages -->
+        <div class="pf-chip" id="status">Tap to start</div>
       </div>
-      <canvas id="c" width="900" height="520"></canvas>
-    </div>
 
-    <div class="hint">
-      <div class="pill">Controls: Tap / Click / Space • Hold = auto-run (mobile)</div>
-      <div class="pill">Best: <span id="best">0.0s</span> • <span id="bestMi">0.00mi</span></div>
+      <div id="stage">
+        <div id="runnerWrap">
+          <img id="runnerGif" src="/assets/runner.gif?v=9" alt="Planet Fatness Treadmill Scene" draggable="false" />
+          <div id="beltFx"></div>
+          <div id="speedLines"></div>
+          <div id="vignette"></div>
+        </div>
+        <canvas id="c" width="900" height="520"></canvas>
+      </div>
+
+      <div class="pf-hints">
+        <div class="pf-hintPill">Controls: Tap / Click / Space • Hold = auto-run (mobile)</div>
+        <div class="pf-hintPill">Best: <span id="best">0.0s</span> • <span id="bestMi">0.00mi</span></div>
+      </div>
+
+      <!-- ✅ Shared bottom button row (same DOM pattern you’ll reuse everywhere) -->
+      <div class="pf-bottom">
+        <button class="pf-btn pf-primary" id="restartBtn">Run it back</button>
+        <button class="pf-btn" id="shareBtn" data-pf-share="runner">Share score</button>
+        <button class="pf-btn" id="backBtn">← Back to Gym</button>
+      </div>
+
     </div>
   </div>
 
@@ -466,6 +481,9 @@ backBtn.addEventListener('click', () => {
   window.location.href = '../index.html#gym';
 });
 
+/* ✅ Share button: pf-ui.js can hook this via id or data attribute */
+const shareBtn = document.getElementById('shareBtn');
+
 /* ===== BEST ===== */
 const BEST_KEY = 'pf_treadmill_best_seconds';
 let best = Number(readLS(BEST_KEY) || 0);
@@ -613,6 +631,34 @@ modalBack.addEventListener('click', (e) => {
   if (e.target === modalBack) hideModal();
 });
 
+/* ✅ Share fallback (if pf-ui.js doesn’t auto-hook) */
+function shareFallback(){
+  const txt =
+    `$PHAT Treadmill Rage Runner — ${t.toFixed(1)}s • ${milesThisRun.toFixed(2)}mi\n` +
+    `planetfatness.fit/runner`;
+  if (navigator.share){
+    navigator.share({ text: txt }).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(txt);
+  }
+}
+if (shareBtn){
+  shareBtn.addEventListener('click', () => {
+    // if your pf-ui.js exposes a helper, it can override this; otherwise this works
+    try{
+      if (window.PF_UI && typeof window.PF_UI.share === "function"){
+        window.PF_UI.share({ game:"runner" });
+        return;
+      }
+      if (window.PFUI && typeof window.PFUI.share === "function"){
+        window.PFUI.share({ game:"runner" });
+        return;
+      }
+    }catch{}
+    shareFallback();
+  });
+}
+
 /* ===== UPDATE ===== */
 function update(dt){
   if (!running) return;
@@ -708,7 +754,6 @@ function update(dt){
           durationMs,
           miles: milesSafe,
           bestSeconds,
-          // optional signal (server rules ignore score for runner; harmless)
           score: Math.floor(bestSeconds)
         }).then((res)=>{
           if (res && res.ok){
@@ -716,7 +761,6 @@ function update(dt){
             const todayServer = Number(res.today?.calories ?? today);
             const capServer = Number(res.caps?.dailyCapCalories ?? DAILY_CAP);
 
-            // reconcile UI to server truth
             DAILY_CAP = capServer;
             today = todayServer;
 
@@ -728,7 +772,6 @@ function update(dt){
             mCals.textContent = String(earned);
             mCalsNote.textContent = `Run logged ✅ (${earned} credited • today ${today}/${DAILY_CAP})`;
           } else {
-            // submit failed -> fall back to local *single* credit
             const creditedFallback = Math.max(0, Math.min(rawPreview, DAILY_CAP - today));
             today += creditedFallback;
 
@@ -745,7 +788,6 @@ function update(dt){
           }
         });
       } else {
-        // guest run -> local preview credit (not lifetime)
         const creditedFallback = Math.max(0, Math.min(rawPreview, DAILY_CAP - today));
         today += creditedFallback;
 
@@ -825,7 +867,6 @@ function drawHUD(){
   const paceStr = mi > 0.0001 ? formatPace(paceMinPerMi) : '—';
   ctx.fillText('Miles: ' + mi.toFixed(2) + ' • Pace: ' + paceStr + '/mi', 34, 102);
 
-  // preview only
   const calsPreview = Math.max(0, Math.round(caloriesThisRun));
   ctx.fillText('Calories: ' + calsPreview, 34, 126);
 
