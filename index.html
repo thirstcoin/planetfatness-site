@@ -1,3 +1,4 @@
+<!-- PART 1/4 — paste this first (start of file) -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -14,8 +15,6 @@
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
 
-<script src="https://telegram.org/js/telegram-web-app.js" defer></script>
-  
   <style>
     :root{
       --bg0:#07050c;
@@ -54,9 +53,6 @@
     .wrap{ width:100%; display:flex; justify-content:center; }
     .container{ width:min(var(--max), calc(100% - 40px)); margin:0 auto; }
 
-    /* ===========================
-       MOBILE OMBRÉ SEAM FIX + ARENA GLOW
-       =========================== */
     body::before{
       content:"";
       position:fixed;
@@ -81,7 +77,6 @@
       mix-blend-mode: screen;
     }
 
-    /* subtle grain */
     .grain{
       pointer-events:none;
       position:fixed; inset:0;
@@ -91,7 +86,6 @@
       z-index:-1;
     }
 
-    /* Topbar */
     .topbar{
       position:sticky; top:0;
       z-index:20;
@@ -291,194 +285,11 @@
       background: rgba(255,255,255,.04);
       font-weight: 1000;
     }
-
-    section{ padding: 16px 0; }
-    .sectionTitle{
-      display:flex; align-items:flex-end; justify-content:space-between; gap:14px; flex-wrap:wrap;
-      margin: 10px 0 12px;
-    }
-    .sectionTitle h2{ margin:0; font-size: 18px; letter-spacing:.2px; }
-    .sectionTitle p{ margin:0; color: rgba(255,255,255,.66); font-size: 13px; }
-
-    .grid3{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    @media (max-width: 940px){ .grid3{ grid-template-columns: 1fr; } }
-
-    .card{
-      border-radius: var(--radius2);
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.05);
-      box-shadow: var(--shadow2);
-      padding: 16px 16px;
-      overflow:hidden;
-      position:relative;
-    }
-    .card::before{
-      content:"";
-      position:absolute; inset:-2px;
-      background: radial-gradient(260px 160px at 20% 0%, rgba(91,44,255,.18), transparent 65%),
-                  radial-gradient(260px 160px at 90% 30%, rgba(255,212,0,.10), transparent 65%);
-      opacity:.85;
-      pointer-events:none;
-    }
-    .card h3{ position:relative; margin:0 0 6px; font-size:16px; }
-    .card p{ position:relative; margin:0; color: rgba(255,255,255,.72); font-size: 13px; line-height:1.45; }
-
-    .gameGrid{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 940px){ .gameGrid{ grid-template-columns: 1fr; } }
-    .gameCard{
-      border-radius: var(--radius);
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.16);
-      box-shadow: var(--shadow2);
-      overflow:hidden;
-      position:relative;
-    }
-    .gameCard::before{
-      content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(560px 280px at 20% 0%, rgba(91,44,255,.22), transparent 60%),
-        radial-gradient(560px 280px at 85% 25%, rgba(255,212,0,.12), transparent 62%);
-      opacity:.9;
-      pointer-events:none;
-    }
-    .gamePad{ position:relative; padding:18px; display:flex; gap:14px; align-items:center; }
-
-    .gameIcon{
-      width:52px; height:52px; border-radius:18px;
-      border:1px solid rgba(255,255,255,.12);
-      background: transparent;
-      background-image: url("assets/thumbs-down.png");
-      background-repeat:no-repeat;
-      background-position:center;
-      background-size:contain;
-
-      box-shadow: 0 18px 44px rgba(0,0,0,.45);
-      flex:0 0 auto;
-      position:relative;
-      overflow:hidden;
-    }
-    .gameIcon::after{
-      content:"";
-      position:absolute; inset:0;
-      background: radial-gradient(circle at 20% 10%, rgba(255,255,255,.45), transparent 45%);
-      opacity:.6;
-    }
-
-    .gameText{ flex:1 1 auto; min-width:0; }
-    .gameTitle{ margin:0; font-weight:1000; letter-spacing:-.2px; }
-    .gameDesc{ margin:6px 0 0; color: rgba(255,255,255,.72); font-size:13px; line-height:1.45; }
-    .gameBtns{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-
-    .statGrid{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 520px){ .statGrid{ grid-template-columns: 1fr; } }
-    .stat{
-      padding: 14px 14px;
-      border-radius: 16px;
-      background: rgba(0,0,0,.18);
-      border:1px solid rgba(255,255,255,.10);
-      position:relative;
-      overflow:hidden;
-    }
-    .stat .k{ position:relative; font-size:12px; color: rgba(255,255,255,.68); margin-bottom:6px; }
-    .stat .v{ position:relative; font-size:22px; font-weight:1000; letter-spacing:-.4px; }
-    .stat .s{ position:relative; font-size:12px; color: rgba(255,255,255,.62); margin-top:4px; }
-
-    table{ width:100%; border-collapse:collapse; }
-    th,td{ padding:10px 10px; text-align:left; font-size:13px; }
-    th{ color: rgba(255,255,255,.68); font-weight:1000; border-bottom:1px solid rgba(255,255,255,.10); }
-    td{ border-bottom:1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.86); }
-    .rank{ width:54px; color: rgba(255,255,255,.70); font-weight:1000; }
-    .addr{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size:12px; color: rgba(255,255,255,.80); }
-    .muted{ color: rgba(255,255,255,.68); }
-
-    .linkStrip{
-      display:flex; gap:10px; flex-wrap:wrap;
-      margin-top: 10px;
-    }
-    .pillLink{
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:10px 12px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      color: rgba(255,255,255,.86);
-      font-weight:1000;
-      font-size:13px;
-      box-shadow: var(--shadow2);
-      transition: transform .12s ease, border-color .12s ease, background .12s ease, filter .12s ease;
-    }
-    .pillLink:hover{
-      transform: translateY(-1px);
-      border-color: rgba(255,255,255,.18);
-      background: rgba(255,255,255,.06);
-      filter: saturate(1.08);
-    }
-    .pillLink.primary{
-      color:#1a1400;
-      background: linear-gradient(180deg, var(--yellow), #ffbf00);
-      border-color: rgba(0,0,0,.18);
-      box-shadow: 0 16px 42px rgba(255,212,0,.22);
-    }
-    .pillLink.primary:hover{
-      background: linear-gradient(180deg, #ffe566, var(--yellow));
-    }
-    .pillLink.soon{
-      opacity:.65;
-      cursor:not-allowed;
-    }
-
-    footer{ padding: 18px 0 34px; color: rgba(255,255,255,.62); font-size: 12px; }
-    .footRow{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; flex-wrap:wrap;
-      border-top:1px solid rgba(255,255,255,.08);
-      padding-top: 16px;
-    }
-    .links{ display:flex; gap:10px; flex-wrap:wrap; }
-    .link{
-      padding: 8px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      color: rgba(255,255,255,.78);
-      font-weight: 1000;
-    }
-    .link:hover{ border-color: rgba(255,255,255,.18); }
-
-    .disclaimer{
-      margin-top: 12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      border-radius: 18px;
-      padding: 12px 14px;
-      line-height: 1.45;
-      color: rgba(255,255,255,.70);
-      box-shadow: var(--shadow2);
-    }
-    .disclaimer b{ color: rgba(255,255,255,.86); }
-
-    .toast{
-      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
-      background: rgba(0,0,0,.55);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius: 999px;
-      padding: 10px 14px;
-      color: rgba(255,255,255,.9);
-      font-weight: 1000;
-      font-size: 13px;
-      box-shadow: var(--shadow2);
-      display:none;
-      z-index:50;
-      backdrop-filter: blur(12px);
-    }
   </style>
 </head>
-
 <body>
   <div class="grain"></div>
   <div class="toast" id="toast"></div>
-
   <div class="topbar">
     <div class="wrap">
       <div class="container inner">
@@ -537,7 +348,7 @@
               <span>🏀 Streak Shot arena</span>
               <span>💸 Rewards for grinders</span>
             </div>
-
+            <!-- PART 2/4 — paste immediately after Part 1 -->
             <div style="margin-top:14px;">
               <div class="sectionTitle" style="margin:0 0 8px;">
                 <h2 style="font-size:15px;">Official Links</h2>
@@ -644,7 +455,7 @@
           <div class="pad">
             <div class="sectionTitle" style="margin-top:0">
               <h2>Your Gym Card</h2>
-              <p id="authStatus" class="muted">Not connected yet — connect Phantom to start stacking.</p>
+              <p id="authStatus" class="muted">Not connected yet — connect Phantom or open in Telegram to start stacking.</p>
             </div>
 
             <div class="statGrid">
@@ -684,7 +495,7 @@
       </div>
     </div>
   </section>
-
+  <!-- PART 3/4 — paste immediately after Part 2 -->
   <section id="leaderboard">
     <div class="wrap">
       <div class="container">
@@ -816,498 +627,464 @@
 
         <div class="disclaimer">
           <b>Gym Disclaimer:</b> $PHAT is a memecoin.
-Nothing on this site is financial advice, fitness advice, or life advice.
-
-This is an entertainment-driven culture project built around games, attention, and community.
-Calories are tracked. Leaderboards are real. Rewards are earned by participation.
-
-Do your own research, manage your risk, and don’t fade a gym where tapping counts as cardio.
+          Nothing on this site is financial advice, fitness advice, or life advice.
+          <br><br>
+          This is an entertainment-driven culture project built around games, attention, and community.
+          Calories are tracked. Leaderboards are real. Rewards are earned by participation.
+          <br><br>
+          Do your own research, manage your risk, and don’t fade a gym where tapping counts as cardio.
         </div>
       </div>
     </div>
   </footer>
 
-<script>
-  const API_BASE = "https://planetfatness-backend.onrender.com";
+  <!-- ✅ Telegram SDK MUST be loaded BEFORE our app script (no defer). -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-console.log(
-  "TG exists?",
-  !!window.Telegram,
-  "WebApp?",
-  !!(window.Telegram && window.Telegram.WebApp)
-);
+  <script>
+    const API_BASE = "https://planetfatness-backend.onrender.com";
 
     // persist API base so mini-games can auto-submit without editing them
-  try { localStorage.setItem("pf_api_base", API_BASE); } catch {}
+    try { localStorage.setItem("pf_api_base", API_BASE); } catch {}
 
-  // unify keys with mini-games
-  const TOKEN_KEY = "pf_token";
-  const ADDR_KEY  = "pf_address";
-  const TG_KEY    = "pf_tg";            // JSON: {id, username, name}
-  const ID_KIND   = "pf_identity_kind"; // "tg" | "wallet"
+    // unify keys with mini-games
+    const TOKEN_KEY = "pf_token";
+    const ADDR_KEY  = "pf_address";
+    const TG_KEY    = "pf_tg";            // JSON: {id, username, name}
+    const ID_KIND   = "pf_identity_kind"; // "tg" | "wallet"
 
-  const toastEl = document.getElementById("toast");
-  const authStatusEl = document.getElementById("authStatus");
-  const meWalletEl = document.getElementById("meWallet");
-  const meCaloriesEl = document.getElementById("meCalories");
-  const meBestEl = document.getElementById("meBest");
-  const meRankHintEl = document.getElementById("meRankHint");
-  const lbBody = document.getElementById("lbBody");
+    const toastEl = document.getElementById("toast");
+    const authStatusEl = document.getElementById("authStatus");
+    const meWalletEl = document.getElementById("meWallet");
+    const meCaloriesEl = document.getElementById("meCalories");
+    const meBestEl = document.getElementById("meBest");
+    const meRankHintEl = document.getElementById("meRankHint");
+    const lbBody = document.getElementById("lbBody");
 
-  document.getElementById("yr").textContent = new Date().getFullYear();
+    document.getElementById("yr").textContent = new Date().getFullYear();
 
-  document.getElementById("playBtn").addEventListener("click", () => {
-    window.location.href = "https://planetfatness.fit/runner/";
-  });
+    document.getElementById("playBtn").addEventListener("click", () => {
+      window.location.href = "https://planetfatness.fit/runner/";
+    });
 
-  document.getElementById("connectBtn").addEventListener("click", connectAndLogin);
-  document.getElementById("refreshMeBtn").addEventListener("click", loadMe);
-  document.getElementById("refreshLbBtn").addEventListener("click", loadLeaderboard);
-  document.getElementById("logoutBtn").addEventListener("click", logout);
+    document.getElementById("connectBtn").addEventListener("click", connectAndLogin);
+    document.getElementById("refreshMeBtn").addEventListener("click", loadMe);
+    document.getElementById("refreshLbBtn").addEventListener("click", loadLeaderboard);
+    document.getElementById("logoutBtn").addEventListener("click", logout);
 
-  function toast(msg){
-    toastEl.textContent = msg;
-    toastEl.style.display = "block";
-    clearTimeout(window.__toastT);
-    window.__toastT = setTimeout(() => toastEl.style.display = "none", 2400);
-  }
-
-  function shortAddr(a){
-    if (!a) return "—";
-    return a.slice(0, 4) + "…" + a.slice(-4);
-  }
-
-  function getToken(){ return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
-  function getAddr(){ return (localStorage.getItem(ADDR_KEY) || "").trim(); }
-
-  function getTG(){
-    try { return JSON.parse(localStorage.getItem(TG_KEY) || "null"); }
-    catch { return null; }
-  }
-
-  function setSession(addr, token){
-    localStorage.setItem(ADDR_KEY, addr);
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(ID_KIND, "wallet");
-  }
-
-  function setTGSession(tg, token){
-    // TG identity is primary; wallet optional later
-    try { localStorage.setItem(TG_KEY, JSON.stringify(tg)); } catch {}
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(ID_KIND, "tg");
-    // also store address so everything downstream works consistently
-    if (tg?.id) localStorage.setItem(ADDR_KEY, `tg:${tg.id}`);
-  }
-
-  function clearSession(){
-    localStorage.removeItem(ADDR_KEY);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(TG_KEY);
-    localStorage.removeItem(ID_KIND);
-  }
-
-  function displayIdentity(){
-    const kind = (localStorage.getItem(ID_KIND) || "").trim();
-    const tg = getTG();
-    const addr = getAddr();
-
-    if (kind === "tg" && tg){
-      const label = tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
-      return label;
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.style.display = "block";
+      clearTimeout(window.__toastT);
+      window.__toastT = setTimeout(() => toastEl.style.display = "none", 2400);
     }
-    if (addr){
-      // wallet OR tg:* address
-      if (addr.startsWith("tg:") && tg){
-        const label = tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
-        return label;
+
+    function shortAddr(a){
+      if (!a) return "—";
+      return a.slice(0, 4) + "…" + a.slice(-4);
+    }
+
+    function getToken(){ return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
+    function getAddr(){ return (localStorage.getItem(ADDR_KEY) || "").trim(); }
+
+    function getTG(){
+      try { return JSON.parse(localStorage.getItem(TG_KEY) || "null"); }
+      catch { return null; }
+    }
+
+    function setSession(addr, token){
+      localStorage.setItem(ADDR_KEY, addr);
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(ID_KIND, "wallet");
+    }
+
+    function setTGSession(tg, token){
+      try { localStorage.setItem(TG_KEY, JSON.stringify(tg)); } catch {}
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(ID_KIND, "tg");
+      if (tg?.id) localStorage.setItem(ADDR_KEY, `tg:${tg.id}`);
+    }
+
+    function clearSession(){
+      localStorage.removeItem(ADDR_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TG_KEY);
+      localStorage.removeItem(ID_KIND);
+    }
+
+    function displayIdentity(){
+      const kind = (localStorage.getItem(ID_KIND) || "").trim();
+      const tg = getTG();
+      const addr = getAddr();
+
+      if (kind === "tg" && tg){
+        return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
       }
-      return shortAddr(addr);
-    }
-    if (tg){
-      const label = tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
-      return label;
-    }
-    return "—";
-  }
-
-  function setAuthUI(){
-    const token = getToken();
-    const ident = displayIdentity();
-
-    if (token && ident !== "—"){
-      authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
-      meWalletEl.textContent = ident;
-    } else {
-      authStatusEl.textContent = "Not connected yet — connect Phantom (or open in Telegram) to start stacking.";
-      meWalletEl.textContent = "—";
-      meCaloriesEl.textContent = "—";
-      meBestEl.textContent = "—";
-      meRankHintEl.textContent = "—";
-    }
-  }
-
-  // ==========================================================
-  // ✅ TELEGRAM AUTO-LOGIN (HARDENED + DEBUG)
-  //
-  // Problems we fix:
-  // 1) Sometimes tg.initData isn't ready on first tick.
-  // 2) Sometimes you already have an old token (from wallet/previous session),
-  //    so bootstrap never "takes" and Gym Card stays blank.
-  // 3) iOS/TG can pause JS until visible; we retry on visibility/focus.
-  //
-  // Behavior:
-  // - If opened inside Telegram WebApp, we ALWAYS prefer TG identity.
-  // - We NEVER overwrite an active wallet session *unless* we are in Telegram.
-  // - If we are in Telegram, we will refresh TG session from /auth/telegram.
-  //
-  // DEBUG:
-  // - Set PF_TG_DEBUG = true to show alerts + console logs for initData/unsafe user.
-  // ==========================================================
-  const PF_TG_DEBUG = true; // ⬅️ flip to false after fixed
-
-  function tgDebugLog(...args){
-    if (!PF_TG_DEBUG) return;
-    try { console.log(...args); } catch {}
-  }
-  function tgDebugAlert(msg){
-    if (!PF_TG_DEBUG) return;
-    try { alert(msg); } catch {}
-  }
-
-  function isInTelegram(){
-    return !!(window.Telegram && window.Telegram.WebApp);
-  }
-
-  function tgSafeUser(tgu){
-    const id = tgu?.id;
-    const username = (tgu?.username || "").trim();
-    const name = [tgu?.first_name || "", tgu?.last_name || ""].join(" ").trim();
-    return { id, username, name };
-  }
-
-  async function telegramBootstrapOnce(){
-    const tg = isInTelegram() ? window.Telegram.WebApp : null;
-    if (!tg) {
-      tgDebugLog("[TG] Not in Telegram WebApp");
-      return false;
-    }
-
-    try{
-      // Make TG happy
-      tg.ready && tg.ready();
-      tg.expand && tg.expand();
-
-      // Some clients have initDataUnsafe.user even when initData is delayed.
-      const unsafeUser = tgSafeUser(tg.initDataUnsafe && tg.initDataUnsafe.user);
-
-      // Try to get initData (required for backend verify)
-      const initData = String(tg.initData || "").trim();
-
-      // ---- DEBUG snapshot (this is the money line) ----
-      tgDebugLog("[TG] platform:", tg.platform, "version:", tg.version);
-      tgDebugLog("[TG] initData length:", initData.length);
-      tgDebugLog("[TG] unsafe user:", tg.initDataUnsafe?.user || null);
-
-      // Optional loud alert on first attempts when initData is empty
-      if (!initData){
-        if (PF_TG_DEBUG){
-          tgDebugAlert(
-            "TG Debug\n" +
-            "initData length: 0\n" +
-            "user: " + (unsafeUser?.username ? "@"+unsafeUser.username : (unsafeUser?.name || (unsafeUser?.id ? "TG:"+unsafeUser.id : "none")))
-          );
+      if (addr){
+        if (addr.startsWith("tg:") && tg){
+          return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
         }
+        return shortAddr(addr);
+      }
+      if (tg){
+        return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
+      }
+      return "—";
+    }
 
-        // If we at least know the username, show it instantly while we wait for initData
-        if (unsafeUser && unsafeUser.id){
-          try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
-          // don't set token here (can't), but we can update UI label right away
-          setAuthUI();
-        }
-        return false;
+    function setAuthUI(){
+      const token = getToken();
+      const ident = displayIdentity();
+
+      if (token && ident !== "—"){
+        authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
+        meWalletEl.textContent = ident;
       } else {
-        if (PF_TG_DEBUG){
-          tgDebugAlert(
-            "TG Debug\n" +
-            "initData length: " + initData.length + "\n" +
-            "user: " + (unsafeUser?.username ? "@"+unsafeUser.username : (unsafeUser?.name || (unsafeUser?.id ? "TG:"+unsafeUser.id : "none")))
-          );
-        }
+        authStatusEl.textContent = "Not connected yet — connect Phantom or open in Telegram to start stacking.";
+        meWalletEl.textContent = "—";
+        meCaloriesEl.textContent = "—";
+        meBestEl.textContent = "—";
+        meRankHintEl.textContent = "—";
+      }
+    }
+
+    // ✅ Hard wait: prevents iOS/TG timing + script order issues
+    function waitForTelegram(ms = 3000){
+      return new Promise((resolve) => {
+        const start = Date.now();
+        (function tick(){
+          if (window.Telegram && window.Telegram.WebApp) return resolve(true);
+          if (Date.now() - start > ms) return resolve(false);
+          setTimeout(tick, 50);
+        })();
+      });
+    }
+
+    // ==========================================================
+    // ✅ TELEGRAM AUTO-LOGIN (reliable)
+    // ==========================================================
+    const PF_TG_DEBUG = true; // leave on; only logs/one toast (no temp lines)
+
+    function tgDebugLog(...args){
+      if (!PF_TG_DEBUG) return;
+      try { console.log(...args); } catch {}
+    }
+
+    function isInTelegram(){
+      return !!(window.Telegram && window.Telegram.WebApp);
+    }
+
+    function tgSafeUser(tgu){
+      const id = tgu?.id;
+      const username = (tgu?.username || "").trim();
+      const name = [tgu?.first_name || "", tgu?.last_name || ""].join(" ").trim();
+      return { id, username, name };
+    }
+
+    async function telegramBootstrapOnce(){
+      const tg = isInTelegram() ? window.Telegram.WebApp : null;
+      if (!tg) {
+        tgDebugLog("[TG] Not in Telegram WebApp context");
+        return false;
       }
 
-      // If we are in Telegram, we want TG identity to be primary.
-      // Only skip if we already have a TG session token for this exact TG id.
-      const existingKind = (localStorage.getItem(ID_KIND) || "").trim();
-      const existingTg = getTG();
-      const existingToken = getToken();
+      try{
+        tg.ready && tg.ready();
+        tg.expand && tg.expand();
 
-      const alreadySameTg =
-        existingKind === "tg" &&
-        existingToken &&
-        existingTg &&
-        unsafeUser?.id &&
-        String(existingTg.id) === String(unsafeUser.id);
+        const unsafeUser = tgSafeUser(tg.initDataUnsafe && tg.initDataUnsafe.user);
+        const initData = String(tg.initData || "").trim();
 
-      // If wallet token exists, DO NOT overwrite outside TG.
-      // But inside TG, we DO want TG identity to win (telegram-first strategy).
-      if (alreadySameTg){
-        // still refresh UI and data
-        tgDebugLog("[TG] alreadySameTg=true, reusing existing TG token");
+        tgDebugLog("[TG] platform:", tg.platform, "version:", tg.version);
+        tgDebugLog("[TG] initData length:", initData.length);
+        tgDebugLog("[TG] unsafe user:", tg.initDataUnsafe?.user || null);
+
+        // If initData is missing, at least show the username label immediately
+        if (!initData){
+          if (unsafeUser && unsafeUser.id){
+            try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
+            setAuthUI();
+            toast("Telegram detected (waiting on initData)…");
+          } else {
+            toast("Telegram detected but user not available yet…");
+          }
+          return false;
+        }
+
+        // If already same TG session, reuse
+        const existingKind = (localStorage.getItem(ID_KIND) || "").trim();
+        const existingTg = getTG();
+        const existingToken = getToken();
+        const alreadySameTg =
+          existingKind === "tg" &&
+          existingToken &&
+          existingTg &&
+          unsafeUser?.id &&
+          String(existingTg.id) === String(unsafeUser.id);
+
+        if (alreadySameTg){
+          tgDebugLog("[TG] alreadySameTg=true, reusing existing TG token");
+          setAuthUI();
+          await loadMe();
+          await loadLeaderboard();
+          return true;
+        }
+
+        tgDebugLog("[TG] POST /auth/telegram…");
+        const r = await fetch(API_BASE + "/auth/telegram", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ initData })
+        });
+
+        const j = await r.json().catch(() => ({}));
+        tgDebugLog("[TG] /auth/telegram status:", r.status, "ok:", r.ok, "body:", j);
+
+        if (!r.ok || !j || !j.token){
+          if (unsafeUser && unsafeUser.id){
+            try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
+            setAuthUI();
+          }
+          toast("TG verify failed (backend). Check logs.");
+          return false;
+        }
+
+        const tgu = j.telegram || (tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
+        const tgUser = tgSafeUser(tgu);
+
+        setTGSession(tgUser, j.token);
         setAuthUI();
+        toast("Telegram gym card locked ✅ " + (tgUser.username ? "@"+tgUser.username : (tgUser.name || "TG")));
+
         await loadMe();
         await loadLeaderboard();
         return true;
-      }
 
-      // Call backend
-      tgDebugLog("[TG] POST /auth/telegram…");
-      const r = await fetch(API_BASE + "/auth/telegram", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ initData })
-      });
-
-      const j = await r.json().catch(() => ({}));
-      tgDebugLog("[TG] /auth/telegram status:", r.status, "ok:", r.ok, "hasToken:", !!j?.token);
-
-      if (!r.ok || !j || !j.token){
-        // If backend says no, keep whatever identity label we can
-        if (unsafeUser && unsafeUser.id){
-          try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
-          setAuthUI();
-        }
+      } catch(e){
+        console.error("TG bootstrap exception:", e);
+        toast("TG bootstrap error (see console).");
         return false;
       }
-
-      // Prefer TG user from backend response; fallback to unsafe user
-      const tgu = j.telegram || (tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
-      const tgUser = tgSafeUser(tgu);
-
-      // Force TG as primary when inside Telegram
-      setTGSession(tgUser, j.token);
-
-      setAuthUI();
-      toast("Telegram gym card locked ✅ " + (tgUser.username ? "@"+tgUser.username : (tgUser.name || "TG")));
-
-      await loadMe();
-      await loadLeaderboard();
-      return true;
-
-    } catch(e){
-      console.log("TG bootstrap skipped", e);
-      tgDebugLog("[TG] exception:", e);
-      return false;
     }
-  }
 
-  async function telegramBootstrapRetry(){
-    // Do nothing if not in Telegram
-    if (!isInTelegram()) return;
+    async function telegramBootstrapRetry(){
+      if (!isInTelegram()) return;
 
-    // Retry longer + with backoff (TG can be slow on iOS)
-    const delays = [0, 150, 250, 350, 500, 750, 900, 1200, 1500, 1800, 2200, 2600, 3200];
-    for (let i = 0; i < delays.length; i++){
-      if (delays[i]) await new Promise(r => setTimeout(r, delays[i]));
-      const ok = await telegramBootstrapOnce();
-      if (ok) break;
-    }
-  }
-
-  // Also retry when app becomes visible / focused (common TG iOS behavior)
-  function wireTelegramWakeups(){
-    if (!isInTelegram()) return;
-
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) telegramBootstrapRetry();
-    });
-
-    window.addEventListener("focus", () => telegramBootstrapRetry());
-
-    // Telegram can emit viewport changes; use it as a "wake" signal
-    try{
-      const tg = window.Telegram.WebApp;
-      if (tg && tg.onEvent){
-        tg.onEvent("viewportChanged", () => telegramBootstrapRetry());
+      const delays = [0, 120, 200, 320, 500, 750, 900, 1200, 1500, 1800, 2200, 2600, 3200];
+      for (let i = 0; i < delays.length; i++){
+        if (delays[i]) await new Promise(r => setTimeout(r, delays[i]));
+        const ok = await telegramBootstrapOnce();
+        if (ok) break;
       }
-    }catch{}
-  }
-
-  // ==========================================================
-  // ✅ PHANTOM CONNECT (unchanged)
-  // ==========================================================
-  async function connectAndLogin(){
-    const provider = window.solana;
-    if (provider?.isPhantom) return await connectInjected(provider);
-    toast("Opening Phantom… (install Phantom if it doesn’t open)");
-    openInPhantomBrowser(window.location.href);
-  }
-
-  async function connectInjected(provider){
-    try{
-      const resp = await provider.connect();
-      const address = resp.publicKey.toString();
-
-      toast("Connected " + shortAddr(address) + " • lock in your gym card…");
-
-      const ch = await fetch(API_BASE + "/auth/challenge", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ address })
-      }).then(r => r.json());
-
-      if (ch.error) { toast(ch.error); return; }
-
-      const msgBytes = new TextEncoder().encode(ch.message);
-      const signed = await provider.signMessage(msgBytes, "utf8");
-      const sigB64 = bytesToBase64(signed.signature);
-
-      const v = await fetch(API_BASE + "/auth/verify", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ address, nonce: ch.nonce, signature: sigB64 })
-      }).then(r => r.json());
-
-      if (!v.token){ toast(v.error || "Login failed"); return; }
-
-      setSession(address, v.token);
-      toast("Gym card locked ✅ " + shortAddr(address));
-      setAuthUI();
-      await loadMe();
-      await loadLeaderboard();
-
-    }catch(e){
-      console.error(e);
-      toast("Connect cancelled.");
     }
-  }
 
-  function openInPhantomBrowser(url){
-    const target = encodeURIComponent(url);
-    window.location.href = `https://phantom.app/ul/browse/${target}`;
-  }
+    function wireTelegramWakeups(){
+      if (!isInTelegram()) return;
 
-  function bytesToBase64(bytes){
-    let bin = "";
-    const arr = new Uint8Array(bytes);
-    for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
-    return btoa(bin);
-  }
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) telegramBootstrapRetry();
+      });
 
-  // ==========================================================
-  // ✅ GYM CARD LOAD — use /activity/summary (matches your db.ts)
-  // ==========================================================
-  async function loadMe(){
-    const token = getToken();
-    if (!token){ setAuthUI(); return; }
+      window.addEventListener("focus", () => telegramBootstrapRetry());
 
-    try{
-      const me = await fetch(API_BASE + "/activity/summary", {
-        headers:{ "Authorization":"Bearer " + token }
-      }).then(r => r.json());
-
-      if (me.error){ toast(me.error); return; }
-
-      // identity display: TG preferred, wallet fallback
-      meWalletEl.textContent = displayIdentity();
-
-      const totalCals = Number(me?.lifetime?.totalCalories || 0);
-      const bestSecs = Number(me?.lifetime?.bestSeconds || 0);
-
-      meCaloriesEl.textContent = totalCals.toLocaleString();
-      meBestEl.textContent = bestSecs ? bestSecs.toFixed(1) + "s" : "—";
-      meRankHintEl.textContent = "Stack calories. Climb ranks. Get rewarded.";
-
-    } catch(e){
-      console.error(e);
-      toast("Couldn’t load your gym card.");
-    }
-  }
-
-  // ==========================================================
-  // ✅ LEADERBOARD — use v2 params; fallback to legacy
-  // ==========================================================
-  async function loadLeaderboard(){
-    try{
-      let rows = null;
-
-      // v2 preferred
       try{
-        const r2 = await fetch(API_BASE + "/leaderboard/v2?window=lifetime&metric=calories&limit=30");
-        if (r2.ok) rows = await r2.json();
+        const tg = window.Telegram.WebApp;
+        if (tg && tg.onEvent){
+          tg.onEvent("viewportChanged", () => telegramBootstrapRetry());
+        }
       }catch{}
-
-      // legacy fallback
-      if (!rows){
-        const r1 = await fetch(API_BASE + "/leaderboard?limit=30");
-        rows = await r1.json();
-      }
-
-      if (!Array.isArray(rows)) throw new Error("Bad leaderboard");
-
-      if (rows.length === 0){
-        lbBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet. First gym rat gets bragging rights.</td></tr>`;
-        return;
-      }
-
-      lbBody.innerHTML = rows.slice(0, 30).map((u, i) => {
-        const address = String(u.address || "").trim();
-
-        // Prefer display_name fields (server should set these for TG users)
-        const name =
-          String(u.display_name || u.displayName || u.name || "").trim();
-
-        const ident =
-          name ? name :
-          address.startsWith("tg:") ? ("TG:" + address.slice(3)) :
-          address ? (address.slice(0,4) + "…" + address.slice(-4)) :
-          "—";
-
-        const cals =
-          u.total_calories != null ? Number(u.total_calories || 0) :
-          u.totalCalories != null ? Number(u.totalCalories || 0) :
-          u.value != null ? Number(u.value || 0) : 0;
-
-        const best =
-          u.best_seconds != null ? Number(u.best_seconds || 0) :
-          u.bestSeconds != null ? Number(u.bestSeconds || 0) : 0;
-
-        return `
-          <tr>
-            <td class="rank">${i+1}</td>
-            <td class="addr">${escapeHtml(ident)}</td>
-            <td>${Number(cals).toLocaleString()}</td>
-            <td>${best ? best.toFixed(1) + "s" : "—"}</td>
-          </tr>
-        `;
-      }).join("");
-
-    } catch(e){
-      console.error(e);
-      lbBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
     }
-  }
+    <!-- PART 4/4 — paste immediately after Part 3 (finish file) -->
+    // ==========================================================
+    // ✅ PHANTOM CONNECT
+    // ==========================================================
+    async function connectAndLogin(){
+      const provider = window.solana;
+      if (provider?.isPhantom) return await connectInjected(provider);
+      toast("Opening Phantom… (install Phantom if it doesn’t open)");
+      openInPhantomBrowser(window.location.href);
+    }
 
-  function escapeHtml(s){
-    return String(s || "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
+    async function connectInjected(provider){
+      try{
+        const resp = await provider.connect();
+        const address = resp.publicKey.toString();
 
-  function logout(){
-    clearSession();
-    setAuthUI();
-    toast("Logged out.");
-  }
+        toast("Connected " + shortAddr(address) + " • lock in your gym card…");
 
-  // boot
-  setAuthUI();
-  loadLeaderboard();
-  loadMe();
+        const ch = await fetch(API_BASE + "/auth/challenge", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ address })
+        }).then(r => r.json());
 
-  // TG bootstrap (telegram-first)
-  wireTelegramWakeups();
-  telegramBootstrapRetry();
+        if (ch.error) { toast(ch.error); return; }
+
+        const msgBytes = new TextEncoder().encode(ch.message);
+        const signed = await provider.signMessage(msgBytes, "utf8");
+        const sigB64 = bytesToBase64(signed.signature);
+
+        const v = await fetch(API_BASE + "/auth/verify", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ address, nonce: ch.nonce, signature: sigB64 })
+        }).then(r => r.json());
+
+        if (!v.token){ toast(v.error || "Login failed"); return; }
+
+        setSession(address, v.token);
+        toast("Gym card locked ✅ " + shortAddr(address));
+        setAuthUI();
+        await loadMe();
+        await loadLeaderboard();
+
+      }catch(e){
+        console.error(e);
+        toast("Connect cancelled.");
+      }
+    }
+
+    function openInPhantomBrowser(url){
+      const target = encodeURIComponent(url);
+      window.location.href = `https://phantom.app/ul/browse/${target}`;
+    }
+
+    function bytesToBase64(bytes){
+      let bin = "";
+      const arr = new Uint8Array(bytes);
+      for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+      return btoa(bin);
+    }
+
+    // ==========================================================
+    // ✅ GYM CARD LOAD — /activity/summary
+    // ==========================================================
+    async function loadMe(){
+      const token = getToken();
+      if (!token){ setAuthUI(); return; }
+
+      try{
+        const me = await fetch(API_BASE + "/activity/summary", {
+          headers:{ "Authorization":"Bearer " + token }
+        }).then(r => r.json());
+
+        if (me.error){ toast(me.error); return; }
+
+        meWalletEl.textContent = displayIdentity();
+
+        const totalCals = Number(me?.lifetime?.totalCalories || 0);
+        const bestSecs = Number(me?.lifetime?.bestSeconds || 0);
+
+        meCaloriesEl.textContent = totalCals.toLocaleString();
+        meBestEl.textContent = bestSecs ? bestSecs.toFixed(1) + "s" : "—";
+        meRankHintEl.textContent = "Stack calories. Climb ranks. Get rewarded.";
+
+      } catch(e){
+        console.error(e);
+        toast("Couldn’t load your gym card.");
+      }
+    }
+
+    // ==========================================================
+    // ✅ LEADERBOARD — v2 + fallback
+    // ==========================================================
+    async function loadLeaderboard(){
+      try{
+        let rows = null;
+
+        try{
+          const r2 = await fetch(API_BASE + "/leaderboard/v2?window=lifetime&metric=calories&limit=30");
+          if (r2.ok) rows = await r2.json();
+        }catch{}
+
+        if (!rows){
+          const r1 = await fetch(API_BASE + "/leaderboard?limit=30");
+          rows = await r1.json();
+        }
+
+        if (!Array.isArray(rows)) throw new Error("Bad leaderboard");
+
+        if (rows.length === 0){
+          lbBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet. First gym rat gets bragging rights.</td></tr>`;
+          return;
+        }
+
+        lbBody.innerHTML = rows.slice(0, 30).map((u, i) => {
+          const address = String(u.address || "").trim();
+          const name = String(u.display_name || u.displayName || u.name || "").trim();
+
+          const ident =
+            name ? name :
+            address.startsWith("tg:") ? ("TG:" + address.slice(3)) :
+            address ? (address.slice(0,4) + "…" + address.slice(-4)) :
+            "—";
+
+          const cals =
+            u.total_calories != null ? Number(u.total_calories || 0) :
+            u.totalCalories != null ? Number(u.totalCalories || 0) :
+            u.value != null ? Number(u.value || 0) : 0;
+
+          const best =
+            u.best_seconds != null ? Number(u.best_seconds || 0) :
+            u.bestSeconds != null ? Number(u.bestSeconds || 0) : 0;
+
+          return `
+            <tr>
+              <td class="rank">${i+1}</td>
+              <td class="addr">${escapeHtml(ident)}</td>
+              <td>${Number(cals).toLocaleString()}</td>
+              <td>${best ? best.toFixed(1) + "s" : "—"}</td>
+            </tr>
+          `;
+        }).join("");
+
+      } catch(e){
+        console.error(e);
+        lbBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+      }
+    }
+
+    function escapeHtml(s){
+      return String(s || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function logout(){
+      clearSession();
+      setAuthUI();
+      toast("Logged out.");
+    }
+
+    // ==========================================================
+    // ✅ BOOT (wait for TG, then run TG bootstrap)
+    // ==========================================================
+    (async () => {
+      setAuthUI();
+      loadLeaderboard();
+      loadMe();
+
+      const tgReady = await waitForTelegram(3000);
+      console.log(
+        "TG ready after wait?",
+        tgReady,
+        "TG exists?",
+        !!window.Telegram,
+        "WebApp?",
+        !!(window.Telegram && window.Telegram.WebApp)
+      );
+
+      if (tgReady){
+        wireTelegramWakeups();
+        telegramBootstrapRetry();
+      } else {
+        // not in webapp context (or TG not available) — wallet still works
+        // we keep it quiet besides console; UI already says connect Phantom or open in Telegram
+      }
+    })();
+  </script>
+</body>
+</html>
