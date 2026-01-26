@@ -939,72 +939,145 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
   }
 
   // ==========================================================
-  // ✅ TELEGRAM AUTO-LOGIN (retries until Telegram is ready)
-  // Backend: POST /auth/telegram { initData }
-  // Returns: { ok, token, address, displayName, telegram:{...} }
+  // ✅ TELEGRAM AUTO-LOGIN (HARDENED)
+  //
+  // Problems we fix:
+  // 1) Sometimes tg.initData isn't ready on first tick.
+  // 2) Sometimes you already have an old token (from wallet/previous session),
+  //    so bootstrap never "takes" and Gym Card stays blank.
+  // 3) iOS/TG can pause JS until visible; we retry on visibility/focus.
+  //
+  // Behavior:
+  // - If opened inside Telegram WebApp, we ALWAYS prefer TG identity.
+  // - We NEVER overwrite an active wallet session *unless* we are in Telegram.
+  // - If we are in Telegram, we will refresh TG session from /auth/telegram.
   // ==========================================================
-  async function telegramBootstrap(){
-    // If we already have a wallet session, do NOT overwrite it.
-    const existingToken = getToken();
-    const existingKind = (localStorage.getItem(ID_KIND) || "").trim();
-    if (existingToken && existingKind === "wallet") return;
+  function isInTelegram(){
+    return !!(window.Telegram && window.Telegram.WebApp);
+  }
 
-    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-    if (!tg) return;
+  function tgSafeUser(tgu){
+    const id = tgu?.id;
+    const username = (tgu?.username || "").trim();
+    const name = [tgu?.first_name || "", tgu?.last_name || ""].join(" ").trim();
+    return { id, username, name };
+  }
+
+  async function telegramBootstrapOnce(){
+    const tg = isInTelegram() ? window.Telegram.WebApp : null;
+    if (!tg) return false;
 
     try{
+      // Make TG happy
       tg.ready && tg.ready();
+      tg.expand && tg.expand();
 
-      const initData = (tg.initData || "").trim();
-      if (!initData) return;
+      // Some clients have initDataUnsafe.user even when initData is delayed.
+      const unsafeUser = tgSafeUser(tg.initDataUnsafe && tg.initDataUnsafe.user);
 
-      // If token exists but kind isn't set, we still try to fetch TG and set tg meta
-      // But we won't overwrite the token unless we don't have one.
+      // Try to get initData (required for backend verify)
+      const initData = String(tg.initData || "").trim();
+      if (!initData){
+        // If we at least know the username, show it instantly while we wait for initData
+        if (unsafeUser && unsafeUser.id){
+          try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
+          // don't set token here (can't), but we can update UI label right away
+          setAuthUI();
+        }
+        return false;
+      }
+
+      // If we are in Telegram, we want TG identity to be primary.
+      // Only skip if we already have a TG session token for this exact TG id.
+      const existingKind = (localStorage.getItem(ID_KIND) || "").trim();
+      const existingTg = getTG();
+      const existingToken = getToken();
+
+      const alreadySameTg =
+        existingKind === "tg" &&
+        existingToken &&
+        existingTg &&
+        unsafeUser?.id &&
+        String(existingTg.id) === String(unsafeUser.id);
+
+      // If wallet token exists, DO NOT overwrite outside TG.
+      // But inside TG, we DO want TG identity to win (telegram-first strategy).
+      if (alreadySameTg){
+        // still refresh UI and data
+        setAuthUI();
+        await loadMe();
+        await loadLeaderboard();
+        return true;
+      }
+
+      // Call backend
       const r = await fetch(API_BASE + "/auth/telegram", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({ initData })
       });
 
-      const j = await r.json();
+      const j = await r.json().catch(() => ({}));
 
-      if (j && j.token){
-        const tgu = j.telegram || {};
-        const tgUser = {
-          id: tgu.id,
-          username: tgu.username || "",
-          name: [tgu.first_name || "", tgu.last_name || ""].join(" ").trim()
-        };
-
-        // Only set/overwrite session if we don't have a token or we're already tg-kind
-        const nowToken = getToken();
-        const nowKind = (localStorage.getItem(ID_KIND) || "").trim();
-        if (!nowToken || nowKind !== "wallet"){
-          setTGSession(tgUser, j.token);
-        }else{
-          // wallet token exists, just store TG identity for display (optional)
-          try { localStorage.setItem(TG_KEY, JSON.stringify(tgUser)); } catch {}
+      if (!r.ok || !j || !j.token){
+        // If backend says no, keep whatever identity label we can
+        if (unsafeUser && unsafeUser.id){
+          try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
+          setAuthUI();
         }
-
-        setAuthUI();
-        toast("Telegram gym card locked ✅ " + (tgUser.username ? "@"+tgUser.username : "TG"));
-
-        await loadMe();
-        await loadLeaderboard();
+        return false;
       }
-    }catch(e){
-      // silent fail
+
+      // Prefer TG user from backend response; fallback to unsafe user
+      const tgu = j.telegram || (tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
+      const tgUser = tgSafeUser(tgu);
+
+      // Force TG as primary when inside Telegram
+      setTGSession(tgUser, j.token);
+
+      setAuthUI();
+      toast("Telegram gym card locked ✅ " + (tgUser.username ? "@"+tgUser.username : (tgUser.name || "TG")));
+
+      await loadMe();
+      await loadLeaderboard();
+      return true;
+
+    } catch(e){
       console.log("TG bootstrap skipped", e);
+      return false;
     }
   }
 
-  // Retry a few times because Telegram object can appear slightly late
   async function telegramBootstrapRetry(){
-    for (let i = 0; i < 12; i++){
-      await telegramBootstrap();
-      if (getToken()) break;
-      await new Promise(r => setTimeout(r, 250));
+    // Do nothing if not in Telegram
+    if (!isInTelegram()) return;
+
+    // Retry longer + with backoff (TG can be slow on iOS)
+    const delays = [0, 150, 250, 350, 500, 750, 900, 1200, 1500, 1800, 2200, 2600, 3200];
+    for (let i = 0; i < delays.length; i++){
+      if (delays[i]) await new Promise(r => setTimeout(r, delays[i]));
+      const ok = await telegramBootstrapOnce();
+      if (ok) break;
     }
+  }
+
+  // Also retry when app becomes visible / focused (common TG iOS behavior)
+  function wireTelegramWakeups(){
+    if (!isInTelegram()) return;
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) telegramBootstrapRetry();
+    });
+
+    window.addEventListener("focus", () => telegramBootstrapRetry());
+
+    // Telegram can emit viewport changes; use it as a "wake" signal
+    try{
+      const tg = window.Telegram.WebApp;
+      if (tg && tg.onEvent){
+        tg.onEvent("viewportChanged", () => telegramBootstrapRetry());
+      }
+    }catch{}
   }
 
   // ==========================================================
@@ -1125,9 +1198,11 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
       }
 
       lbBody.innerHTML = rows.slice(0, 30).map((u, i) => {
-        // v2 uses display_name + total_calories OR value
         const address = String(u.address || "").trim();
-        const name = String(u.display_name || u.displayName || "").trim();
+
+        // Prefer display_name fields (server should set these for TG users)
+        const name =
+          String(u.display_name || u.displayName || u.name || "").trim();
 
         const ident =
           name ? name :
@@ -1179,6 +1254,9 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
   setAuthUI();
   loadLeaderboard();
   loadMe();
+
+  // TG bootstrap (telegram-first)
+  wireTelegramWakeups();
   telegramBootstrapRetry();
 </script>
 </body>
