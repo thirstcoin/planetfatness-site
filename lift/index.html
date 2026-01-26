@@ -21,9 +21,7 @@
   --muted:rgba(255,255,255,.68);
   --good1:#7fff7f;
   --good2:#3bdc7a;
-  --bad:#ff4d6d;
 
-  /* If your idle has extra transparent padding vs the gif, tweak these 2 numbers only */
   --idleY: 0px;
   --idleScale: 1;
   --gifY: 0px;
@@ -35,7 +33,6 @@
 *{box-sizing:border-box}
 html,body{height:100%}
 
-/* ✅ Allow scroll for lift (it has a bottom bar + pills) */
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
@@ -49,7 +46,6 @@ body{
   -webkit-overflow-scrolling: touch;
 }
 
-/* ===== Shared page shell ===== */
 .pf-wrap{
   min-height:100%;
   display:flex;
@@ -66,7 +62,6 @@ body{
   gap:12px;
 }
 
-/* keep toast fixed */
 #toast{
   position:fixed;
   left:50%;
@@ -84,11 +79,9 @@ body{
   z-index:50;
 }
 
-/* ===== Game stage ===== */
 #stage{
   position:relative;
   width:100%;
-  /* ✅ Responsive height so the page can scroll on small phones */
   height:min(540px, 62vh);
   min-height:440px;
   border-radius:22px;
@@ -203,16 +196,8 @@ body{
   backdrop-filter: blur(10px);
 }
 
-.big{
-  font-size:26px;
-  font-weight:1200;
-  letter-spacing:-.6px;
-}
-.small{
-  font-size:12px;
-  font-weight:1000;
-  color:rgba(255,255,255,.70);
-}
+.big{ font-size:26px; font-weight:1200; letter-spacing:-.6px; }
+.small{ font-size:12px; font-weight:1000; color:rgba(255,255,255,.70); }
 
 #flash{
   position:absolute;
@@ -232,7 +217,6 @@ body{
   pointer-events:none;
 }
 
-/* ===== Daily row ===== */
 .lift-dailyRow{
   display:flex;
   justify-content:space-between;
@@ -252,7 +236,6 @@ body{
   white-space:nowrap;
 }
 
-/* ===== Modal ===== */
 #modalBack{
   position:fixed; inset:0;
   display:none;
@@ -275,11 +258,7 @@ body{
   padding:18px;
 }
 
-.grid2{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 @media (max-width:720px){ .grid2{grid-template-columns:1fr;} }
 
 .card{
@@ -292,20 +271,9 @@ body{
 .card .v{font-weight:1250; font-size:30px; letter-spacing:-.4px; margin-top:4px}
 .card .s{color:rgba(255,255,255,.62); font-weight:1000; font-size:12px; margin-top:4px}
 
-.actions{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  margin-top:14px;
-}
+.actions{ display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; }
+.sep{ height:1px; background:rgba(255,255,255,.10); margin:14px 0; }
 
-.sep{
-  height:1px;
-  background:rgba(255,255,255,.10);
-  margin:14px 0;
-}
-
-/* keep old button styles for modal */
 .btn{
   padding:10px 16px;
   border-radius:14px;
@@ -328,8 +296,6 @@ body{
   cursor:pointer;
 }
 .btn2:active{transform:scale(.98)}
-
-a{color:inherit; text-decoration:none}
 </style>
 </head>
 
@@ -339,13 +305,11 @@ a{color:inherit; text-decoration:none}
 <div class="pf-wrap">
   <div class="pf-container">
 
-    <!-- ✅ Shared-style header -->
     <div class="pf-top">
       <div class="pf-title">
         <div class="pf-titleLine">$PHAT — Ego Lift Buffet</div>
         <div class="pf-subLine">Tap once to wake up. Then release on green. Miss once = pinned.</div>
       </div>
-
       <div class="pf-chip" id="status">Tap once to wake up. Then release on green. Miss once = pinned.</div>
     </div>
 
@@ -378,7 +342,6 @@ a{color:inherit; text-decoration:none}
       <div class="lift-pill">Resets in <span id="reset">--:--:--</span></div>
     </div>
 
-    <!-- ✅ Shared bottom button row -->
     <div class="pf-bottom">
       <button class="pf-btn pf-primary" id="restartBtn">Run it back</button>
       <button class="pf-btn" id="pfShareBtn" data-pf-share="lift">Share score</button>
@@ -435,22 +398,8 @@ a{color:inherit; text-decoration:none}
 </div>
 
 <script>
-/* =========================================================
-   Ego Lift Buffet — UPDATED to match Runner/Snack model
-   ✅ Fixes:
-      - Scroll enabled (no overflow:hidden)
-      - Tap-to-start restored (stage + window listeners)
-      - Removed stray ```html token that broke the script
-   ========================================================= */
-
-/* ========= ASSETS ========= */
-const IDLE_SRC = "/assets/lift_idle.png";
-const REP_SRC  = "/assets/lift_hero.gif";
-
 /* ========= API + AUTH (same as Runner) ========= */
-function readLS(key){
-  try { return (localStorage.getItem(key) || '').trim(); } catch { return ''; }
-}
+function readLS(key){ try { return (localStorage.getItem(key) || '').trim(); } catch { return ''; } }
 
 const API_BASE =
   (window.PF_API_BASE) ||
@@ -459,64 +408,40 @@ const API_BASE =
   '';
 
 function getToken(){
-  return (
-    readLS('pf_token') ||
-    readLS('phat_token') ||
-    readLS('token') ||
-    ''
-  );
+  return readLS('pf_token') || readLS('phat_token') || readLS('token') || '';
 }
-
 function api(path){
   const b = String(API_BASE || '').trim();
   if (!b) return '';
   return b.replace(/\/$/,'') + path;
 }
-
-function isLoggedIn(){
-  return !!(API_BASE && getToken());
-}
+function isLoggedIn(){ return !!(API_BASE && getToken()); }
 
 async function fetchDailyProgress(){
   const token = getToken();
   if (!API_BASE || !token) return null;
   try{
-    const r = await fetch(api('/daily/progress'), {
-      headers: { 'Authorization':'Bearer ' + token }
-    });
+    const r = await fetch(api('/daily/progress'), { headers: { 'Authorization':'Bearer ' + token } });
     const j = await r.json().catch(()=>null);
     if (j && j.games && j.games.lift) return j;
     return null;
-  }catch{
-    return null;
-  }
+  }catch{ return null; }
 }
 
 async function submitSecureLift({ score, durationMs }){
   const token = getToken();
   if (!API_BASE || !token) return null;
-
   try{
     const r = await fetch(api('/activity/submit'), {
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization':'Bearer ' + token
-      },
-      body: JSON.stringify({
-        game: 'lift',
-        score: Number(score || 0),
-        durationMs: Math.max(0, Math.floor(Number(durationMs || 0)))
-      })
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + token },
+      body: JSON.stringify({ game:'lift', score:Number(score||0), durationMs:Math.max(0, Math.floor(Number(durationMs||0))) })
     });
-    const j = await r.json().catch(()=>null);
-    return j || null;
-  }catch{
-    return null;
-  }
+    return await r.json().catch(()=>null);
+  }catch{ return null; }
 }
 
-/* ========= DAILY FALLBACK (LOCAL ONLY WHEN LOGGED OUT) ========= */
+/* ========= DAILY FALLBACK (guest mode only) ========= */
 let DAILY_CAP = 1000;
 const KEY_RESET = "pf_daily_reset_at";
 const KEY_TODAY = "pf_daily_today_cals";
@@ -532,27 +457,19 @@ let today = Number(readLS(KEY_TODAY) || 0);
 if (Date.now() > resetAt){
   today = 0;
   resetAt = nextMidnight();
-  try{
-    localStorage.setItem(KEY_RESET, String(resetAt));
-    localStorage.setItem(KEY_TODAY, String(today));
-  }catch{}
+  try{ localStorage.setItem(KEY_RESET, String(resetAt)); localStorage.setItem(KEY_TODAY, String(today)); }catch{}
 }
 
 async function syncFromServer(){
   const prog = await fetchDailyProgress();
   if (!prog) return;
-
   const g = prog.games.lift;
   if (g?.caps?.dailyCapCalories != null) DAILY_CAP = Number(g.caps.dailyCapCalories || DAILY_CAP);
   if (g?.today?.calories != null) today = Number(g.today.calories || 0);
-
-  try{
-    localStorage.setItem(KEY_RESET, String(resetAt));
-    localStorage.setItem(KEY_TODAY, String(today));
-  }catch{}
+  try{ localStorage.setItem(KEY_TODAY, String(today)); }catch{}
 }
 
-/* ========= FAIR CALORIES (LOCAL PREVIEW ONLY) ========= */
+/* ========= LOCAL PREVIEW CALORIES (guest only; server final) ========= */
 function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
 function roundInt(n){ return Math.max(0, Math.round(n)); }
 
@@ -562,7 +479,6 @@ function caloriesForRep(repIndex, zoneW, loopSeconds){
 
   const zoneHard = clamp((BASE_ZONE_W / Math.max(0.035, zoneW)) - 1, 0, 3.0);
   const speedHard = clamp((BASE_LOOP / Math.max(0.70, loopSeconds)) - 1, 0, 1.6);
-
   const skillBoost = 1 + (0.22 * zoneHard) + (0.18 * speedHard);
 
   let diminish = 1.0;
@@ -571,7 +487,6 @@ function caloriesForRep(repIndex, zoneW, loopSeconds){
   if (repIndex >= 51) diminish = 0.30;
 
   const streakBonus = (repIndex % 5 === 0) ? 1 : 0;
-
   const raw = (3.0 * skillBoost * diminish) + streakBonus;
   return roundInt(raw);
 }
@@ -579,17 +494,16 @@ function caloriesForRep(repIndex, zoneW, loopSeconds){
 /* ========= DIFFICULTY ========= */
 const BASE_LOOP = 1.85;
 const MIN_LOOP  = 0.85;
-
 const BASE_ZONE_W = 0.18;
 const MIN_ZONE_W  = 0.045;
-
 const SHRINK_EARLY = 0.007;
 const SHRINK_LATE  = 0.003;
-
 const JITTER = 0.12;
 const CENTER = 0.62;
 
 /* ========= FEEL ========= */
+const IDLE_SRC = "/assets/lift_idle.png";
+const REP_SRC  = "/assets/lift_hero.gif";
 const REP_HOLD_MS = 1250;
 const COOLDOWN_MS = 90;
 const FLASH_MS    = 320;
@@ -630,46 +544,44 @@ function toast(msg){
   clearTimeout(window.__t);
   window.__t = setTimeout(()=>toastEl.style.display="none", 2300);
 }
-
 function flash(msg){
   flashEl.textContent = msg;
   flashEl.style.opacity = 1;
   flashEl.style.transform = "translateX(-50%) scale(1)";
-  setTimeout(()=>{
-    flashEl.style.opacity = 0;
-    flashEl.style.transform = "translateX(-50%) scale(.98)";
-  }, FLASH_MS);
+  setTimeout(()=>{ flashEl.style.opacity = 0; flashEl.style.transform = "translateX(-50%) scale(.98)"; }, FLASH_MS);
 }
+
+/* zone ui */
+let loopSeconds = BASE_LOOP;
+let zoneW = BASE_ZONE_W;
+let zoneLeft = 0.54;
+let smallestZone = BASE_ZONE_W;
 
 function setZoneUI(){
   zoneW = Math.max(MIN_ZONE_W, Math.min(BASE_ZONE_W, zoneW));
   zoneLeft = Math.max(0, Math.min(1-zoneW, zoneLeft));
-
   zoneEl.style.width = (zoneW*100)+"%";
   zoneEl.style.left  = (zoneLeft*100)+"%";
-
   zonePctEl.textContent = Math.round(zoneW*100) + "%";
 }
-
 function rerollZone(){
   const center = CENTER + (Math.random()*2-1)*JITTER;
   zoneLeft = center - zoneW/2;
   setZoneUI();
 }
-
-function setDifficulty(){
+function setDifficulty(reps){
   const shrink = reps <= 20 ? SHRINK_EARLY : SHRINK_LATE;
   zoneW = Math.max(MIN_ZONE_W, zoneW - shrink);
-
   const t = Math.min(1, reps/22);
   loopSeconds = Math.max(MIN_LOOP, BASE_LOOP - (BASE_LOOP - MIN_LOOP)*t);
-
   smallestZone = Math.min(smallestZone, zoneW);
   rerollZone();
 }
 
-let repTimer = null;
-let repSeq = 0;
+/* rep animation */
+let repTimer=null, repSeq=0;
+let lock=false;
+
 function playRep(){
   if (lock || over) return;
   lock = true;
@@ -677,12 +589,10 @@ function playRep(){
   heroIdle.style.opacity = 0;
   heroGif.style.opacity = 1;
 
-  if (repTimer){ clearTimeout(repTimer); repTimer = null; }
-
-  // force restart the gif by cache-busting
   repSeq++;
   heroGif.src = REP_SRC + "?r=" + repSeq;
 
+  clearTimeout(repTimer);
   repTimer = setTimeout(()=>{
     heroGif.style.opacity = 0;
     heroIdle.style.opacity = 1;
@@ -691,73 +601,52 @@ function playRep(){
   }, REP_HOLD_MS);
 }
 
-/* Game state */
-let running = false;
-let over = false;
-let lock = false;
+/* game state */
+let running=false;
+let over=false;
+let start=performance.now();
+let reps=0;
+let bestReps=0;
+let runCals=0;
 
-let start = performance.now();
+/* modal */
+function showModal(){ modalBack.style.display="flex"; }
+function hideModal(){ modalBack.style.display="none"; }
 
-let reps = 0;
-let bestReps = 0;
-let runCals = 0;
-
-let loopSeconds = BASE_LOOP;
-let zoneW = BASE_ZONE_W;
-let zoneLeft = 0.54;
-
-let smallestZone = BASE_ZONE_W;
-
-function showModal(){ modalBack.style.display = "flex"; }
-function hideModal(){ modalBack.style.display = "none"; }
-
+/* reset */
 function resetRun(){
   running=false; over=false; lock=false;
   reps=0; bestReps=0; runCals=0;
   loopSeconds=BASE_LOOP;
   zoneW=BASE_ZONE_W;
   smallestZone=zoneW;
-  start = performance.now();
-  rerollZone();
+  start=performance.now();
 
-  repStreakEl.textContent = "0";
-  runCalsEl.textContent = "0";
-  vignette.style.opacity = 0;
-  statusEl.textContent = "Tap once to wake up. Then release on green. Miss once = pinned.";
+  repStreakEl.textContent="0";
+  runCalsEl.textContent="0";
+  vignette.style.opacity=0;
+  statusEl.textContent="Tap once to wake up. Then release on green. Miss once = pinned.";
   hideModal();
 
-  // quick sync if logged in (doesn't block)
+  rerollZone();
+  capEl.textContent = DAILY_CAP;
+  todayCalsEl.textContent = today;
+
   syncFromServer().then(()=>{
     capEl.textContent = DAILY_CAP;
     todayCalsEl.textContent = today;
   });
-
-  capEl.textContent = DAILY_CAP;
-  todayCalsEl.textContent = today;
 }
 
 async function endRun(reason){
-  over = true;
-  vignette.style.opacity = 1;
+  over=true;
+  vignette.style.opacity=1;
 
-  const tags = [
-    "Pinned by Pizza",
-    "Ego too heavy",
-    "Spotter went to vape",
-    "Elbows said “nah”",
-    "Yoo-hoo fueled delusion"
-  ];
-  const tag = reason || tags[(Math.random()*tags.length)|0];
-  endTagEl.textContent = tag;
+  const tags = ["Pinned by Pizza","Ego too heavy","Spotter went to vape","Elbows said “nah”","Yoo-hoo fueled delusion"];
+  endTagEl.textContent = reason || tags[(Math.random()*tags.length)|0];
 
   bestReps = Math.max(bestReps, reps);
-
-  const durationMs = Math.max(0, Math.round((performance.now() - start)));
-
-  try{
-    localStorage.setItem(KEY_RESET, String(resetAt));
-    localStorage.setItem(KEY_TODAY, String(today));
-  }catch{}
+  const durationMs = Math.max(0, Math.round(performance.now() - start));
 
   let earned = null;
   if (isLoggedIn()){
@@ -765,28 +654,20 @@ async function endRun(reason){
     if (res && res.ok){
       earned = Number(res.earnedCalories || 0);
       runCals = earned;
-
       if (res.today && typeof res.today.calories === "number") today = Number(res.today.calories || 0);
       if (res.caps && typeof res.caps.dailyCapCalories === "number") DAILY_CAP = Number(res.caps.dailyCapCalories || DAILY_CAP);
-
-      try{
-        localStorage.setItem(KEY_RESET, String(resetAt));
-        localStorage.setItem(KEY_TODAY, String(today));
-      }catch{}
-
-      if (earned === 0){
-        if (res.reason === "too_short") toast("Too short. No calories.");
-        else if (res.reason === "score_too_high") toast("Too fast. No calories.");
-      }
+      if (earned === 0 && res.reason === "too_short") toast("Too short. No calories.");
     } else {
       toast("Couldn’t sync run (server).");
     }
+  } else {
+    toast("Guest run. Connect via hub to stack lifetime calories.");
   }
 
-  mBestEl.textContent = bestReps;
+  mBestEl.textContent = String(bestReps);
   mZoneEl.textContent = Math.round(smallestZone*100) + "%";
-  mRunCalsEl.textContent = runCals;
-  mTodayEl.textContent = today;
+  mRunCalsEl.textContent = String(runCals);
+  mTodayEl.textContent = String(today);
 
   const shareText =
     `$PHAT Ego Lift Buffet 🟣\n` +
@@ -798,29 +679,37 @@ async function endRun(reason){
   shareLine.textContent = `Rep streak: ${bestReps} • Zone: ${Math.round(smallestZone*100)}% • Calories: ${runCals}`;
   window.__shareText = shareText;
 
-  if (isLoggedIn()){
-    if (earned !== null) flash(`+${runCals} CALS ✅`);
-  } else {
-    toast("Guest run. Connect via hub to stack lifetime calories.");
-  }
-
+  if (isLoggedIn() && earned !== null) flash(`+${runCals} CALS ✅`);
   showModal();
 }
 
-/* ✅ Input: start on first tap, score on release (as designed) */
-function onRelease(){
+/* ✅ RESTORED PRECISE INPUT:
+   - pointerdown: wake/start (tap once)
+   - pointerup: evaluate (release on green)
+   - NO window pointerup (prevents double firing)
+*/
+function onDown(e){
   if (over) return;
+
+  // avoid scroll/selection weirdness on iOS
+  try{ e.preventDefault(); }catch{}
 
   if (!running){
     running = true;
     start = performance.now();
     statusEl.textContent = "Release on green. Miss once and you’re done.";
-
     const pre = new Image(); pre.src = REP_SRC;
     syncFromServer();
     return;
   }
+}
+
+function onUp(e){
+  if (over) return;
+  if (!running) return; // must have started on down
   if (lock) return;
+
+  try{ e.preventDefault(); }catch{}
 
   const now = performance.now();
   const phase = (((now - start)/1000) % loopSeconds) / loopSeconds;
@@ -829,7 +718,7 @@ function onRelease(){
 
   if (inGreen){
     reps++;
-    repStreakEl.textContent = reps;
+    repStreakEl.textContent = String(reps);
 
     const add = caloriesForRep(reps, zoneW, loopSeconds);
 
@@ -838,97 +727,54 @@ function onRelease(){
         const actualAdd = Math.min(add, DAILY_CAP - today);
         runCals += actualAdd;
         today += actualAdd;
-
-        runCalsEl.textContent = runCals;
-        todayCalsEl.textContent = today;
-
-        try{
-          localStorage.setItem(KEY_RESET, String(resetAt));
-          localStorage.setItem(KEY_TODAY, String(today));
-        }catch{}
+        runCalsEl.textContent = String(runCals);
+        todayCalsEl.textContent = String(today);
+        try{ localStorage.setItem(KEY_TODAY, String(today)); }catch{}
       }
-    } else {
-      runCalsEl.textContent = String(runCals);
     }
 
     if (reps === 1) flash("CLEAN REP ✅");
     else if (reps % 5 === 0) flash(`CLEAN REP x${reps} ✅`);
     else flash("CLEAN ✅");
 
-    setDifficulty();
+    setDifficulty(reps);
     playRep();
   } else {
     endRun();
   }
 }
 
-/* ✅ Attach to STAGE (most reliable) + window as backup */
-if (stage){
-  stage.addEventListener("pointerup", onRelease, { passive:true });
-  stage.addEventListener("touchend", (e)=>{ try{ e.preventDefault(); }catch{} onRelease(); }, { passive:false });
-}
-window.addEventListener("pointerup", onRelease, { passive:true });
-window.addEventListener("keyup", (e)=>{ if(e.code==="Space") onRelease(); });
+stage.addEventListener("pointerdown", onDown, { passive:false });
+stage.addEventListener("pointerup", onUp, { passive:false });
 
 /* Buttons */
-document.getElementById("restartBtn").onclick = ()=> resetRun();
-document.getElementById("againBtn").onclick   = ()=> resetRun();
-document.getElementById("closeBtn").onclick   = ()=> { hideModal(); };
+el("restartBtn").onclick = ()=> resetRun();
+el("againBtn").onclick   = ()=> resetRun();
+el("closeBtn").onclick   = ()=> hideModal();
 
-const backBtn = document.getElementById("backBtn");
-if (backBtn){
-  backBtn.addEventListener("click", ()=>{ window.location.href = "../index.html#gym"; });
-}
+const backBtn = el("backBtn");
+backBtn.addEventListener("click", ()=>{ window.location.href = "../index.html#gym"; });
 
-const pfShareBtn = document.getElementById("pfShareBtn");
-if (pfShareBtn){
-  pfShareBtn.addEventListener("click", async ()=>{
-    try{
-      if (window.PF_UI && typeof window.PF_UI.share === "function"){
-        window.PF_UI.share({ game:"lift" });
-        return;
-      }
-      if (window.PFUI && typeof window.PFUI.share === "function"){
-        window.PFUI.share({ game:"lift" });
-        return;
-      }
-    }catch{}
-
-    const text = window.__shareText || `$PHAT Ego Lift Buffet 🟣\nplanetfatness.fit/lift`;
-    if (navigator.share){
-      try{ await navigator.share({ text }); }catch{}
-      return;
-    }
-    try{
-      await navigator.clipboard.writeText(text);
-      toast("Copied. Paste it into X.");
-    }catch{
-      toast("Screenshot + post.");
-    }
-  });
-}
-
-document.getElementById("copyBtn").onclick = async ()=>{
+/* Share (pf-ui if present) */
+const pfShareBtn = el("pfShareBtn");
+pfShareBtn.addEventListener("click", async ()=>{
   try{
-    await navigator.clipboard.writeText(window.__shareText || "");
-    toast("Copied. Post the flex.");
-  }catch{
-    toast("Couldn’t copy. Screenshot it.");
-  }
+    if (window.PF_UI && typeof window.PF_UI.share === "function"){ window.PF_UI.share({ game:"lift" }); return; }
+    if (window.PFUI && typeof window.PFUI.share === "function"){ window.PFUI.share({ game:"lift" }); return; }
+  }catch{}
+  const text = window.__shareText || `$PHAT Ego Lift Buffet 🟣\nplanetfatness.fit/lift`;
+  if (navigator.share){ try{ await navigator.share({ text }); }catch{} return; }
+  try{ await navigator.clipboard.writeText(text); toast("Copied. Paste it into X."); }catch{ toast("Screenshot + post."); }
+});
+
+el("copyBtn").onclick = async ()=>{
+  try{ await navigator.clipboard.writeText(window.__shareText || ""); toast("Copied. Post the flex."); }
+  catch{ toast("Couldn’t copy. Screenshot it."); }
 };
-
-document.getElementById("shareBtn").onclick = async ()=>{
+el("shareBtn").onclick = async ()=>{
   const text = window.__shareText || "";
-  if (navigator.share){
-    try{ await navigator.share({ text }); }catch{}
-    return;
-  }
-  try{
-    await navigator.clipboard.writeText(text);
-    toast("Copied. Paste it into X.");
-  }catch{
-    toast("Screenshot + post.");
-  }
+  if (navigator.share){ try{ await navigator.share({ text }); }catch{} return; }
+  try{ await navigator.clipboard.writeText(text); toast("Copied. Paste it into X."); }catch{ toast("Screenshot + post."); }
 };
 
 /* Countdown */
@@ -936,29 +782,23 @@ function tick(){
   if (Date.now() > resetAt){
     today = 0;
     resetAt = nextMidnight();
-    try{
-      localStorage.setItem(KEY_RESET, String(resetAt));
-      localStorage.setItem(KEY_TODAY, String(today));
-    }catch{}
+    try{ localStorage.setItem(KEY_RESET, String(resetAt)); localStorage.setItem(KEY_TODAY, String(today)); }catch{}
   }
-
   const r = Math.max(0, resetAt - Date.now());
   const h = String(Math.floor(r/36e5)).padStart(2,'0');
   const m = String(Math.floor((r%36e5)/6e4)).padStart(2,'0');
   const s = String(Math.floor((r%6e4)/1e3)).padStart(2,'0');
   resetEl.textContent = `${h}:${m}:${s}`;
 }
-setInterval(tick,1000);
-tick();
+setInterval(tick,1000); tick();
 
-/* Loop: needle + tiny life */
+/* Loop */
 function loop(){
   const now = performance.now();
 
   if (!over){
     const phase = (((now - start)/1000) % loopSeconds) / loopSeconds;
     needleEl.style.left = (phase*100) + "%";
-
     const wob = Math.sin(now/160)*0.010 + Math.sin(now/520)*0.010;
     const scale = 1.02 + wob;
     heroStack.style.transform = `translateX(-50%) translateY(${Math.sin(now/220)*2}px) scale(${scale})`;
@@ -967,17 +807,17 @@ function loop(){
   requestAnimationFrame(loop);
 }
 
-/* Init UI */
+/* Init */
 heroIdle.src = IDLE_SRC;
 heroGif.src  = REP_SRC;
 rerollZone();
 
-capEl.textContent = DAILY_CAP;
-todayCalsEl.textContent = today;
+capEl.textContent = String(DAILY_CAP);
+todayCalsEl.textContent = String(today);
 
 syncFromServer().then(()=>{
-  capEl.textContent = DAILY_CAP;
-  todayCalsEl.textContent = today;
+  capEl.textContent = String(DAILY_CAP);
+  todayCalsEl.textContent = String(today);
 });
 
 requestAnimationFrame(loop);
