@@ -2,8 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Planet Fatness — Streak Shot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>$PHAT — Streak Shot</title>
+
+  <!-- ✅ Shared UI (matches your other games) -->
+  <link rel="stylesheet" href="/assets/pf-ui.css">
+  <script src="/assets/pf-ui.js" defer></script>
+
   <style>
     :root{
       --pf-purple:#6b2cff;
@@ -13,92 +18,69 @@
       --safe-top: env(safe-area-inset-top);
       --safe-bottom: env(safe-area-inset-bottom);
     }
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-    body{
+
+    *{
+      box-sizing:border-box;
+      -webkit-tap-highlight-color:transparent;
+      -webkit-touch-callout:none;
+      user-select:none;
+    }
+
+    html,body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      height:100%;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       background:
         radial-gradient(1200px 900px at 50% 15%, rgba(107,44,255,.35), transparent 55%),
         radial-gradient(1000px 700px at 50% 90%, rgba(255,212,0,.18), transparent 55%),
         linear-gradient(180deg, var(--pf-ink), #05050c);
-      color:#fff; overflow:hidden;
-    }
-    .wrap{
-      position:fixed; inset:0;
-      display:flex; flex-direction:column;
-      padding: calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bottom));
-      gap:10px;
-    }
-    header{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:10px 12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(18,18,36,.55);
-      backdrop-filter: blur(10px);
-      border-radius:16px;
-      box-shadow: 0 18px 48px rgba(0,0,0,.35);
-      z-index: 10;
-    }
-    .left,.right{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
-    .brand{display:flex; flex-direction:column; line-height:1.05;}
-    .brand .t1{font-weight:900; letter-spacing:.4px; font-size:14px;}
-    .brand .t2{font-size:12px; color:var(--pf-muted); font-weight:700;}
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 10px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.25);
-      font-weight:1000; font-size:12px; user-select:none;
-    }
-    .pill strong{color:var(--pf-yellow);}
-    .btn{
-      appearance:none; border:none;
-      padding:10px 12px; border-radius:12px;
-      font-weight:1100;
-      background: linear-gradient(180deg, rgba(255,212,0,.95), rgba(255,170,0,.9));
-      color:#1a1200;
-      cursor:pointer;
-      box-shadow: 0 0 18px rgba(255,212,0,.25), 0 0 32px rgba(107,44,255,.18);
-    }
-    .btn.secondary{
-      background: rgba(255,255,255,.08);
       color:#fff;
-      border:1px solid rgba(255,255,255,.12);
-      box-shadow:none;
-    }
-    .btn:active{transform: translateY(1px);}
-    .hud{
-      display:flex; gap:10px; flex-wrap:wrap;
-      justify-content:space-between;
-      z-index: 10;
-    }
-    .group{display:flex; gap:10px; flex-wrap:wrap;}
-    .panel{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(18,18,36,.35);
-      border-radius:16px;
-      padding:10px 12px;
-      display:flex; align-items:center; gap:10px;
-      box-shadow: 0 18px 48px rgba(0,0,0,.25);
-      backdrop-filter: blur(10px);
-      user-select:none;
-      min-width:120px;
-    }
-    .label{font-size:11px; color:var(--pf-muted); font-weight:1000; letter-spacing:.35px;}
-    .value{font-size:16px; font-weight:1200; letter-spacing:.2px;}
-    .value span{color:var(--pf-yellow);}
-
-    .canvasWrap{
-      position:relative;
-      flex:1;
-      border-radius:18px;
       overflow:hidden;
-      border:1px solid rgba(255,255,255,.10);
+    }
+
+    /* ===== Shared shell (same as runner) ===== */
+    .pf-wrap{
+      height:100%;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding: 16px 0 26px;
+    }
+    .pf-container{
+      width:min(980px, 94vw);
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    /* ===== Score chips row ===== */
+    .pf-metrics{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .pf-metricsLeft{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .pf-chip strong{ color: var(--pf-yellow); }
+
+    /* ===== Stage ===== */
+    #stage{
+      position:relative;
+      width:100%;
+      border-radius:20px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 30px 90px rgba(0,0,0,.55);
       background:
         radial-gradient(900px 600px at 50% 0%, rgba(255,212,0,.09), transparent 55%),
         radial-gradient(900px 600px at 50% 100%, rgba(107,44,255,.11), transparent 55%),
         rgba(0,0,0,.18);
-      box-shadow: 0 22px 70px rgba(0,0,0,.55);
     }
 
     /* VIDEO BG */
@@ -109,7 +91,7 @@
       height:100%;
       object-fit:cover;
       z-index:0;
-      filter: saturate(1.05) contrast(1.03);
+      filter:saturate(1.05) contrast(1.03);
       transform: translateZ(0);
     }
     .arenaVignette{
@@ -121,7 +103,7 @@
         radial-gradient(1200px 700px at 50% 10%, rgba(255,212,0,.10), transparent 55%),
         radial-gradient(1200px 700px at 50% 100%, rgba(107,44,255,.14), transparent 60%),
         linear-gradient(180deg, rgba(0,0,0,.20), rgba(0,0,0,.42));
-      mix-blend-mode: multiply;
+      mix-blend-mode:multiply;
     }
 
     canvas{
@@ -129,11 +111,15 @@
       z-index:1;
       display:block;
       width:100%;
-      height:100%;
+      height:520px; /* desktop-ish */
+      touch-action:none;
     }
 
-    .toast, .hint, .overlay{ z-index:2; }
+    @media (max-width: 520px){
+      canvas{ height: 62vh; }
+    }
 
+    /* Toast + hint */
     .toast{
       position:absolute; left:50%; bottom:14px;
       transform:translateX(-50%);
@@ -142,7 +128,7 @@
       background: rgba(0,0,0,.55);
       border:1px solid rgba(255,255,255,.12);
       color:#fff;
-      font-weight:1100;
+      font-weight:1000;
       font-size:12px;
       opacity:0;
       transition: opacity .18s ease, transform .18s ease;
@@ -150,40 +136,97 @@
       backdrop-filter: blur(10px);
       box-shadow: 0 0 18px rgba(255,212,0,.25), 0 0 32px rgba(107,44,255,.18);
       white-space:nowrap;
+      z-index:5;
     }
-    .toast.show{opacity:1; transform:translateX(-50%) translateY(-2px);}
-    .hint{
-      position:absolute; left:12px; bottom:12px;
-      padding:8px 10px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.30);
-      color: rgba(255,255,255,.78);
+    .toast.show{ opacity:1; transform:translateX(-50%) translateY(-2px); }
+
+    .pf-hints{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .pf-hintPill{
+      padding:10px 14px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      font-size:13px;
       font-weight:900;
-      font-size:12px;
+      color: rgba(255,255,255,.75);
       backdrop-filter: blur(10px);
-      user-select:none;
+      box-shadow:0 18px 60px rgba(0,0,0,.35);
+      white-space:nowrap;
     }
+
+    /* Overlays */
     .overlay{
       position:absolute; inset:0;
       display:none; align-items:center; justify-content:center;
       background: rgba(0,0,0,.65);
       backdrop-filter: blur(10px);
       padding:16px;
+      z-index:10;
     }
-    .overlay.show{display:flex;}
+    .overlay.show{ display:flex; }
+
     .card{
-      width:min(560px,100%);
+      width:min(760px,100%);
+      border-radius:24px;
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(900px 420px at 20% 0%, rgba(91,44,255,.32), transparent 60%),
+        radial-gradient(900px 520px at 80% 80%, rgba(255,212,0,.16), transparent 65%),
+        rgba(255,255,255,.06);
+      box-shadow:0 40px 140px rgba(0,0,0,.65);
+      overflow:hidden;
+      padding:18px;
+    }
+    .card h2{ margin:0 0 6px; font-size:20px; font-weight:1000; letter-spacing:.2px; }
+    .card p{ margin:0 0 12px; color:rgba(255,255,255,.75); font-weight:800; line-height:1.35; }
+
+    .mini{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    .statCard{
       border-radius:18px;
       border:1px solid rgba(255,255,255,.12);
-      background: rgba(18,18,36,.55);
-      box-shadow: 0 28px 90px rgba(0,0,0,.6);
-      padding:16px;
+      background: rgba(0,0,0,.20);
+      padding:14px;
     }
-    .card h2{margin:0 0 6px;font-size:18px;font-weight:1200;}
-    .card p{margin:0 0 12px;color:var(--pf-muted);font-weight:900;font-size:13px;line-height:1.35;}
-    .row{display:flex;gap:10px;flex-wrap:wrap;}
-    .divider{height:1px;background: rgba(255,255,255,.10);margin:12px 0;}
+    .statCard .k{ font-weight:900; color:rgba(255,255,255,.72); font-size:13px; margin-bottom:6px; }
+    .statCard .v{ font-weight:1100; font-size:34px; letter-spacing:-.5px; color:rgba(255,212,0,.95); }
+
+    .row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+    .btnOld{
+      padding:10px 16px;
+      border-radius:14px;
+      font-weight:1000;
+      background:linear-gradient(180deg, var(--pf-yellow), #ffbf00);
+      color:#1b1400;
+      border:none;
+      box-shadow:0 14px 30px rgba(255,212,0,.45);
+      cursor:pointer;
+      flex:1;
+      min-width: 160px;
+    }
+    .btnGhost{
+      padding:10px 14px;
+      border-radius:14px;
+      background: rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.14);
+      color:rgba(255,255,255,.9);
+      font-weight:1000;
+      cursor:pointer;
+      flex:1;
+      min-width: 160px;
+    }
+    .btnOld:active, .btnGhost:active{ transform: scale(.98); }
+
+    .divider{ height:1px; background: rgba(255,255,255,.10); margin:14px 0; }
+
     .leader{
       max-height: 220px; overflow:auto;
       border-radius:14px;
@@ -191,127 +234,178 @@
       background: rgba(0,0,0,.18);
       padding:10px;
     }
-    .leader table{width:100%;border-collapse:collapse;font-size:13px;}
-    .leader th,.leader td{padding:8px 6px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08);}
-    .leader th{color:var(--pf-muted);font-size:11px;letter-spacing:.35px;}
-    .mini{display:flex; gap:10px; flex-wrap:wrap;}
+    .leader table{ width:100%; border-collapse:collapse; font-size:13px; }
+    .leader th,.leader td{ padding:8px 6px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08); }
+    .leader th{ color:rgba(255,255,255,.70); font-size:11px; letter-spacing:.35px; }
   </style>
 </head>
+
 <body>
-<div class="wrap">
-  <header>
-    <div class="left">
-      <div class="brand">
-        <div class="t1">PLANET FATNESS</div>
-        <div class="t2">Streak Shot</div>
-      </div>
-      <div class="pill">STREAK <strong id="streakTxt">0</strong></div>
-      <div class="pill">SCORE <strong id="scoreTxt">0</strong></div>
-      <div class="pill">RUN BEST <strong id="runBestTxt">0</strong></div>
-    </div>
-    <div class="right">
-      <button class="btn secondary" id="btnMain">← Main</button>
-      <button class="btn secondary" id="btnBoard">Leaderboard</button>
-      <button class="btn" id="btnStart">Start</button>
-    </div>
-  </header>
+  <div class="pf-wrap">
+    <div class="pf-container">
 
-  <div class="hud">
-    <div class="group">
-      <div class="panel"><div><div class="label">ACTIVE FOOD</div><div class="value" id="foodTxt">—</div></div></div>
-      <div class="panel"><div><div class="label">MULTI</div><div class="value"><span id="multiTxt">1×</span></div></div></div>
-    </div>
-    <div class="group">
-      <div class="panel"><div><div class="label">RIM</div><div class="value"><span id="rimTxt">MOVING</span></div></div></div>
-      <div class="panel"><div><div class="label">RULE</div><div class="value"><span>Miss = End</span></div></div></div>
+      <!-- ✅ Shared header card -->
+      <div class="pf-top">
+        <div class="pf-title">
+          <div class="pf-titleLine">$PHAT — Streak Shot</div>
+          <div class="pf-subLine">One miss ends the run. Golden donuts are double.</div>
+        </div>
+        <div class="pf-chip" id="status">Drag to shoot</div>
+      </div>
+
+      <!-- ✅ Metrics row (chips) -->
+      <div class="pf-metrics">
+        <div class="pf-metricsLeft">
+          <div class="pf-chip">STREAK <strong id="streakTxt">0</strong></div>
+          <div class="pf-chip">SCORE <strong id="scoreTxt">0</strong></div>
+          <div class="pf-chip">RUN BEST <strong id="runBestTxt">0</strong></div>
+          <div class="pf-chip">FOOD <strong id="foodTxt">—</strong></div>
+          <div class="pf-chip">MULTI <strong id="multiTxt">1×</strong></div>
+          <div class="pf-chip">RIM <strong id="rimTxt">MOVING</strong></div>
+        </div>
+      </div>
+
+      <!-- ✅ Stage -->
+      <div id="stage">
+        <video
+          class="arenaVideo"
+          id="arenaVid"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="auto"
+          poster="/assets/streakshot_bg_gym.png"
+        >
+          <source src="/assets/arena-crowd-loop.mp4" type="video/mp4" />
+        </video>
+        <div class="arenaVignette"></div>
+
+        <canvas id="cv"></canvas>
+        <div class="toast" id="toast"></div>
+
+        <!-- Start overlay -->
+        <div class="overlay show" id="overlayStart">
+          <div class="card">
+            <h2>One miss ends the run.</h2>
+            <p>Drag from the food in his hands • Release to shoot • Miss ends run • Golden = 2×</p>
+            <div class="row">
+              <button class="btnOld" id="btnGo">Run It</button>
+              <button class="btnGhost" id="btnCloseStart">Not Yet</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- End overlay -->
+        <div class="overlay" id="overlayEnd">
+          <div class="card">
+            <h2>Run over.</h2>
+            <p id="endLine">Save it or run it back.</p>
+
+            <div class="mini">
+              <div class="statCard">
+                <div class="k">FINAL STREAK</div>
+                <div class="v" id="finalStreakTxt">0</div>
+              </div>
+              <div class="statCard">
+                <div class="k">FINAL SCORE</div>
+                <div class="v" id="finalScoreTxt">0</div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="row">
+              <button class="btnOld" id="btnSave">Save (local)</button>
+              <button class="btnGhost" id="btnShare">Share</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="leader" id="leaderBoxEnd"></div>
+
+            <div class="divider"></div>
+
+            <div class="row">
+              <button class="btnOld" id="btnAgain">Run It Back</button>
+              <button class="btnGhost" id="btnCloseEnd">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ Hint pills (same style as runner) -->
+      <div class="pf-hints">
+        <div class="pf-hintPill">Controls: Drag from the food • Release to shoot</div>
+        <div class="pf-hintPill">Miss = End • Golden = 2×</div>
+      </div>
+
+      <!-- ✅ Shared bottom row -->
+      <div class="pf-bottom">
+        <button class="pf-btn pf-primary" id="btnStart">Start</button>
+        <button class="pf-btn" id="shareBtn" data-pf-share="basket">Share</button>
+        <button class="pf-btn" id="lbBtn">Leaderboard</button>
+        <button class="pf-btn" id="backBtn">← Back to Gym</button>
+      </div>
+
     </div>
   </div>
-
-  <div class="canvasWrap" id="stage">
-    <video
-      class="arenaVideo"
-      id="arenaVid"
-      autoplay
-      muted
-      loop
-      playsinline
-      preload="auto"
-      poster="/assets/streakshot_bg_gym.png"
-    >
-      <source src="/assets/arena-crowd-loop.mp4" type="video/mp4" />
-    </video>
-    <div class="arenaVignette"></div>
-
-    <canvas id="cv"></canvas>
-    <div class="toast" id="toast"></div>
-    <div class="hint">Drag from the food in his hands • Release to shoot • Miss ends run • Golden = 2×</div>
-
-    <div class="overlay show" id="overlayStart">
-      <div class="card">
-        <h2>One miss ends the run.</h2>
-        <p>Chase the highest streak. Golden donuts are double. After a miss, you can save + share your run.</p>
-        <div class="row">
-          <button class="btn" id="btnGo" style="flex:1;">Run It</button>
-          <button class="btn secondary" id="btnCloseStart" style="flex:1;">Not Yet</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="overlay" id="overlayEnd">
-      <div class="card">
-        <h2>Run over.</h2>
-        <p id="endLine">Save it or run it back.</p>
-
-        <div class="mini">
-          <div class="panel" style="flex:1;"><div><div class="label">FINAL STREAK</div><div class="value"><span id="finalStreakTxt">0</span></div></div></div>
-          <div class="panel" style="flex:1;"><div><div class="label">FINAL SCORE</div><div class="value"><span id="finalScoreTxt">0</span></div></div></div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="row">
-          <button class="btn" id="btnSave" style="flex:1;">Save to Leaderboard</button>
-          <button class="btn secondary" id="btnShare" style="flex:1;">Share</button>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="leader" id="leaderBoxEnd"></div>
-
-        <div class="divider"></div>
-
-        <div class="row">
-          <button class="btn" id="btnAgain" style="flex:1;">Run It Back</button>
-          <button class="btn secondary" id="btnCloseEnd" style="flex:1;">Close</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="overlay" id="overlayBoard">
-      <div class="card">
-        <h2>Leaderboard</h2>
-        <p>Local device leaderboard (best streak first, then score).</p>
-        <div class="leader" id="leaderBox"></div>
-        <div class="divider"></div>
-        <div class="row">
-          <button class="btn secondary" id="btnResetLB" style="flex:1;">Reset Local Board</button>
-          <button class="btn" id="btnCloseBoard" style="flex:1;">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <script>
 (() => {
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const lerp=(a,b,t)=>a+(b-a)*t;
 
+  function readLS(key){
+    try { return (localStorage.getItem(key)||'').trim(); } catch { return ''; }
+  }
+
+  // Prefer pf_* keys, accept legacy phat_* if they exist
+  const API_BASE =
+    (window.PF_API_BASE) ||
+    readLS('pf_api_base') ||
+    readLS('phat_api_base') ||
+    '';
+
+  function getToken(){
+    return readLS('pf_token') || readLS('phat_token') || readLS('token');
+  }
+
+  function isLoggedIn(){
+    return !!(String(API_BASE).trim() && String(getToken()).trim());
+  }
+
+  async function submitSecureSession({ score, streak, durationMs }){
+    if (!isLoggedIn()) return { ok:false, skipped:true };
+
+    try{
+      const url = `${String(API_BASE).replace(/\/$/,'')}/activity/submit`;
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type':'application/json',
+          'Authorization': `Bearer ${String(getToken()).trim()}`,
+        },
+        body: JSON.stringify({
+          game: 'basket',
+          score,
+          streak,
+          durationMs
+        })
+      });
+
+      const data = await r.json().catch(()=>null);
+      if (!r.ok) return { ok:false, status:r.status, data };
+      return { ok:true, data };
+    }catch(e){
+      return { ok:false, error:String(e && e.message ? e.message : e) };
+    }
+  }
+
   const stage=document.getElementById('stage');
   const cv=document.getElementById('cv');
   const ctx=cv.getContext('2d');
 
-  // iOS video kick
   const arenaVid = document.getElementById('arenaVid');
   if (arenaVid){
     const tryPlay = async () => { try { await arenaVid.play(); } catch(e){} };
@@ -319,6 +413,8 @@
     document.addEventListener('click', tryPlay, { once:true, passive:true });
     tryPlay();
   }
+
+  const statusEl = document.getElementById('status');
 
   const streakTxt=document.getElementById('streakTxt');
   const scoreTxt=document.getElementById('scoreTxt');
@@ -331,42 +427,43 @@
 
   const overlayStart=document.getElementById('overlayStart');
   const overlayEnd=document.getElementById('overlayEnd');
-  const overlayBoard=document.getElementById('overlayBoard');
 
   const finalStreakTxt=document.getElementById('finalStreakTxt');
   const finalScoreTxt=document.getElementById('finalScoreTxt');
   const endLine=document.getElementById('endLine');
 
-  const leaderBox=document.getElementById('leaderBox');
   const leaderBoxEnd=document.getElementById('leaderBoxEnd');
 
   const btnStart=document.getElementById('btnStart');
   const btnGo=document.getElementById('btnGo');
   const btnCloseStart=document.getElementById('btnCloseStart');
-  const btnBoard=document.getElementById('btnBoard');
-  const btnCloseBoard=document.getElementById('btnCloseBoard');
-  const btnResetLB=document.getElementById('btnResetLB');
-  const btnMain=document.getElementById('btnMain');
 
   const btnAgain=document.getElementById('btnAgain');
   const btnCloseEnd=document.getElementById('btnCloseEnd');
   const btnSave=document.getElementById('btnSave');
   const btnShare=document.getElementById('btnShare');
 
+  const shareBtn=document.getElementById('shareBtn');
+  const lbBtn=document.getElementById('lbBtn');
+  const backBtn=document.getElementById('backBtn');
+
+  lbBtn.onclick = () => { window.location.href = '../index.html#leaderboard'; };
+  backBtn.onclick = () => { window.location.href = '../index.html#gym'; };
+
   function resize(){
-    const r=stage.getBoundingClientRect();
+    const rect=cv.getBoundingClientRect();
+    const w = rect.width || stage.getBoundingClientRect().width;
+    const h = rect.height || stage.getBoundingClientRect().height;
     const dpr=Math.max(1, Math.min(2, window.devicePixelRatio||1));
-    cv.width=Math.floor(r.width*dpr);
-    cv.height=Math.floor(r.height*dpr);
-    cv.style.width=r.width+'px';
-    cv.style.height=r.height+'px';
+    cv.width=Math.floor(w*dpr);
+    cv.height=Math.floor(h*dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   window.addEventListener('resize', resize, {passive:true});
-  resize();
+  requestAnimationFrame(resize);
 
-  const W=()=>stage.getBoundingClientRect().width;
-  const H=()=>stage.getBoundingClientRect().height;
+  const W=()=>cv.getBoundingClientRect().width || stage.getBoundingClientRect().width;
+  const H=()=>cv.getBoundingClientRect().height || stage.getBoundingClientRect().height;
 
   // ---- local leaderboard (device only) ----
   const LB_KEY='pf_streakshot_miss_ends_v1';
@@ -383,15 +480,18 @@
   function renderLB(el){
     const rows=loadLB();
     if(!rows.length){
-      el.innerHTML='<div style="color:rgba(255,255,255,.7);font-weight:1000;">No runs yet.</div>';
+      el.innerHTML='<div style="color:rgba(255,255,255,.7);font-weight:900;">No runs yet.</div>';
       return;
     }
-    const fmt=(ts)=>{const d=new Date(ts);return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});};
+    const fmt=(ts)=>{
+      const d=new Date(ts);
+      return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+    };
     let html='<table><thead><tr><th>#</th><th>Streak</th><th>Score</th><th>When</th></tr></thead><tbody>';
     rows.forEach((r,i)=>{
       html+=`<tr>
         <td>${i+1}</td>
-        <td style="font-weight:1200;color:rgba(255,212,0,.95)">${r.streak}</td>
+        <td style="font-weight:1100;color:rgba(255,212,0,.95)">${r.streak}</td>
         <td>${r.score}</td>
         <td style="color:rgba(255,255,255,.65)">${fmt(r.at)}</td>
       </tr>`;
@@ -403,61 +503,6 @@
   // ---- toast ----
   let toastT=0;
   const showToast=(msg)=>{toast.textContent=msg;toast.classList.add('show');toastT=1.1;};
-
-  // =========================================================
-  // OPTION A (SECURE): calories are NOT computed client-side
-  // Logged-in mode:
-  //   - we POST to /activity/submit with score + duration
-  //   - server returns earned calories (and optional cap info)
-  // Guest mode:
-  //   - we can show "0 cals (guest)" to keep it honest
-  // =========================================================
-
-  const API_BASE =
-    (window.PF_API_BASE) ||
-    (localStorage.getItem('pf_api_base')) ||
-    '';
-
-  const JWT =
-    (localStorage.getItem('pf_token')) ||
-    (localStorage.getItem('token')) ||
-    '';
-
-  function isLoggedIn(){
-    return !!(API_BASE && String(API_BASE).trim() && JWT && String(JWT).trim());
-  }
-
-  async function submitSecureSession({ score, streak, durationMs }){
-    if (!isLoggedIn()) return { ok:false, skipped:true };
-
-    try{
-      const url = `${String(API_BASE).replace(/\/$/,'')}/activity/submit`;
-      const r = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type':'application/json',
-          'Authorization': `Bearer ${String(JWT).trim()}`,
-        },
-        body: JSON.stringify({
-          game: 'basket',
-          score,
-          streak,
-          durationMs
-        })
-      });
-
-      // Expect JSON like:
-      // { ok:true, earnedCalories: number, today: number, cap: number, lifetime: number }
-      const data = await r.json().catch(()=>null);
-
-      if (!r.ok){
-        return { ok:false, status:r.status, data };
-      }
-      return { ok:true, data };
-    }catch(e){
-      return { ok:false, error:String(e && e.message ? e.message : e) };
-    }
-  }
 
   // ---- asset loader ----
   function loadImage(src){
@@ -604,11 +649,13 @@
     runStartedAt = performance.now();
     submitting = false;
 
+    overlayStart.classList.remove('show');
     updateHUD();
-    showToast(isLoggedIn() ? 'Lock in. Calories settle server-side.' : 'Guest mode. Connect to stack calories.');
-  }
 
-  function moveRim(){
+    statusEl.textContent = 'RUN';
+    showToast(isLoggedIn() ? 'Logged in. Calories settle server-side.' : 'Guest mode. Connect to stack calories.');
+  }
+    function moveRim(){
     const L=layout();
     const stations=rimStations(L);
     let pick=stations[Math.floor(Math.random()*stations.length)];
@@ -634,6 +681,8 @@
     run.ended=true;
     run.playing=false;
 
+    statusEl.textContent = 'Ended';
+
     const durationMs = Math.max(0, Math.round(performance.now() - (runStartedAt || performance.now())));
 
     lastRun = {
@@ -641,7 +690,7 @@
       score: run.score,
       at: Date.now(),
       reason: reason||'MISS',
-      calories: 0,            // will be filled by server if logged in
+      calories: 0,
       durationMs,
       synced: false,
       syncError: null,
@@ -651,7 +700,6 @@
     finalStreakTxt.textContent = String(lastRun.streak);
     finalScoreTxt.textContent  = String(lastRun.score);
 
-    // Default end line (updated once server replies)
     if (isLoggedIn()){
       endLine.textContent = `Missed. Run ended. Submitting…`;
     } else {
@@ -661,25 +709,19 @@
     renderLB(leaderBoxEnd);
     overlayEnd.classList.add('show');
 
-    // Secure submit
     if (isLoggedIn() && !submitting){
       submitting = true;
+
       const res = await submitSecureSession({
         score: lastRun.score,
         streak: lastRun.streak,
         durationMs
       });
 
-      // Update UI with whatever server returns
       if (res && res.ok && res.data){
-        const earned =
-          Number(res.data.earnedCalories ?? res.data.calories ?? 0) || 0;
-
-        const today =
-          (res.data.today !== undefined && res.data.today !== null) ? Number(res.data.today) : null;
-
-        const cap =
-          (res.data.cap !== undefined && res.data.cap !== null) ? Number(res.data.cap) : null;
+        const earned = Number(res.data.earnedCalories ?? res.data.calories ?? 0) || 0;
+        const today  = (res.data.today !== undefined && res.data.today !== null) ? Number(res.data.today) : null;
+        const cap    = (res.data.cap  !== undefined && res.data.cap  !== null) ? Number(res.data.cap)  : null;
 
         lastRun.calories = Math.max(0, Math.round(earned));
         lastRun.synced = true;
@@ -716,17 +758,10 @@
     run.streak += 1;
     run.runBest = Math.max(run.runBest, run.streak);
 
-    // Secure mode: NO local calories. (Server settles at end.)
-    if (f.golden){
-      showToast(`GOLDEN +2 (Streak ${run.streak})`);
-    } else {
-      showToast(`+1 (Streak ${run.streak})`);
-    }
-
+    showToast(f.golden ? `GOLDEN +2 (Streak ${run.streak})` : `+1 (Streak ${run.streak})`);
     setupNextShot();
   }
 
-  // shared power model
   function computeShotSpeed(L, s, a){
     const dx=s.x-a.x;
     const dy=s.y-a.y;
@@ -748,10 +783,9 @@
     return { dx, dy, dist, speed };
   }
 
-  // ---- input ----
   function canAim(){ return run && run.playing && !run.ended && !run.ball; }
   function getPos(e){
-    const rect=stage.getBoundingClientRect();
+    const rect=cv.getBoundingClientRect();
     const t=e.touches && e.touches[0];
     const cx=t? t.clientX : e.clientX;
     const cy=t? t.clientY : e.clientY;
@@ -784,6 +818,7 @@
     run.aiming=false;
     shoot();
   }
+
   stage.addEventListener('mousedown', onDown);
   stage.addEventListener('mousemove', onMove);
   stage.addEventListener('mouseup', onUp);
@@ -800,12 +835,10 @@
     const a=run.aimNow;
 
     const { dx, dy, dist, speed } = computeShotSpeed(L, s, a);
-
     const nx=dx/(dist||1);
     const ny=dy/(dist||1);
 
-    const key=run.foodKey;
-    const f=FOOD[key];
+    const f=FOOD[run.foodKey];
 
     run.ball={
       x:s.x, y:s.y,
@@ -813,14 +846,13 @@
       vx:nx*speed,
       vy:ny*speed,
       r:f.r,
-      key,
+      key:run.foodKey,
       life:0,
       enteredRimZone:false,
       floorBounced:false
     };
   }
 
-  // ---- sim + draw ----
   function step(dt){
     if(!run) return;
 
@@ -943,7 +975,6 @@
     const L=layout();
     ctx.clearRect(0,0,L.w,L.h);
 
-    // court hint
     ctx.save();
     ctx.globalAlpha=0.18;
     ctx.lineWidth=2;
@@ -961,15 +992,6 @@
       const by = run.rim.y - (L.rimR*0.35);
       const size = L.rimR * 4.2;
       drawImageCentered(IMG.basket, bx, by, size);
-    } else {
-      ctx.save();
-      ctx.translate(run.rim.x, run.rim.y);
-      ctx.fillStyle='rgba(107,44,255,0.68)';
-      ctx.beginPath(); ctx.arc(0,0,L.rimR,0,Math.PI*2); ctx.fill();
-      ctx.lineWidth=4; ctx.strokeStyle='rgba(255,212,0,0.80)'; ctx.stroke();
-      ctx.fillStyle='rgba(0,0,0,0.55)';
-      ctx.beginPath(); ctx.ellipse(0,L.rimR*0.10,L.rimR*0.72,L.rimR*0.42,0,0,Math.PI*2); ctx.fill();
-      ctx.restore();
     }
 
     if(run.aiming && !run.ball && run.playing && !run.ended){
@@ -979,9 +1001,7 @@
       const { dx, dy, dist, speed } = computeShotSpeed(L, s, a);
       const nx=dx/(dist||1), ny=dy/(dist||1);
 
-      const key=run.foodKey;
-      const f=FOOD[key];
-
+      const f=FOOD[run.foodKey];
       let vx=nx*speed, vy=ny*speed;
       let x=s.x, y=s.y;
 
@@ -1010,14 +1030,6 @@
         const img = IMG[f.imgKey];
         const size = b.r * 4.8;
         drawImageCentered(img, b.x, b.y, size);
-      } else {
-        ctx.save();
-        ctx.translate(b.x,b.y);
-        ctx.beginPath();
-        ctx.fillStyle='rgba(255,255,255,0.85)';
-        ctx.arc(0,0,b.r,0,Math.PI*2);
-        ctx.fill();
-        ctx.restore();
       }
     }
   }
@@ -1039,7 +1051,6 @@
   }
   requestAnimationFrame(loop);
 
-  // ---- share + save ----
   async function shareRun(){
     if(!lastRun) return;
 
@@ -1071,29 +1082,38 @@
 
   function saveRun(){
     if(!lastRun) return;
-    if(run && run.saved) return;
     addLB(lastRun.streak, lastRun.score);
-    if(run) run.saved=true;
     renderLB(leaderBoxEnd);
-    showToast('Saved to leaderboard.');
+    showToast('Saved (local).');
   }
 
-  // ---- overlays / buttons ----
-  btnStart.onclick=()=>overlayStart.classList.add('show');
-  btnGo.onclick=()=>{overlayStart.classList.remove('show'); start();};
-  btnCloseStart.onclick=()=>overlayStart.classList.remove('show');
+  // ---- buttons ----
+  btnStart.onclick = () => start();
+  btnGo.onclick = () => start();
+  btnCloseStart.onclick = () => overlayStart.classList.remove('show');
 
-  btnBoard.onclick=()=>{overlayBoard.classList.add('show'); renderLB(leaderBox);};
-  btnCloseBoard.onclick=()=>overlayBoard.classList.remove('show');
-  btnResetLB.onclick=()=>{saveLB([]); renderLB(leaderBox); showToast('Local leaderboard reset.');};
+  btnAgain.onclick = () => start();
+  btnCloseEnd.onclick = () => overlayEnd.classList.remove('show');
 
-  btnAgain.onclick=()=>{overlayEnd.classList.remove('show'); start();};
-  btnCloseEnd.onclick=()=>overlayEnd.classList.remove('show');
+  btnSave.onclick = saveRun;
+  btnShare.onclick = shareRun;
 
-  btnSave.onclick=saveRun;
-  btnShare.onclick=shareRun;
-
-  btnMain.onclick=()=>{ window.location.href='/'; };
+  // ✅ Shared share button: let pf-ui.js handle if present, otherwise fallback
+  if (shareBtn){
+    shareBtn.addEventListener('click', () => {
+      try{
+        if (window.PF_UI && typeof window.PF_UI.share === "function"){
+          window.PF_UI.share({ game:"basket" });
+          return;
+        }
+        if (window.PFUI && typeof window.PFUI.share === "function"){
+          window.PFUI.share({ game:"basket" });
+          return;
+        }
+      }catch{}
+      shareRun();
+    });
+  }
 
 })();
 </script>
