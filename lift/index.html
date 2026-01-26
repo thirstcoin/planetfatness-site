@@ -28,10 +28,14 @@
   --idleScale: 1;
   --gifY: 0px;
   --gifScale: 1;
+
+  --safe-bottom: env(safe-area-inset-bottom);
 }
 
 *{box-sizing:border-box}
 html,body{height:100%}
+
+/* ✅ Allow scroll for lift (it has a bottom bar + pills) */
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
@@ -41,16 +45,19 @@ body{
     radial-gradient(900px 560px at 85% 20%, rgba(255,212,0,.22), transparent 60%),
     radial-gradient(900px 560px at 55% 120%, rgba(255,212,0,.10), transparent 60%),
     linear-gradient(180deg, var(--bg1), var(--bg0));
-  overflow:hidden;
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ===== Shared page shell ===== */
 .pf-wrap{
-  height:100%;
+  min-height:100%;
   display:flex;
   justify-content:center;
   align-items:flex-start;
-  padding: 16px 0 26px;
+  padding: 16px 0 calc(26px + var(--safe-bottom));
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
 }
 .pf-container{
   width:min(980px, 94vw);
@@ -81,7 +88,9 @@ body{
 #stage{
   position:relative;
   width:100%;
-  height:540px;
+  /* ✅ Responsive height so the page can scroll on small phones */
+  height:min(540px, 62vh);
+  min-height:440px;
   border-radius:22px;
   border:1px solid rgba(255,255,255,.12);
   background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
@@ -337,7 +346,6 @@ a{color:inherit; text-decoration:none}
         <div class="pf-subLine">Tap once to wake up. Then release on green. Miss once = pinned.</div>
       </div>
 
-      <!-- keep id="status" for your script -->
       <div class="pf-chip" id="status">Tap once to wake up. Then release on green. Miss once = pinned.</div>
     </div>
 
@@ -429,12 +437,10 @@ a{color:inherit; text-decoration:none}
 <script>
 /* =========================================================
    Ego Lift Buffet — UPDATED to match Runner/Snack model
-   ✅ Keys:
-      - API base: pf_api_base (fallback phat_api_base)
-      - token:    pf_token    (fallback phat_token / token)
-   ✅ GET  /daily/progress
-   ✅ POST /activity/submit  (server computes calories + caps)
-   ✅ UI layout matches pf-ui pages (pf-wrap/pf-top/pf-bottom)
+   ✅ Fixes:
+      - Scroll enabled (no overflow:hidden)
+      - Tap-to-start restored (stage + window listeners)
+      - Removed stray ```html token that broke the script
    ========================================================= */
 
 /* ========= ASSETS ========= */
@@ -504,18 +510,14 @@ async function submitSecureLift({ score, durationMs }){
       })
     });
     const j = await r.json().catch(()=>null);
-    return j || null; // j.ok expected on success
+    return j || null;
   }catch{
     return null;
   }
 }
 
-/* ========= DAILY FALLBACK (LOCAL ONLY WHEN LOGGED OUT) =========
-   Keep these aligned across games if server is unavailable.
-*/
+/* ========= DAILY FALLBACK (LOCAL ONLY WHEN LOGGED OUT) ========= */
 let DAILY_CAP = 1000;
-
-// Shared daily cache keys (matches the general pattern; safe if hub relies on server anyway)
 const KEY_RESET = "pf_daily_reset_at";
 const KEY_TODAY = "pf_daily_today_cals";
 
@@ -550,9 +552,7 @@ async function syncFromServer(){
   }catch{}
 }
 
-/* ========= FAIR CALORIES (LOCAL PREVIEW ONLY) =========
-   Server decides final calories when submitting.
-*/
+/* ========= FAIR CALORIES (LOCAL PREVIEW ONLY) ========= */
 function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
 function roundInt(n){ return Math.max(0, Math.round(n)); }
 
@@ -596,6 +596,7 @@ const FLASH_MS    = 320;
 
 const el = (id)=>document.getElementById(id);
 
+const stage = el("stage");
 const heroStack = el("heroStack");
 const heroIdle  = el("heroIdle");
 const heroGif   = el("heroGif");
@@ -639,7 +640,7 @@ function flash(msg){
     flashEl.style.transform = "translateX(-50%) scale(.98)";
   }, FLASH_MS);
 }
-```html
+
 function setZoneUI(){
   zoneW = Math.max(MIN_ZONE_W, Math.min(BASE_ZONE_W, zoneW));
   zoneLeft = Math.max(0, Math.min(1-zoneW, zoneLeft));
@@ -682,7 +683,6 @@ function playRep(){
   repSeq++;
   heroGif.src = REP_SRC + "?r=" + repSeq;
 
-  if (repTimer) clearTimeout(repTimer);
   repTimer = setTimeout(()=>{
     heroGif.style.opacity = 0;
     heroIdle.style.opacity = 1;
@@ -708,12 +708,8 @@ let zoneLeft = 0.54;
 
 let smallestZone = BASE_ZONE_W;
 
-function showModal(){
-  modalBack.style.display = "flex";
-}
-function hideModal(){
-  modalBack.style.display = "none";
-}
+function showModal(){ modalBack.style.display = "flex"; }
+function hideModal(){ modalBack.style.display = "none"; }
 
 function resetRun(){
   running=false; over=false; lock=false;
@@ -758,13 +754,11 @@ async function endRun(reason){
 
   const durationMs = Math.max(0, Math.round((performance.now() - start)));
 
-  // Persist fallback (for guest mode)
   try{
     localStorage.setItem(KEY_RESET, String(resetAt));
     localStorage.setItem(KEY_TODAY, String(today));
   }catch{}
 
-  // Secure submit if logged in (server is truth)
   let earned = null;
   if (isLoggedIn()){
     const res = await submitSecureLift({ score: bestReps, durationMs });
@@ -780,7 +774,6 @@ async function endRun(reason){
         localStorage.setItem(KEY_TODAY, String(today));
       }catch{}
 
-      // tiny feedback if 0
       if (earned === 0){
         if (res.reason === "too_short") toast("Too short. No calories.");
         else if (res.reason === "score_too_high") toast("Too fast. No calories.");
@@ -790,7 +783,6 @@ async function endRun(reason){
     }
   }
 
-  // Fill modal UI
   mBestEl.textContent = bestReps;
   mZoneEl.textContent = Math.round(smallestZone*100) + "%";
   mRunCalsEl.textContent = runCals;
@@ -806,18 +798,16 @@ async function endRun(reason){
   shareLine.textContent = `Rep streak: ${bestReps} • Zone: ${Math.round(smallestZone*100)}% • Calories: ${runCals}`;
   window.__shareText = shareText;
 
-  // If logged in, make the “earned” moment obvious
   if (isLoggedIn()){
     if (earned !== null) flash(`+${runCals} CALS ✅`);
   } else {
-    // Guest mode: keep it honest
     toast("Guest run. Connect via hub to stack lifetime calories.");
   }
 
   showModal();
 }
 
-/* Input: release only */
+/* ✅ Input: start on first tap, score on release (as designed) */
 function onRelease(){
   if (over) return;
 
@@ -826,10 +816,7 @@ function onRelease(){
     start = performance.now();
     statusEl.textContent = "Release on green. Miss once and you’re done.";
 
-    // Preload gif once
     const pre = new Image(); pre.src = REP_SRC;
-
-    // quiet sync on first gesture (TG hub or site login)
     syncFromServer();
     return;
   }
@@ -844,7 +831,6 @@ function onRelease(){
     reps++;
     repStreakEl.textContent = reps;
 
-    // Local preview calories (guest UX only; server final at end)
     const add = caloriesForRep(reps, zoneW, loopSeconds);
 
     if (!isLoggedIn()){
@@ -862,9 +848,7 @@ function onRelease(){
         }catch{}
       }
     } else {
-      // Logged in: don't “credit” locally (prevents double counting)
-      // We still show a light “preview” in-run without touching today:
-      runCalsEl.textContent = String(runCals); // stays whatever server will later set
+      runCalsEl.textContent = String(runCals);
     }
 
     if (reps === 1) flash("CLEAN REP ✅");
@@ -878,7 +862,12 @@ function onRelease(){
   }
 }
 
-window.addEventListener("pointerup", onRelease);
+/* ✅ Attach to STAGE (most reliable) + window as backup */
+if (stage){
+  stage.addEventListener("pointerup", onRelease, { passive:true });
+  stage.addEventListener("touchend", (e)=>{ try{ e.preventDefault(); }catch{} onRelease(); }, { passive:false });
+}
+window.addEventListener("pointerup", onRelease, { passive:true });
 window.addEventListener("keyup", (e)=>{ if(e.code==="Space") onRelease(); });
 
 /* Buttons */
@@ -886,13 +875,11 @@ document.getElementById("restartBtn").onclick = ()=> resetRun();
 document.getElementById("againBtn").onclick   = ()=> resetRun();
 document.getElementById("closeBtn").onclick   = ()=> { hideModal(); };
 
-/* ✅ Bottom-bar buttons */
 const backBtn = document.getElementById("backBtn");
 if (backBtn){
   backBtn.addEventListener("click", ()=>{ window.location.href = "../index.html#gym"; });
 }
 
-/* Bottom share (delegates to pf-ui if present, falls back to local share text) */
 const pfShareBtn = document.getElementById("pfShareBtn");
 if (pfShareBtn){
   pfShareBtn.addEventListener("click", async ()=>{
@@ -946,7 +933,6 @@ document.getElementById("shareBtn").onclick = async ()=>{
 
 /* Countdown */
 function tick(){
-  // midnight guard (tab left open)
   if (Date.now() > resetAt){
     today = 0;
     resetAt = nextMidnight();
@@ -989,7 +975,6 @@ rerollZone();
 capEl.textContent = DAILY_CAP;
 todayCalsEl.textContent = today;
 
-// quiet sync on load (if logged in)
 syncFromServer().then(()=>{
   capEl.textContent = DAILY_CAP;
   todayCalsEl.textContent = today;
