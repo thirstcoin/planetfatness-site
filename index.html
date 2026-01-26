@@ -825,310 +825,361 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
     </div>
   </footer>
 
-  <script>
-    const API_BASE = "https://planetfatness-backend.onrender.com";
+<script>
+  const API_BASE = "https://planetfatness-backend.onrender.com";
 
-    // ✅ persist API base so mini-games can auto-submit without editing them
-    try { localStorage.setItem("pf_api_base", API_BASE); } catch {}
+  // persist API base so mini-games can auto-submit without editing them
+  try { localStorage.setItem("pf_api_base", API_BASE); } catch {}
 
-    // ✅ unify keys with mini-games (runner/lift/snack/basket)
-    const TOKEN_KEY = "pf_token";
-    const ADDR_KEY  = "pf_address";
-    const TG_KEY    = "pf_tg";          // JSON: {id, username, name}
-    const ID_KIND   = "pf_identity_kind"; // "tg" | "wallet"
+  // unify keys with mini-games
+  const TOKEN_KEY = "pf_token";
+  const ADDR_KEY  = "pf_address";
+  const TG_KEY    = "pf_tg";            // JSON: {id, username, name}
+  const ID_KIND   = "pf_identity_kind"; // "tg" | "wallet"
 
-    const toastEl = document.getElementById("toast");
-    const authStatusEl = document.getElementById("authStatus");
-    const meWalletEl = document.getElementById("meWallet");
-    const meCaloriesEl = document.getElementById("meCalories");
-    const meBestEl = document.getElementById("meBest");
-    const meRankHintEl = document.getElementById("meRankHint");
-    const lbBody = document.getElementById("lbBody");
+  const toastEl = document.getElementById("toast");
+  const authStatusEl = document.getElementById("authStatus");
+  const meWalletEl = document.getElementById("meWallet");
+  const meCaloriesEl = document.getElementById("meCalories");
+  const meBestEl = document.getElementById("meBest");
+  const meRankHintEl = document.getElementById("meRankHint");
+  const lbBody = document.getElementById("lbBody");
 
-    document.getElementById("yr").textContent = new Date().getFullYear();
+  document.getElementById("yr").textContent = new Date().getFullYear();
 
-    document.getElementById("playBtn").addEventListener("click", () => {
-      window.location.href = "https://planetfatness.fit/runner/";
-    });
+  document.getElementById("playBtn").addEventListener("click", () => {
+    window.location.href = "https://planetfatness.fit/runner/";
+  });
 
-    document.getElementById("connectBtn").addEventListener("click", connectAndLogin);
-    document.getElementById("refreshMeBtn").addEventListener("click", loadMe);
-    document.getElementById("refreshLbBtn").addEventListener("click", loadLeaderboard);
-    document.getElementById("logoutBtn").addEventListener("click", logout);
+  document.getElementById("connectBtn").addEventListener("click", connectAndLogin);
+  document.getElementById("refreshMeBtn").addEventListener("click", loadMe);
+  document.getElementById("refreshLbBtn").addEventListener("click", loadLeaderboard);
+  document.getElementById("logoutBtn").addEventListener("click", logout);
 
-    function toast(msg){
-      toastEl.textContent = msg;
-      toastEl.style.display = "block";
-      clearTimeout(window.__toastT);
-      window.__toastT = setTimeout(() => toastEl.style.display = "none", 2400);
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.style.display = "block";
+    clearTimeout(window.__toastT);
+    window.__toastT = setTimeout(() => toastEl.style.display = "none", 2400);
+  }
+
+  function shortAddr(a){
+    if (!a) return "—";
+    return a.slice(0, 4) + "…" + a.slice(-4);
+  }
+
+  function getToken(){ return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
+  function getAddr(){ return (localStorage.getItem(ADDR_KEY) || "").trim(); }
+
+  function getTG(){
+    try { return JSON.parse(localStorage.getItem(TG_KEY) || "null"); }
+    catch { return null; }
+  }
+
+  function setSession(addr, token){
+    localStorage.setItem(ADDR_KEY, addr);
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(ID_KIND, "wallet");
+  }
+
+  function setTGSession(tg, token){
+    // TG identity is primary; wallet optional later
+    try { localStorage.setItem(TG_KEY, JSON.stringify(tg)); } catch {}
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(ID_KIND, "tg");
+    // also store address so everything downstream works consistently
+    if (tg?.id) localStorage.setItem(ADDR_KEY, `tg:${tg.id}`);
+  }
+
+  function clearSession(){
+    localStorage.removeItem(ADDR_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TG_KEY);
+    localStorage.removeItem(ID_KIND);
+  }
+
+  function displayIdentity(){
+    const kind = (localStorage.getItem(ID_KIND) || "").trim();
+    const tg = getTG();
+    const addr = getAddr();
+
+    if (kind === "tg" && tg){
+      const label = tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
+      return label;
     }
-
-    function shortAddr(a){
-      if (!a) return "—";
-      return a.slice(0, 4) + "…" + a.slice(-4);
-    }
-
-    function getToken(){ return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
-    function getAddr(){ return (localStorage.getItem(ADDR_KEY) || "").trim(); }
-
-    function getTG(){
-      try { return JSON.parse(localStorage.getItem(TG_KEY) || "null"); }
-      catch { return null; }
-    }
-
-    function setSession(addr, token){
-      localStorage.setItem(ADDR_KEY, addr);
-      localStorage.setItem(TOKEN_KEY, token);
-      localStorage.setItem(ID_KIND, "wallet");
-    }
-
-    function setTGSession(tg, token){
-      // TG identity is primary; wallet can be layered later
-      try { localStorage.setItem(TG_KEY, JSON.stringify(tg)); } catch {}
-      localStorage.setItem(TOKEN_KEY, token);
-      localStorage.setItem(ID_KIND, "tg");
-    }
-
-    function clearSession(){
-      localStorage.removeItem(ADDR_KEY);
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(TG_KEY);
-      localStorage.removeItem(ID_KIND);
-    }
-
-    function displayIdentity(){
-      const kind = (localStorage.getItem(ID_KIND) || "").trim();
-      const tg = getTG();
-      const addr = getAddr();
-
-      if (kind === "tg" && tg){
+    if (addr){
+      // wallet OR tg:* address
+      if (addr.startsWith("tg:") && tg){
         const label = tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
         return label;
       }
-      if (addr) return shortAddr(addr);
-      if (tg){
-        const label = tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
-        return label;
-      }
-      return "—";
+      return shortAddr(addr);
     }
-
-    function setAuthUI(){
-      const token = getToken();
-      const ident = displayIdentity();
-
-      if (token && ident !== "—"){
-        authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
-        meWalletEl.textContent = ident;
-      } else {
-        authStatusEl.textContent = "Not connected yet — connect Phantom (or open in Telegram) to start stacking.";
-        meWalletEl.textContent = "—";
-        meCaloriesEl.textContent = "—";
-        meBestEl.textContent = "—";
-        meRankHintEl.textContent = "—";
-      }
+    if (tg){
+      const label = tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
+      return label;
     }
+    return "—";
+  }
 
-    // ===============================
-    // ✅ Telegram-first bootstrap (HUB only)
-    // - does NOT overwrite an existing wallet session
-    // - only sets pf_token if none exists yet
-    // Expects backend: POST /auth/telegram { initData }
-    // Returns: { token, user:{id,username,first_name,last_name} }
-    // ===============================
-    async function telegramBootstrap(){
-      const already = getToken();
-      if (already) return; // don't overwrite existing session
+  function setAuthUI(){
+    const token = getToken();
+    const ident = displayIdentity();
 
-      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-      if (!tg) return;
+    if (token && ident !== "—"){
+      authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
+      meWalletEl.textContent = ident;
+    } else {
+      authStatusEl.textContent = "Not connected yet — connect Phantom (or open in Telegram) to start stacking.";
+      meWalletEl.textContent = "—";
+      meCaloriesEl.textContent = "—";
+      meBestEl.textContent = "—";
+      meRankHintEl.textContent = "—";
+    }
+  }
 
-      try{
-        tg.ready && tg.ready();
+  // ==========================================================
+  // ✅ TELEGRAM AUTO-LOGIN (retries until Telegram is ready)
+  // Backend: POST /auth/telegram { initData }
+  // Returns: { ok, token, address, displayName, telegram:{...} }
+  // ==========================================================
+  async function telegramBootstrap(){
+    // If we already have a wallet session, do NOT overwrite it.
+    const existingToken = getToken();
+    const existingKind = (localStorage.getItem(ID_KIND) || "").trim();
+    if (existingToken && existingKind === "wallet") return;
 
-        const initData = (tg.initData || "").trim();
-        const u = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    if (!tg) return;
 
-        if (!initData || !u) return;
+    try{
+      tg.ready && tg.ready();
 
+      const initData = (tg.initData || "").trim();
+      if (!initData) return;
+
+      // If token exists but kind isn't set, we still try to fetch TG and set tg meta
+      // But we won't overwrite the token unless we don't have one.
+      const r = await fetch(API_BASE + "/auth/telegram", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ initData })
+      });
+
+      const j = await r.json();
+
+      if (j && j.token){
+        const tgu = j.telegram || {};
         const tgUser = {
-          id: u.id,
-          username: u.username || "",
-          name: [u.first_name || "", u.last_name || ""].join(" ").trim()
+          id: tgu.id,
+          username: tgu.username || "",
+          name: [tgu.first_name || "", tgu.last_name || ""].join(" ").trim()
         };
 
-        // attempt login
-        const r = await fetch(API_BASE + "/auth/telegram", {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ initData })
-        });
-        const j = await r.json();
-
-        if (j && j.token){
+        // Only set/overwrite session if we don't have a token or we're already tg-kind
+        const nowToken = getToken();
+        const nowKind = (localStorage.getItem(ID_KIND) || "").trim();
+        if (!nowToken || nowKind !== "wallet"){
           setTGSession(tgUser, j.token);
-          toast("Telegram gym card locked ✅ " + (tgUser.username ? "@"+tgUser.username : "TG"));
-          setAuthUI();
-          await loadMe();
-          await loadLeaderboard();
-        }
-      }catch(e){
-        // silent fail; Telegram auth endpoint might not exist yet
-        console.log("TG bootstrap skipped", e);
-      }
-    }
-
-    // ===============================
-    // ✅ Phantom connect (unchanged)
-    // ===============================
-    async function connectAndLogin(){
-      const provider = window.solana;
-      if (provider?.isPhantom) {
-        return await connectInjected(provider);
-      }
-      toast("Opening Phantom… (install Phantom if it doesn’t open)");
-      openInPhantomBrowser(window.location.href);
-    }
-
-    async function connectInjected(provider){
-      try{
-        const resp = await provider.connect();
-        const address = resp.publicKey.toString();
-
-        toast("Connected " + shortAddr(address) + " • lock in your gym card…");
-
-        const ch = await fetch(API_BASE + "/auth/challenge", {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ address })
-        }).then(r => r.json());
-
-        if (ch.error) { toast(ch.error); return; }
-
-        const msgBytes = new TextEncoder().encode(ch.message);
-        const signed = await provider.signMessage(msgBytes, "utf8");
-
-        const sigB64 = bytesToBase64(signed.signature);
-
-        const v = await fetch(API_BASE + "/auth/verify", {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ address, nonce: ch.nonce, signature: sigB64 })
-        }).then(r => r.json());
-
-        if (!v.token){
-          toast(v.error || "Login failed");
-          return;
+        }else{
+          // wallet token exists, just store TG identity for display (optional)
+          try { localStorage.setItem(TG_KEY, JSON.stringify(tgUser)); } catch {}
         }
 
-        setSession(address, v.token);
-        toast("Gym card locked ✅ " + shortAddr(address));
         setAuthUI();
+        toast("Telegram gym card locked ✅ " + (tgUser.username ? "@"+tgUser.username : "TG"));
+
         await loadMe();
         await loadLeaderboard();
-
-      } catch(e){
-        console.error(e);
-        toast("Connect cancelled.");
       }
+    }catch(e){
+      // silent fail
+      console.log("TG bootstrap skipped", e);
     }
+  }
 
-    function openInPhantomBrowser(url){
-      const target = encodeURIComponent(url);
-      const deepLink = `https://phantom.app/ul/browse/${target}`;
-      window.location.href = deepLink;
+  // Retry a few times because Telegram object can appear slightly late
+  async function telegramBootstrapRetry(){
+    for (let i = 0; i < 12; i++){
+      await telegramBootstrap();
+      if (getToken()) break;
+      await new Promise(r => setTimeout(r, 250));
     }
+  }
 
-    function bytesToBase64(bytes){
-      let bin = "";
-      const arr = new Uint8Array(bytes);
-      for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
-      return btoa(bin);
-    }
+  // ==========================================================
+  // ✅ PHANTOM CONNECT (unchanged)
+  // ==========================================================
+  async function connectAndLogin(){
+    const provider = window.solana;
+    if (provider?.isPhantom) return await connectInjected(provider);
+    toast("Opening Phantom… (install Phantom if it doesn’t open)");
+    openInPhantomBrowser(window.location.href);
+  }
 
-    // ===============================
-    // Data loads (token-based)
-    // ===============================
-    async function loadMe(){
-      const token = getToken();
-      if (!token){ setAuthUI(); return; }
+  async function connectInjected(provider){
+    try{
+      const resp = await provider.connect();
+      const address = resp.publicKey.toString();
 
-      try{
-        const me = await fetch(API_BASE + "/activity/me", {
-          headers:{ "Authorization":"Bearer " + token }
-        }).then(r => r.json());
+      toast("Connected " + shortAddr(address) + " • lock in your gym card…");
 
-        if (me.error){ toast(me.error); return; }
+      const ch = await fetch(API_BASE + "/auth/challenge", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ address })
+      }).then(r => r.json());
 
-        // identity display: TG preferred, wallet fallback
-        meWalletEl.textContent = displayIdentity();
-        meCaloriesEl.textContent = Number(me.totalCalories || "0").toLocaleString();
-        meBestEl.textContent = (Number(me.bestSeconds || 0)).toFixed(1) + "s";
-        meRankHintEl.textContent = "Stack calories. Climb ranks. Get rewarded.";
+      if (ch.error) { toast(ch.error); return; }
 
-      } catch(e){
-        console.error(e);
-        toast("Couldn’t load your gym card.");
-      }
-    }
+      const msgBytes = new TextEncoder().encode(ch.message);
+      const signed = await provider.signMessage(msgBytes, "utf8");
+      const sigB64 = bytesToBase64(signed.signature);
 
-    async function loadLeaderboard(){
-      try{
-        // prefer v2 if present; fallback to legacy
-        let top = null;
-        try{
-          const r2 = await fetch(API_BASE + "/leaderboard/v2");
-          if (r2.ok) top = await r2.json();
-        }catch{}
+      const v = await fetch(API_BASE + "/auth/verify", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ address, nonce: ch.nonce, signature: sigB64 })
+      }).then(r => r.json());
 
-        if (!top){
-          top = await fetch(API_BASE + "/leaderboard").then(r => r.json());
-        }
+      if (!v.token){ toast(v.error || "Login failed"); return; }
 
-        if (!Array.isArray(top)) throw new Error("Bad leaderboard");
-
-        if (top.length === 0){
-          lbBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet. First gym rat gets bragging rights.</td></tr>`;
-          return;
-        }
-
-        lbBody.innerHTML = top.slice(0, 30).map((u, i) => {
-          const addr = (u.address || "").trim();
-          const username = (u.username || "").trim();
-          const ident =
-            username ? ("@" + username) :
-            addr ? (addr.slice(0,4) + "…" + addr.slice(-4)) :
-            (u.identity || "—");
-
-          const cals = Number(u.totalCalories || "0");
-          const best = Number(u.bestSeconds || 0);
-
-          return `
-            <tr>
-              <td class="rank">${i+1}</td>
-              <td class="addr">${ident}</td>
-              <td>${cals.toLocaleString()}</td>
-              <td>${best.toFixed(1)}s</td>
-            </tr>
-          `;
-        }).join("");
-
-      } catch(e){
-        console.error(e);
-        lbBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
-      }
-    }
-
-    function logout(){
-      clearSession();
+      setSession(address, v.token);
+      toast("Gym card locked ✅ " + shortAddr(address));
       setAuthUI();
-      toast("Logged out.");
-    }
+      await loadMe();
+      await loadLeaderboard();
 
+    }catch(e){
+      console.error(e);
+      toast("Connect cancelled.");
+    }
+  }
+
+  function openInPhantomBrowser(url){
+    const target = encodeURIComponent(url);
+    window.location.href = `https://phantom.app/ul/browse/${target}`;
+  }
+
+  function bytesToBase64(bytes){
+    let bin = "";
+    const arr = new Uint8Array(bytes);
+    for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+    return btoa(bin);
+  }
+
+  // ==========================================================
+  // ✅ GYM CARD LOAD — use /activity/summary (matches your db.ts)
+  // ==========================================================
+  async function loadMe(){
+    const token = getToken();
+    if (!token){ setAuthUI(); return; }
+
+    try{
+      const me = await fetch(API_BASE + "/activity/summary", {
+        headers:{ "Authorization":"Bearer " + token }
+      }).then(r => r.json());
+
+      if (me.error){ toast(me.error); return; }
+
+      // identity display: TG preferred, wallet fallback
+      meWalletEl.textContent = displayIdentity();
+
+      const totalCals = Number(me?.lifetime?.totalCalories || 0);
+      const bestSecs = Number(me?.lifetime?.bestSeconds || 0);
+
+      meCaloriesEl.textContent = totalCals.toLocaleString();
+      meBestEl.textContent = bestSecs ? bestSecs.toFixed(1) + "s" : "—";
+      meRankHintEl.textContent = "Stack calories. Climb ranks. Get rewarded.";
+
+    } catch(e){
+      console.error(e);
+      toast("Couldn’t load your gym card.");
+    }
+  }
+
+  // ==========================================================
+  // ✅ LEADERBOARD — use v2 params; fallback to legacy
+  // ==========================================================
+  async function loadLeaderboard(){
+    try{
+      let rows = null;
+
+      // v2 preferred
+      try{
+        const r2 = await fetch(API_BASE + "/leaderboard/v2?window=lifetime&metric=calories&limit=30");
+        if (r2.ok) rows = await r2.json();
+      }catch{}
+
+      // legacy fallback
+      if (!rows){
+        const r1 = await fetch(API_BASE + "/leaderboard?limit=30");
+        rows = await r1.json();
+      }
+
+      if (!Array.isArray(rows)) throw new Error("Bad leaderboard");
+
+      if (rows.length === 0){
+        lbBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet. First gym rat gets bragging rights.</td></tr>`;
+        return;
+      }
+
+      lbBody.innerHTML = rows.slice(0, 30).map((u, i) => {
+        // v2 uses display_name + total_calories OR value
+        const address = String(u.address || "").trim();
+        const name = String(u.display_name || u.displayName || "").trim();
+
+        const ident =
+          name ? name :
+          address.startsWith("tg:") ? ("TG:" + address.slice(3)) :
+          address ? (address.slice(0,4) + "…" + address.slice(-4)) :
+          "—";
+
+        const cals =
+          u.total_calories != null ? Number(u.total_calories || 0) :
+          u.totalCalories != null ? Number(u.totalCalories || 0) :
+          u.value != null ? Number(u.value || 0) : 0;
+
+        const best =
+          u.best_seconds != null ? Number(u.best_seconds || 0) :
+          u.bestSeconds != null ? Number(u.bestSeconds || 0) : 0;
+
+        return `
+          <tr>
+            <td class="rank">${i+1}</td>
+            <td class="addr">${escapeHtml(ident)}</td>
+            <td>${Number(cals).toLocaleString()}</td>
+            <td>${best ? best.toFixed(1) + "s" : "—"}</td>
+          </tr>
+        `;
+      }).join("");
+
+    } catch(e){
+      console.error(e);
+      lbBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s || "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function logout(){
+    clearSession();
     setAuthUI();
-    loadLeaderboard();
-    loadMe();
-    telegramBootstrap();
-  </script>
+    toast("Logged out.");
+  }
+
+  // boot
+  setAuthUI();
+  loadLeaderboard();
+  loadMe();
+  telegramBootstrapRetry();
+</script>
 </body>
 </html>
