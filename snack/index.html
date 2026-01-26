@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>$PHAT — Conveyor Munch</title>
 
+  <!-- ✅ Shared UI -->
+  <link rel="stylesheet" href="/assets/pf-ui.css">
+  <script src="/assets/pf-ui.js" defer></script>
+
   <style>
     :root{
       --bg1:#2a1442; --bg2:#140a22;
@@ -38,47 +42,28 @@
         radial-gradient(900px 700px at 50% 60%, rgba(255,255,255,.05), transparent 60%),
         linear-gradient(180deg, var(--bg1), var(--bg2));
       min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    /* ===== Shared page shell ===== */
+    .pf-wrap{
+      min-height:100vh;
       display:flex;
       justify-content:center;
+      padding: 16px 0 26px;
     }
-    .wrap{ width:min(980px, 94vw); padding:18px 0 28px; }
-
-    .topbar{
+    .pf-container{
+      width:min(980px, 94vw);
       display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
+      flex-direction:column;
       gap:12px;
-      margin-bottom:12px;
     }
-    .titleBox{
-      flex:1;
-      background:var(--card);
-      border:1px solid var(--stroke);
-      border-radius:20px;
-      padding:14px 16px;
-      backdrop-filter: blur(10px);
-    }
-    .titleLine{ font-weight:800; letter-spacing:.3px; font-size:18px; opacity:.95; margin-bottom:6px; }
-    .subLine{ color:var(--muted); font-size:14px; line-height:1.3; }
 
-    .btn{
-      border:0;
-      background:var(--accent);
-      color:#231400;
-      font-weight:900;
-      padding:12px 14px;
-      border-radius:16px;
-      box-shadow: 0 10px 24px rgba(0,0,0,.25);
-      cursor:pointer;
-      white-space:nowrap;
-    }
-    .btn:active{ transform: translateY(1px); }
-
+    /* ===== Stats grid (keep your look) ===== */
     .stats{
       display:grid;
       grid-template-columns: repeat(3, minmax(0,1fr));
       gap:10px;
-      margin-bottom:12px;
     }
     .stat{
       background:var(--card);
@@ -240,34 +225,6 @@
       line-height:1.35;
     }
 
-    .rowBtns{
-      display:flex;
-      gap:10px;
-      margin-top:12px;
-    }
-    .ghost{
-      flex:1;
-      background:transparent;
-      border:1px solid rgba(255,255,255,.16);
-      color:rgba(255,255,255,.88);
-      border-radius:18px;
-      padding:12px 14px;
-      font-weight:800;
-      cursor:pointer;
-      text-align:center;
-      min-height:46px;
-    }
-    .ghost:active{ transform: translateY(1px); }
-    a.ghost{ text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
-
-    .ghostPrimary{
-      background: var(--accent);
-      color:#231400;
-      border:0;
-      box-shadow: 0 10px 24px rgba(0,0,0,.25);
-      font-weight:950;
-    }
-
     .banner{
       position:absolute;
       left:50%;
@@ -341,87 +298,96 @@
       .dropZone{ width: 230px; height: 140px; }
       .targetCluster{ top: 8%; }
       :root{ --beltY: 88.8%; }
-      .rowBtns{ flex-direction:column; }
-      .ghost{ width:100%; }
     }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="titleBox">
-        <div class="titleLine">$PHAT — Conveyor Munch</div>
-        <div class="subLine">Drag the correct snack into his mouth. <strong>Missed meals kill gains.</strong></div>
-      </div>
-    </div>
+  <div class="pf-wrap">
+    <div class="pf-container">
 
-    <div class="stats">
-      <div class="stat">
-        <h4>RUN</h4>
-        <div class="big" id="runScore">0</div>
-        <div class="sub" id="runSub">Streak: 0 · Belt: 1.00x · Cals: 0</div>
-      </div>
-      <div class="stat">
-        <h4>BEST</h4>
-        <div class="big" id="bestScore">0</div>
-        <div class="sub" id="bestSub">Daily best: 0</div>
-      </div>
-      <div class="stat">
-        <h4>DAILY GOAL</h4>
-        <div class="big" id="goalScore">0 / 30</div>
-        <div class="sub" id="goalSub">Today cals: <span id="todayCals">0</span> / <span id="cap">1000</span> · Resets in <span id="resetIn">--:--:--</span></div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="stage" id="stage">
-        <div class="scene">
-          <video
-            id="snackLoop"
-            muted
-            loop
-            playsinline
-            preload="auto"
-            webkit-playsinline
-          >
-            <source src="/assets/snack-loop.mp4?v=7" type="video/mp4" />
-          </video>
+      <!-- ✅ Shared-style header -->
+      <div class="pf-top">
+        <div class="pf-title">
+          <div class="pf-titleLine">$PHAT — Conveyor Munch</div>
+          <div class="pf-subLine">Drag the correct snack into his mouth. <strong>Missed meals kill gains.</strong></div>
         </div>
+        <!-- chip reserved for future status if you want -->
+        <div class="pf-chip" id="statusChip">Clock in and feed the beast.</div>
+      </div>
 
-        <div class="targetCluster">
-          <div class="targetLabel" id="targetText">—</div>
-          <div class="bubbleWrap">
-            <img class="bubble" src="/assets/thought-bubble.png" alt="thought bubble" />
-            <img class="bubbleFood" id="bubbleFood" src="" alt="target food"/>
+      <div class="stats">
+        <div class="stat">
+          <h4>RUN</h4>
+          <div class="big" id="runScore">0</div>
+          <div class="sub" id="runSub">Streak: 0 · Belt: 1.00x · Cals: 0</div>
+        </div>
+        <div class="stat">
+          <h4>BEST</h4>
+          <div class="big" id="bestScore">0</div>
+          <div class="sub" id="bestSub">Daily best: 0</div>
+        </div>
+        <div class="stat">
+          <h4>DAILY GOAL</h4>
+          <div class="big" id="goalScore">0 / 30</div>
+          <div class="sub" id="goalSub">Today cals: <span id="todayCals">0</span> / <span id="cap">1000</span> · Resets in <span id="resetIn">--:--:--</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="stage" id="stage">
+          <div class="scene">
+            <video
+              id="snackLoop"
+              muted
+              loop
+              playsinline
+              preload="auto"
+              webkit-playsinline
+            >
+              <source src="/assets/snack-loop.mp4?v=7" type="video/mp4" />
+            </video>
+          </div>
+
+          <div class="targetCluster">
+            <div class="targetLabel" id="targetText">—</div>
+            <div class="bubbleWrap">
+              <img class="bubble" src="/assets/thought-bubble.png" alt="thought bubble" />
+              <img class="bubbleFood" id="bubbleFood" src="" alt="target food"/>
+            </div>
+          </div>
+
+          <div class="beltLane" id="beltLane"></div>
+          <div class="dropZone" id="dropZone"></div>
+          <div class="banner" id="banner">MISSED</div>
+
+          <div class="tapStart" id="tapStart">
+            <div class="tapCard">
+              <div class="big">FIRE UP THE BELT</div>
+              <div class="small">Tap once to clock in. Then feed the beast before it rolls away.</div>
+              <button class="tapBtn" id="tapBtn">Start Round</button>
+            </div>
           </div>
         </div>
 
-        <div class="beltLane" id="beltLane"></div>
-        <div class="dropZone" id="dropZone"></div>
-        <div class="banner" id="banner">MISSED</div>
+        <!-- ✅ Shared bottom button row (keep your IDs for logic) -->
+        <div class="pf-bottom" style="margin-top:12px">
+          <button class="pf-btn pf-primary" id="resetBtn">Run it back</button>
+          <button class="pf-btn" id="pfShareBtn" data-pf-share="snack">Share score</button>
+          <button class="pf-btn" id="backBtn">← Back to Gym</button>
 
-        <div class="tapStart" id="tapStart">
-          <div class="tapCard">
-            <div class="big">FIRE UP THE BELT</div>
-            <div class="small">Tap once to clock in. Then feed the beast before it rolls away.</div>
-            <button class="tapBtn" id="tapBtn">Start Round</button>
-          </div>
+          <!-- keep legacy shareBtn id alive (game already binds it); hidden but functional -->
+          <button id="shareBtn" style="display:none" aria-hidden="true">Share</button>
+        </div>
+
+        <div class="toast">
+          <strong>How it plays:</strong> The thought bubble shows what he wants. The belt feeds a nonstop stream of snacks.
+          Grab the correct one between the wrong choices and drag it to his mouth before it rolls away.
+          <br><br>
+          <strong>Fair calories:</strong> You earn calories for correct munches, but it <em>diminishes</em> the longer you keep going — and the daily cap keeps it honest.
         </div>
       </div>
 
-      <div class="rowBtns">
-        <button class="ghost ghostPrimary" id="resetBtn">Run it back</button>
-        <button class="ghost" id="shareBtn">Share score</button>
-        <a class="ghost" id="backBtn" href="/">Back to Planet Fatness</a>
-      </div>
-
-      <div class="toast">
-        <strong>How it plays:</strong> The thought bubble shows what he wants. The belt feeds a nonstop stream of snacks.
-        Grab the correct one between the wrong choices and drag it to his mouth before it rolls away.
-        <br><br>
-        <strong>Fair calories:</strong> You earn calories for correct munches, but it <em>diminishes</em> the longer you keep going — and the daily cap keeps it honest.
-      </div>
     </div>
   </div>
 
@@ -451,21 +417,32 @@
   ];
 
   // =========================
-  // PHASE 2 BACKEND WIRING
+  // BACKEND WIRING (MATCH RUNNER KEYS)
   // =========================
+  function readLS(key){
+    try { return (localStorage.getItem(key) || '').trim(); } catch { return ''; }
+  }
+
   const API_BASE =
     (window.PF_API_BASE) ||
-    localStorage.getItem('phat_api_base') ||
-    "https://YOUR-RENDER-BACKEND.onrender.com";
+    readLS('pf_api_base') ||
+    readLS('phat_api_base') ||
+    '';
 
-  const TOKEN_KEY = "phat_token";
+  const TOKEN_KEY_PRIMARY = 'pf_token';
+  const TOKEN_KEY_LEGACY  = 'phat_token';
 
-  const getToken = () => localStorage.getItem(TOKEN_KEY) || "";
-  const api = (path) => `${String(API_BASE || "").replace(/\/$/,'')}${path}`;
+  const getToken = () => readLS(TOKEN_KEY_PRIMARY) || readLS(TOKEN_KEY_LEGACY) || '';
+
+  const api = (path) => {
+    const b = String(API_BASE || '').trim();
+    if (!b) return '';
+    return b.replace(/\/$/,'') + path;
+  };
 
   async function fetchDailyProgress(){
     const token = getToken();
-    if (!token) return null;
+    if (!API_BASE || !token) return null;
 
     try{
       const r = await fetch(api("/daily/progress"), {
@@ -481,7 +458,7 @@
 
   async function submitSecureSnack({ score, durationMs }){
     const token = getToken();
-    if (!token) return null;
+    if (!API_BASE || !token) return null;
 
     try{
       const r = await fetch(api("/activity/submit"), {
@@ -498,7 +475,7 @@
       });
       const j = await r.json();
       if (j && j.ok) return j;
-      return null;
+      return j || null;
     } catch {
       return null;
     }
@@ -514,13 +491,15 @@
     return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
   }
 
-  let resetAt = Number(localStorage.getItem(KEY_RESET) || nextMidnight());
-  let today = Number(localStorage.getItem(KEY_TODAY) || 0);
+  let resetAt = Number(readLS(KEY_RESET) || nextMidnight());
+  let today = Number(readLS(KEY_TODAY) || 0);
   if (Date.now() > resetAt){
     today = 0;
     resetAt = nextMidnight();
-    localStorage.setItem(KEY_RESET, resetAt);
-    localStorage.setItem(KEY_TODAY, today);
+    try{
+      localStorage.setItem(KEY_RESET, resetAt);
+      localStorage.setItem(KEY_TODAY, today);
+    }catch{}
   }
 
   // ===== FAIR CALORIE FORMULA (SNACK) =====
@@ -555,12 +534,23 @@
   const capEl = document.getElementById('cap');
 
   const resetBtn = document.getElementById('resetBtn');
-  const shareBtn = document.getElementById('shareBtn');
+  const shareBtn = document.getElementById('shareBtn'); // hidden but kept
   const resetInEl = document.getElementById('resetIn');
 
   const v = document.getElementById('snackLoop');
   const tapStart = document.getElementById('tapStart');
   const tapBtn = document.getElementById('tapBtn');
+
+  const backBtn = document.getElementById('backBtn');
+  if (backBtn){
+    backBtn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      window.location.href = '../index.html#gym';
+    });
+  }
+
+  // PF shared share button
+  const pfShareBtn = document.getElementById('pfShareBtn');
 
   // goal (default 30, server can override)
   let goalTarget = 30;
@@ -629,8 +619,8 @@
     const d = new Date();
     return `phat_snack_best_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}`;
   };
-  const loadBest = () => +localStorage.getItem(todayKey()) || 0;
-  const saveBest = (v) => localStorage.setItem(todayKey(), String(v));
+  const loadBest = () => +readLS(todayKey()) || 0;
+  const saveBest = (v) => { try{ localStorage.setItem(todayKey(), String(v)); }catch{} };
   let best = loadBest();
   bestEl.textContent = best;
   bestSubEl.textContent = `Daily best: ${best}`;
@@ -756,8 +746,11 @@
     if (g?.today?.calories != null) today = Number(g.today.calories || 0);
     if (g?.goal?.goal != null) goalTarget = Number(g.goal.goal || goalTarget);
 
-    localStorage.setItem(KEY_RESET, resetAt);
-    localStorage.setItem(KEY_TODAY, today);
+    try{
+      localStorage.setItem(KEY_RESET, resetAt);
+      localStorage.setItem(KEY_TODAY, today);
+    }catch{}
+
     updateHUD();
   }
 
@@ -769,21 +762,20 @@
     const dur = Math.max(0, Math.floor(performance.now() - roundStartAt));
 
     // persist local fallback (server will override if logged in)
-    localStorage.setItem(KEY_RESET, resetAt);
-    localStorage.setItem(KEY_TODAY, today);
+    try{
+      localStorage.setItem(KEY_RESET, resetAt);
+      localStorage.setItem(KEY_TODAY, today);
+    }catch{}
 
     if (reasonText) setBanner(reasonText, getComputedStyle(document.documentElement).getPropertyValue('--bad'));
 
-    // ✅ PHASE 2: secure submit (server computes + caps)
-    // If not logged in, nothing breaks (local-only run).
+    // secure submit (server computes + caps)
     const res = await submitSecureSnack({ score, durationMs: dur });
 
     if (res && res.ok){
-      // server is truth
       const earned = Number(res.earnedCalories || 0);
       runCals = earned;
 
-      // update today's calories + cap from server response
       if (res.today && typeof res.today.calories === "number") today = Number(res.today.calories || 0);
       if (res.caps && typeof res.caps.dailyCapCalories === "number") DAILY_CAP = Number(res.caps.dailyCapCalories || DAILY_CAP);
       if (res.goal && typeof res.goal.goal === "number") goalTarget = Number(res.goal.goal || goalTarget);
@@ -793,7 +785,6 @@
       if (earned > 0){
         setBanner(`+${earned} CALS`, 'var(--good)');
       } else {
-        // keep it subtle—still feels like a real system
         if (res.reason === "too_short") setBanner('TOO SHORT', 'var(--accent)');
         else if (res.reason === "score_too_high") setBanner('TOO FAST', 'var(--accent)');
         else setBanner('NO CALS', 'var(--accent)');
@@ -827,8 +818,7 @@
     const prevSpeed = speedMult;
     speedMult = clamp(speedMult + speedStep, 1.00, speedCap);
 
-    // ===== in-run calories (preview only; server final at end) =====
-    // still respects local caps so UI doesn't show insane numbers
+    // in-run calories preview (still respects local caps)
     if (today < DAILY_CAP && runCals < ROUND_CAP){
       const add = caloriesForCorrect(score, speedMult);
       const roomDaily = DAILY_CAP - today;
@@ -837,7 +827,6 @@
       runCals += actualAdd;
       today += actualAdd;
 
-      // keep it lightweight
       if (actualAdd > 0 && (score % 5 === 0)){
         setBanner(`+${actualAdd} CALS`, 'var(--good)');
       }
@@ -1037,12 +1026,30 @@
       `$PHAT Conveyor Munch — ${score} correct · streak ${streak} · belt ${speedMult.toFixed(2)}x · cals ${runCals}\n` +
       `Today: ${today}/${DAILY_CAP}\n` +
       `planetfatness.fit/snack`;
+
     if (navigator.share){
       navigator.share({ text: txt }).catch(()=>{});
     } else {
       navigator.clipboard?.writeText(txt);
       setBanner('COPIED', '#fff');
     }
+  }
+
+  // hook shared share button (prefer PF_UI/PFUI if present, fallback to local)
+  if (pfShareBtn){
+    pfShareBtn.addEventListener('click', async ()=>{
+      try{
+        if (window.PF_UI && typeof window.PF_UI.share === "function"){
+          window.PF_UI.share({ game:"snack" });
+          return;
+        }
+        if (window.PFUI && typeof window.PFUI.share === "function"){
+          window.PFUI.share({ game:"snack" });
+          return;
+        }
+      }catch{}
+      share();
+    });
   }
 
   function timeToMidnight(){
@@ -1062,6 +1069,7 @@
   setInterval(() => resetInEl.textContent = fmt(timeToMidnight()), 250);
 
   resetBtn.addEventListener('click', runItBack);
+  // keep legacy shareBtn working if anything calls it
   shareBtn.addEventListener('click', share);
 
   tapBtn.addEventListener('click', startRoundFromGesture);
