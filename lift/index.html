@@ -401,7 +401,7 @@ a{color:inherit; text-decoration:none}
       <div class="card">
         <div class="k">Calories earned</div>
         <div class="v" id="mRunCals">0</div>
-        <div class="s">low & fair so nobody can farm this game</div>
+        <div class="s">server-scored + capped (no farming)</div>
       </div>
       <div class="card">
         <div class="k">Today total</div>
@@ -427,33 +427,58 @@ a{color:inherit; text-decoration:none}
 </div>
 
 <script>
-/* ========= ASSETS ========= */
-const IDLE_SRC = "../assets/lift_idle.png";
-const REP_SRC  = "../assets/lift_hero.gif";
+/* =========================================================
+   Ego Lift Buffet — UPDATED to match Runner/Snack model
+   ✅ Keys:
+      - API base: pf_api_base (fallback phat_api_base)
+      - token:    pf_token    (fallback phat_token / token)
+   ✅ GET  /daily/progress
+   ✅ POST /activity/submit  (server computes calories + caps)
+   ✅ UI layout matches pf-ui pages (pf-wrap/pf-top/pf-bottom)
+   ========================================================= */
 
-/* ========= BACKEND WIRING (MATCHES YOUR NEW API) ========= */
+/* ========= ASSETS ========= */
+const IDLE_SRC = "/assets/lift_idle.png";
+const REP_SRC  = "/assets/lift_hero.gif";
+
+/* ========= API + AUTH (same as Runner) ========= */
+function readLS(key){
+  try { return (localStorage.getItem(key) || '').trim(); } catch { return ''; }
+}
+
 const API_BASE =
   (window.PF_API_BASE) ||
-  localStorage.getItem("phat_api_base") ||
-  ""; // optional
+  readLS('pf_api_base') ||
+  readLS('phat_api_base') ||
+  '';
 
-const TOKEN_KEY = "phat_token";
-function getToken(){ return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
+function getToken(){
+  return (
+    readLS('pf_token') ||
+    readLS('phat_token') ||
+    readLS('token') ||
+    ''
+  );
+}
+
 function api(path){
-  const b = String(API_BASE || "").trim();
-  if (!b) return "";
-  return b.replace(/\/$/,"") + path;
+  const b = String(API_BASE || '').trim();
+  if (!b) return '';
+  return b.replace(/\/$/,'') + path;
+}
+
+function isLoggedIn(){
+  return !!(API_BASE && getToken());
 }
 
 async function fetchDailyProgress(){
   const token = getToken();
   if (!API_BASE || !token) return null;
-
   try{
-    const r = await fetch(api("/daily/progress"), {
-      headers: { "Authorization": "Bearer " + token }
+    const r = await fetch(api('/daily/progress'), {
+      headers: { 'Authorization':'Bearer ' + token }
     });
-    const j = await r.json();
+    const j = await r.json().catch(()=>null);
     if (j && j.games && j.games.lift) return j;
     return null;
   }catch{
@@ -466,31 +491,68 @@ async function submitSecureLift({ score, durationMs }){
   if (!API_BASE || !token) return null;
 
   try{
-    const r = await fetch(api("/activity/submit"), {
-      method:"POST",
+    const r = await fetch(api('/activity/submit'), {
+      method:'POST',
       headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer " + token
+        'Content-Type':'application/json',
+        'Authorization':'Bearer ' + token
       },
       body: JSON.stringify({
-        game: "lift",
+        game: 'lift',
         score: Number(score || 0),
         durationMs: Math.max(0, Math.floor(Number(durationMs || 0)))
       })
     });
-    const j = await r.json();
-    if (j && j.ok) return j;
-    return null;
+    const j = await r.json().catch(()=>null);
+    return j || null; // j.ok expected on success
   }catch{
     return null;
   }
 }
 
-/* ========= FAIR CALORIES (LOCAL PREVIEW ONLY) =========
-   Server decides final calories when we submit /activity/submit.
+/* ========= DAILY FALLBACK (LOCAL ONLY WHEN LOGGED OUT) =========
+   Keep these aligned across games if server is unavailable.
 */
 let DAILY_CAP = 1000;
 
+// Shared daily cache keys (matches the general pattern; safe if hub relies on server anyway)
+const KEY_RESET = "pf_daily_reset_at";
+const KEY_TODAY = "pf_daily_today_cals";
+
+function nextMidnight(){
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
+}
+
+let resetAt = Number(readLS(KEY_RESET) || nextMidnight());
+let today = Number(readLS(KEY_TODAY) || 0);
+
+if (Date.now() > resetAt){
+  today = 0;
+  resetAt = nextMidnight();
+  try{
+    localStorage.setItem(KEY_RESET, String(resetAt));
+    localStorage.setItem(KEY_TODAY, String(today));
+  }catch{}
+}
+
+async function syncFromServer(){
+  const prog = await fetchDailyProgress();
+  if (!prog) return;
+
+  const g = prog.games.lift;
+  if (g?.caps?.dailyCapCalories != null) DAILY_CAP = Number(g.caps.dailyCapCalories || DAILY_CAP);
+  if (g?.today?.calories != null) today = Number(g.today.calories || 0);
+
+  try{
+    localStorage.setItem(KEY_RESET, String(resetAt));
+    localStorage.setItem(KEY_TODAY, String(today));
+  }catch{}
+}
+
+/* ========= FAIR CALORIES (LOCAL PREVIEW ONLY) =========
+   Server decides final calories when submitting.
+*/
 function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
 function roundInt(n){ return Math.max(0, Math.round(n)); }
 
@@ -561,67 +623,6 @@ const mRunCalsEl= el("mRunCals");
 const mTodayEl  = el("mToday");
 const shareLine = el("shareLine");
 
-/* Shared daily keys (fallback if not logged in) */
-const KEY_RESET = "phat_reset";
-const KEY_TODAY = "phat_today";
-
-/* Init daily (fallback) */
-function nextMidnight(){
-  const d=new Date();
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
-}
-let resetAt = Number(localStorage.getItem(KEY_RESET) || nextMidnight());
-let today = Number(localStorage.getItem(KEY_TODAY) || 0);
-if (Date.now() > resetAt){
-  today = 0;
-  resetAt = nextMidnight();
-  localStorage.setItem(KEY_RESET, resetAt);
-  localStorage.setItem(KEY_TODAY, today);
-}
-
-/* Game state */
-let running = false;
-let over = false;
-let lock = false;
-
-let start = performance.now();
-
-let reps = 0;
-let bestReps = 0;
-let runCals = 0;
-
-let loopSeconds = BASE_LOOP;
-let zoneW = BASE_ZONE_W;
-let zoneLeft = 0.54;
-
-let smallestZone = BASE_ZONE_W;
-
-let repTimer = null;
-let repSeq = 0;
-
-/* Sync caps/today from server if logged in */
-async function syncFromServer(){
-  const prog = await fetchDailyProgress();
-  if (!prog) {
-    capEl.textContent = DAILY_CAP;
-    todayCalsEl.textContent = today;
-    return;
-  }
-
-  const g = prog.games.lift;
-
-  if (g?.caps?.dailyCapCalories != null) DAILY_CAP = Number(g.caps.dailyCapCalories || DAILY_CAP);
-  if (g?.today?.calories != null) today = Number(g.today.calories || 0);
-
-  // update fallback storage too (keeps all games consistent even if server isn't hit again)
-  localStorage.setItem(KEY_RESET, resetAt);
-  localStorage.setItem(KEY_TODAY, today);
-
-  capEl.textContent = DAILY_CAP;
-  todayCalsEl.textContent = today;
-}
-
-/* Helpers */
 function toast(msg){
   toastEl.textContent = msg;
   toastEl.style.display = "block";
@@ -638,7 +639,7 @@ function flash(msg){
     flashEl.style.transform = "translateX(-50%) scale(.98)";
   }, FLASH_MS);
 }
-
+```html
 function setZoneUI(){
   zoneW = Math.max(MIN_ZONE_W, Math.min(BASE_ZONE_W, zoneW));
   zoneLeft = Math.max(0, Math.min(1-zoneW, zoneLeft));
@@ -666,6 +667,8 @@ function setDifficulty(){
   rerollZone();
 }
 
+let repTimer = null;
+let repSeq = 0;
 function playRep(){
   if (lock || over) return;
   lock = true;
@@ -675,18 +678,66 @@ function playRep(){
 
   if (repTimer){ clearTimeout(repTimer); repTimer = null; }
 
-  heroGif.onload = () => {
-    if (repTimer) clearTimeout(repTimer);
-    repTimer = setTimeout(()=>{
-      heroGif.style.opacity = 0;
-      heroIdle.style.opacity = 1;
-      repTimer = null;
-      setTimeout(()=>{ lock=false; }, COOLDOWN_MS);
-    }, REP_HOLD_MS);
-  };
-
+  // force restart the gif by cache-busting
   repSeq++;
   heroGif.src = REP_SRC + "?r=" + repSeq;
+
+  if (repTimer) clearTimeout(repTimer);
+  repTimer = setTimeout(()=>{
+    heroGif.style.opacity = 0;
+    heroIdle.style.opacity = 1;
+    repTimer = null;
+    setTimeout(()=>{ lock=false; }, COOLDOWN_MS);
+  }, REP_HOLD_MS);
+}
+
+/* Game state */
+let running = false;
+let over = false;
+let lock = false;
+
+let start = performance.now();
+
+let reps = 0;
+let bestReps = 0;
+let runCals = 0;
+
+let loopSeconds = BASE_LOOP;
+let zoneW = BASE_ZONE_W;
+let zoneLeft = 0.54;
+
+let smallestZone = BASE_ZONE_W;
+
+function showModal(){
+  modalBack.style.display = "flex";
+}
+function hideModal(){
+  modalBack.style.display = "none";
+}
+
+function resetRun(){
+  running=false; over=false; lock=false;
+  reps=0; bestReps=0; runCals=0;
+  loopSeconds=BASE_LOOP;
+  zoneW=BASE_ZONE_W;
+  smallestZone=zoneW;
+  start = performance.now();
+  rerollZone();
+
+  repStreakEl.textContent = "0";
+  runCalsEl.textContent = "0";
+  vignette.style.opacity = 0;
+  statusEl.textContent = "Tap once to wake up. Then release on green. Miss once = pinned.";
+  hideModal();
+
+  // quick sync if logged in (doesn't block)
+  syncFromServer().then(()=>{
+    capEl.textContent = DAILY_CAP;
+    todayCalsEl.textContent = today;
+  });
+
+  capEl.textContent = DAILY_CAP;
+  todayCalsEl.textContent = today;
 }
 
 async function endRun(reason){
@@ -707,28 +758,39 @@ async function endRun(reason){
 
   const durationMs = Math.max(0, Math.round((performance.now() - start)));
 
-  // persist fallback daily
-  localStorage.setItem(KEY_RESET, resetAt);
-  localStorage.setItem(KEY_TODAY, today);
+  // Persist fallback (for guest mode)
+  try{
+    localStorage.setItem(KEY_RESET, String(resetAt));
+    localStorage.setItem(KEY_TODAY, String(today));
+  }catch{}
 
-  // ===== SECURE SUBMIT (server is truth) =====
-  // If logged out, this returns null and we keep local numbers.
-  const res = await submitSecureLift({ score: bestReps, durationMs });
+  // Secure submit if logged in (server is truth)
+  let earned = null;
+  if (isLoggedIn()){
+    const res = await submitSecureLift({ score: bestReps, durationMs });
+    if (res && res.ok){
+      earned = Number(res.earnedCalories || 0);
+      runCals = earned;
 
-  if (res && res.ok){
-    // server credited calories for this run
-    const earned = Number(res.earnedCalories || 0);
-    runCals = earned;
+      if (res.today && typeof res.today.calories === "number") today = Number(res.today.calories || 0);
+      if (res.caps && typeof res.caps.dailyCapCalories === "number") DAILY_CAP = Number(res.caps.dailyCapCalories || DAILY_CAP);
 
-    if (res.today && typeof res.today.calories === "number") today = Number(res.today.calories || 0);
-    if (res.caps && typeof res.caps.dailyCapCalories === "number") DAILY_CAP = Number(res.caps.dailyCapCalories || DAILY_CAP);
+      try{
+        localStorage.setItem(KEY_RESET, String(resetAt));
+        localStorage.setItem(KEY_TODAY, String(today));
+      }catch{}
 
-    // update UI with server truth
-    runCalsEl.textContent = runCals;
-    todayCalsEl.textContent = today;
-    capEl.textContent = DAILY_CAP;
+      // tiny feedback if 0
+      if (earned === 0){
+        if (res.reason === "too_short") toast("Too short. No calories.");
+        else if (res.reason === "score_too_high") toast("Too fast. No calories.");
+      }
+    } else {
+      toast("Couldn’t sync run (server).");
+    }
   }
 
+  // Fill modal UI
   mBestEl.textContent = bestReps;
   mZoneEl.textContent = Math.round(smallestZone*100) + "%";
   mRunCalsEl.textContent = runCals;
@@ -739,17 +801,20 @@ async function endRun(reason){
     `Rep streak: ${bestReps}\n` +
     `Smallest green zone: ${Math.round(smallestZone*100)}%\n` +
     `Calories: ${runCals} (today ${today}/${DAILY_CAP})\n` +
-    `planetfatness.fit`;
+    `planetfatness.fit/lift`;
 
   shareLine.textContent = `Rep streak: ${bestReps} • Zone: ${Math.round(smallestZone*100)}% • Calories: ${runCals}`;
-  modalBack.style.display = "flex";
   window.__shareText = shareText;
 
-  // Optional: tiny feedback if server gave nothing
-  if (res && res.ok && Number(res.earnedCalories||0) === 0){
-    if (res.reason === "too_short") toast("Too short. No calories.");
-    else if (res.reason === "score_too_high") toast("Too fast. No calories.");
+  // If logged in, make the “earned” moment obvious
+  if (isLoggedIn()){
+    if (earned !== null) flash(`+${runCals} CALS ✅`);
+  } else {
+    // Guest mode: keep it honest
+    toast("Guest run. Connect via hub to stack lifetime calories.");
   }
+
+  showModal();
 }
 
 /* Input: release only */
@@ -760,9 +825,11 @@ function onRelease(){
     running = true;
     start = performance.now();
     statusEl.textContent = "Release on green. Miss once and you’re done.";
+
+    // Preload gif once
     const pre = new Image(); pre.src = REP_SRC;
 
-    // refresh server totals once user starts (doesn't block)
+    // quiet sync on first gesture (TG hub or site login)
     syncFromServer();
     return;
   }
@@ -777,16 +844,27 @@ function onRelease(){
     reps++;
     repStreakEl.textContent = reps;
 
-    // LOCAL preview calories (server will reconcile on end)
+    // Local preview calories (guest UX only; server final at end)
     const add = caloriesForRep(reps, zoneW, loopSeconds);
 
-    if (today < DAILY_CAP && add > 0){
-      const actualAdd = Math.min(add, DAILY_CAP - today);
-      runCals += actualAdd;
-      today += actualAdd;
+    if (!isLoggedIn()){
+      if (today < DAILY_CAP && add > 0){
+        const actualAdd = Math.min(add, DAILY_CAP - today);
+        runCals += actualAdd;
+        today += actualAdd;
 
-      runCalsEl.textContent = runCals;
-      todayCalsEl.textContent = today;
+        runCalsEl.textContent = runCals;
+        todayCalsEl.textContent = today;
+
+        try{
+          localStorage.setItem(KEY_RESET, String(resetAt));
+          localStorage.setItem(KEY_TODAY, String(today));
+        }catch{}
+      }
+    } else {
+      // Logged in: don't “credit” locally (prevents double counting)
+      // We still show a light “preview” in-run without touching today:
+      runCalsEl.textContent = String(runCals); // stays whatever server will later set
     }
 
     if (reps === 1) flash("CLEAN REP ✅");
@@ -804,9 +882,9 @@ window.addEventListener("pointerup", onRelease);
 window.addEventListener("keyup", (e)=>{ if(e.code==="Space") onRelease(); });
 
 /* Buttons */
-document.getElementById("restartBtn").onclick = ()=>location.reload();
-document.getElementById("againBtn").onclick = ()=>location.reload();
-document.getElementById("closeBtn").onclick = ()=>{ modalBack.style.display="none"; };
+document.getElementById("restartBtn").onclick = ()=> resetRun();
+document.getElementById("againBtn").onclick   = ()=> resetRun();
+document.getElementById("closeBtn").onclick   = ()=> { hideModal(); };
 
 /* ✅ Bottom-bar buttons */
 const backBtn = document.getElementById("backBtn");
@@ -818,7 +896,6 @@ if (backBtn){
 const pfShareBtn = document.getElementById("pfShareBtn");
 if (pfShareBtn){
   pfShareBtn.addEventListener("click", async ()=>{
-    // If pf-ui provides share, use it
     try{
       if (window.PF_UI && typeof window.PF_UI.share === "function"){
         window.PF_UI.share({ game:"lift" });
@@ -830,7 +907,6 @@ if (pfShareBtn){
       }
     }catch{}
 
-    // fallback: use this game’s own share text (from last run if available)
     const text = window.__shareText || `$PHAT Ego Lift Buffet 🟣\nplanetfatness.fit/lift`;
     if (navigator.share){
       try{ await navigator.share({ text }); }catch{}
@@ -850,7 +926,7 @@ document.getElementById("copyBtn").onclick = async ()=>{
     await navigator.clipboard.writeText(window.__shareText || "");
     toast("Copied. Post the flex.");
   }catch{
-    toast("Couldn’t copy. Screenshot it like a savage.");
+    toast("Couldn’t copy. Screenshot it.");
   }
 };
 
@@ -870,6 +946,16 @@ document.getElementById("shareBtn").onclick = async ()=>{
 
 /* Countdown */
 function tick(){
+  // midnight guard (tab left open)
+  if (Date.now() > resetAt){
+    today = 0;
+    resetAt = nextMidnight();
+    try{
+      localStorage.setItem(KEY_RESET, String(resetAt));
+      localStorage.setItem(KEY_TODAY, String(today));
+    }catch{}
+  }
+
   const r = Math.max(0, resetAt - Date.now());
   const h = String(Math.floor(r/36e5)).padStart(2,'0');
   const m = String(Math.floor((r%36e5)/6e4)).padStart(2,'0');
@@ -898,18 +984,16 @@ function loop(){
 /* Init UI */
 heroIdle.src = IDLE_SRC;
 heroGif.src  = REP_SRC;
-runCalsEl.textContent = "0";
-repStreakEl.textContent = "0";
-zoneW = BASE_ZONE_W;
-loopSeconds = BASE_LOOP;
-smallestZone = zoneW;
 rerollZone();
 
 capEl.textContent = DAILY_CAP;
 todayCalsEl.textContent = today;
 
-// one quiet sync on load (if logged in)
-syncFromServer();
+// quiet sync on load (if logged in)
+syncFromServer().then(()=>{
+  capEl.textContent = DAILY_CAP;
+  todayCalsEl.textContent = today;
+});
 
 requestAnimationFrame(loop);
 </script>
