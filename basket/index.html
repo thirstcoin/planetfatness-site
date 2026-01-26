@@ -26,25 +26,29 @@
       user-select:none;
     }
 
+    /* ✅ CRITICAL FIX:
+       allow scrolling so pf-bottom buttons are reachable on mobile */
     html,body{
       margin:0;
-      height:100%;
+      min-height:100%;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       background:
         radial-gradient(1200px 900px at 50% 15%, rgba(107,44,255,.35), transparent 55%),
         radial-gradient(1000px 700px at 50% 90%, rgba(255,212,0,.18), transparent 55%),
         linear-gradient(180deg, var(--pf-ink), #05050c);
       color:#fff;
-      overflow:hidden;
+      overflow-x:hidden;
+      overflow-y:auto; /* ✅ was hidden */
+      -webkit-overflow-scrolling: touch;
     }
 
     /* ===== Shared shell (same as runner) ===== */
     .pf-wrap{
-      height:100%;
+      min-height:100vh;  /* ✅ was height:100% (can trap content) */
       display:flex;
       justify-content:center;
       align-items:flex-start;
-      padding: 16px 0 26px;
+      padding: 16px 0 calc(26px + var(--safe-bottom));
     }
     .pf-container{
       width:min(980px, 94vw);
@@ -237,6 +241,15 @@
     .leader table{ width:100%; border-collapse:collapse; font-size:13px; }
     .leader th,.leader td{ padding:8px 6px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08); }
     .leader th{ color:rgba(255,255,255,.70); font-size:11px; letter-spacing:.35px; }
+
+    /* ✅ Optional: keep bottom bar visible while scrolling */
+    .pf-bottom{
+      position: sticky;
+      bottom: calc(10px + var(--safe-bottom));
+      z-index: 40;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
   </style>
 </head>
 
@@ -334,13 +347,13 @@
         </div>
       </div>
 
-      <!-- ✅ Hint pills (same style as runner) -->
+      <!-- ✅ Hint pills -->
       <div class="pf-hints">
         <div class="pf-hintPill">Controls: Drag from the food • Release to shoot</div>
         <div class="pf-hintPill">Miss = End • Golden = 2×</div>
       </div>
 
-      <!-- ✅ Shared bottom row -->
+      <!-- ✅ Bottom row (now scrollable + sticky) -->
       <div class="pf-bottom">
         <button class="pf-btn pf-primary" id="btnStart">Start</button>
         <button class="pf-btn" id="shareBtn" data-pf-share="basket">Share</button>
@@ -360,7 +373,6 @@
     try { return (localStorage.getItem(key)||'').trim(); } catch { return ''; }
   }
 
-  // Prefer pf_* keys, accept legacy phat_* if they exist
   const API_BASE =
     (window.PF_API_BASE) ||
     readLS('pf_api_base') ||
@@ -465,7 +477,6 @@
   const W=()=>cv.getBoundingClientRect().width || stage.getBoundingClientRect().width;
   const H=()=>cv.getBoundingClientRect().height || stage.getBoundingClientRect().height;
 
-  // ---- local leaderboard (device only) ----
   const LB_KEY='pf_streakshot_miss_ends_v1';
   const loadLB=()=>{try{return JSON.parse(localStorage.getItem(LB_KEY)||'[]');}catch{return[];}};
   const saveLB=(rows)=>localStorage.setItem(LB_KEY,JSON.stringify(rows));
@@ -500,11 +511,9 @@
     el.innerHTML=html;
   }
 
-  // ---- toast ----
   let toastT=0;
   const showToast=(msg)=>{toast.textContent=msg;toast.classList.add('show');toastT=1.1;};
 
-  // ---- asset loader ----
   function loadImage(src){
     return new Promise((resolve,reject)=>{
       const img=new Image();
@@ -554,7 +563,6 @@
   }
   preload();
 
-  // ---- food ----
   const FOOD = {
     COOKIE:   { label:'🍪 Cookie',    g:1.02, drag:0.989, r:18, imgKey:'cookie' },
     DONUT:    { label:'🍩 Donut',     g:0.90, drag:0.978, r:18, imgKey:'donut'  },
@@ -571,7 +579,6 @@
     return 'PIZZA';
   }
 
-  // ---- layout ----
   const HAND_OX = -17;
   const HAND_OY = -39;
 
@@ -601,7 +608,6 @@
     ];
   }
 
-  // ---- state ----
   let run=null;
   let lastRun=null;
 
@@ -655,7 +661,8 @@
     statusEl.textContent = 'RUN';
     showToast(isLoggedIn() ? 'Logged in. Calories settle server-side.' : 'Guest mode. Connect to stack calories.');
   }
-    function moveRim(){
+
+  function moveRim(){
     const L=layout();
     const stations=rimStations(L);
     let pick=stations[Math.floor(Math.random()*stations.length)];
@@ -1087,7 +1094,6 @@
     showToast('Saved (local).');
   }
 
-  // ---- buttons ----
   btnStart.onclick = () => start();
   btnGo.onclick = () => start();
   btnCloseStart.onclick = () => overlayStart.classList.remove('show');
@@ -1098,7 +1104,6 @@
   btnSave.onclick = saveRun;
   btnShare.onclick = shareRun;
 
-  // ✅ Shared share button: let pf-ui.js handle if present, otherwise fallback
   if (shareBtn){
     shareBtn.addEventListener('click', () => {
       try{
