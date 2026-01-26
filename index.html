@@ -830,24 +830,40 @@
           return true;
         }
 
-        tgDebugLog("[TG] POST /auth/telegram…");
-        const r = await fetch(API_BASE + "/auth/telegram", {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ initData })
-        });
+       tgDebugLog("[TG] POST /auth/telegram…");
+const r = await fetch(API_BASE + "/auth/telegram", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ initData })
+});
 
-        const j = await r.json().catch(() => ({}));
-        tgDebugLog("[TG] /auth/telegram status:", r.status, "ok:", r.ok, "body:", j);
+const j = await r.json().catch(() => ({}));
+tgDebugLog("[TG] /auth/telegram status:", r.status, "ok:", r.ok, "body:", j);
 
-        if (!r.ok || !j || !j.token){
-          if (unsafeUser && unsafeUser.id){
-            try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
-            setAuthUI();
-          }
-          toast("TG verify failed (backend). Check logs.");
-          return false;
-        }
+// ✅ Show actual backend error on-screen + console
+if (!r.ok || !j || !j.token) {
+  const msg =
+    (j && (j.error || j.message)) ? String(j.error || j.message) :
+    ("HTTP " + String(r.status));
+
+  console.log("[TG] BACKEND FAIL", { status: r.status, ok: r.ok, body: j });
+
+  // If we at least know the TG user, store it so the label can show
+  if (unsafeUser && unsafeUser.id) {
+    try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
+    setAuthUI();
+  }
+
+  // 🔥 This is the money line: the real reason shows on-screen
+  toast("TG verify failed: " + msg);
+
+  // Optional loud alert in debug mode
+  if (PF_TG_DEBUG) {
+    try { alert("TG verify failed:\n" + msg); } catch {}
+  }
+
+  return false;
+}
 
         const tgu = j.telegram || (tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
         const tgUser = tgSafeUser(tgu);
