@@ -21,6 +21,7 @@
   --muted:rgba(255,255,255,.68);
   --good1:#7fff7f;
   --good2:#3bdc7a;
+  --bad:#ff4d6d;
 
   --idleY: 0px;
   --idleScale: 1;
@@ -46,14 +47,13 @@ body{
   -webkit-overflow-scrolling: touch;
 }
 
+/* ===== Shared page shell (scroll-safe) ===== */
 .pf-wrap{
   min-height:100%;
   display:flex;
   justify-content:center;
   align-items:flex-start;
   padding: 16px 0 calc(26px + var(--safe-bottom));
-  overflow:auto;
-  -webkit-overflow-scrolling: touch;
 }
 .pf-container{
   width:min(980px, 94vw);
@@ -62,6 +62,7 @@ body{
   gap:12px;
 }
 
+/* keep toast fixed */
 #toast{
   position:fixed;
   left:50%;
@@ -79,6 +80,7 @@ body{
   z-index:50;
 }
 
+/* ===== Game stage ===== */
 #stage{
   position:relative;
   width:100%;
@@ -89,7 +91,11 @@ body{
   background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
   box-shadow:0 30px 90px rgba(0,0,0,.55);
   overflow:hidden;
-  touch-action:manipulation;
+
+  /* IMPORTANT: allow accurate taps without scrolling/zooming */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select:none;
 }
 
 #vignette{
@@ -132,7 +138,6 @@ body{
   transform:translateX(-50%);
   height:460px;
   width:auto;
-  user-select:none;
   -webkit-user-drag:none;
 }
 
@@ -217,6 +222,7 @@ body{
   pointer-events:none;
 }
 
+/* ===== Daily row ===== */
 .lift-dailyRow{
   display:flex;
   justify-content:space-between;
@@ -236,6 +242,7 @@ body{
   white-space:nowrap;
 }
 
+/* ===== Modal ===== */
 #modalBack{
   position:fixed; inset:0;
   display:none;
@@ -398,33 +405,24 @@ body{
 </div>
 
 <script>
-/* ========= API + AUTH (same as Runner) ========= */
-function readLS(key){ try { return (localStorage.getItem(key) || '').trim(); } catch { return ''; } }
+/* ========= ASSETS ========= */
+const IDLE_SRC = "/assets/lift_idle.png";
+const REP_SRC  = "/assets/lift_hero.gif";
 
-const API_BASE =
-  (window.PF_API_BASE) ||
-  readLS('pf_api_base') ||
-  readLS('phat_api_base') ||
-  '';
-
-function getToken(){
-  return readLS('pf_token') || readLS('phat_token') || readLS('token') || '';
-}
-function api(path){
-  const b = String(API_BASE || '').trim();
-  if (!b) return '';
-  return b.replace(/\/$/,'') + path;
-}
+/* ========= API + AUTH (matches your backend) ========= */
+function readLS(k){ try{return (localStorage.getItem(k)||"").trim();}catch{return "";} }
+const API_BASE = (window.PF_API_BASE) || readLS("pf_api_base") || readLS("phat_api_base") || "";
+function getToken(){ return readLS("pf_token") || readLS("phat_token") || readLS("token"); }
+function api(path){ const b=String(API_BASE||"").trim(); return b ? b.replace(/\/$/,"")+path : ""; }
 function isLoggedIn(){ return !!(API_BASE && getToken()); }
 
 async function fetchDailyProgress(){
   const token = getToken();
   if (!API_BASE || !token) return null;
   try{
-    const r = await fetch(api('/daily/progress'), { headers: { 'Authorization':'Bearer ' + token } });
+    const r = await fetch(api("/daily/progress"), { headers:{ Authorization:"Bearer "+token } });
     const j = await r.json().catch(()=>null);
-    if (j && j.games && j.games.lift) return j;
-    return null;
+    return (j && j.games && j.games.lift) ? j : null;
   }catch{ return null; }
 }
 
@@ -432,16 +430,17 @@ async function submitSecureLift({ score, durationMs }){
   const token = getToken();
   if (!API_BASE || !token) return null;
   try{
-    const r = await fetch(api('/activity/submit'), {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + token },
-      body: JSON.stringify({ game:'lift', score:Number(score||0), durationMs:Math.max(0, Math.floor(Number(durationMs||0))) })
+    const r = await fetch(api("/activity/submit"), {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+token },
+      body: JSON.stringify({ game:"lift", score:Number(score||0), durationMs:Math.max(0, Math.floor(Number(durationMs||0))) })
     });
-    return await r.json().catch(()=>null);
+    const j = await r.json().catch(()=>null);
+    return (j && j.ok) ? j : null;
   }catch{ return null; }
 }
 
-/* ========= DAILY FALLBACK (guest mode only) ========= */
+/* ========= DAILY FALLBACK (guest only) ========= */
 let DAILY_CAP = 1000;
 const KEY_RESET = "pf_daily_reset_at";
 const KEY_TODAY = "pf_daily_today_cals";
@@ -450,10 +449,8 @@ function nextMidnight(){
   const d = new Date();
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
 }
-
 let resetAt = Number(readLS(KEY_RESET) || nextMidnight());
 let today = Number(readLS(KEY_TODAY) || 0);
-
 if (Date.now() > resetAt){
   today = 0;
   resetAt = nextMidnight();
@@ -469,7 +466,7 @@ async function syncFromServer(){
   try{ localStorage.setItem(KEY_TODAY, String(today)); }catch{}
 }
 
-/* ========= LOCAL PREVIEW CALORIES (guest only; server final) ========= */
+/* ========= FAIR CALORIES (local preview only; server final) ========= */
 function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
 function roundInt(n){ return Math.max(0, Math.round(n)); }
 
@@ -487,8 +484,7 @@ function caloriesForRep(repIndex, zoneW, loopSeconds){
   if (repIndex >= 51) diminish = 0.30;
 
   const streakBonus = (repIndex % 5 === 0) ? 1 : 0;
-  const raw = (3.0 * skillBoost * diminish) + streakBonus;
-  return roundInt(raw);
+  return roundInt((3.0 * skillBoost * diminish) + streakBonus);
 }
 
 /* ========= DIFFICULTY ========= */
@@ -502,8 +498,6 @@ const JITTER = 0.12;
 const CENTER = 0.62;
 
 /* ========= FEEL ========= */
-const IDLE_SRC = "/assets/lift_idle.png";
-const REP_SRC  = "/assets/lift_hero.gif";
 const REP_HOLD_MS = 1250;
 const COOLDOWN_MS = 90;
 const FLASH_MS    = 320;
@@ -548,10 +542,13 @@ function flash(msg){
   flashEl.textContent = msg;
   flashEl.style.opacity = 1;
   flashEl.style.transform = "translateX(-50%) scale(1)";
-  setTimeout(()=>{ flashEl.style.opacity = 0; flashEl.style.transform = "translateX(-50%) scale(.98)"; }, FLASH_MS);
+  setTimeout(()=>{
+    flashEl.style.opacity = 0;
+    flashEl.style.transform = "translateX(-50%) scale(.98)";
+  }, FLASH_MS);
 }
 
-/* zone ui */
+/* zone */
 let loopSeconds = BASE_LOOP;
 let zoneW = BASE_ZONE_W;
 let zoneLeft = 0.54;
@@ -578,7 +575,7 @@ function setDifficulty(reps){
   rerollZone();
 }
 
-/* rep animation */
+/* rep anim (same as your working one) */
 let repTimer=null, repSeq=0;
 let lock=false;
 
@@ -601,10 +598,11 @@ function playRep(){
   }, REP_HOLD_MS);
 }
 
-/* game state */
+/* state (same model) */
 let running=false;
 let over=false;
 let start=performance.now();
+
 let reps=0;
 let bestReps=0;
 let runCals=0;
@@ -613,7 +611,6 @@ let runCals=0;
 function showModal(){ modalBack.style.display="flex"; }
 function hideModal(){ modalBack.style.display="none"; }
 
-/* reset */
 function resetRun(){
   running=false; over=false; lock=false;
   reps=0; bestReps=0; runCals=0;
@@ -629,18 +626,19 @@ function resetRun(){
   hideModal();
 
   rerollZone();
-  capEl.textContent = DAILY_CAP;
-  todayCalsEl.textContent = today;
+
+  capEl.textContent = String(DAILY_CAP);
+  todayCalsEl.textContent = String(today);
 
   syncFromServer().then(()=>{
-    capEl.textContent = DAILY_CAP;
-    todayCalsEl.textContent = today;
+    capEl.textContent = String(DAILY_CAP);
+    todayCalsEl.textContent = String(today);
   });
 }
 
 async function endRun(reason){
-  over=true;
-  vignette.style.opacity=1;
+  over = true;
+  vignette.style.opacity = 1;
 
   const tags = ["Pinned by Pizza","Ego too heavy","Spotter went to vape","Elbows said “nah”","Yoo-hoo fueled delusion"];
   endTagEl.textContent = reason || tags[(Math.random()*tags.length)|0];
@@ -648,21 +646,25 @@ async function endRun(reason){
   bestReps = Math.max(bestReps, reps);
   const durationMs = Math.max(0, Math.round(performance.now() - start));
 
-  let earned = null;
+  let res = null;
   if (isLoggedIn()){
-    const res = await submitSecureLift({ score: bestReps, durationMs });
+    res = await submitSecureLift({ score: bestReps, durationMs });
     if (res && res.ok){
-      earned = Number(res.earnedCalories || 0);
-      runCals = earned;
+      runCals = Number(res.earnedCalories || 0);
       if (res.today && typeof res.today.calories === "number") today = Number(res.today.calories || 0);
       if (res.caps && typeof res.caps.dailyCapCalories === "number") DAILY_CAP = Number(res.caps.dailyCapCalories || DAILY_CAP);
-      if (earned === 0 && res.reason === "too_short") toast("Too short. No calories.");
+      if (runCals === 0 && res.reason === "too_short") toast("Too short. No calories.");
+      if (runCals === 0 && res.reason === "score_too_high") toast("Too fast. No calories.");
     } else {
       toast("Couldn’t sync run (server).");
     }
   } else {
     toast("Guest run. Connect via hub to stack lifetime calories.");
   }
+
+  runCalsEl.textContent = String(runCals);
+  todayCalsEl.textContent = String(today);
+  capEl.textContent = String(DAILY_CAP);
 
   mBestEl.textContent = String(bestReps);
   mZoneEl.textContent = Math.round(smallestZone*100) + "%";
@@ -679,37 +681,42 @@ async function endRun(reason){
   shareLine.textContent = `Rep streak: ${bestReps} • Zone: ${Math.round(smallestZone*100)}% • Calories: ${runCals}`;
   window.__shareText = shareText;
 
-  if (isLoggedIn() && earned !== null) flash(`+${runCals} CALS ✅`);
   showModal();
 }
 
-/* ✅ RESTORED PRECISE INPUT:
-   - pointerdown: wake/start (tap once)
-   - pointerup: evaluate (release on green)
-   - NO window pointerup (prevents double firing)
+/* ✅ INPUT: keep your “release-only” mechanic, but fix iOS double-fire.
+   - start on first RELEASE (same as your working file)
+   - evaluate only once per physical tap
+   - bind to STAGE so releasing outside doesn’t cause weirdness
 */
-function onDown(e){
-  if (over) return;
+let tapArmed = false;
+let lastEvalTs = 0;
 
-  // avoid scroll/selection weirdness on iOS
+function armTap(){
+  tapArmed = true;
+}
+
+function onRelease(e){
+  // stop iOS from also generating a second synthetic event
   try{ e.preventDefault(); }catch{}
+
+  const nowTs = Date.now();
+  if (nowTs - lastEvalTs < 40) return; // double-fire guard
+  lastEvalTs = nowTs;
+
+  if (over) return;
+  if (!tapArmed) return; // must have had a down inside stage
+  tapArmed = false;
 
   if (!running){
     running = true;
     start = performance.now();
     statusEl.textContent = "Release on green. Miss once and you’re done.";
     const pre = new Image(); pre.src = REP_SRC;
-    syncFromServer();
+    syncFromServer(); // doesn’t block
     return;
   }
-}
-
-function onUp(e){
-  if (over) return;
-  if (!running) return; // must have started on down
   if (lock) return;
-
-  try{ e.preventDefault(); }catch{}
 
   const now = performance.now();
   const phase = (((now - start)/1000) % loopSeconds) / loopSeconds;
@@ -720,8 +727,8 @@ function onUp(e){
     reps++;
     repStreakEl.textContent = String(reps);
 
+    // guest preview only (server truth on end)
     const add = caloriesForRep(reps, zoneW, loopSeconds);
-
     if (!isLoggedIn()){
       if (today < DAILY_CAP && add > 0){
         const actualAdd = Math.min(add, DAILY_CAP - today);
@@ -744,8 +751,13 @@ function onUp(e){
   }
 }
 
-stage.addEventListener("pointerdown", onDown, { passive:false });
-stage.addEventListener("pointerup", onUp, { passive:false });
+// pointer path
+stage.addEventListener("pointerdown", (e)=>{ try{ e.preventDefault(); }catch{} armTap(); }, { passive:false });
+stage.addEventListener("pointerup", onRelease, { passive:false });
+
+// touch fallback (some iOS builds are flaky with pointer events)
+stage.addEventListener("touchstart", (e)=>{ try{ e.preventDefault(); }catch{} armTap(); }, { passive:false });
+stage.addEventListener("touchend", onRelease, { passive:false });
 
 /* Buttons */
 el("restartBtn").onclick = ()=> resetRun();
@@ -755,13 +767,14 @@ el("closeBtn").onclick   = ()=> hideModal();
 const backBtn = el("backBtn");
 backBtn.addEventListener("click", ()=>{ window.location.href = "../index.html#gym"; });
 
-/* Share (pf-ui if present) */
+/* Share */
 const pfShareBtn = el("pfShareBtn");
 pfShareBtn.addEventListener("click", async ()=>{
   try{
     if (window.PF_UI && typeof window.PF_UI.share === "function"){ window.PF_UI.share({ game:"lift" }); return; }
     if (window.PFUI && typeof window.PFUI.share === "function"){ window.PFUI.share({ game:"lift" }); return; }
   }catch{}
+
   const text = window.__shareText || `$PHAT Ego Lift Buffet 🟣\nplanetfatness.fit/lift`;
   if (navigator.share){ try{ await navigator.share({ text }); }catch{} return; }
   try{ await navigator.clipboard.writeText(text); toast("Copied. Paste it into X."); }catch{ toast("Screenshot + post."); }
@@ -795,7 +808,6 @@ setInterval(tick,1000); tick();
 /* Loop */
 function loop(){
   const now = performance.now();
-
   if (!over){
     const phase = (((now - start)/1000) % loopSeconds) / loopSeconds;
     needleEl.style.left = (phase*100) + "%";
@@ -803,13 +815,19 @@ function loop(){
     const scale = 1.02 + wob;
     heroStack.style.transform = `translateX(-50%) translateY(${Math.sin(now/220)*2}px) scale(${scale})`;
   }
-
   requestAnimationFrame(loop);
 }
 
 /* Init */
 heroIdle.src = IDLE_SRC;
 heroGif.src  = REP_SRC;
+
+repStreakEl.textContent = "0";
+runCalsEl.textContent = "0";
+
+loopSeconds = BASE_LOOP;
+zoneW = BASE_ZONE_W;
+smallestZone = zoneW;
 rerollZone();
 
 capEl.textContent = String(DAILY_CAP);
