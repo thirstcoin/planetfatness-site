@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
 <title>$PHAT — Ego Lift Buffet</title>
 
+<!-- ✅ Shared UI -->
+<link rel="stylesheet" href="/assets/pf-ui.css">
+<script src="/assets/pf-ui.js" defer></script>
+
 <style>
 :root{
   --purple:#5b2cff;
@@ -40,64 +44,43 @@ body{
   overflow:hidden;
 }
 
-#wrap{
+/* ===== Shared page shell ===== */
+.pf-wrap{
   height:100%;
   display:flex;
-  flex-direction:column;
-  align-items:center;
   justify-content:center;
-  gap:12px;
-  padding:14px;
+  align-items:flex-start;
+  padding: 16px 0 26px;
 }
-
-.row{
-  width:min(940px,100%);
+.pf-container{
+  width:min(980px, 94vw);
   display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
+  flex-direction:column;
+  gap:12px;
 }
 
-.pill{
+/* keep toast fixed */
+#toast{
+  position:fixed;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
   padding:10px 14px;
   border-radius:999px;
-  background:var(--panel);
-  border:1px solid var(--stroke);
-  font-size:13px;
-  font-weight:1000;
-  color:var(--muted);
-  backdrop-filter: blur(10px);
-  user-select:none;
-  white-space:nowrap;
-}
-
-.btn{
-  padding:10px 16px;
-  border-radius:14px;
-  font-weight:1100;
-  background:linear-gradient(180deg,var(--yellow),#ffbf00);
-  color:#1b1400;
-  border:none;
-  box-shadow:0 14px 30px rgba(255,212,0,.45);
-  cursor:pointer;
-}
-.btn:active{transform:scale(.98)}
-.btn2{
-  padding:10px 14px;
-  border-radius:14px;
-  font-weight:1100;
-  background:rgba(0,0,0,.25);
-  color:rgba(255,255,255,.92);
+  background:rgba(0,0,0,.55);
   border:1px solid rgba(255,255,255,.12);
-  backdrop-filter: blur(10px);
-  cursor:pointer;
+  backdrop-filter: blur(12px);
+  color:rgba(255,255,255,.92);
+  font-weight:1100;
+  font-size:13px;
+  display:none;
+  z-index:50;
 }
-.btn2:active{transform:scale(.98)}
 
+/* ===== Game stage ===== */
 #stage{
   position:relative;
-  width:min(940px,100%);
+  width:100%;
   height:540px;
   border-radius:22px;
   border:1px solid rgba(255,255,255,.12);
@@ -240,23 +223,27 @@ body{
   pointer-events:none;
 }
 
-#toast{
-  position:fixed;
-  left:50%;
-  bottom:18px;
-  transform:translateX(-50%);
+/* ===== Daily row ===== */
+.lift-dailyRow{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.lift-pill{
   padding:10px 14px;
   border-radius:999px;
-  background:rgba(0,0,0,.55);
-  border:1px solid rgba(255,255,255,.12);
-  backdrop-filter: blur(12px);
-  color:rgba(255,255,255,.92);
-  font-weight:1100;
+  background:var(--panel);
+  border:1px solid var(--stroke);
   font-size:13px;
-  display:none;
-  z-index:50;
+  font-weight:1000;
+  color:var(--muted);
+  backdrop-filter: blur(10px);
+  user-select:none;
+  white-space:nowrap;
 }
 
+/* ===== Modal ===== */
 #modalBack{
   position:fixed; inset:0;
   display:none;
@@ -309,6 +296,30 @@ body{
   margin:14px 0;
 }
 
+/* keep old button styles for modal */
+.btn{
+  padding:10px 16px;
+  border-radius:14px;
+  font-weight:1100;
+  background:linear-gradient(180deg,var(--yellow),#ffbf00);
+  color:#1b1400;
+  border:none;
+  box-shadow:0 14px 30px rgba(255,212,0,.45);
+  cursor:pointer;
+}
+.btn:active{transform:scale(.98)}
+.btn2{
+  padding:10px 14px;
+  border-radius:14px;
+  font-weight:1100;
+  background:rgba(0,0,0,.25);
+  color:rgba(255,255,255,.92);
+  border:1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(10px);
+  cursor:pointer;
+}
+.btn2:active{transform:scale(.98)}
+
 a{color:inherit; text-decoration:none}
 </style>
 </head>
@@ -316,51 +327,64 @@ a{color:inherit; text-decoration:none}
 <body>
 <div id="toast"></div>
 
-<div id="wrap">
-  <div class="row">
-    <div class="pill">$PHAT — Ego Lift Buffet</div>
-    <div class="pill" id="status">Tap once to wake up. Then release on green. Miss once = pinned.</div>
-    <div style="display:flex; gap:10px; flex-wrap:wrap">
-      <a class="btn2" href="https://planetfatness.fit/">Back to Gym</a>
-      <button class="btn" id="restartBtn">Run it back</button>
-    </div>
-  </div>
+<div class="pf-wrap">
+  <div class="pf-container">
 
-  <div id="stage">
-    <div id="hud">
-      <div class="hudLine"><span class="big" id="repStreak">0</span><span class="small">rep streak</span></div>
-      <div class="hudLine"><span class="big" id="runCals">0</span><span class="small">calories this run</span></div>
-      <div class="hudLine"><span class="big" id="zonePct">18%</span><span class="small">green zone</span></div>
-    </div>
-
-    <div id="flash">CLEAN REP ✅</div>
-
-    <div id="heroWrap">
-      <div class="heroStack" id="heroStack">
-        <img id="heroIdle" src="../assets/lift_idle.png" alt="Planet Fatness lifter idle"/>
-        <img id="heroGif"  src="../assets/lift_hero.gif" alt="Planet Fatness lifter rep"/>
+    <!-- ✅ Shared-style header -->
+    <div class="pf-top">
+      <div class="pf-title">
+        <div class="pf-titleLine">$PHAT — Ego Lift Buffet</div>
+        <div class="pf-subLine">Tap once to wake up. Then release on green. Miss once = pinned.</div>
       </div>
 
-      <div id="meter">
-        <div id="zone"></div>
-        <div id="needle"></div>
+      <!-- keep id="status" for your script -->
+      <div class="pf-chip" id="status">Tap once to wake up. Then release on green. Miss once = pinned.</div>
+    </div>
+
+    <div id="stage">
+      <div id="hud">
+        <div class="hudLine"><span class="big" id="repStreak">0</span><span class="small">rep streak</span></div>
+        <div class="hudLine"><span class="big" id="runCals">0</span><span class="small">calories this run</span></div>
+        <div class="hudLine"><span class="big" id="zonePct">18%</span><span class="small">green zone</span></div>
       </div>
 
-      <div id="vignette"></div>
-    </div>
-  </div>
+      <div id="flash">CLEAN REP ✅</div>
 
-  <div class="row" style="width:min(940px,100%); justify-content:space-between;">
-    <div class="pill">Today: <span id="todayCals">0</span> / <span id="cap">1000</span> calories</div>
-    <div class="pill">Resets in <span id="reset">--:--:--</span></div>
+      <div id="heroWrap">
+        <div class="heroStack" id="heroStack">
+          <img id="heroIdle" src="/assets/lift_idle.png" alt="Planet Fatness lifter idle"/>
+          <img id="heroGif"  src="/assets/lift_hero.gif" alt="Planet Fatness lifter rep"/>
+        </div>
+
+        <div id="meter">
+          <div id="zone"></div>
+          <div id="needle"></div>
+        </div>
+
+        <div id="vignette"></div>
+      </div>
+    </div>
+
+    <div class="lift-dailyRow">
+      <div class="lift-pill">Today: <span id="todayCals">0</span> / <span id="cap">1000</span> calories</div>
+      <div class="lift-pill">Resets in <span id="reset">--:--:--</span></div>
+    </div>
+
+    <!-- ✅ Shared bottom button row -->
+    <div class="pf-bottom">
+      <button class="pf-btn pf-primary" id="restartBtn">Run it back</button>
+      <button class="pf-btn" id="pfShareBtn" data-pf-share="lift">Share score</button>
+      <button class="pf-btn" id="backBtn">← Back to Gym</button>
+    </div>
+
   </div>
 </div>
 
 <div id="modalBack">
   <div id="modal">
     <div class="row" style="width:100%; margin:0 0 10px">
-      <div class="pill" style="background:rgba(0,0,0,.25)">Run ended</div>
-      <div class="pill" id="endTag">Pinned by Pizza</div>
+      <div class="lift-pill" style="background:rgba(0,0,0,.25)">Run ended</div>
+      <div class="lift-pill" id="endTag">Pinned by Pizza</div>
     </div>
 
     <div class="grid2">
@@ -389,8 +413,8 @@ a{color:inherit; text-decoration:none}
     <div class="sep"></div>
 
     <div class="row" style="width:100%; justify-content:space-between; gap:10px; margin:0 0 10px">
-      <div class="pill" style="background:rgba(0,0,0,.25)">Share the flex</div>
-      <div class="pill" id="shareLine">Rep streak: 0 • Zone: 18% • Calories: 0</div>
+      <div class="lift-pill" style="background:rgba(0,0,0,.25)">Share the flex</div>
+      <div class="lift-pill" id="shareLine">Rep streak: 0 • Zone: 18% • Calories: 0</div>
     </div>
 
     <div class="actions">
@@ -783,6 +807,43 @@ window.addEventListener("keyup", (e)=>{ if(e.code==="Space") onRelease(); });
 document.getElementById("restartBtn").onclick = ()=>location.reload();
 document.getElementById("againBtn").onclick = ()=>location.reload();
 document.getElementById("closeBtn").onclick = ()=>{ modalBack.style.display="none"; };
+
+/* ✅ Bottom-bar buttons */
+const backBtn = document.getElementById("backBtn");
+if (backBtn){
+  backBtn.addEventListener("click", ()=>{ window.location.href = "../index.html#gym"; });
+}
+
+/* Bottom share (delegates to pf-ui if present, falls back to local share text) */
+const pfShareBtn = document.getElementById("pfShareBtn");
+if (pfShareBtn){
+  pfShareBtn.addEventListener("click", async ()=>{
+    // If pf-ui provides share, use it
+    try{
+      if (window.PF_UI && typeof window.PF_UI.share === "function"){
+        window.PF_UI.share({ game:"lift" });
+        return;
+      }
+      if (window.PFUI && typeof window.PFUI.share === "function"){
+        window.PFUI.share({ game:"lift" });
+        return;
+      }
+    }catch{}
+
+    // fallback: use this game’s own share text (from last run if available)
+    const text = window.__shareText || `$PHAT Ego Lift Buffet 🟣\nplanetfatness.fit/lift`;
+    if (navigator.share){
+      try{ await navigator.share({ text }); }catch{}
+      return;
+    }
+    try{
+      await navigator.clipboard.writeText(text);
+      toast("Copied. Paste it into X.");
+    }catch{
+      toast("Screenshot + post.");
+    }
+  });
+}
 
 document.getElementById("copyBtn").onclick = async ()=>{
   try{
