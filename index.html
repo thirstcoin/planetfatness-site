@@ -939,7 +939,7 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
   }
 
   // ==========================================================
-  // ✅ TELEGRAM AUTO-LOGIN (HARDENED)
+  // ✅ TELEGRAM AUTO-LOGIN (HARDENED + DEBUG)
   //
   // Problems we fix:
   // 1) Sometimes tg.initData isn't ready on first tick.
@@ -951,7 +951,21 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
   // - If opened inside Telegram WebApp, we ALWAYS prefer TG identity.
   // - We NEVER overwrite an active wallet session *unless* we are in Telegram.
   // - If we are in Telegram, we will refresh TG session from /auth/telegram.
+  //
+  // DEBUG:
+  // - Set PF_TG_DEBUG = true to show alerts + console logs for initData/unsafe user.
   // ==========================================================
+  const PF_TG_DEBUG = true; // ⬅️ flip to false after fixed
+
+  function tgDebugLog(...args){
+    if (!PF_TG_DEBUG) return;
+    try { console.log(...args); } catch {}
+  }
+  function tgDebugAlert(msg){
+    if (!PF_TG_DEBUG) return;
+    try { alert(msg); } catch {}
+  }
+
   function isInTelegram(){
     return !!(window.Telegram && window.Telegram.WebApp);
   }
@@ -965,7 +979,10 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
 
   async function telegramBootstrapOnce(){
     const tg = isInTelegram() ? window.Telegram.WebApp : null;
-    if (!tg) return false;
+    if (!tg) {
+      tgDebugLog("[TG] Not in Telegram WebApp");
+      return false;
+    }
 
     try{
       // Make TG happy
@@ -977,7 +994,22 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
 
       // Try to get initData (required for backend verify)
       const initData = String(tg.initData || "").trim();
+
+      // ---- DEBUG snapshot (this is the money line) ----
+      tgDebugLog("[TG] platform:", tg.platform, "version:", tg.version);
+      tgDebugLog("[TG] initData length:", initData.length);
+      tgDebugLog("[TG] unsafe user:", tg.initDataUnsafe?.user || null);
+
+      // Optional loud alert on first attempts when initData is empty
       if (!initData){
+        if (PF_TG_DEBUG){
+          tgDebugAlert(
+            "TG Debug\n" +
+            "initData length: 0\n" +
+            "user: " + (unsafeUser?.username ? "@"+unsafeUser.username : (unsafeUser?.name || (unsafeUser?.id ? "TG:"+unsafeUser.id : "none")))
+          );
+        }
+
         // If we at least know the username, show it instantly while we wait for initData
         if (unsafeUser && unsafeUser.id){
           try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
@@ -985,6 +1017,14 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
           setAuthUI();
         }
         return false;
+      } else {
+        if (PF_TG_DEBUG){
+          tgDebugAlert(
+            "TG Debug\n" +
+            "initData length: " + initData.length + "\n" +
+            "user: " + (unsafeUser?.username ? "@"+unsafeUser.username : (unsafeUser?.name || (unsafeUser?.id ? "TG:"+unsafeUser.id : "none")))
+          );
+        }
       }
 
       // If we are in Telegram, we want TG identity to be primary.
@@ -1004,6 +1044,7 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
       // But inside TG, we DO want TG identity to win (telegram-first strategy).
       if (alreadySameTg){
         // still refresh UI and data
+        tgDebugLog("[TG] alreadySameTg=true, reusing existing TG token");
         setAuthUI();
         await loadMe();
         await loadLeaderboard();
@@ -1011,6 +1052,7 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
       }
 
       // Call backend
+      tgDebugLog("[TG] POST /auth/telegram…");
       const r = await fetch(API_BASE + "/auth/telegram", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
@@ -1018,6 +1060,7 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
       });
 
       const j = await r.json().catch(() => ({}));
+      tgDebugLog("[TG] /auth/telegram status:", r.status, "ok:", r.ok, "hasToken:", !!j?.token);
 
       if (!r.ok || !j || !j.token){
         // If backend says no, keep whatever identity label we can
@@ -1044,6 +1087,7 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
 
     } catch(e){
       console.log("TG bootstrap skipped", e);
+      tgDebugLog("[TG] exception:", e);
       return false;
     }
   }
@@ -1258,6 +1302,3 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
   // TG bootstrap (telegram-first)
   wireTelegramWakeups();
   telegramBootstrapRetry();
-</script>
-</body>
-</html>
