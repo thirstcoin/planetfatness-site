@@ -830,7 +830,14 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
 <script>
   const API_BASE = "https://planetfatness-backend.onrender.com";
 
-  // persist API base so mini-games can auto-submit without editing them
+console.log(
+  "TG exists?",
+  !!window.Telegram,
+  "WebApp?",
+  !!(window.Telegram && window.Telegram.WebApp)
+);
+
+    // persist API base so mini-games can auto-submit without editing them
   try { localStorage.setItem("pf_api_base", API_BASE); } catch {}
 
   // unify keys with mini-games
