@@ -514,7 +514,7 @@
               and “I’ll start Monday” as a <b>lifestyle</b>.
               <br><br>
               The only gym where <b>tapping counts as cardio</b>.
-              Connect your wallet, play the Gym Games, stack <b>Lifetime Calories</b>,
+              Play the Gym Games, stack <b>Lifetime Calories</b>,
               climb the ranks, and get rewarded like a certified Planet Fatness Gym member.
             </p>
 
@@ -622,19 +622,19 @@
             </div>
           </div>
 
-         <div class="gameCard">
-  <div class="gamePad">
-    <div class="gameIcon"></div>
-    <div class="gameText">
-      <h3 class="gameTitle">🏀 Streak Shot</h3>
-      <p class="gameDesc">One miss ends the run. Drag, aim, and feed the mouth. Stack streaks like snacks on a cheat day.</p>
-      <div class="gameBtns">
-        <a class="btn btnPrimary" href="https://planetfatness.fit/basket/">Play Streak Shot</a>
-        <a class="btn" href="https://planetfatness.fit/basket/">Chase #1</a>
-      </div>
-    </div>
-  </div>
-</div>
+          <div class="gameCard">
+            <div class="gamePad">
+              <div class="gameIcon"></div>
+              <div class="gameText">
+                <h3 class="gameTitle">🏀 Streak Shot</h3>
+                <p class="gameDesc">One miss ends the run. Drag, aim, and feed the mouth. Stack streaks like snacks on a cheat day.</p>
+                <div class="gameBtns">
+                  <a class="btn btnPrimary" href="https://planetfatness.fit/basket/">Play Streak Shot</a>
+                  <a class="btn" href="https://planetfatness.fit/basket/">Chase #1</a>
+                </div>
+              </div>
+            </div>
+          </div>
 
         </div>
 
@@ -647,9 +647,9 @@
 
             <div class="statGrid">
               <div class="stat">
-                <div class="k">Member Wallet</div>
+                <div class="k">Member Identity</div>
                 <div class="v" id="meWallet">—</div>
-                <div class="s">your gym identity</div>
+                <div class="s">telegram-first • wallet optional</div>
               </div>
               <div class="stat">
                 <div class="k">Lifetime Calories</div>
@@ -703,7 +703,7 @@
                 <thead>
                   <tr>
                     <th class="rank">#</th>
-                    <th>Wallet</th>
+                    <th>Identity</th>
                     <th>Lifetime Calories</th>
                     <th>Best Run</th>
                   </tr>
@@ -752,8 +752,8 @@
             </div>
             <div class="grid3">
               <div class="card">
-                <h3>1) Connect</h3>
-                <p>Connect Phantom and lock your gym card.</p>
+                <h3>1) Join</h3>
+                <p>Inside Telegram? You’re already in. Want wallet perks? Connect Phantom.</p>
               </div>
               <div class="card">
                 <h3>2) Grind</h3>
@@ -834,6 +834,8 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
     // ✅ unify keys with mini-games (runner/lift/snack/basket)
     const TOKEN_KEY = "pf_token";
     const ADDR_KEY  = "pf_address";
+    const TG_KEY    = "pf_tg";          // JSON: {id, username, name}
+    const ID_KIND   = "pf_identity_kind"; // "tg" | "wallet"
 
     const toastEl = document.getElementById("toast");
     const authStatusEl = document.getElementById("authStatus");
@@ -866,26 +868,60 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
       return a.slice(0, 4) + "…" + a.slice(-4);
     }
 
-    function getToken(){ return localStorage.getItem(TOKEN_KEY) || ""; }
-    function getAddr(){ return localStorage.getItem(ADDR_KEY) || ""; }
+    function getToken(){ return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
+    function getAddr(){ return (localStorage.getItem(ADDR_KEY) || "").trim(); }
+
+    function getTG(){
+      try { return JSON.parse(localStorage.getItem(TG_KEY) || "null"); }
+      catch { return null; }
+    }
 
     function setSession(addr, token){
       localStorage.setItem(ADDR_KEY, addr);
       localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(ID_KIND, "wallet");
+    }
+
+    function setTGSession(tg, token){
+      // TG identity is primary; wallet can be layered later
+      try { localStorage.setItem(TG_KEY, JSON.stringify(tg)); } catch {}
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(ID_KIND, "tg");
     }
 
     function clearSession(){
       localStorage.removeItem(ADDR_KEY);
       localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TG_KEY);
+      localStorage.removeItem(ID_KIND);
+    }
+
+    function displayIdentity(){
+      const kind = (localStorage.getItem(ID_KIND) || "").trim();
+      const tg = getTG();
+      const addr = getAddr();
+
+      if (kind === "tg" && tg){
+        const label = tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
+        return label;
+      }
+      if (addr) return shortAddr(addr);
+      if (tg){
+        const label = tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
+        return label;
+      }
+      return "—";
     }
 
     function setAuthUI(){
-      const addr = getAddr();
       const token = getToken();
-      if (addr && token){
-        authStatusEl.textContent = "Verified gym member: " + shortAddr(addr) + " ✅";
+      const ident = displayIdentity();
+
+      if (token && ident !== "—"){
+        authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
+        meWalletEl.textContent = ident;
       } else {
-        authStatusEl.textContent = "Not connected yet — connect Phantom to start stacking.";
+        authStatusEl.textContent = "Not connected yet — connect Phantom (or open in Telegram) to start stacking.";
         meWalletEl.textContent = "—";
         meCaloriesEl.textContent = "—";
         meBestEl.textContent = "—";
@@ -894,20 +930,62 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
     }
 
     // ===============================
-    // ✅ NEW: Phantom connect works on:
-    // - Desktop Phantom extension
-    // - Phantom in-app browser
-    // - iOS Safari / Android Chrome via deep-link into Phantom browser
+    // ✅ Telegram-first bootstrap (HUB only)
+    // - does NOT overwrite an existing wallet session
+    // - only sets pf_token if none exists yet
+    // Expects backend: POST /auth/telegram { initData }
+    // Returns: { token, user:{id,username,first_name,last_name} }
     // ===============================
+    async function telegramBootstrap(){
+      const already = getToken();
+      if (already) return; // don't overwrite existing session
 
+      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+      if (!tg) return;
+
+      try{
+        tg.ready && tg.ready();
+
+        const initData = (tg.initData || "").trim();
+        const u = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+
+        if (!initData || !u) return;
+
+        const tgUser = {
+          id: u.id,
+          username: u.username || "",
+          name: [u.first_name || "", u.last_name || ""].join(" ").trim()
+        };
+
+        // attempt login
+        const r = await fetch(API_BASE + "/auth/telegram", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ initData })
+        });
+        const j = await r.json();
+
+        if (j && j.token){
+          setTGSession(tgUser, j.token);
+          toast("Telegram gym card locked ✅ " + (tgUser.username ? "@"+tgUser.username : "TG"));
+          setAuthUI();
+          await loadMe();
+          await loadLeaderboard();
+        }
+      }catch(e){
+        // silent fail; Telegram auth endpoint might not exist yet
+        console.log("TG bootstrap skipped", e);
+      }
+    }
+
+    // ===============================
+    // ✅ Phantom connect (unchanged)
+    // ===============================
     async function connectAndLogin(){
-      // 1) injected Phantom flow (desktop or Phantom in-app browser)
       const provider = window.solana;
       if (provider?.isPhantom) {
         return await connectInjected(provider);
       }
-
-      // 2) fallback: open current page inside Phantom browser (mobile Safari/Chrome)
       toast("Opening Phantom… (install Phantom if it doesn’t open)");
       openInPhantomBrowser(window.location.href);
     }
@@ -930,7 +1008,6 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
         const msgBytes = new TextEncoder().encode(ch.message);
         const signed = await provider.signMessage(msgBytes, "utf8");
 
-        // ✅ IMPORTANT: send signature as base64 (matches your backend decoder)
         const sigB64 = bytesToBase64(signed.signature);
 
         const v = await fetch(API_BASE + "/auth/verify", {
@@ -970,13 +1047,11 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
     }
 
     // ===============================
-    // Existing data loads
+    // Data loads (token-based)
     // ===============================
-
     async function loadMe(){
       const token = getToken();
-      const addr = getAddr();
-      if (!token || !addr){ setAuthUI(); return; }
+      if (!token){ setAuthUI(); return; }
 
       try{
         const me = await fetch(API_BASE + "/activity/me", {
@@ -985,7 +1060,8 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
 
         if (me.error){ toast(me.error); return; }
 
-        meWalletEl.textContent = shortAddr(me.address);
+        // identity display: TG preferred, wallet fallback
+        meWalletEl.textContent = displayIdentity();
         meCaloriesEl.textContent = Number(me.totalCalories || "0").toLocaleString();
         meBestEl.textContent = (Number(me.bestSeconds || 0)).toFixed(1) + "s";
         meRankHintEl.textContent = "Stack calories. Climb ranks. Get rewarded.";
@@ -998,7 +1074,17 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
 
     async function loadLeaderboard(){
       try{
-        const top = await fetch(API_BASE + "/leaderboard").then(r => r.json());
+        // prefer v2 if present; fallback to legacy
+        let top = null;
+        try{
+          const r2 = await fetch(API_BASE + "/leaderboard/v2");
+          if (r2.ok) top = await r2.json();
+        }catch{}
+
+        if (!top){
+          top = await fetch(API_BASE + "/leaderboard").then(r => r.json());
+        }
+
         if (!Array.isArray(top)) throw new Error("Bad leaderboard");
 
         if (top.length === 0){
@@ -1007,13 +1093,20 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
         }
 
         lbBody.innerHTML = top.slice(0, 30).map((u, i) => {
-          const addr = u.address || "";
+          const addr = (u.address || "").trim();
+          const username = (u.username || "").trim();
+          const ident =
+            username ? ("@" + username) :
+            addr ? (addr.slice(0,4) + "…" + addr.slice(-4)) :
+            (u.identity || "—");
+
           const cals = Number(u.totalCalories || "0");
           const best = Number(u.bestSeconds || 0);
+
           return `
             <tr>
               <td class="rank">${i+1}</td>
-              <td class="addr">${addr.slice(0,4)}…${addr.slice(-4)}</td>
+              <td class="addr">${ident}</td>
               <td>${cals.toLocaleString()}</td>
               <td>${best.toFixed(1)}s</td>
             </tr>
@@ -1035,6 +1128,7 @@ Do your own research, manage your risk, and don’t fade a gym where tapping cou
     setAuthUI();
     loadLeaderboard();
     loadMe();
+    telegramBootstrap();
   </script>
 </body>
 </html>
