@@ -793,7 +793,7 @@
         tg.expand && tg.expand();
 
         const unsafeUser = tgSafeUser(tg.initDataUnsafe && tg.initDataUnsafe.user);
-        const initData = String(tg.initData || "").trim();
+        const initData = (tg && typeof tg.initData === "string") ? tg.initData : "";
 
         tgDebugLog("[TG] platform:", tg.platform, "version:", tg.version);
         tgDebugLog("[TG] initData length:", initData.length);
