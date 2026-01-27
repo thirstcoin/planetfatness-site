@@ -1,3 +1,4 @@
+<!-- BASKET INDEX — PART 1/4 (start of file) -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -26,8 +27,6 @@
       user-select:none;
     }
 
-    /* ✅ CRITICAL FIX:
-       allow scrolling so pf-bottom buttons are reachable on mobile */
     html,body{
       margin:0;
       min-height:100%;
@@ -38,13 +37,12 @@
         linear-gradient(180deg, var(--pf-ink), #05050c);
       color:#fff;
       overflow-x:hidden;
-      overflow-y:auto; /* ✅ was hidden */
+      overflow-y:auto;
       -webkit-overflow-scrolling: touch;
     }
 
-    /* ===== Shared shell (same as runner) ===== */
     .pf-wrap{
-      min-height:100vh;  /* ✅ was height:100% (can trap content) */
+      min-height:100vh;
       display:flex;
       justify-content:center;
       align-items:flex-start;
@@ -57,7 +55,6 @@
       gap:12px;
     }
 
-    /* ===== Score chips row ===== */
     .pf-metrics{
       display:flex;
       gap:10px;
@@ -73,7 +70,6 @@
     }
     .pf-chip strong{ color: var(--pf-yellow); }
 
-    /* ===== Stage ===== */
     #stage{
       position:relative;
       width:100%;
@@ -87,7 +83,6 @@
         rgba(0,0,0,.18);
     }
 
-    /* VIDEO BG */
     .arenaVideo{
       position:absolute;
       inset:0;
@@ -115,15 +110,13 @@
       z-index:1;
       display:block;
       width:100%;
-      height:520px; /* desktop-ish */
+      height:520px;
       touch-action:none;
     }
-
     @media (max-width: 520px){
       canvas{ height: 62vh; }
     }
 
-    /* Toast + hint */
     .toast{
       position:absolute; left:50%; bottom:14px;
       transform:translateX(-50%);
@@ -163,7 +156,6 @@
       white-space:nowrap;
     }
 
-    /* Overlays */
     .overlay{
       position:absolute; inset:0;
       display:none; align-items:center; justify-content:center;
@@ -232,7 +224,7 @@
     .divider{ height:1px; background: rgba(255,255,255,.10); margin:14px 0; }
 
     .leader{
-      max-height: 220px; overflow:auto;
+      max-height: 240px; overflow:auto;
       border-radius:14px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.18);
@@ -242,7 +234,26 @@
     .leader th,.leader td{ padding:8px 6px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08); }
     .leader th{ color:rgba(255,255,255,.70); font-size:11px; letter-spacing:.35px; }
 
-    /* ✅ Optional: keep bottom bar visible while scrolling */
+    .lbTabs{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      margin-top:10px;
+    }
+    .lbTab{
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-weight:1000;
+      font-size:12px;
+      color: rgba(255,255,255,.82);
+      cursor:pointer;
+    }
+    .lbTab.active{
+      background: linear-gradient(180deg, rgba(255,212,0,.22), rgba(255,212,0,.10));
+      border-color: rgba(255,212,0,.30);
+      color:#fff;
+    }
+
     .pf-bottom{
       position: sticky;
       bottom: calc(10px + var(--safe-bottom));
@@ -257,7 +268,6 @@
   <div class="pf-wrap">
     <div class="pf-container">
 
-      <!-- ✅ Shared header card -->
       <div class="pf-top">
         <div class="pf-title">
           <div class="pf-titleLine">$PHAT — Streak Shot</div>
@@ -266,7 +276,6 @@
         <div class="pf-chip" id="status">Drag to shoot</div>
       </div>
 
-      <!-- ✅ Metrics row (chips) -->
       <div class="pf-metrics">
         <div class="pf-metricsLeft">
           <div class="pf-chip">STREAK <strong id="streakTxt">0</strong></div>
@@ -278,7 +287,6 @@
         </div>
       </div>
 
-      <!-- ✅ Stage -->
       <div id="stage">
         <video
           class="arenaVideo"
@@ -297,7 +305,6 @@
         <canvas id="cv"></canvas>
         <div class="toast" id="toast"></div>
 
-        <!-- Start overlay -->
         <div class="overlay show" id="overlayStart">
           <div class="card">
             <h2>One miss ends the run.</h2>
@@ -309,11 +316,10 @@
           </div>
         </div>
 
-        <!-- End overlay -->
         <div class="overlay" id="overlayEnd">
           <div class="card">
             <h2>Run over.</h2>
-            <p id="endLine">Save it or run it back.</p>
+            <p id="endLine">Saved automatically if you’re logged in.</p>
 
             <div class="mini">
               <div class="statCard">
@@ -329,8 +335,14 @@
             <div class="divider"></div>
 
             <div class="row">
-              <button class="btnOld" id="btnSave">Save (local)</button>
+              <button class="btnOld" id="btnSave">Save</button>
               <button class="btnGhost" id="btnShare">Share</button>
+            </div>
+
+            <div class="lbTabs">
+              <button class="lbTab active" id="tabGlobal">Global</button>
+              <button class="lbTab" id="tabLocal">Local</button>
+              <button class="lbTab" id="tabRefresh">Refresh</button>
             </div>
 
             <div class="divider"></div>
@@ -347,13 +359,11 @@
         </div>
       </div>
 
-      <!-- ✅ Hint pills -->
       <div class="pf-hints">
         <div class="pf-hintPill">Controls: Drag from the food • Release to shoot</div>
         <div class="pf-hintPill">Miss = End • Golden = 2×</div>
       </div>
 
-      <!-- ✅ Bottom row (now scrollable + sticky) -->
       <div class="pf-bottom">
         <button class="pf-btn pf-primary" id="btnStart">Start</button>
         <button class="pf-btn" id="shareBtn" data-pf-share="basket">Share</button>
@@ -363,7 +373,7 @@
 
     </div>
   </div>
-
+  <!-- BASKET INDEX — PART 2/4 (script start + globals + LB helpers) -->
 <script>
 (() => {
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -371,6 +381,15 @@
 
   function readLS(key){
     try { return (localStorage.getItem(key)||'').trim(); } catch { return ''; }
+  }
+  function writeLS(key, val){
+    try { localStorage.setItem(key, String(val)); } catch {}
+  }
+  function writeJSON(key, obj){
+    try { localStorage.setItem(key, JSON.stringify(obj)); } catch {}
+  }
+  function readJSON(key){
+    try { return JSON.parse(localStorage.getItem(key)||'null'); } catch { return null; }
   }
 
   const API_BASE =
@@ -385,6 +404,154 @@
 
   function isLoggedIn(){
     return !!(String(API_BASE).trim() && String(getToken()).trim());
+  }
+
+  function fmtIdent(row){
+    const dn = (row.display_name || row.displayName || row.name || '').trim();
+    const addr = String(row.address || '').trim();
+    if (dn) return dn;
+    if (addr.startsWith('tg:')) return 'TG:' + addr.slice(3);
+    if (addr) return addr.slice(0,4)+'…'+addr.slice(-4);
+    return '—';
+  }
+
+  // ===== Local leaderboard (fallback + “save local”) =====
+  const LB_KEY='pf_streakshot_local_v2';
+  const loadLB=()=>{try{return JSON.parse(localStorage.getItem(LB_KEY)||'[]');}catch{return[];}};
+  const saveLB=(rows)=>{ try{ localStorage.setItem(LB_KEY,JSON.stringify(rows)); }catch{} };
+
+  function addLB(streak, score){
+    const rows=loadLB();
+    rows.push({streak, score, at:Date.now()});
+    rows.sort((a,b)=> (b.streak-a.streak) || (b.score-a.score));
+    saveLB(rows.slice(0,30));
+  }
+
+  function renderLocalLB(el){
+    const rows=loadLB();
+    if(!rows.length){
+      el.innerHTML='<div style="color:rgba(255,255,255,.7);font-weight:900;">No local runs yet.</div>';
+      return;
+    }
+    const fmt=(ts)=>{
+      const d=new Date(ts);
+      return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+    };
+    let html='<table><thead><tr><th>#</th><th>Streak</th><th>Score</th><th>When</th></tr></thead><tbody>';
+    rows.forEach((r,i)=>{
+      html+=`<tr>
+        <td>${i+1}</td>
+        <td style="font-weight:1100;color:rgba(255,212,0,.95)">${r.streak}</td>
+        <td>${r.score}</td>
+        <td style="color:rgba(255,255,255,.65)">${fmt(r.at)}</td>
+      </tr>`;
+    });
+    html+='</tbody></table>';
+    el.innerHTML=html;
+  }
+
+  // ===== Global leaderboard (server) =====
+  async function fetchGlobalLB(){
+    if (!String(API_BASE).trim()) return null;
+
+    const base = String(API_BASE).replace(/\/$/,'');
+    const tries = [
+      `${base}/leaderboard/v2?window=lifetime&metric=streak&game=basket&limit=30`,
+      `${base}/leaderboard/v2?window=lifetime&metric=score&game=basket&limit=30`,
+      `${base}/leaderboard/game?game=basket&metric=streak&limit=30`,
+      `${base}/leaderboard/game?game=basket&metric=score&limit=30`,
+    ];
+
+    for (const url of tries){
+      try{
+        const r = await fetch(url, { headers: { 'Accept':'application/json' } });
+        if (!r.ok) continue;
+        const j = await r.json().catch(()=>null);
+        if (Array.isArray(j)) return j;
+        if (j && Array.isArray(j.rows)) return j.rows;
+      }catch{}
+    }
+    return null;
+  }
+
+  function getMetricRowValue(row){
+    // handles different backend shapes
+    if (row.value != null) return Number(row.value)||0;
+    if (row.streak != null) return Number(row.streak)||0;
+    if (row.best_streak != null) return Number(row.best_streak)||0;
+    if (row.bestStreak != null) return Number(row.bestStreak)||0;
+    if (row.score != null) return Number(row.score)||0;
+    if (row.best_score != null) return Number(row.best_score)||0;
+    if (row.bestScore != null) return Number(row.bestScore)||0;
+    return 0;
+  }
+
+  function renderGlobalLB(el, rows){
+    if (!rows || !rows.length){
+      el.innerHTML =
+        `<div style="color:rgba(255,255,255,.78);font-weight:900;">
+          No global rows yet (or endpoint not wired).<br/>
+          <span style="color:rgba(255,255,255,.60);font-weight:800;">If you’re logged in, your run still saves calories globally.</span>
+        </div>`;
+      return;
+    }
+
+    // We’ll sort by “streak then score” if both exist, otherwise by value
+    const mapped = rows.map(r => {
+      const streak = (r.streak ?? r.best_streak ?? r.bestStreak);
+      const score  = (r.score ?? r.best_score ?? r.bestScore);
+      return {
+        raw: r,
+        ident: fmtIdent(r),
+        streak: streak != null ? Number(streak)||0 : null,
+        score: score != null ? Number(score)||0 : null,
+        value: getMetricRowValue(r),
+      };
+    });
+
+    mapped.sort((a,b)=>{
+      const as = (a.streak ?? -1), bs = (b.streak ?? -1);
+      if (bs !== as) return bs - as;
+      const ac = (a.score ?? -1), bc = (b.score ?? -1);
+      if (bc !== ac) return bc - ac;
+      return (b.value - a.value);
+    });
+
+    let html =
+      `<table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Identity</th>
+            <th>Streak</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+    mapped.slice(0,30).forEach((r,i)=>{
+      const streak = (r.streak != null) ? r.streak : r.value;
+      const score  = (r.score  != null) ? r.score  : (r.streak != null ? (r.value||0) : 0);
+      html +=
+        `<tr>
+          <td>${i+1}</td>
+          <td style="font-weight:900;">${escapeHtml(r.ident)}</td>
+          <td style="font-weight:1100;color:rgba(255,212,0,.95)">${Number(streak||0)}</td>
+          <td>${Number(score||0)}</td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    el.innerHTML = html;
+  }
+
+  function escapeHtml(s){
+    return String(s || "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
   }
 
   async function submitSecureSession({ score, streak, durationMs }){
@@ -414,6 +581,7 @@
     }
   }
 
+  // ===== DOM refs =====
   const stage=document.getElementById('stage');
   const cv=document.getElementById('cv');
   const ctx=cv.getContext('2d');
@@ -459,9 +627,54 @@
   const lbBtn=document.getElementById('lbBtn');
   const backBtn=document.getElementById('backBtn');
 
+  const tabGlobal = document.getElementById('tabGlobal');
+  const tabLocal  = document.getElementById('tabLocal');
+  const tabRefresh= document.getElementById('tabRefresh');
+
+  let lbMode = 'global';
+  let cachedGlobalRows = null;
+
   lbBtn.onclick = () => { window.location.href = '../index.html#leaderboard'; };
   backBtn.onclick = () => { window.location.href = '../index.html#gym'; };
 
+  function setBtnSaveLabel(){
+    if (isLoggedIn()){
+      btnSave.textContent = 'Save (Global)';
+    } else {
+      btnSave.textContent = 'Save (Local)';
+    }
+  }
+
+  async function renderActiveLB(){
+    if (lbMode === 'local'){
+      renderLocalLB(leaderBoxEnd);
+      return;
+    }
+    // global
+    if (!cachedGlobalRows){
+      leaderBoxEnd.innerHTML = `<div style="color:rgba(255,255,255,.70);font-weight:900;">Loading global leaderboard…</div>`;
+      cachedGlobalRows = await fetchGlobalLB();
+    }
+    renderGlobalLB(leaderBoxEnd, cachedGlobalRows);
+  }
+
+  function setActiveTab(){
+    tabGlobal.classList.toggle('active', lbMode==='global');
+    tabLocal.classList.toggle('active', lbMode==='local');
+  }
+
+  tabGlobal.onclick = async () => { lbMode='global'; setActiveTab(); await renderActiveLB(); };
+  tabLocal.onclick  = async () => { lbMode='local';  setActiveTab(); await renderActiveLB(); };
+  tabRefresh.onclick= async () => {
+    cachedGlobalRows = null;
+    await renderActiveLB();
+    showToast('Leaderboard refreshed.');
+  };
+
+  // Toast
+  let toastT=0;
+  const showToast=(msg)=>{toast.textContent=msg;toast.classList.add('show');toastT=1.1;};
+  <!-- BASKET INDEX — PART 3/4 (game logic + submit + “main page hook”) -->
   function resize(){
     const rect=cv.getBoundingClientRect();
     const w = rect.width || stage.getBoundingClientRect().width;
@@ -476,43 +689,6 @@
 
   const W=()=>cv.getBoundingClientRect().width || stage.getBoundingClientRect().width;
   const H=()=>cv.getBoundingClientRect().height || stage.getBoundingClientRect().height;
-
-  const LB_KEY='pf_streakshot_miss_ends_v1';
-  const loadLB=()=>{try{return JSON.parse(localStorage.getItem(LB_KEY)||'[]');}catch{return[];}};
-  const saveLB=(rows)=>localStorage.setItem(LB_KEY,JSON.stringify(rows));
-
-  function addLB(streak, score){
-    const rows=loadLB();
-    rows.push({streak, score, at:Date.now()});
-    rows.sort((a,b)=> (b.streak-a.streak) || (b.score-a.score));
-    saveLB(rows.slice(0,30));
-  }
-
-  function renderLB(el){
-    const rows=loadLB();
-    if(!rows.length){
-      el.innerHTML='<div style="color:rgba(255,255,255,.7);font-weight:900;">No runs yet.</div>';
-      return;
-    }
-    const fmt=(ts)=>{
-      const d=new Date(ts);
-      return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
-    };
-    let html='<table><thead><tr><th>#</th><th>Streak</th><th>Score</th><th>When</th></tr></thead><tbody>';
-    rows.forEach((r,i)=>{
-      html+=`<tr>
-        <td>${i+1}</td>
-        <td style="font-weight:1100;color:rgba(255,212,0,.95)">${r.streak}</td>
-        <td>${r.score}</td>
-        <td style="color:rgba(255,255,255,.65)">${fmt(r.at)}</td>
-      </tr>`;
-    });
-    html+='</tbody></table>';
-    el.innerHTML=html;
-  }
-
-  let toastT=0;
-  const showToast=(msg)=>{toast.textContent=msg;toast.classList.add('show');toastT=1.1;};
 
   function loadImage(src){
     return new Promise((resolve,reject)=>{
@@ -621,7 +797,6 @@
     return {
       playing:true,
       ended:false,
-      saved:false,
 
       streak:0,
       score:0,
@@ -657,9 +832,10 @@
 
     overlayStart.classList.remove('show');
     updateHUD();
+    setBtnSaveLabel();
 
     statusEl.textContent = 'RUN';
-    showToast(isLoggedIn() ? 'Logged in. Calories settle server-side.' : 'Guest mode. Connect to stack calories.');
+    showToast(isLoggedIn() ? 'Logged in. Saves globally.' : 'Guest mode. Connect in HUB for global saves.');
   }
 
   function moveRim(){
@@ -680,6 +856,29 @@
     run.ball=null;
     if(run.rimMoving) moveRim();
     updateHUD();
+  }
+
+  // ✅ “Main page hook”
+  // Writes best + last run so HUB can display Streak Shot stats even before you wire a global LB endpoint.
+  function persistBasketStats(streak, score, synced, calories){
+    const best = readJSON('pf_best_basket') || { bestStreak:0, bestScore:0, at:0 };
+    const next = { ...best };
+
+    if (Number(streak) > Number(best.bestStreak || 0) ||
+       (Number(streak) === Number(best.bestStreak || 0) && Number(score) > Number(best.bestScore || 0))){
+      next.bestStreak = Number(streak)||0;
+      next.bestScore  = Number(score)||0;
+      next.at = Date.now();
+      writeJSON('pf_best_basket', next);
+    }
+
+    writeJSON('pf_last_basket', {
+      streak: Number(streak)||0,
+      score: Number(score)||0,
+      synced: !!synced,
+      calories: Number(calories)||0,
+      at: Date.now()
+    });
   }
 
   async function endRun(reason){
@@ -707,14 +906,24 @@
     finalStreakTxt.textContent = String(lastRun.streak);
     finalScoreTxt.textContent  = String(lastRun.score);
 
-    if (isLoggedIn()){
-      endLine.textContent = `Missed. Run ended. Submitting…`;
-    } else {
-      endLine.textContent = `Missed. Run ended. Guest run (connect to stack calories).`;
-    }
+    endLine.textContent = isLoggedIn()
+      ? `Run ended. Submitting…`
+      : `Run ended. Guest run (open in Telegram / HUB to save globally).`;
 
-    renderLB(leaderBoxEnd);
+    // default: show global tab first
+    lbMode = 'global';
+    setActiveTab();
+    cachedGlobalRows = null;
+    leaderBoxEnd.innerHTML = `<div style="color:rgba(255,255,255,.70);font-weight:900;">Loading leaderboard…</div>`;
+
     overlayEnd.classList.add('show');
+
+    // Guest: persist stats + show local LB
+    if (!isLoggedIn()){
+      persistBasketStats(lastRun.streak, lastRun.score, false, 0);
+      renderLocalLB(leaderBoxEnd);
+      return;
+    }
 
     if (isLoggedIn() && !submitting){
       submitting = true;
@@ -741,14 +950,21 @@
 
         endLine.textContent = `Run ended. ${lastRun.capLine} ✅`;
         showToast(`Synced ✅ +${lastRun.calories} cals`);
+
+        persistBasketStats(lastRun.streak, lastRun.score, true, lastRun.calories);
       } else {
         lastRun.synced = false;
         lastRun.syncError = (res && (res.error || res.status)) ? String(res.error || res.status) : 'submit failed';
         endLine.textContent = `Run ended. Couldn’t sync right now — try again later.`;
         showToast('Couldn’t sync run.');
+        persistBasketStats(lastRun.streak, lastRun.score, false, 0);
       }
 
       submitting = false;
+
+      // refresh global leaderboard after submit
+      cachedGlobalRows = await fetchGlobalLB();
+      await renderActiveLB();
     }
   }
 
@@ -859,7 +1075,7 @@
       floorBounced:false
     };
   }
-
+ <!-- BASKET INDEX — PART 4/4 (physics/draw + share/save buttons + boot + close file) -->
   function step(dt){
     if(!run) return;
 
@@ -994,14 +1210,14 @@
     drawPlayer(L);
     drawHeldFood(L);
 
-    if(IMG.ready && IMG.basket){
+    if(run && IMG.ready && IMG.basket){
       const bx = run.rim.x;
       const by = run.rim.y - (L.rimR*0.35);
       const size = L.rimR * 4.2;
       drawImageCentered(IMG.basket, bx, by, size);
     }
 
-    if(run.aiming && !run.ball && run.playing && !run.ended){
+    if(run && run.aiming && !run.ball && run.playing && !run.ended){
       const s=L.hand;
       const a=run.aimNow;
 
@@ -1029,7 +1245,7 @@
       ctx.restore();
     }
 
-    if(run.ball){
+    if(run && run.ball){
       const b=run.ball;
       const f=FOOD[b.key];
 
@@ -1087,10 +1303,25 @@
     }
   }
 
-  function saveRun(){
+  // ✅ Save button logic:
+  // - Logged in: run already saved globally on end; this button just refreshes global LB
+  // - Guest: still supports local save
+  async function saveRun(){
     if(!lastRun) return;
+
+    if (isLoggedIn()){
+      cachedGlobalRows = null;
+      lbMode = 'global';
+      setActiveTab();
+      await renderActiveLB();
+      showToast('Saved globally (auto). Refreshed LB.');
+      return;
+    }
+
     addLB(lastRun.streak, lastRun.score);
-    renderLB(leaderBoxEnd);
+    lbMode = 'local';
+    setActiveTab();
+    renderLocalLB(leaderBoxEnd);
     showToast('Saved (local).');
   }
 
@@ -1119,6 +1350,14 @@
       shareRun();
     });
   }
+
+  // Boot
+  setBtnSaveLabel();
+  (async () => {
+    lbMode = 'global';
+    setActiveTab();
+    await renderActiveLB();
+  })();
 
 })();
 </script>
