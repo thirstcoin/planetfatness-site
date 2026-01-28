@@ -1,3 +1,5 @@
+New index
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -91,6 +93,7 @@
       *{ scroll-behavior:auto !important; transition:none !important; animation:none !important; }
     }
 
+    /* Toast */
     .toast{
       position: fixed;
       left: 50%;
@@ -113,6 +116,7 @@
       text-overflow: ellipsis;
     }
 
+    /* Topbar */
     .topbar{
       position:sticky; top:0;
       z-index:20;
@@ -138,7 +142,7 @@
       filter: drop-shadow(0 16px 26px rgba(0,0,0,.45));
     }
     .brand h3{ margin:0; font-size:14px; letter-spacing:.3px; }
-    .brand p{ margin:0; font-size:12px; color:var(--muted); font-weight:900; }
+    .brand p{ margin:0; font-size:12px; color:var(--muted); }
 
     .nav{
       display:flex; align-items:center; gap:10px;
@@ -172,10 +176,10 @@
       box-shadow: 0 14px 30px rgba(255,212,0,.28);
       transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
       cursor:pointer;
-      white-space:nowrap;
     }
     .cta:hover{ transform: translateY(-2px); box-shadow: 0 18px 46px rgba(255,212,0,.38); filter: saturate(1.08); }
 
+    /* Panels */
     .panel{
       border-radius: var(--radius);
       background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
@@ -195,6 +199,7 @@
     }
     .panel .pad{ position:relative; padding: 26px; }
 
+    /* Section titles */
     .sectionTitle{ margin: 26px 0 12px; }
     .sectionTitle h2{
       margin:0;
@@ -205,11 +210,12 @@
     .sectionTitle p{
       margin: 6px 0 0;
       color: var(--muted);
-      font-weight: 900;
+      font-weight: 800;
       font-size: 13px;
       line-height: 1.35;
     }
 
+    /* Hero */
     header.hero{ padding: 34px 0 14px; }
     .heroGrid{
       display:grid;
@@ -255,7 +261,7 @@
       color: rgba(255,255,255,.78);
       max-width: 72ch;
       line-height:1.50;
-      font-weight: 900;
+      font-weight: 800;
     }
     .subtitle b{ color: rgba(255,255,255,.94); }
 
@@ -284,8 +290,9 @@
     .btnPrimary:hover{ background: linear-gradient(180deg, #ffe566, var(--yellow)); }
 
     .miniRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; color: rgba(255,255,255,.70); font-size: 13px; }
-    .miniRow span{ padding: 8px 10px; border-radius: 999px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.04); font-weight:1000; }
+    .miniRow span{ padding: 8px 10px; border-radius: 999px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.04); font-weight:900; }
 
+    /* Logo card */
     .logoFrame{ display:flex; align-items:center; justify-content:center; padding: 14px; min-height: 360px; }
     .logoCard{
       width:100%;
@@ -318,7 +325,7 @@
       display:flex; justify-content:space-between; gap:10px; align-items:center;
       color: rgba(255,255,255,.72);
       font-size: 12px;
-      font-weight: 1000;
+      font-weight: 900;
     }
     .tag{
       padding: 7px 10px;
@@ -328,6 +335,7 @@
       font-weight: 1000;
     }
 
+    /* Gym game grid */
     .gameGrid{
       display:grid;
       grid-template-columns: repeat(2, 1fr);
@@ -361,6 +369,8 @@
       gap: 14px;
       align-items:flex-start;
     }
+
+    /* UPDATED: emoji goes inside this box */
     .gameIcon{
       width: 52px;
       height: 52px;
@@ -372,11 +382,20 @@
         rgba(255,255,255,.05);
       box-shadow: 0 18px 50px rgba(0,0,0,.35);
       flex:0 0 auto;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 26px;
+      line-height: 1;
+      user-select:none;
     }
-    .gameTitle{ margin:0; font-weight: 1100; font-size: 16px; letter-spacing: -.2px; }
-    .gameDesc{ margin:6px 0 12px; color: rgba(255,255,255,.72); font-weight: 950; line-height:1.35; }
+
+    .gameTitle{ margin:0; font-weight: 1000; font-size: 16px; letter-spacing: -.2px; }
+    .gameDesc{ margin:6px 0 12px; color: rgba(255,255,255,.72); font-weight: 850; line-height:1.35; }
     .gameBtns{ display:flex; gap:10px; flex-wrap:wrap; }
 
+    /* Stat grids */
     .statGrid{
       display:grid;
       grid-template-columns: repeat(4, 1fr);
@@ -404,9 +423,10 @@
       pointer-events:none;
     }
     .stat .k{ position:relative; font-weight: 1000; font-size: 12px; color: rgba(255,255,255,.72); }
-    .stat .v{ position:relative; margin-top: 6px; font-weight: 1200; font-size: 22px; letter-spacing:-.3px; color: rgba(255,212,0,.95); }
-    .stat .s{ position:relative; margin-top: 6px; font-weight: 950; font-size: 12px; color: rgba(255,255,255,.64); }
+    .stat .v{ position:relative; margin-top: 6px; font-weight: 1100; font-size: 22px; letter-spacing:-.3px; color: rgba(255,212,0,.95); }
+    .stat .s{ position:relative; margin-top: 6px; font-weight: 850; font-size: 12px; color: rgba(255,255,255,.64); }
 
+    /* Leaderboard tabs */
     .tabs{
       display:flex;
       gap:10px;
@@ -424,7 +444,6 @@
       color: rgba(255,255,255,.84);
       cursor:pointer;
       user-select:none;
-      white-space:nowrap;
     }
     .tab.active{
       background: linear-gradient(180deg, rgba(255,212,0,.20), rgba(255,212,0,.10));
@@ -432,6 +451,7 @@
       color: rgba(255,255,255,.96);
     }
 
+    /* Tables */
     .tableWrap{
       margin-top: 12px;
       overflow:auto;
@@ -439,7 +459,6 @@
       border:1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.16);
       -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
     }
     table{
       width:100%;
@@ -451,13 +470,14 @@
       padding: 10px 10px;
       text-align:left;
       border-bottom: 1px solid rgba(255,255,255,.08);
-      font-weight: 950;
+      font-weight: 900;
       white-space: nowrap;
     }
     th{ color: rgba(255,255,255,.70); font-size: 11px; letter-spacing:.35px; text-transform: uppercase; }
     .rank{ width: 54px; }
     .muted{ color: var(--muted); }
 
+    /* Per-game leaderboard grid */
     .lbGrid{
       display:grid;
       grid-template-columns: repeat(2, 1fr);
@@ -476,16 +496,7 @@
       overflow:hidden;
       position:relative;
     }
-    .lbCard::before{
-      content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(520px 280px at 12% 0%, rgba(91,44,255,.16), transparent 60%),
-        radial-gradient(520px 280px at 88% 10%, rgba(255,212,0,.08), transparent 62%);
-      opacity:.9;
-      pointer-events:none;
-    }
-    .lbCard .pad{ position:relative; padding: 16px; }
+    .lbCard .pad{ padding: 16px; }
     .lbHead{
       display:flex;
       justify-content: space-between;
@@ -508,7 +519,6 @@
       font-size: 12px;
       font-weight: 1000;
       color: rgba(255,255,255,.76);
-      white-space:nowrap;
     }
 
     footer{
@@ -523,7 +533,7 @@
       align-items:center;
       padding-top: 10px;
       border-top: 1px solid rgba(255,255,255,.08);
-      font-weight: 950;
+      font-weight: 900;
       font-size: 12px;
     }
     .links{ display:flex; gap: 12px; flex-wrap:wrap; }
@@ -532,7 +542,6 @@
       border-radius: 999px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.04);
-      font-weight:1000;
     }
     .disclaimer{
       margin-top: 12px;
@@ -540,13 +549,12 @@
       border-radius: 18px;
       border: 1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.16);
-      font-weight: 900;
+      font-weight: 850;
       line-height: 1.4;
       color: rgba(255,255,255,.72);
     }
   </style>
 </head>
-
 <body>
   <div class="grain"></div>
   <div class="toast" id="toast"></div>
@@ -572,7 +580,8 @@
       </div>
     </div>
   </div>
-    <header class="hero">
+
+  <header class="hero">
     <div class="wrap">
       <div class="container heroGrid">
         <div class="panel">
@@ -593,17 +602,17 @@
 
             <div class="heroActions">
               <button class="btn btnPrimary" id="connectBtn">🟣 Connect Phantom</button>
-              <a class="btn" href="https://planetfatness.fit/runner/">🏃‍♂️ Rage Treadmill</a>
-              <a class="btn" href="https://planetfatness.fit/lift/">💪 Ego Lift Buffet</a>
-              <a class="btn" href="https://planetfatness.fit/snack/">🍔 Conveyor Munch</a>
-              <a class="btn" href="https://planetfatness.fit/basket/">🏀 Streak Shot</a>
+              <a class="btn" href="https://planetfatness.fit/runner/">Rage Treadmill</a>
+              <a class="btn" href="https://planetfatness.fit/lift/">Ego Lift Buffet</a>
+              <a class="btn" href="https://planetfatness.fit/snack/">Conveyor Munch</a>
+              <a class="btn" href="https://planetfatness.fit/basket/">Streak Shot</a>
             </div>
 
             <div class="miniRow">
               <span>🍕 Snack-first philosophy</span>
               <span>🛋️ Couch cardio certified</span>
               <span>🏃‍♂️ Best time flex</span>
-              <span>📈 Daily / Weekly / Monthly / Lifetime</span>
+              <span>📈 Daily/Weekly/Monthly/Lifetime</span>
               <span>🏀 Streak Shot beasts</span>
               <span>💸 Rewards trackable</span>
             </div>
@@ -639,9 +648,9 @@
         <div class="gameGrid">
           <div class="gameCard">
             <div class="gamePad">
-              <div class="gameIcon"></div>
+              <div class="gameIcon" aria-hidden="true">🏃‍♂️</div>
               <div class="gameText">
-                <h3 class="gameTitle">🏃‍♂️ Treadmill Rage Runner</h3>
+                <h3 class="gameTitle">Treadmill Rage Runner</h3>
                 <p class="gameDesc">Tap to survive. Stack calories. Fly off with honor. The belt is disrespectful.</p>
                 <div class="gameBtns">
                   <a class="btn btnPrimary" href="https://planetfatness.fit/runner/">Play Runner</a>
@@ -653,9 +662,9 @@
 
           <div class="gameCard">
             <div class="gamePad">
-              <div class="gameIcon"></div>
+              <div class="gameIcon" aria-hidden="true">💪</div>
               <div class="gameText">
-                <h3 class="gameTitle">💪 Ego Lift Buffet</h3>
+                <h3 class="gameTitle">Ego Lift Buffet</h3>
                 <p class="gameDesc">Time the curl. Food plates count as weights. Respect the wobble or it claps you.</p>
                 <div class="gameBtns">
                   <a class="btn btnPrimary" href="https://planetfatness.fit/lift/">Play Lift</a>
@@ -667,9 +676,9 @@
 
           <div class="gameCard">
             <div class="gamePad">
-              <div class="gameIcon"></div>
+              <div class="gameIcon" aria-hidden="true">🍔</div>
               <div class="gameText">
-                <h3 class="gameTitle">🍔 Conveyor Munch</h3>
+                <h3 class="gameTitle">Conveyor Munch</h3>
                 <p class="gameDesc">Eat big to get big. Drag the snack into his mouth. Missed meals kill gains.</p>
                 <div class="gameBtns">
                   <a class="btn btnPrimary" href="https://planetfatness.fit/snack/">Play Munch</a>
@@ -681,9 +690,9 @@
 
           <div class="gameCard">
             <div class="gamePad">
-              <div class="gameIcon"></div>
+              <div class="gameIcon" aria-hidden="true">🏀</div>
               <div class="gameText">
-                <h3 class="gameTitle">🏀 Streak Shot</h3>
+                <h3 class="gameTitle">Streak Shot</h3>
                 <p class="gameDesc">One miss ends the run. Drag, aim, and feed the mouth. Golden donuts hit harder.</p>
                 <div class="gameBtns">
                   <a class="btn btnPrimary" href="https://planetfatness.fit/basket/">Play Streak Shot</a>
@@ -693,7 +702,8 @@
             </div>
           </div>
         </div>
-                <div style="margin-top:14px" class="panel">
+
+        <div style="margin-top:14px" class="panel">
           <div class="pad">
             <div class="sectionTitle" style="margin-top:0">
               <h2>Your Gym Card</h2>
@@ -773,9 +783,14 @@
                 <div class="s" id="meSnackBestSub">best combo</div>
               </div>
               <div class="stat">
-                <div class="k">Streak Shot</div>
+                <div class="k">Streak Shot Best</div>
                 <div class="v" id="meBasketBest">—</div>
                 <div class="s" id="meBasketBestSub">best streak • best score</div>
+              </div>
+              <div class="stat">
+                <div class="k">Streak Shot Lifetime Makes</div>
+                <div class="v" id="meBasketMakes">—</div>
+                <div class="s">total baskets made (lifetime)</div>
               </div>
             </div>
 
@@ -793,8 +808,7 @@
       </div>
     </div>
   </section>
-
-  <section id="leaderboard">
+    <section id="leaderboard">
     <div class="wrap">
       <div class="container">
         <div class="sectionTitle">
@@ -947,7 +961,8 @@
       </div>
     </div>
   </section>
-    <section id="rewards">
+
+  <section id="rewards">
     <div class="wrap">
       <div class="container">
         <div class="sectionTitle">
@@ -971,22 +986,18 @@
               <div class="stat">
                 <div class="k">2) Grind</div>
                 <div class="v">4 Games</div>
-                <div class="s">everything feeds the same calorie stack</div>
+                <div class="s">everything feeds the same stack</div>
               </div>
               <div class="stat">
                 <div class="k">3) Climb</div>
                 <div class="v">Leaderboards</div>
-                <div class="s">daily / weekly / monthly / lifetime</div>
+                <div class="s">daily/weekly/monthly/lifetime</div>
               </div>
               <div class="stat">
                 <div class="k">4) Eat</div>
                 <div class="v">Rewards</div>
                 <div class="s">top grinders get the love</div>
               </div>
-            </div>
-
-            <div style="margin-top:14px" class="muted">
-              Rewards can be weekly or seasonal — the windows make it obvious who earned it.
             </div>
           </div>
         </div>
@@ -1058,646 +1069,425 @@
   </footer>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
   <script>
-      const API_BASE = "https://planetfatness-backend.onrender.com";
-    try { localStorage.setItem("pf_api_base", API_BASE); } catch {}
+  // ---------- tiny UI helpers (no secrets, no TG keys) ----------
+  const $ = (id) => document.getElementById(id);
 
-    const TOKEN_KEY = "pf_token";
-    const ADDR_KEY  = "pf_address";
-    const TG_KEY    = "pf_tg";
-    const ID_KIND   = "pf_identity_kind";
+  // Year
+  try { $("yr").textContent = String(new Date().getFullYear()); } catch {}
 
-    const toastEl = document.getElementById("toast");
-    const authStatusEl = document.getElementById("authStatus");
-
-    const meIdentityEl = document.getElementById("meIdentity");
-    const meCaloriesLifeEl = document.getElementById("meCaloriesLife");
-    const meRunnerBestTimeEl = document.getElementById("meRunnerBestTime");
-    const meRunnerMilesEl = document.getElementById("meRunnerMiles");
-
-    const meCaloriesDailyEl = document.getElementById("meCaloriesDaily");
-    const meCaloriesWeeklyEl = document.getElementById("meCaloriesWeekly");
-    const meCaloriesMonthlyEl = document.getElementById("meCaloriesMonthly");
-    const meCaloriesLifetime2El = document.getElementById("meCaloriesLifetime2");
-
-    const meRunnerBestEl = document.getElementById("meRunnerBest");
-    const meRunnerBestSubEl = document.getElementById("meRunnerBestSub");
-    const meLiftBestEl = document.getElementById("meLiftBest");
-    const meLiftBestSubEl = document.getElementById("meLiftBestSub");
-    const meSnackBestEl = document.getElementById("meSnackBest");
-    const meSnackBestSubEl = document.getElementById("meSnackBestSub");
-    const meBasketBestEl = document.getElementById("meBasketBest");
-    const meBasketBestSubEl = document.getElementById("meBasketBestSub");
-
-    const lbOverallBody = document.getElementById("lbOverallBody");
-    const lbRunnerBody  = document.getElementById("lbRunnerBody");
-    const lbLiftBody    = document.getElementById("lbLiftBody");
-    const lbSnackBody   = document.getElementById("lbSnackBody");
-    const lbBasketBody  = document.getElementById("lbBasketBody");
-
-    document.getElementById("yr").textContent = new Date().getFullYear();
-
-    document.getElementById("playBtn").addEventListener("click", () => {
-      window.location.href = "https://planetfatness.fit/runner/";
+  // Smooth "Play" button
+  try {
+    $("playBtn").addEventListener("click", () => {
+      const el = document.querySelector("#gym");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     });
+  } catch {}
 
-    document.getElementById("connectBtn").addEventListener("click", connectAndLogin);
-    document.getElementById("refreshMeBtn").addEventListener("click", loadMe);
-    document.getElementById("refreshLbBtn").addEventListener("click", () => loadAllLeaderboards(activeWindow));
-    document.getElementById("logoutBtn").addEventListener("click", logout);
+  // Toast
+  function toast(msg, ms = 2200) {
+    const t = $("toast");
+    if (!t) return;
+    t.textContent = msg;
+    t.style.display = "block";
+    clearTimeout(window.__pfToastT);
+    window.__pfToastT = setTimeout(() => (t.style.display = "none"), ms);
+  }
 
-    function toast(msg){
-      toastEl.textContent = msg;
-      toastEl.style.display = "block";
-      clearTimeout(window.__toastT);
-      window.__toastT = setTimeout(() => toastEl.style.display = "none", 2400);
+  // ---------- API wrapper (same-origin) ----------
+  const TOKEN_KEY = "pf_token";
+  const API_BASE = ""; // keep same-origin so nothing breaks in TG/web
+
+  const getToken = () => localStorage.getItem(TOKEN_KEY) || "";
+  const setToken = (tok) => localStorage.setItem(TOKEN_KEY, tok || "");
+  const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+
+  async function api(path, opts = {}) {
+    const headers = Object.assign(
+      { "Content-Type": "application/json" },
+      opts.headers || {}
+    );
+    const tok = getToken();
+    if (tok) headers.Authorization = `Bearer ${tok}`;
+
+    const res = await fetch(API_BASE + path, { ...opts, headers });
+    const text = await res.text();
+    let json = null;
+    try { json = text ? JSON.parse(text) : null; } catch {}
+    if (!res.ok) {
+      const msg = (json && (json.error || json.message)) || text || `HTTP ${res.status}`;
+      throw new Error(msg);
     }
+    return json;
+  }
 
-    function escapeHtml(s){
-      return String(s || "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+  // ---------- render helpers ----------
+  const safe = (v) => (v === null || v === undefined ? "" : String(v));
+  const ell = (s, n = 22) => (s && s.length > n ? s.slice(0, n - 1) + "…" : s || "—");
+
+  function setText(id, val) {
+    const el = $(id);
+    if (el) el.textContent = safe(val) || "—";
+  }
+
+  function fmtNum(n) {
+    const x = Number(n);
+    if (!isFinite(x)) return "—";
+    return x.toLocaleString();
+  }
+
+  function fmtTime(t) {
+    // Accept "mm:ss", number seconds, or ms
+    if (t === null || t === undefined) return "—";
+    if (typeof t === "string") return t;
+    const num = Number(t);
+    if (!isFinite(num)) return "—";
+    // if it looks like ms, convert
+    const sec = num > 999 ? Math.round(num / 1000) : Math.round(num);
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
+
+  function renderRows(tbodyId, rows, cols) {
+    const tb = $(tbodyId);
+    if (!tb) return;
+    if (!rows || !rows.length) {
+      tb.innerHTML = `<tr><td colspan="${cols}" class="muted">No entries yet.</td></tr>`;
+      return;
     }
+    tb.innerHTML = rows
+      .map((r, i) => {
+        const rank = i + 1;
+        const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
+        const calories = fmtNum(r.calories ?? r.kcal ?? r.points ?? r.totalCalories);
+        const bestTime = fmtTime(r.bestTime ?? r.runnerBestTime ?? r.best ?? r.best_time);
+        const miles = fmtNum(r.lifetimeMiles ?? r.miles ?? r.distanceMiles);
 
-    function shortAddr(a){
-      if (!a) return "—";
-      return a.slice(0, 4) + "…" + a.slice(-4);
+        // Caller can pass a row-builder instead; but keep this generic
+        return `<tr>
+          <td class="rank">${rank}</td>
+          <td>${safe(id)}</td>
+          <td>${calories}</td>
+          <td>${bestTime}</td>
+          <td>${miles}</td>
+        </tr>`;
+      })
+      .join("");
+  }
+
+  // ---------- leaderboards ----------
+  let LB_WINDOW = "daily";
+
+  function setActiveWindow(win) {
+    LB_WINDOW = win;
+    const tabs = document.querySelectorAll("#lbTabs .tab");
+    tabs.forEach((b) => b.classList.toggle("active", b.dataset.window === win));
+  }
+
+  async function loadLeaderboards() {
+    // Supports multiple backend shapes without breaking:
+    // 1) /leaderboard/v2?window=daily
+    // 2) /leaderboard/v2?range=daily
+    // 3) /leaderboard/v2/daily
+    let data = null;
+
+    const tries = [
+      `/leaderboard/v2?window=${encodeURIComponent(LB_WINDOW)}`,
+      `/leaderboard/v2?range=${encodeURIComponent(LB_WINDOW)}`,
+      `/leaderboard/v2/${encodeURIComponent(LB_WINDOW)}`
+    ];
+
+    for (const url of tries) {
+      try { data = await api(url, { method: "GET" }); break; } catch {}
     }
-
-    function fmtInt(n){
-      const x = Number(n || 0);
-      if (!isFinite(x)) return "—";
-      return Math.round(x).toLocaleString();
-    }
-
-    function fmtMiles(n){
-      const x = Number(n || 0);
-      if (!isFinite(x)) return "—";
-      if (x <= 0) return "0.00";
-      return x.toFixed(2);
-    }
-
-    function fmtTime(seconds){
-      const s = Math.max(0, Math.floor(Number(seconds) || 0));
-      const m = Math.floor(s / 60);
-      const r = s % 60;
-      return m + ":" + String(r).padStart(2, "0");
-    }
-
-    function getToken(){ return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
-    function getAddr(){ return (localStorage.getItem(ADDR_KEY) || "").trim(); }
-    function getTG(){
-      try { return JSON.parse(localStorage.getItem(TG_KEY) || "null"); }
-      catch { return null; }
-    }
-
-    function setSession(addr, token){
-      localStorage.setItem(ADDR_KEY, addr);
-      localStorage.setItem(TOKEN_KEY, token);
-      localStorage.setItem(ID_KIND, "wallet");
-    }
-
-    function setTGSession(tg, token){
-      try { localStorage.setItem(TG_KEY, JSON.stringify(tg)); } catch {}
-      localStorage.setItem(TOKEN_KEY, token);
-      localStorage.setItem(ID_KIND, "tg");
-      if (tg?.id) localStorage.setItem(ADDR_KEY, `tg:${tg.id}`);
-    }
-
-    function clearSession(){
-      localStorage.removeItem(ADDR_KEY);
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(TG_KEY);
-      localStorage.removeItem(ID_KIND);
-    }
-
-    function displayIdentity(){
-      const kind = (localStorage.getItem(ID_KIND) || "").trim();
-      const tg = getTG();
-      const addr = getAddr();
-
-      if (kind === "tg" && tg){
-        return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
-      }
-      if (addr){
-        if (addr.startsWith("tg:") && tg){
-          return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
-        }
-        return shortAddr(addr);
-      }
-      if (tg){
-        return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
-      }
-      return "—";
-    }
-
-    function setAuthUI(){
-      const token = getToken();
-      const ident = displayIdentity();
-
-      if (token && ident !== "—"){
-        authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
-        meIdentityEl.textContent = ident;
-      } else {
-        authStatusEl.textContent = "Not connected yet — open in Telegram or connect Phantom to lock your member card.";
-        meIdentityEl.textContent = "—";
-      }
-    }
-
-    function readJSON(key){
-      try { return JSON.parse(localStorage.getItem(key) || "null"); } catch { return null; }
-    }
-    function readBestRunner(){ return readJSON("pf_best_runner") || null; }
-    function readBestLift(){ return readJSON("pf_best_lift") || null; }
-    function readBestSnack(){ return readJSON("pf_best_snack") || null; }
-    function readBestBasket(){ return readJSON("pf_best_basket") || null; }
-
-    function waitForTelegram(ms = 3000){
-      return new Promise((resolve) => {
-        const start = Date.now();
-        (function tick(){
-          if (window.Telegram && window.Telegram.WebApp) return resolve(true);
-          if (Date.now() - start > ms) return resolve(false);
-          setTimeout(tick, 50);
-        })();
-      });
-    }
-
-    function isInTelegram(){
-      return !!(window.Telegram && window.Telegram.WebApp);
-    }
-
-    function tgSafeUser(tgu){
-      const id = tgu?.id;
-      const username = (tgu?.username || "").trim();
-      const name = [tgu?.first_name || "", tgu?.last_name || ""].join(" ").trim();
-      return { id, username, name };
-    }
-
-    async function telegramBootstrapOnce(){
-      const tg = isInTelegram() ? window.Telegram.WebApp : null;
-      if (!tg) return false;
-
-      try{
-        tg.ready && tg.ready();
-        tg.expand && tg.expand();
-
-        const unsafeUser = tgSafeUser(tg.initDataUnsafe && tg.initDataUnsafe.user);
-        const initData = (tg && typeof tg.initData === "string") ? tg.initData : "";
-
-        if (!initData){
-          if (unsafeUser && unsafeUser.id){
-            try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
-            setAuthUI();
-          }
-          return false;
-        }
-
-        const existingKind = (localStorage.getItem(ID_KIND) || "").trim();
-        const existingTg = getTG();
-        const existingToken = getToken();
-        const alreadySameTg =
-          existingKind === "tg" &&
-          existingToken &&
-          existingTg &&
-          unsafeUser?.id &&
-          String(existingTg.id) === String(unsafeUser.id);
-
-        if (alreadySameTg){
-          setAuthUI();
-          await loadMe();
-          await loadAllLeaderboards(activeWindow);
-          return true;
-        }
-
-        const r = await fetch(API_BASE + "/auth/telegram", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ initData })
-        });
-
-        const j = await r.json().catch(() => ({}));
-        if (!r.ok || !j || !j.token){
-          if (unsafeUser && unsafeUser.id){
-            try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
-            setAuthUI();
-          }
-          return false;
-        }
-
-        const tgu = j.telegram || (tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
-        const tgUser = tgSafeUser(tgu);
-
-        setTGSession(tgUser, j.token);
-        setAuthUI();
-
-        await loadMe();
-        await loadAllLeaderboards(activeWindow);
-        return true;
-
-      } catch(e){
-        return false;
-      }
-    }
-
-    async function telegramBootstrapRetry(){
-      if (!isInTelegram()) return;
-      const delays = [0, 120, 200, 320, 500, 750, 900, 1200, 1500, 1800, 2200, 2600, 3200];
-      for (let i = 0; i < delays.length; i++){
-        if (delays[i]) await new Promise(r => setTimeout(r, delays[i]));
-        const ok = await telegramBootstrapOnce();
-        if (ok) break;
-      }
-    }
-
-    function wireTelegramWakeups(){
-      if (!isInTelegram()) return;
-      document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) telegramBootstrapRetry();
-      });
-      window.addEventListener("focus", () => telegramBootstrapRetry());
-      try{
-        const tg = window.Telegram.WebApp;
-        if (tg && tg.onEvent){
-          tg.onEvent("viewportChanged", () => telegramBootstrapRetry());
-        }
-      }catch{}
-    }
-
-    async function connectAndLogin(){
-      const provider = window.solana;
-      if (provider?.isPhantom) return await connectInjected(provider);
-      toast("Opening Phantom…");
-      openInPhantomBrowser(window.location.href);
-    }
-
-    async function connectInjected(provider){
-      try{
-        const resp = await provider.connect();
-        const address = resp.publicKey.toString();
-
-        toast("Connected " + shortAddr(address) + " ✅");
-
-        const ch = await fetch(API_BASE + "/auth/challenge", {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ address })
-        }).then(r => r.json());
-
-        if (ch.error) { toast("Couldn’t start login."); return; }
-
-        const msgBytes = new TextEncoder().encode(ch.message);
-        const signed = await provider.signMessage(msgBytes, "utf8");
-        const sigB64 = bytesToBase64(signed.signature);
-
-        const v = await fetch(API_BASE + "/auth/verify", {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ address, nonce: ch.nonce, signature: sigB64 })
-        }).then(r => r.json());
-
-        if (!v.token){ toast("Login didn’t lock in."); return; }
-
-        setSession(address, v.token);
-        toast("Gym card locked ✅");
-        setAuthUI();
-        await loadMe();
-        await loadAllLeaderboards(activeWindow);
-
-      }catch(e){
-        toast("Connect cancelled.");
-      }
-    }
-
-    function openInPhantomBrowser(url){
-      const target = encodeURIComponent(url);
-      window.location.href = `https://phantom.app/ul/browse/${target}`;
-    }
-
-    function bytesToBase64(bytes){
-      let bin = "";
-      const arr = new Uint8Array(bytes);
-      for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
-      return btoa(bin);
-    }
-
-    async function loadMe(){
-      setAuthUI();
-
-      meCaloriesLifeEl.textContent = "—";
-      meRunnerBestTimeEl.textContent = "—";
-      meRunnerMilesEl.textContent = "—";
-      meCaloriesDailyEl.textContent = "—";
-      meCaloriesWeeklyEl.textContent = "—";
-      meCaloriesMonthlyEl.textContent = "—";
-      meCaloriesLifetime2El.textContent = "—";
-
-      hydrateLocalBestStats();
-
-      const token = getToken();
-      if (!token) return;
-
-      try{
-        const me = await fetch(API_BASE + "/activity/summary", {
-          headers:{ "Authorization":"Bearer " + token }
-        }).then(r => r.json());
-
-        if (me?.error) return;
-
-        meIdentityEl.textContent = displayIdentity();
-
-        const daily   = Number(me?.daily?.calories ?? me?.day?.calories ?? 0) || 0;
-        const weekly  = Number(me?.weekly?.calories ?? me?.week?.calories ?? 0) || 0;
-        const monthly = Number(me?.monthly?.calories ?? me?.month?.calories ?? 0) || 0;
-        const life    = Number(me?.lifetime?.totalCalories ?? me?.lifetime?.calories ?? me?.lifetimeCalories ?? 0) || 0;
-
-        meCaloriesDailyEl.textContent = fmtInt(daily);
-        meCaloriesWeeklyEl.textContent = fmtInt(weekly);
-        meCaloriesMonthlyEl.textContent = fmtInt(monthly);
-        meCaloriesLifeEl.textContent = fmtInt(life);
-        meCaloriesLifetime2El.textContent = fmtInt(life);
-
-        const bestSecs =
-          Number(me?.lifetime?.bestSeconds ?? me?.runner?.bestSeconds ?? me?.bestSeconds ?? 0) || 0;
-
-        const miles =
-          Number(me?.lifetime?.totalMiles ?? me?.runner?.totalMiles ?? 0) ||
-          (Number(me?.lifetime?.totalDistanceMeters ?? me?.runner?.totalDistanceMeters ?? 0) / 1609.344) ||
-          0;
-
-        if (bestSecs > 0) meRunnerBestTimeEl.textContent = fmtTime(bestSecs);
-        if (miles >= 0) meRunnerMilesEl.textContent = fmtMiles(miles);
-
-      } catch(e){
-      }
-    }
-
-    function hydrateLocalBestStats(){
-      const r = readBestRunner();
-      if (r){
-        const bestTime = r.bestSeconds ? fmtTime(r.bestSeconds) : null;
-        const bestScore = r.bestScore != null ? fmtInt(r.bestScore) : null;
-        meRunnerBestEl.textContent = bestTime ? bestTime : (bestScore ? bestScore : "—");
-        meRunnerBestSubEl.textContent =
-          (bestTime ? `best time: ${bestTime}` : "best time: —") +
-          (bestScore ? ` • best score: ${bestScore}` : "");
-
-        if (r.miles != null && Number(r.miles) >= 0){
-          meRunnerMilesEl.textContent = fmtMiles(r.miles);
-        }
-        if (r.bestSeconds != null && Number(r.bestSeconds) > 0){
-          meRunnerBestTimeEl.textContent = fmtTime(r.bestSeconds);
-        }
-      } else {
-        meRunnerBestEl.textContent = "—";
-        meRunnerBestSubEl.textContent = "best time • best score";
-      }
-
-      const l = readBestLift();
-      if (l){
-        const a = (l.bestReps != null) ? `${fmtInt(l.bestReps)} reps` : null;
-        const b = (l.bestScore != null) ? `${fmtInt(l.bestScore)} score` : null;
-        meLiftBestEl.textContent = a || b || "—";
-        meLiftBestSubEl.textContent = [a ? `best: ${a}` : "best: —", b ? b : ""].filter(Boolean).join(" • ");
-      } else {
-        meLiftBestEl.textContent = "—";
-        meLiftBestSubEl.textContent = "best set • best score";
-      }
-
-      const s = readBestSnack();
-      if (s){
-        const best = (s.bestScore != null) ? fmtInt(s.bestScore) : null;
-        meSnackBestEl.textContent = best || "—";
-        meSnackBestSubEl.textContent = best ? `best score: ${best}` : "best combo";
-      } else {
-        meSnackBestEl.textContent = "—";
-        meSnackBestSubEl.textContent = "best combo";
-      }
-
-      const b = readBestBasket();
-      if (b){
-        const st = (b.bestStreak != null) ? fmtInt(b.bestStreak) : null;
-        const sc = (b.bestScore != null) ? fmtInt(b.bestScore) : null;
-        meBasketBestEl.textContent = st ? st : (sc ? sc : "—");
-        meBasketBestSubEl.textContent =
-          (st ? `best streak: ${st}` : "best streak: —") +
-          (sc ? ` • best score: ${sc}` : "");
-      } else {
-        meBasketBestEl.textContent = "—";
-        meBasketBestSubEl.textContent = "best streak • best score";
-      }
-    }
-
-    const GAME = { runner:"runner", lift:"lift", snack:"snack", basket:"basket" };
-    let activeWindow = "daily";
-
-    function fmtIdent(row){
-      const dn = (row.display_name || row.displayName || row.name || "").trim();
-      const addr = String(row.address || "").trim();
-      if (dn) return dn;
-      if (addr.startsWith("tg:")) return "@" + addr.slice(3);
-      if (addr) return addr.slice(0,4) + "…" + addr.slice(-4);
-      return "—";
-    }
-
-    function getRowNumber(row, keys){
-      for (const k of keys){
-        if (row && row[k] != null) return Number(row[k]) || 0;
-      }
-      return 0;
-    }
-
-    async function fetchV2({ window, metric, game, limit }){
-      const qs = new URLSearchParams();
-      if (window) qs.set("window", window);
-      if (metric) qs.set("metric", metric);
-      if (game) qs.set("game", game);
-      if (limit) qs.set("limit", String(limit || 30));
-      const url = API_BASE + "/leaderboard/v2?" + qs.toString();
-
-      const r = await fetch(url, { headers:{ "Accept":"application/json" } });
-      if (!r.ok) return null;
-      const j = await r.json().catch(()=>null);
-      if (Array.isArray(j)) return j;
-      if (j && Array.isArray(j.rows)) return j.rows;
-      return null;
-    }
-
-    async function loadAllLeaderboards(windowKey){
-      activeWindow = windowKey || activeWindow;
-
-      lbOverallBody.innerHTML = `<tr><td colspan="5" class="muted">Loading…</td></tr>`;
-      lbRunnerBody.innerHTML  = `<tr><td colspan="4" class="muted">Loading…</td></tr>`;
-      lbLiftBody.innerHTML    = `<tr><td colspan="4" class="muted">Loading…</td></tr>`;
-      lbSnackBody.innerHTML   = `<tr><td colspan="4" class="muted">Loading…</td></tr>`;
-      lbBasketBody.innerHTML  = `<tr><td colspan="4" class="muted">Loading…</td></tr>`;
-
-      const overall = await fetchV2({ window: activeWindow, metric:"calories", limit: 30 });
-
-      if (!overall || !overall.length){
-        lbOverallBody.innerHTML = `<tr><td colspan="5" class="muted">No entries yet. First gym rat gets bragging rights.</td></tr>`;
-      } else {
-        lbOverallBody.innerHTML = overall.slice(0,30).map((u,i)=>{
-          const ident = escapeHtml(fmtIdent(u));
-          const cals  = getRowNumber(u, ["value","calories","total_calories","totalCalories"]);
-          const best  = getRowNumber(u, ["best_seconds","bestSeconds","bestSecondsRunner"]);
-          const miles = getRowNumber(u, ["total_miles","totalMiles","miles","lifetimeMiles"]);
-          return `
-            <tr>
-              <td class="rank">${i+1}</td>
-              <td>${ident}</td>
-              <td>${fmtInt(cals)}</td>
-              <td>${best ? fmtTime(best) : "—"}</td>
-              <td>${isFinite(miles) && miles >= 0 ? fmtMiles(miles) : "—"}</td>
-            </tr>
-          `;
-        }).join("");
-      }
-
-      const [runner, lift, snack] = await Promise.all([
-        fetchV2({ window: activeWindow, metric:"calories", game: GAME.runner, limit: 20 }),
-        fetchV2({ window: activeWindow, metric:"calories", game: GAME.lift, limit: 20 }),
-        fetchV2({ window: activeWindow, metric:"calories", game: GAME.snack, limit: 20 }),
-      ]);
-
-      const basketStreak = await fetchV2({ window: activeWindow, metric:"streak", game: GAME.basket, limit: 20 });
-      const basketScore  = await fetchV2({ window: activeWindow, metric:"score",  game: GAME.basket, limit: 20 });
-
-      if (!runner || !runner.length){
-        lbRunnerBody.innerHTML = `<tr><td colspan="4" class="muted">No runner entries yet.</td></tr>`;
-      } else {
-        lbRunnerBody.innerHTML = runner.slice(0,10).map((u,i)=>{
-          const ident = escapeHtml(fmtIdent(u));
-          const cals  = getRowNumber(u, ["value","calories","total_calories","totalCalories"]);
-          const best  = getRowNumber(u, ["best_seconds","bestSeconds","bestSecondsRunner"]);
-          return `
-            <tr>
-              <td class="rank">${i+1}</td>
-              <td>${ident}</td>
-              <td>${fmtInt(cals)}</td>
-              <td>${best ? fmtTime(best) : "—"}</td>
-            </tr>
-          `;
-        }).join("");
-      }
-
-      if (!lift || !lift.length){
-        lbLiftBody.innerHTML = `<tr><td colspan="4" class="muted">No lift entries yet.</td></tr>`;
-      } else {
-        lbLiftBody.innerHTML = lift.slice(0,10).map((u,i)=>{
-          const ident = escapeHtml(fmtIdent(u));
-          const cals  = getRowNumber(u, ["value","calories","total_calories","totalCalories"]);
-          const best  = getRowNumber(u, ["best","best_score","bestScore","score","value"]);
-          return `
-            <tr>
-              <td class="rank">${i+1}</td>
-              <td>${ident}</td>
-              <td>${fmtInt(cals)}</td>
-              <td>${best ? fmtInt(best) : "—"}</td>
-            </tr>
-          `;
-        }).join("");
-      }
-
-      if (!snack || !snack.length){
-        lbSnackBody.innerHTML = `<tr><td colspan="4" class="muted">No munch entries yet.</td></tr>`;
-      } else {
-        lbSnackBody.innerHTML = snack.slice(0,10).map((u,i)=>{
-          const ident = escapeHtml(fmtIdent(u));
-          const cals  = getRowNumber(u, ["value","calories","total_calories","totalCalories"]);
-          const best  = getRowNumber(u, ["best","best_score","bestScore","score","value"]);
-          return `
-            <tr>
-              <td class="rank">${i+1}</td>
-              <td>${ident}</td>
-              <td>${fmtInt(cals)}</td>
-              <td>${best ? fmtInt(best) : "—"}</td>
-            </tr>
-          `;
-        }).join("");
-      }
-
-      const mapBy = (rows) => {
-        const m = new Map();
-        (rows || []).forEach(r=>{
-          const addr = String(r.address || r.addr || r.id || "").trim() || fmtIdent(r);
-          m.set(addr, r);
-        });
-        return m;
+    if (!data) throw new Error("Leaderboard endpoint not reachable.");
+
+    // Normalize
+    const overall =
+      data.overall ||
+      data.leaderboard ||
+      data.rows ||
+      data.data?.overall ||
+      [];
+
+    const games =
+      data.games ||
+      data.data?.games ||
+      {
+        runner: data.runner || data.data?.runner,
+        lift: data.lift || data.data?.lift,
+        snack: data.snack || data.data?.snack,
+        basket: data.basket || data.data?.basket
       };
 
-      const ms = mapBy(basketStreak);
-      const mc = mapBy(basketScore);
-
-      const merged = [];
-      for (const [k, r] of ms.entries()){
-        const ident = fmtIdent(r);
-        const st = getRowNumber(r, ["value","streak","best_streak","bestStreak"]);
-        const rr = mc.get(k);
-        const sc = rr ? getRowNumber(rr, ["value","score","best_score","bestScore"]) : 0;
-        merged.push({ key:k, ident, st, sc });
-      }
-      for (const [k, r] of mc.entries()){
-        if (ms.has(k)) continue;
-        const ident = fmtIdent(r);
-        const sc = getRowNumber(r, ["value","score","best_score","bestScore"]);
-        merged.push({ key:k, ident, st:0, sc });
-      }
-
-      merged.sort((a,b)=> (b.st-a.st) || (b.sc-a.sc));
-
-      if (!merged.length){
-        lbBasketBody.innerHTML = `<tr><td colspan="4" class="muted">No streak shot entries yet.</td></tr>`;
-      } else {
-        lbBasketBody.innerHTML = merged.slice(0,10).map((r,i)=>{
-          return `
-            <tr>
-              <td class="rank">${i+1}</td>
-              <td>${escapeHtml(r.ident)}</td>
-              <td>${fmtInt(r.st)}</td>
-              <td>${fmtInt(r.sc)}</td>
-            </tr>
-          `;
-        }).join("");
+    // Overall table (expects 5 cols already in HTML)
+    {
+      const tb = $("lbOverallBody");
+      if (tb) {
+        if (!overall.length) {
+          tb.innerHTML = `<tr><td colspan="5" class="muted">No entries yet.</td></tr>`;
+        } else {
+          tb.innerHTML = overall.slice(0, 50).map((r, i) => {
+            const rank = i + 1;
+            const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+            const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
+            const best = fmtTime(r.runnerBestTime ?? r.bestTime ?? r.best ?? r.best_time);
+            const miles = fmtNum(r.lifetimeMiles ?? r.miles ?? r.distanceMiles);
+            return `<tr>
+              <td class="rank">${rank}</td>
+              <td>${safe(id)}</td>
+              <td>${calories}</td>
+              <td>${best}</td>
+              <td>${miles}</td>
+            </tr>`;
+          }).join("");
+        }
       }
     }
 
-    const tabsWrap = document.getElementById("lbTabs");
-    tabsWrap.addEventListener("click", (e)=>{
-      const btn = e.target.closest(".tab");
-      if (!btn) return;
-      const win = btn.getAttribute("data-window");
-      if (!win) return;
+    // Runner
+    {
+      const rows = (games.runner || []).slice(0, 50);
+      const tb = $("lbRunnerBody");
+      if (tb) {
+        tb.innerHTML = rows.length ? rows.map((r, i) => {
+          const rank = i + 1;
+          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
+          const best = fmtTime(r.bestTime ?? r.runnerBestTime ?? r.best ?? r.best_time);
+          return `<tr>
+            <td class="rank">${rank}</td>
+            <td>${safe(id)}</td>
+            <td>${calories}</td>
+            <td>${best}</td>
+          </tr>`;
+        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+      }
+    }
 
-      [...tabsWrap.querySelectorAll(".tab")].forEach(t => t.classList.toggle("active", t === btn));
-      activeWindow = win;
-      loadAllLeaderboards(activeWindow);
-      toast("Showing " + win + " leaders.");
+    // Lift
+    {
+      const rows = (games.lift || []).slice(0, 50);
+      const tb = $("lbLiftBody");
+      if (tb) {
+        tb.innerHTML = rows.length ? rows.map((r, i) => {
+          const rank = i + 1;
+          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
+          const best = fmtNum(r.best ?? r.bestScore ?? r.bestSet ?? r.value);
+          return `<tr>
+            <td class="rank">${rank}</td>
+            <td>${safe(id)}</td>
+            <td>${calories}</td>
+            <td>${best}</td>
+          </tr>`;
+        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+      }
+    }
+
+    // Snack
+    {
+      const rows = (games.snack || []).slice(0, 50);
+      const tb = $("lbSnackBody");
+      if (tb) {
+        tb.innerHTML = rows.length ? rows.map((r, i) => {
+          const rank = i + 1;
+          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
+          const best = fmtNum(r.best ?? r.bestScore ?? r.bestCombo ?? r.value);
+          return `<tr>
+            <td class="rank">${rank}</td>
+            <td>${safe(id)}</td>
+            <td>${calories}</td>
+            <td>${best}</td>
+          </tr>`;
+        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+      }
+    }
+
+    // Basket (Best Streak + Best Score)
+    {
+      const rows = (games.basket || []).slice(0, 50);
+      const tb = $("lbBasketBody");
+      if (tb) {
+        tb.innerHTML = rows.length ? rows.map((r, i) => {
+          const rank = i + 1;
+          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+          const bestStreak = fmtNum(r.bestStreak ?? r.streak ?? r.maxStreak ?? r.best_run);
+          const bestScore = fmtNum(r.bestScore ?? r.score ?? r.maxScore ?? r.best_points);
+          return `<tr>
+            <td class="rank">${rank}</td>
+            <td>${safe(id)}</td>
+            <td>${bestStreak}</td>
+            <td>${bestScore}</td>
+          </tr>`;
+        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+      }
+    }
+  }
+
+  // ---------- "Me" (Gym Card) ----------
+  async function loadMe() {
+    // Try a few common endpoints; keep it defensive
+    const tries = ["/me", "/auth/me", "/users/me"];
+    let me = null;
+    for (const url of tries) {
+      try { me = await api(url, { method: "GET" }); break; } catch {}
+    }
+    if (!me) return;
+
+    const identity = me.identity || me.username || me.handle || me.wallet || me.id || "—";
+    setText("meIdentity", identity);
+
+    setText("meCaloriesLife", fmtNum(me.lifetimeCalories ?? me.caloriesLife ?? me.totalCalories ?? me.calories));
+    setText("meRunnerBestTime", fmtTime(me.runnerBestTime ?? me.bestTime ?? me.best_time));
+    setText("meRunnerMiles", fmtNum(me.lifetimeMiles ?? me.runnerMiles ?? me.miles));
+
+    setText("meCaloriesDaily", fmtNum(me.caloriesDaily ?? me.dailyCalories ?? me.daily));
+    setText("meCaloriesWeekly", fmtNum(me.caloriesWeekly ?? me.weeklyCalories ?? me.weekly));
+    setText("meCaloriesMonthly", fmtNum(me.caloriesMonthly ?? me.monthlyCalories ?? me.monthly));
+    setText("meCaloriesLifetime2", fmtNum(me.lifetimeCalories ?? me.caloriesLife ?? me.totalCalories));
+
+    // Per-game bests (accept multiple shapes)
+    setText("meRunnerBest", fmtTime(me.runner?.bestTime ?? me.runnerBestTime ?? me.bestTime));
+    setText("meLiftBest", fmtNum(me.lift?.best ?? me.liftBest ?? me.liftBestScore ?? me.lift?.bestScore));
+    setText("meSnackBest", fmtNum(me.snack?.best ?? me.snackBest ?? me.snackBestScore ?? me.snack?.bestScore));
+    setText("meBasketBest", fmtNum(me.basket?.bestScore ?? me.basketBest ?? me.basketBestScore ?? me.basket?.best));
+
+    // Lifetime makes (new)
+    setText("meBasketMakes", fmtNum(me.basket?.lifetimeMakes ?? me.basketMakes ?? me.lifetimeMakes ?? me.basket?.makes));
+
+    // Auth status label
+    const auth = $("authStatus");
+    if (auth) {
+      auth.textContent = `Member loaded — ${ell(String(identity), 28)}.`;
+    }
+  }
+
+  // ---------- Tabs wiring ----------
+  try {
+    document.querySelectorAll("#lbTabs .tab").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        setActiveWindow(btn.dataset.window || "daily");
+        try {
+          await loadLeaderboards();
+          toast(`Loaded ${LB_WINDOW} leaderboard`);
+        } catch (e) {
+          toast(`Leaderboard error: ${e.message || e}`);
+        }
+      });
+    });
+  } catch {}
+
+  // ---------- Buttons ----------
+  try {
+    $("refreshLbBtn").addEventListener("click", async () => {
+      try { await loadLeaderboards(); toast("Leaderboards refreshed"); } catch (e) { toast(e.message || e); }
+    });
+  } catch {}
+
+  try {
+    $("refreshMeBtn").addEventListener("click", async () => {
+      try { await loadMe(); toast("Gym card refreshed"); } catch (e) { toast(e.message || e); }
+    });
+  } catch {}
+
+  try {
+    $("logoutBtn").addEventListener("click", () => {
+      clearToken();
+      toast("Logged out");
+      const auth = $("authStatus");
+      if (auth) auth.textContent = "Not connected yet — open in Telegram or connect Phantom to lock your member card.";
+      ["meIdentity","meCaloriesLife","meRunnerBestTime","meRunnerMiles","meCaloriesDaily","meCaloriesWeekly","meCaloriesMonthly","meCaloriesLifetime2","meRunnerBest","meLiftBest","meSnackBest","meBasketBest","meBasketMakes"]
+        .forEach((id) => setText(id, "—"));
+    });
+  } catch {}
+
+  // ---------- Telegram auth (safe + non-breaking) ----------
+  // If your backend already supports /auth/telegram, this will log you in.
+  // If not, it will simply no-op and won’t break anything.
+  async function tryTelegramAuth() {
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const initData = tg && typeof tg.initData === "string" ? tg.initData : "";
+    if (!initData) return false;
+
+    try {
+      const out = await api("/auth/telegram", {
+        method: "POST",
+        body: JSON.stringify({ initData })
+      });
+      if (out && out.token) {
+        setToken(out.token);
+        toast("Telegram verified ✅");
+        return true;
+      }
+    } catch {}
+    return false;
+  }
+
+  // ---------- Phantom connect (safe + non-breaking) ----------
+  // If your backend supports /auth/wallet/challenge + /auth/wallet/verify, this will work.
+  async function tryPhantomAuth() {
+    if (!window.solana || !window.solana.isPhantom) {
+      toast("Phantom not found");
+      return false;
+    }
+
+    const provider = window.solana;
+    const resp = await provider.connect({ onlyIfTrusted: false });
+    const pubkey = resp?.publicKey?.toString?.() || provider.publicKey?.toString?.();
+    if (!pubkey) throw new Error("Wallet connect failed");
+
+    // Challenge
+    const chal = await api("/auth/wallet/challenge", {
+      method: "POST",
+      body: JSON.stringify({ address: pubkey })
     });
 
-    function logout(){
-      clearSession();
-      setAuthUI();
-      hydrateLocalBestStats();
-      toast("Logged out.");
+    const message = chal?.message || chal?.data?.message;
+    if (!message) throw new Error("No challenge message");
+
+    const enc = new TextEncoder().encode(message);
+    const signed = await provider.signMessage(enc, "utf8");
+
+    const verify = await api("/auth/wallet/verify", {
+      method: "POST",
+      body: JSON.stringify({
+        address: pubkey,
+        signature: Array.from(signed.signature || signed),
+        message
+      })
+    });
+
+    if (verify?.token) {
+      setToken(verify.token);
+      toast("Wallet verified ✅");
+      return true;
     }
+    throw new Error("Wallet verify failed");
+  }
 
-    (async () => {
-      setAuthUI();
-      hydrateLocalBestStats();
-      loadMe();
-      loadAllLeaderboards(activeWindow);
-
-      const tgReady = await waitForTelegram(3000);
-      if (tgReady){
-        wireTelegramWakeups();
-        telegramBootstrapRetry();
+  try {
+    $("connectBtn").addEventListener("click", async () => {
+      try {
+        await tryPhantomAuth();
+        await loadMe();
+        await loadLeaderboards();
+      } catch (e) {
+        toast(e.message || e);
       }
-    })();
-  </script>
+    });
+  } catch {}
+
+  // ---------- Boot ----------
+  (async function boot() {
+    // Don’t break anything if TG isn’t present
+    try { await tryTelegramAuth(); } catch {}
+    try { await loadMe(); } catch {}
+    try { await loadLeaderboards(); } catch {}
+  })();
+</script>
+
 </body>
 </html>
