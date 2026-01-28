@@ -1096,8 +1096,7 @@ New index
 
   // ---------- API wrapper (same-origin) ----------
   const TOKEN_KEY = "pf_token";
-  const API_BASE = ""; // keep same-origin so nothing breaks in TG/web
-
+  const API_BASE = "https://planetfatness-backend.onrender.com";
   const getToken = () => localStorage.getItem(TOKEN_KEY) || "";
   const setToken = (tok) => localStorage.setItem(TOKEN_KEY, tok || "");
   const clearToken = () => localStorage.removeItem(TOKEN_KEY);
