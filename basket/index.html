@@ -1,4 +1,3 @@
-<!-- BASKET INDEX — PART 1/4 (start of file) -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -373,7 +372,7 @@
 
     </div>
   </div>
-  <!-- BASKET INDEX — PART 2/4 (script start + globals + LB helpers) -->
+
 <script>
 (() => {
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -381,9 +380,6 @@
 
   function readLS(key){
     try { return (localStorage.getItem(key)||'').trim(); } catch { return ''; }
-  }
-  function writeLS(key, val){
-    try { localStorage.setItem(key, String(val)); } catch {}
   }
   function writeJSON(key, obj){
     try { localStorage.setItem(key, JSON.stringify(obj)); } catch {}
@@ -450,7 +446,7 @@
     el.innerHTML=html;
   }
 
-  // ===== Global leaderboard (server) =====
+    // ===== Global leaderboard (server) =====
   async function fetchGlobalLB(){
     if (!String(API_BASE).trim()) return null;
 
@@ -496,10 +492,10 @@
       return;
     }
 
-    // We’ll sort by “streak then score” if both exist, otherwise by value
+    // sort by “best streak then best score” if present; else by value
     const mapped = rows.map(r => {
-      const streak = (r.streak ?? r.best_streak ?? r.bestStreak);
-      const score  = (r.score ?? r.best_score ?? r.bestScore);
+      const streak = (r.best_streak ?? r.bestStreak ?? r.streak ?? null);
+      const score  = (r.best_score  ?? r.bestScore  ?? r.score  ?? null);
       return {
         raw: r,
         ident: fmtIdent(r),
@@ -523,15 +519,15 @@
           <tr>
             <th>#</th>
             <th>Identity</th>
-            <th>Streak</th>
-            <th>Score</th>
+            <th>Best Streak</th>
+            <th>Best Score</th>
           </tr>
         </thead>
         <tbody>`;
 
     mapped.slice(0,30).forEach((r,i)=>{
-      const streak = (r.streak != null) ? r.streak : r.value;
-      const score  = (r.score  != null) ? r.score  : (r.streak != null ? (r.value||0) : 0);
+      const streak = (r.streak != null) ? r.streak : (r.value||0);
+      const score  = (r.score  != null) ? r.score  : 0;
       html +=
         `<tr>
           <td>${i+1}</td>
@@ -650,7 +646,6 @@
       renderLocalLB(leaderBoxEnd);
       return;
     }
-    // global
     if (!cachedGlobalRows){
       leaderBoxEnd.innerHTML = `<div style="color:rgba(255,255,255,.70);font-weight:900;">Loading global leaderboard…</div>`;
       cachedGlobalRows = await fetchGlobalLB();
@@ -674,7 +669,8 @@
   // Toast
   let toastT=0;
   const showToast=(msg)=>{toast.textContent=msg;toast.classList.add('show');toastT=1.1;};
-  <!-- BASKET INDEX — PART 3/4 (game logic + submit + “main page hook”) -->
+
+  // ---------- Game logic ----------
   function resize(){
     const rect=cv.getBoundingClientRect();
     const w = rect.width || stage.getBoundingClientRect().width;
@@ -858,8 +854,7 @@
     updateHUD();
   }
 
-  // ✅ “Main page hook”
-  // Writes best + last run so HUB can display Streak Shot stats even before you wire a global LB endpoint.
+  // Writes best + last run for HUB display
   function persistBasketStats(streak, score, synced, calories){
     const best = readJSON('pf_best_basket') || { bestStreak:0, bestScore:0, at:0 };
     const next = { ...best };
@@ -910,7 +905,6 @@
       ? `Run ended. Submitting…`
       : `Run ended. Guest run (open in Telegram / HUB to save globally).`;
 
-    // default: show global tab first
     lbMode = 'global';
     setActiveTab();
     cachedGlobalRows = null;
@@ -918,7 +912,6 @@
 
     overlayEnd.classList.add('show');
 
-    // Guest: persist stats + show local LB
     if (!isLoggedIn()){
       persistBasketStats(lastRun.streak, lastRun.score, false, 0);
       renderLocalLB(leaderBoxEnd);
@@ -936,14 +929,20 @@
 
       if (res && res.ok && res.data){
         const earned = Number(res.data.earnedCalories ?? res.data.calories ?? 0) || 0;
-        const today  = (res.data.today !== undefined && res.data.today !== null) ? Number(res.data.today) : null;
-        const cap    = (res.data.cap  !== undefined && res.data.cap  !== null) ? Number(res.data.cap)  : null;
+
+        const todayCals = (res.data.today && typeof res.data.today === 'object')
+          ? Number(res.data.today.calories ?? 0)
+          : null;
+
+        const cap = (res.data.caps && typeof res.data.caps === 'object')
+          ? Number(res.data.caps.dailyCapCalories ?? 0)
+          : null;
 
         lastRun.calories = Math.max(0, Math.round(earned));
         lastRun.synced = true;
 
-        if (today !== null && cap !== null && isFinite(today) && isFinite(cap)){
-          lastRun.capLine = `Cals earned: ${lastRun.calories} • Today: ${today}/${cap}`;
+        if (todayCals !== null && cap !== null && isFinite(todayCals) && isFinite(cap) && cap > 0){
+          lastRun.capLine = `Cals earned: ${lastRun.calories} • Today: ${todayCals}/${cap}`;
         } else {
           lastRun.capLine = `Cals earned: ${lastRun.calories}`;
         }
@@ -962,7 +961,6 @@
 
       submitting = false;
 
-      // refresh global leaderboard after submit
       cachedGlobalRows = await fetchGlobalLB();
       await renderActiveLB();
     }
@@ -1075,7 +1073,7 @@
       floorBounced:false
     };
   }
- <!-- BASKET INDEX — PART 4/4 (physics/draw + share/save buttons + boot + close file) -->
+
   function step(dt){
     if(!run) return;
 
@@ -1303,9 +1301,9 @@
     }
   }
 
-  // ✅ Save button logic:
-  // - Logged in: run already saved globally on end; this button just refreshes global LB
-  // - Guest: still supports local save
+  // Save button:
+  // - Logged in: already submitted on end; refreshes global LB
+  // - Guest: saves to local LB
   async function saveRun(){
     if(!lastRun) return;
 
