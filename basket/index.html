@@ -1255,22 +1255,35 @@
     }
   }
 
-  let last=performance.now();
-  function loop(now){
-    requestAnimationFrame(loop);
-    const dt=Math.min(0.033,(now-last)/1000);
-    last=now;
+  let last = performance.now();
 
-    if(run){
-      if(run.playing && !run.ended) step(dt);
-      draw();
-    } else {
-      const tmp=newRun();
-      tmp.playing=false;
-      run=tmp; draw(); run=null;
-    }
-  }
+// ✅ keep a lightweight “preview” run so we don’t allocate every frame when idle
+let idlePreview = null;
+
+function loop(now){
   requestAnimationFrame(loop);
+  const dt = Math.min(0.033, (now - last) / 1000);
+  last = now;
+
+  if (run){
+    if (run.playing && !run.ended) step(dt);
+    draw();
+    return;
+  }
+
+  // No active run — render a static preview without re-creating it every frame
+  if (!idlePreview){
+    idlePreview = newRun();
+    idlePreview.playing = false;
+  }
+
+  // temporarily point run to preview so draw() works unchanged
+  run = idlePreview;
+  draw();
+  run = null;
+}
+
+requestAnimationFrame(loop);
 
   async function shareRun(){
     if(!lastRun) return;
