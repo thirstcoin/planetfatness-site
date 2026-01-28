@@ -1188,20 +1188,16 @@ async function api(path, opts = {}) {
       .join("");
   }
 
-  // ---------- leaderboards ----------
-  let LB_WINDOW = "daily";
+// ---------- leaderboards ----------
+let LB_WINDOW = "daily";
 
-  function setActiveWindow(win) {
-    LB_WINDOW = win;
-    const tabs = document.querySelectorAll("#lbTabs .tab");
-    tabs.forEach((b) => b.classList.toggle("active", b.dataset.window === win));
-  }
+function setActiveWindow(win) {
+  LB_WINDOW = win;
+  const tabs = document.querySelectorAll("#lbTabs .tab");
+  tabs.forEach((b) => b.classList.toggle("active", b.dataset.window === win));
+}
 
 async function loadLeaderboards() {
-  // Supports multiple backend shapes without breaking:
-  // 1) /leaderboard/v2?window=daily
-  // 2) /leaderboard/v2?range=daily
-  // 3) /leaderboard/v2/daily
   let data = null;
 
   const tries = [
@@ -1213,11 +1209,8 @@ async function loadLeaderboards() {
   for (const url of tries) {
     try {
       data = await api(url, { method: "GET" });
-
-      // 🔍 DEBUG — see exactly what backend returns
       console.log("LEADERBOARD URL HIT:", url);
       console.log("FULL LEADERBOARD RESPONSE:", JSON.stringify(data, null, 2));
-
       break;
     } catch (e) {
       console.log("LEADERBOARD TRY FAILED:", url, e?.message || e);
@@ -1226,7 +1219,7 @@ async function loadLeaderboards() {
 
   if (!data) throw new Error("Leaderboard endpoint not reachable.");
 
-  // Normalize (this is likely where the mismatch is)
+  // Normalize
   const overall =
     data.overall ||
     data.leaderboard ||
@@ -1240,13 +1233,13 @@ async function loadLeaderboards() {
     data.games ||
     data.data?.games ||
     {
-      runner: data.runner || data.data?.runner,
-      lift: data.lift || data.data?.lift,
-      snack: data.snack || data.data?.snack,
-      basket: data.basket || data.data?.basket
+      runner: data.runner || data.data?.runner || [],
+      lift: data.lift || data.data?.lift || [],
+      snack: data.snack || data.data?.snack || [],
+      basket: data.basket || data.data?.basket || []
     };
 
-  // Overall table (expects 5 cols already in HTML)
+  // Overall table (5 cols)
   {
     const tb = $("lbOverallBody");
     if (tb) {
@@ -1257,17 +1250,8 @@ async function loadLeaderboards() {
           const rank = i + 1;
           const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
           const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
-          const best = fmtTime(
-            r.runnerBestTime ??
-            r.bestTime ??
-            r.best ??
-            r.best_time
-          );
-          const miles = fmtNum(
-            r.lifetimeMiles ??
-            r.miles ??
-            r.distanceMiles
-          );
+          const best = fmtTime(r.runnerBestTime ?? r.bestTime ?? r.best ?? r.best_time);
+          const miles = fmtNum(r.lifetimeMiles ?? r.miles ?? r.distanceMiles);
 
           return `<tr>
             <td class="rank">${rank}</td>
@@ -1280,87 +1264,87 @@ async function loadLeaderboards() {
       }
     }
   }
-}
-    // Runner
-    {
-      const rows = (games.runner || []).slice(0, 50);
-      const tb = $("lbRunnerBody");
-      if (tb) {
-        tb.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
-          const best = fmtTime(r.bestTime ?? r.runnerBestTime ?? r.best ?? r.best_time);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${calories}</td>
-            <td>${best}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
-    }
 
-    // Lift
-    {
-      const rows = (games.lift || []).slice(0, 50);
-      const tb = $("lbLiftBody");
-      if (tb) {
-        tb.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
-          const best = fmtNum(r.best ?? r.bestScore ?? r.bestSet ?? r.value);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${calories}</td>
-            <td>${best}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
-    }
-
-    // Snack
-    {
-      const rows = (games.snack || []).slice(0, 50);
-      const tb = $("lbSnackBody");
-      if (tb) {
-        tb.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
-          const best = fmtNum(r.best ?? r.bestScore ?? r.bestCombo ?? r.value);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${calories}</td>
-            <td>${best}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
-    }
-
-    // Basket (Best Streak + Best Score)
-    {
-      const rows = (games.basket || []).slice(0, 50);
-      const tb = $("lbBasketBody");
-      if (tb) {
-        tb.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-          const bestStreak = fmtNum(r.bestStreak ?? r.streak ?? r.maxStreak ?? r.best_run);
-          const bestScore = fmtNum(r.bestScore ?? r.score ?? r.maxScore ?? r.best_points);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${bestStreak}</td>
-            <td>${bestScore}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
+  // Runner (4 cols)
+  {
+    const rows = (games.runner || []).slice(0, 50);
+    const tb = $("lbRunnerBody");
+    if (tb) {
+      tb.innerHTML = rows.length ? rows.map((r, i) => {
+        const rank = i + 1;
+        const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+        const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
+        const best = fmtTime(r.bestTime ?? r.runnerBestTime ?? r.best ?? r.best_time);
+        return `<tr>
+          <td class="rank">${rank}</td>
+          <td>${safe(id)}</td>
+          <td>${calories}</td>
+          <td>${best}</td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
     }
   }
+
+  // Lift (4 cols)
+  {
+    const rows = (games.lift || []).slice(0, 50);
+    const tb = $("lbLiftBody");
+    if (tb) {
+      tb.innerHTML = rows.length ? rows.map((r, i) => {
+        const rank = i + 1;
+        const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+        const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
+        const best = fmtNum(r.best ?? r.bestScore ?? r.bestSet ?? r.value);
+        return `<tr>
+          <td class="rank">${rank}</td>
+          <td>${safe(id)}</td>
+          <td>${calories}</td>
+          <td>${best}</td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+    }
+  }
+
+  // Snack (4 cols)
+  {
+    const rows = (games.snack || []).slice(0, 50);
+    const tb = $("lbSnackBody");
+    if (tb) {
+      tb.innerHTML = rows.length ? rows.map((r, i) => {
+        const rank = i + 1;
+        const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+        const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
+        const best = fmtNum(r.best ?? r.bestScore ?? r.bestCombo ?? r.value);
+        return `<tr>
+          <td class="rank">${rank}</td>
+          <td>${safe(id)}</td>
+          <td>${calories}</td>
+          <td>${best}</td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+    }
+  }
+
+  // Basket (4 cols)
+  {
+    const rows = (games.basket || []).slice(0, 50);
+    const tb = $("lbBasketBody");
+    if (tb) {
+      tb.innerHTML = rows.length ? rows.map((r, i) => {
+        const rank = i + 1;
+        const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+        const bestStreak = fmtNum(r.bestStreak ?? r.streak ?? r.maxStreak ?? r.best_run);
+        const bestScore = fmtNum(r.bestScore ?? r.score ?? r.maxScore ?? r.best_points);
+        return `<tr>
+          <td class="rank">${rank}</td>
+          <td>${safe(id)}</td>
+          <td>${bestStreak}</td>
+          <td>${bestScore}</td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+    }
+  }
+}
 
   // ---------- "Me" (Gym Card) ----------
   async function loadMe() {
