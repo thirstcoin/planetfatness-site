@@ -1189,165 +1189,253 @@ async function api(path, opts = {}) {
   }
 
   // ---------- leaderboards ----------
-  let LB_WINDOW = "daily";
+let LB_WINDOW = "daily";
 
-  function setActiveWindow(win) {
-    LB_WINDOW = win || "daily";
-    const tabs = document.querySelectorAll("#lbTabs .tab");
-    tabs.forEach((b) => b.classList.toggle("active", b.dataset.window === LB_WINDOW));
+function setActiveWindow(win) {
+  LB_WINDOW = (win || "daily").toLowerCase();
+  const tabs = document.querySelectorAll("#lbTabs .tab");
+  tabs.forEach((b) => b.classList.toggle("active", b.dataset.window === LB_WINDOW));
+}
+
+// Accept arrays OR objects like {rows:[...]} OR {items:[...]} etc.
+function asArray(x) {
+  if (!x) return [];
+  if (Array.isArray(x)) return x;
+  if (Array.isArray(x.rows)) return x.rows;
+  if (Array.isArray(x.items)) return x.items;
+  if (Array.isArray(x.data)) return x.data; // some libs return {data:[...]}
+  if (Array.isArray(x.leaderboard)) return x.leaderboard;
+  if (Array.isArray(x.results)) return x.results;
+  return [];
+}
+
+async function loadLeaderboards() {
+  let data = null;
+
+  const tries = [
+    `/leaderboard/v2?window=${encodeURIComponent(LB_WINDOW)}`,
+    `/leaderboard/v2?range=${encodeURIComponent(LB_WINDOW)}`,
+    `/leaderboard/v2/${encodeURIComponent(LB_WINDOW)}`
+  ];
+
+  for (const url of tries) {
+    try {
+      data = await api(url, { method: "GET" });
+      break;
+    } catch {}
+  }
+  if (!data) throw new Error("Leaderboard endpoint not reachable.");
+
+  // ---- Normalize overall ----
+  const overall = asArray(
+    data.overall ??
+    data.leaderboard ??
+    data.rows ??
+    data.data?.overall ??
+    data.data?.leaderboard ??
+    data.data?.rows
+  );
+
+  // ---- Normalize games ----
+  const g0 = data.games ?? data.data?.games ?? {};
+  const runner = asArray(g0.runner ?? data.runner ?? data.data?.runner);
+  const lift   = asArray(g0.lift   ?? data.lift   ?? data.data?.lift);
+  const snack  = asArray(g0.snack  ?? data.snack  ?? data.data?.snack);
+  const basket = asArray(g0.basket ?? data.basket ?? data.data?.basket);
+
+  // ---------- Overall table ----------
+  {
+    const tb = $("lbOverallBody");
+    if (tb) {
+      if (!overall.length) {
+        tb.innerHTML = `<tr><td colspan="5" class="muted">No entries yet.</td></tr>`;
+      } else {
+        tb.innerHTML = overall.slice(0, 50).map((r, i) => {
+          const rank = i + 1;
+          const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
+          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal ?? r.points);
+          const best = fmtTime(r.runnerBestTime ?? r.bestTime ?? r.best ?? r.best_time ?? r.time);
+          const miles = fmtNum(r.lifetimeMiles ?? r.miles ?? r.distanceMiles ?? r.distance);
+          return `<tr>
+            <td class="rank">${rank}</td>
+            <td>${safe(id)}</td>
+            <td>${calories}</td>
+            <td>${best}</td>
+            <td>${miles}</td>
+          </tr>`;
+        }).join("");
+      }
+    }
   }
 
-  async function loadLeaderboards() {
-    let data = null;
+  // ---------- Runner ----------
+  {
+    const tb = $("lbRunnerBody");
+    const rows = runner.slice(0, 50);
+    if (tb) {
+      tb.innerHTML = rows.length ? rows.map((r, i) => {
+        const rank = i + 1;
+        const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
+        const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal ?? r.points);
+        const best = fmtTime(r.bestTime ?? r.runnerBestTime ?? r.best ?? r.best_time ?? r.time);
+        return `<tr>
+          <td class="rank">${rank}</td>
+          <td>${safe(id)}</td>
+          <td>${calories}</td>
+          <td>${best}</td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+    }
+  }
 
-    const tries = [
-      `/leaderboard/v2?window=${encodeURIComponent(LB_WINDOW)}`,
-      `/leaderboard/v2?range=${encodeURIComponent(LB_WINDOW)}`,
-      `/leaderboard/v2/${encodeURIComponent(LB_WINDOW)}`
-    ];
+  // ---------- Lift ----------
+  {
+    const tb = $("lbLiftBody");
+    const rows = lift.slice(0, 50);
+    if (tb) {
+      tb.innerHTML = rows.length ? rows.map((r, i) => {
+        const rank = i + 1;
+        const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
+        const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal ?? r.points);
+        const best = fmtNum(r.best ?? r.bestScore ?? r.bestSet ?? r.value ?? r.score);
+        return `<tr>
+          <td class="rank">${rank}</td>
+          <td>${safe(id)}</td>
+          <td>${calories}</td>
+          <td>${best}</td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+    }
+  }
 
-    for (const url of tries) {
+  // ---------- Snack ----------
+  {
+    const tb = $("lbSnackBody");
+    const rows = snack.slice(0, 50);
+    if (tb) {
+      tb.innerHTML = rows.length ? rows.map((r, i) => {
+        const rank = i + 1;
+        const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
+        const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal ?? r.points);
+        const best = fmtNum(r.best ?? r.bestScore ?? r.bestCombo ?? r.value ?? r.score);
+        return `<tr>
+          <td class="rank">${rank}</td>
+          <td>${safe(id)}</td>
+          <td>${calories}</td>
+          <td>${best}</td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+    }
+  }
+
+  // ---------- Basket ----------
+  {
+    const tb = $("lbBasketBody");
+    const rows = basket.slice(0, 50);
+    if (tb) {
+      tb.innerHTML = rows.length ? rows.map((r, i) => {
+        const rank = i + 1;
+        const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
+        const bestStreak = fmtNum(r.bestStreak ?? r.streak ?? r.maxStreak ?? r.best_run ?? r.max_run);
+        const bestScore  = fmtNum(r.bestScore ?? r.score ?? r.maxScore ?? r.best_points ?? r.max_points);
+        return `<tr>
+          <td class="rank">${rank}</td>
+          <td>${safe(id)}</td>
+          <td>${bestStreak}</td>
+          <td>${bestScore}</td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+    }
+  }
+
+  return data;
+}
+
+// ---------- Tabs wiring ----------
+try {
+  document.querySelectorAll("#lbTabs .tab").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      setActiveWindow(btn.dataset.window);
       try {
-        data = await api(url, { method: "GET" });
-        // (optional debug)
-        // console.log("LEADERBOARD URL HIT:", url);
-        // console.log("FULL LEADERBOARD RESPONSE:", JSON.stringify(data, null, 2));
-        break;
+        await loadLeaderboards();
+        toast(`Loaded ${LB_WINDOW} leaderboard`);
       } catch (e) {
-        // console.log("LEADERBOARD TRY FAILED:", url, e?.message || e);
+        toast(`Leaderboard error: ${e.message || e}`);
       }
+    });
+  });
+} catch {}
+
+// ---------- Buttons ----------
+try {
+  $("refreshLbBtn").addEventListener("click", async () => {
+    try { await loadLeaderboards(); toast("Leaderboards refreshed"); }
+    catch (e) { toast(e.message || e); }
+  });
+} catch {}
+
+// ---------- Telegram auth (safer in WebApp) ----------
+async function tryTelegramAuth() {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (!tg) return false;
+
+  // IMPORTANT: initData is often empty until ready() inside TG
+  try { tg.ready(); tg.expand(); } catch {}
+
+  const initData = (typeof tg.initData === "string" ? tg.initData : "") || "";
+  if (!initData) return false;
+
+  try {
+    const out = await api("/auth/telegram", {
+      method: "POST",
+      body: JSON.stringify({ initData })
+    });
+
+    if (out && out.token) {
+      setToken(out.token);
+      toast("Telegram verified ✅");
+
+      // Update status immediately so you can see it worked
+      const auth = $("authStatus");
+      if (auth) auth.textContent = "Member loaded — Telegram verified ✅";
+      return true;
     }
+  } catch {}
+  return false;
+}
 
-    if (!data) throw new Error("Leaderboard endpoint not reachable.");
-
-    // Normalize shapes
-    const overall =
-      data.overall ||
-      data.leaderboard ||
-      data.rows ||
-      data.data?.overall ||
-      data.data?.leaderboard ||
-      data.data?.rows ||
-      [];
-
-    const games =
-      data.games ||
-      data.data?.games ||
-      {
-        runner: data.runner || data.data?.runner || [],
-        lift: data.lift || data.data?.lift || [],
-        snack: data.snack || data.data?.snack || [],
-        basket: data.basket || data.data?.basket || []
-      };
-
-    // ---------- Overall table ----------
-    {
-      const tb = $("lbOverallBody");
-      if (tb) {
-        if (!overall || !overall.length) {
-          tb.innerHTML = `<tr><td colspan="5" class="muted">No entries yet.</td></tr>`;
-        } else {
-          tb.innerHTML = overall.slice(0, 50).map((r, i) => {
-            const rank = i + 1;
-            const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-            const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal ?? 0);
-            const best = fmtTime(r.runnerBestTime ?? r.bestTime ?? r.best ?? r.best_time);
-            const miles = fmtNum(r.lifetimeMiles ?? r.miles ?? r.distanceMiles ?? 0);
-            return `<tr>
-              <td class="rank">${rank}</td>
-              <td>${safe(id)}</td>
-              <td>${calories}</td>
-              <td>${best}</td>
-              <td>${miles}</td>
-            </tr>`;
-          }).join("");
-        }
-      }
-    }
-
-    // ---------- Runner ----------
-    {
-      const rows = (games.runner || []).slice(0, 50);
-      const tb = $("lbRunnerBody");
-      if (tb) {
-        tb.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal ?? 0);
-          const best = fmtTime(r.bestTime ?? r.runnerBestTime ?? r.best ?? r.best_time);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${calories}</td>
-            <td>${best}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
-    }
-
-    // ---------- Lift ----------
-    {
-      const rows = (games.lift || []).slice(0, 50);
-      const tb = $("lbLiftBody");
-      if (tb) {
-        tb.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal ?? 0);
-          const best = fmtNum(r.best ?? r.bestScore ?? r.bestSet ?? r.value ?? 0);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${calories}</td>
-            <td>${best}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
-    }
-
-    // ---------- Snack ----------
-    {
-      const rows = (games.snack || []).slice(0, 50);
-      const tb = $("lbSnackBody");
-      if (tb) {
-        tb.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal ?? 0);
-          const best = fmtNum(r.best ?? r.bestScore ?? r.bestCombo ?? r.value ?? 0);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${calories}</td>
-            <td>${best}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
-    }
-
-    // ---------- Basket ----------
-    {
-      const rows = (games.basket || []).slice(0, 50);
-      const tb = $("lbBasketBody");
-      if (tb) {
-        tb.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-          const bestStreak = fmtNum(r.bestStreak ?? r.streak ?? r.maxStreak ?? r.best_run ?? 0);
-          const bestScore = fmtNum(r.bestScore ?? r.score ?? r.maxScore ?? r.best_points ?? 0);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${bestStreak}</td>
-            <td>${bestScore}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
-    }
-
-    return data;
+// ---------- Boot (retry TG auth a few times; TG can be late) ----------
+(async function boot() {
+  // If there’s already a token, just load
+  if (getToken()) {
+    try { await loadMe(); } catch {}
+    try { await loadLeaderboards(); } catch {}
+    return;
   }
 
+  // Try TG auth once immediately
+  let ok = false;
+  try { ok = await tryTelegramAuth(); } catch {}
+
+  // Retry a few times (TG sometimes injects initData late)
+  if (!ok) {
+    let n = 0;
+    const t = setInterval(async () => {
+      n++;
+      if (getToken()) { clearInterval(t); return; }
+      let success = false;
+      try { success = await tryTelegramAuth(); } catch {}
+      if (success || n >= 10) {
+        clearInterval(t);
+        try { await loadMe(); } catch {}
+        try { await loadLeaderboards(); } catch {}
+      }
+    }, 700);
+  } else {
+    try { await loadMe(); } catch {}
+    try { await loadLeaderboards(); } catch {}
+  }
+})();
   // ---------- "Me" (Gym Card) ----------
   async function loadMe() {
     // Try a few common endpoints; keep it defensive
