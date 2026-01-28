@@ -1197,67 +1197,90 @@ async function api(path, opts = {}) {
     tabs.forEach((b) => b.classList.toggle("active", b.dataset.window === win));
   }
 
-  async function loadLeaderboards() {
-    // Supports multiple backend shapes without breaking:
-    // 1) /leaderboard/v2?window=daily
-    // 2) /leaderboard/v2?range=daily
-    // 3) /leaderboard/v2/daily
-    let data = null;
+async function loadLeaderboards() {
+  // Supports multiple backend shapes without breaking:
+  // 1) /leaderboard/v2?window=daily
+  // 2) /leaderboard/v2?range=daily
+  // 3) /leaderboard/v2/daily
+  let data = null;
 
-    const tries = [
-      `/leaderboard/v2?window=${encodeURIComponent(LB_WINDOW)}`,
-      `/leaderboard/v2?range=${encodeURIComponent(LB_WINDOW)}`,
-      `/leaderboard/v2/${encodeURIComponent(LB_WINDOW)}`
-    ];
+  const tries = [
+    `/leaderboard/v2?window=${encodeURIComponent(LB_WINDOW)}`,
+    `/leaderboard/v2?range=${encodeURIComponent(LB_WINDOW)}`,
+    `/leaderboard/v2/${encodeURIComponent(LB_WINDOW)}`
+  ];
 
-    for (const url of tries) {
-      try { data = await api(url, { method: "GET" }); break; } catch {}
+  for (const url of tries) {
+    try {
+      data = await api(url, { method: "GET" });
+
+      // 🔍 DEBUG — see exactly what backend returns
+      console.log("LEADERBOARD URL HIT:", url);
+      console.log("FULL LEADERBOARD RESPONSE:", JSON.stringify(data, null, 2));
+
+      break;
+    } catch (e) {
+      console.log("LEADERBOARD TRY FAILED:", url, e?.message || e);
     }
-    if (!data) throw new Error("Leaderboard endpoint not reachable.");
+  }
 
-    // Normalize
-    const overall =
-      data.overall ||
-      data.leaderboard ||
-      data.rows ||
-      data.data?.overall ||
-      [];
+  if (!data) throw new Error("Leaderboard endpoint not reachable.");
 
-    const games =
-      data.games ||
-      data.data?.games ||
-      {
-        runner: data.runner || data.data?.runner,
-        lift: data.lift || data.data?.lift,
-        snack: data.snack || data.data?.snack,
-        basket: data.basket || data.data?.basket
-      };
+  // Normalize (this is likely where the mismatch is)
+  const overall =
+    data.overall ||
+    data.leaderboard ||
+    data.rows ||
+    data.data?.overall ||
+    data.data?.leaderboard ||
+    data.data?.rows ||
+    [];
 
-    // Overall table (expects 5 cols already in HTML)
+  const games =
+    data.games ||
+    data.data?.games ||
     {
-      const tb = $("lbOverallBody");
-      if (tb) {
-        if (!overall.length) {
-          tb.innerHTML = `<tr><td colspan="5" class="muted">No entries yet.</td></tr>`;
-        } else {
-          tb.innerHTML = overall.slice(0, 50).map((r, i) => {
-            const rank = i + 1;
-            const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-            const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
-            const best = fmtTime(r.runnerBestTime ?? r.bestTime ?? r.best ?? r.best_time);
-            const miles = fmtNum(r.lifetimeMiles ?? r.miles ?? r.distanceMiles);
-            return `<tr>
-              <td class="rank">${rank}</td>
-              <td>${safe(id)}</td>
-              <td>${calories}</td>
-              <td>${best}</td>
-              <td>${miles}</td>
-            </tr>`;
-          }).join("");
-        }
+      runner: data.runner || data.data?.runner,
+      lift: data.lift || data.data?.lift,
+      snack: data.snack || data.data?.snack,
+      basket: data.basket || data.data?.basket
+    };
+
+  // Overall table (expects 5 cols already in HTML)
+  {
+    const tb = $("lbOverallBody");
+    if (tb) {
+      if (!overall.length) {
+        tb.innerHTML = `<tr><td colspan="5" class="muted">No entries yet.</td></tr>`;
+      } else {
+        tb.innerHTML = overall.slice(0, 50).map((r, i) => {
+          const rank = i + 1;
+          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
+          const best = fmtTime(
+            r.runnerBestTime ??
+            r.bestTime ??
+            r.best ??
+            r.best_time
+          );
+          const miles = fmtNum(
+            r.lifetimeMiles ??
+            r.miles ??
+            r.distanceMiles
+          );
+
+          return `<tr>
+            <td class="rank">${rank}</td>
+            <td>${safe(id)}</td>
+            <td>${calories}</td>
+            <td>${best}</td>
+            <td>${miles}</td>
+          </tr>`;
+        }).join("");
       }
     }
-
+  }
+}
     // Runner
     {
       const rows = (games.runner || []).slice(0, 50);
