@@ -678,9 +678,14 @@ async function endRun(reason){
       if (res.caps && typeof res.caps.dailyCapCalories === "number") DAILY_CAP = Number(res.caps.dailyCapCalories || DAILY_CAP);
       if (runCals === 0 && res.reason === "too_short") toast("Too short. No calories.");
       if (runCals === 0 && res.reason === "score_too_high") toast("Too fast. No calories.");
-    } else {
-      toast("Couldn’t sync run (server).");
-    }
+   } else {
+  const msg =
+    (res && (res.error || res.message || res.reason)) ? String(res.error || res.message || res.reason) :
+    (res && res.status) ? ("HTTP " + res.status) :
+    "unknown";
+  console.log("[lift] submit failed:", res);
+  toast("Couldn’t sync run: " + msg);
+}
   } else {
     toast("Guest run. Connect via hub to stack lifetime calories.");
   }
