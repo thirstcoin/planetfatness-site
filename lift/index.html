@@ -431,15 +431,36 @@ async function fetchDailyProgress(){
 async function submitSecureLift({ score, durationMs }){
   const token = getToken();
   if (!API_BASE || !token) return null;
+
   try{
+    const payload = {
+      game: "lift",
+      durationMs: Math.max(0, Math.floor(Number(durationMs || 0))),
+      score: Number(score || 0),
+
+      // ✅ match runner/server schema (safe defaults)
+      miles: 0,
+      bestSeconds: 0
+    };
+
     const r = await fetch(api("/activity/submit"), {
-      method:"POST",
-      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+token },
-      body: JSON.stringify({ game:"lift", score:Number(score||0), durationMs:Math.max(0, Math.floor(Number(durationMs||0))) })
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify(payload)
     });
-    const j = await r.json().catch(()=>null);
-    return (j && j.ok) ? j : null;
-  }catch{ return null; }
+
+    const j = await r.json().catch(()=> ({}));
+
+    // ✅ IMPORTANT: return body even when not ok so we can see reason
+    return { status: r.status, okHttp: r.ok, ...(j || {}) };
+
+  }catch(e){
+    console.log("[lift] submit error", e);
+    return null;
+  }
 }
 
 /* ========= DAILY FALLBACK (guest only) ========= */
