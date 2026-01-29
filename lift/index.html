@@ -414,7 +414,7 @@ const REP_SRC  = "/assets/lift_hero.gif";
 /* ========= API + AUTH (matches your backend) ========= */
 function readLS(k){ try{return (localStorage.getItem(k)||"").trim();}catch{return "";} }
 const API_BASE = (window.PF_API_BASE) || readLS("pf_api_base") || readLS("phat_api_base") || "";
-function getToken(){ return readLS("pf_token") || readLS("phat_token") || readLS("token"); }
+function getToken(){ return readLS("pf_token") || readLS("phat_token") || ""; }
 function api(path){ const b=String(API_BASE||"").trim(); return b ? b.replace(/\/$/,"")+path : ""; }
 function isLoggedIn(){ return !!(API_BASE && getToken()); }
 
