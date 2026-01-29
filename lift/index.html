@@ -390,8 +390,9 @@ async function submitSecureLift({ score, durationMs }){
       score: Number(score || 0),
       reps: Number(score || 0),
       
-      // ✅ Critical fix: Added bestSet key for leaderboards and tracker
+      // ✅ Using both bestSet and bestScore to ensure tracker coverage
       bestSet: Number(score || 0), 
+      bestScore: Number(score || 0),
       
       miles: 0,
       bestSeconds: 0
