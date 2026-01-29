@@ -879,8 +879,10 @@ function drawHUD(){
   const paceStr = mi > 0.0001 ? formatPace(paceMinPerMi) : '—';
   ctx.fillText('Miles: ' + mi.toFixed(2) + ' • Pace: ' + paceStr + '/mi', 34, 102);
 
-  const calsPreview = Math.max(0, Math.round(caloriesThisRun));
-  ctx.fillText('Calories: ' + calsPreview, 34, 126);
+  const calsShown = (creditedThisRun != null)
+  ? Number(creditedThisRun || 0)
+  : Math.max(0, Math.round(caloriesThisRun || 0));
+ctx.fillText('Calories: ' + calsShown, 34, 126);
 
   drawBar(40, 450, 380, 22, speed, 'Speed', true);
   drawBar(480, 450, 380, 22, stamina, 'Stamina', false);
