@@ -428,18 +428,27 @@ async function fetchDailyProgress(){
   }catch{ return null; }
 }
 
-async function submitSecureLift({ score, durationMs }){
+async function submitSecureLift(payload){
   const token = getToken();
-  if (!API_BASE || !token) return null;
+  if (!API_BASE || !token) return { ok:false, error:"Missing API_BASE or pf_token" };
+
   try{
     const r = await fetch(api("/activity/submit"), {
       method:"POST",
-      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+token },
-      body: JSON.stringify({ game:"lift", score:Number(score||0), durationMs:Math.max(0, Math.floor(Number(durationMs||0))) })
+      headers:{
+        "Content-Type":"application/json",
+        Authorization:"Bearer " + token
+      },
+      body: JSON.stringify(payload)
     });
-    const j = await r.json().catch(()=>null);
-    return (j && j.ok) ? j : null;
-  }catch{ return null; }
+
+    const j = await r.json().catch(()=> ({}));
+    // keep error payloads so UI can show the reason
+    if (j && typeof j === "object") return j;
+    return { ok:false, error:"Bad JSON from server" };
+  }catch(e){
+    return { ok:false, error:String(e?.message || e) };
+  }
 }
 
 /* ========= DAILY FALLBACK (guest only) ========= */
