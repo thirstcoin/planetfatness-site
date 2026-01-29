@@ -519,7 +519,17 @@ let inclinePeak=0;
 
 /* preview calories (UI only; server is truth when logged in) */
 let caloriesThisRun=0;
+/* preview calories (UI only; server is truth when logged in) */
+let caloriesThisRun=0;
 
+/* server-credited calories (UI display should follow this when available) */
+let creditedThisRun = null;
+
+/* helper: what the HUD should display right now */
+function hudCalories(){
+  if (creditedThisRun != null) return Number(creditedThisRun) || 0;
+  return Math.max(0, Math.round(caloriesThisRun || 0));
+}
 /* miles tracking (derived) */
 let milesThisRun = 0;
 
