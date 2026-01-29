@@ -389,6 +389,10 @@ async function submitSecureLift({ score, durationMs }){
       durationMs: Math.max(0, Math.floor(Number(durationMs || 0))),
       score: Number(score || 0),
       reps: Number(score || 0),
+      
+      // ✅ Added Best Stats key for Tracker & Leaderboards
+      bestSet: Number(score || 0), 
+      
       miles: 0,
       bestSeconds: 0
     };
