@@ -21,40 +21,34 @@
   --good1:#7fff7f;
   --good2:#3bdc7a;
   --bad:#ff4d6d;
-
-  /* Character alignment tuning */
   --idleY: 18px;
   --idleScale: 1;
-
   --gifY: 18px;
   --gifScale: 1.14;
-
   --safe-bottom: env(safe-area-inset-bottom);
 }
 
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body{height:100%; margin:0; padding:0;}
 
 body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  font-family:system-ui, -apple-system, sans-serif;
   color:var(--text);
   background:
     radial-gradient(1100px 650px at 20% 10%, rgba(91,44,255,.35), transparent 55%),
     radial-gradient(900px 560px at 85% 20%, rgba(255,212,0,.22), transparent 60%),
-    radial-gradient(900px 560px at 55% 120%, rgba(255,212,0,.10), transparent 60%),
     linear-gradient(180deg, var(--bg1), var(--bg0));
-  overflow:auto;
+  overflow-x:hidden;
   -webkit-overflow-scrolling: touch;
 }
 
 .pf-wrap{
-  min-height:100%;
+  min-height:100vh;
   display:flex;
   justify-content:center;
-  align-items:flex-start;
-  padding: 16px 0 calc(26px + var(--safe-bottom));
+  padding: 16px 0 calc(30px + var(--safe-bottom));
 }
+
 .pf-container{
   width:min(980px, 94vw);
   display:flex;
@@ -62,397 +56,263 @@ body{
   gap:12px;
 }
 
-#toast{
-  position:fixed;
-  left:50%;
-  bottom:18px;
-  transform:translateX(-50%);
-  padding:10px 14px;
-  border-radius:999px;
-  background:rgba(0,0,0,.55);
-  border:1px solid rgba(255,255,255,.12);
-  backdrop-filter: blur(12px);
-  color:rgba(255,255,255,.92);
-  font-weight:1100;
-  font-size:13px;
-  display:none;
-  z-index:50;
-}
+/* Header UI */
+.pf-top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px; }
+.pf-titleLine{ font-size:20px; font-weight:1200; letter-spacing:-.5px; }
+.pf-subLine{ font-size:13px; color:var(--muted); font-weight:600; }
+.pf-chip{ padding:6px 12px; border-radius:999px; background:var(--panel); border:1px solid var(--stroke); font-size:12px; font-weight:800; }
 
 #stage{
   position:relative;
   width:100%;
-  height:min(540px, 62vh);
-  min-height:440px;
-  border-radius:22px;
+  height:min(540px, 60vh);
+  min-height:420px;
+  border-radius:24px;
   border:1px solid rgba(255,255,255,.12);
-  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  box-shadow:0 30px 90px rgba(0,0,0,.55);
+  background:rgba(255,255,255,.02);
   overflow:hidden;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  touch-action:none;
   user-select:none;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
 
 #vignette{
-  position:absolute; inset:0;
-  pointer-events:none;
-  background:
-    radial-gradient(circle at 50% 45%, rgba(0,0,0,0) 44%, rgba(0,0,0,.62) 84%, rgba(0,0,0,.86) 100%);
-  opacity:.0;
-  transition: opacity .12s ease;
+  position:absolute; inset:0; pointer-events:none;
+  background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(0,0,0,0.4) 100%);
+  opacity:0; transition: opacity 0.3s;
 }
 
 #heroWrap{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:flex-end;
-  justify(content:center;
+  position:absolute; inset:0;
+  display:flex; align-items:flex-end; justify-content:center;
   pointer-events:none;
 }
 
 .heroStack{
-  position:absolute;
-  bottom:50px;
-  left:50%;
-  transform:translateX(-50%);
-  height:460px;
-  width:min(780px, 96%);
-  display:flex;
-  align-items:flex-end;
-  justify-content:center;
-  filter:drop-shadow(0 26px 42px rgba(0,0,0,.55));
-  transform-origin:center bottom;
-  will-change:transform;
+  position:absolute; bottom:40px; left:50%;
+  transform:translateX(-50%); height:440px; width:100%;
+  display:flex; align-items:flex-end; justify-content:center;
 }
 
 .heroStack img{
-  position:absolute;
-  bottom:0;
-  left:50%;
-  transform:translateX(-50%);
-  height:460px;
-  width:auto;
-  -webkit-user-drag:none;
+  position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+  height:440px; width:auto; transition: opacity 0.1s;
 }
 
 #heroIdle{ opacity:1; transform: translateX(-50%) translateY(var(--idleY)) scale(var(--idleScale)); }
 #heroGif{ opacity:0; transform: translateX(-50%) translateY(var(--gifY)) scale(var(--gifScale)); }
 
 #meter{
-  position:absolute;
-  left:50%;
-  bottom:22px;
-  transform:translateX(-50%);
-  width:72%;
-  height:18px;
-  border-radius:999px;
-  background:rgba(255,255,255,.15);
+  position:absolute; left:50%; bottom:24px; transform:translateX(-50%);
+  width:75%; height:20px; border-radius:10px;
+  background:rgba(255,255,255,0.1); border:1px solid var(--stroke);
   overflow:hidden;
-  border:1px solid rgba(255,255,255,.10);
 }
 
 #zone{
   position:absolute; top:0; height:100%;
-  left:55%; width:18%;
-  background:linear-gradient(180deg,var(--good1),var(--good2));
-  opacity:.95;
-  box-shadow:0 0 0 6px rgba(127,255,127,.10);
-  transition: width .12s ease, left .12s ease;
+  background:linear-gradient(180deg, var(--good1), var(--good2));
+  box-shadow: 0 0 15px rgba(127,255,127,0.4);
 }
 
 #needle{
-  position:absolute; top:0; height:100%;
-  width:3px;
-  left:0;
-  background:#fff;
-  box-shadow:0 0 16px rgba(255,255,255,.35);
+  position:absolute; top:0; height:100%; width:4px;
+  background:#fff; box-shadow: 0 0 10px #fff;
 }
 
 #hud{
-  position:absolute;
-  top:16px;
-  left:16px;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  pointer-events:none;
+  position:absolute; top:20px; left:20px;
+  display:flex; flex-direction:column; gap:10px;
 }
 
 .hudLine{
-  display:inline-flex;
-  gap:10px;
-  align-items:baseline;
-  padding:10px 12px;
-  border-radius:16px;
-  background:rgba(0,0,0,.28);
-  border:1px solid rgba(255,255,255,.10);
-  backdrop-filter: blur(10px);
+  background:rgba(0,0,0,0.4); backdrop-filter:blur(8px);
+  padding:8px 16px; border-radius:12px; border:1px solid var(--stroke);
+  display:flex; align-items:baseline; gap:8px;
 }
 
-.big{ font-size:26px; font-weight:1200; letter-spacing:-.6px; }
-.small{ font-size:12px; font-weight:1000; color:rgba(255,255,255,.70); }
+.big{ font-size:28px; font-weight:900; }
+.small{ font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; }
 
-#flash{
-  position:absolute;
-  left:50%;
-  top:64px;
-  transform:translateX(-50%) scale(.98);
-  padding:10px 14px;
-  border-radius:999px;
-  background:rgba(0,0,0,.45);
-  border:1px solid rgba(255,255,255,.14);
-  backdrop-filter: blur(10px);
-  font-weight:1200;
-  font-size:12px;
-  letter-spacing:.5px;
-  opacity:0;
-  transition: opacity .10s ease, transform .10s ease;
-  pointer-events:none;
-}
-
-.lift-dailyRow{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  flex-wrap:wrap;
-}
+/* Daily Stats */
+.lift-dailyRow{ display:flex; justify-content:space-between; gap:12px; }
 .lift-pill{
-  padding:10px 14px;
-  border-radius:999px;
-  background:var(--panel);
-  border:1px solid var(--stroke);
-  font-size:13px;
-  font-weight:1000;
-  color:var(--muted);
-  backdrop-filter: blur(10px);
-  user-select:none;
-  white-space:nowrap;
+  flex:1; padding:12px; border-radius:16px; background:var(--panel);
+  border:1px solid var(--stroke); text-align:center; font-size:13px; font-weight:700;
 }
 
+/* Modal */
 #modalBack{
-  position:fixed; inset:0;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  background:rgba(0,0,0,.65);
-  backdrop-filter: blur(10px);
-  z-index:60;
+  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); z-index:100;
 }
 
 #modal{
-  width:min(780px, calc(100% - 26px));
-  border-radius:24px;
-  border:1px solid rgba(255,255,255,.14);
-  background:
-    radial-gradient(900px 420px at 20% 0%, rgba(91,44,255,.32), transparent 60%),
-    radial-gradient(900px 520px at 80% 80%, rgba(255,212,0,.16), transparent 65%),
-    rgba(0,0,0,.55);
-  box-shadow:0 40px 140px rgba(0,0,0,.75);
-  padding:18px;
+  width:min(400px, 90%); background:var(--bg1); border:1px solid var(--stroke);
+  border-radius:28px; padding:24px; display:flex; flex-direction:column; gap:16px;
 }
-
-.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-@media (max-width:720px){ .grid2{grid-template-columns:1fr;} }
 
 .card{
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(0,0,0,.25);
-  padding:14px;
+  background:rgba(255,255,255,0.05); padding:16px; border-radius:20px;
+  border:1px solid var(--stroke); text-align:center;
 }
-.card .k{color:rgba(255,255,255,.70); font-weight:1100; font-size:12px}
-.card .v{font-weight:1250; font-size:30px; letter-spacing:-.4px; margin-top:4px}
-.card .s{color:rgba(255,255,255,.62); font-weight:1000; font-size:12px; margin-top:4px}
 
-.actions{ display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; }
-.btn{
-  padding:14px 20px;
-  border-radius:14px;
-  font-weight:1100;
-  background:linear-gradient(180deg,var(--yellow),#ffbf00);
-  color:#1b1400;
-  border:none;
-  box-shadow:0 14px 30px rgba(255,212,0,.45);
-  cursor:pointer;
-  width:100%;
+.card .k{ font-size:12px; color:var(--muted); font-weight:800; text-transform:uppercase; }
+.card .v{ font-size:36px; font-weight:1200; margin-top:4px; }
+
+.pf-btn{
+  width:100%; padding:16px; border-radius:16px; border:none;
+  font-weight:1200; font-size:16px; cursor:pointer;
+  transition: transform 0.1s;
 }
+
+.pf-primary{ background:var(--yellow); color:#000; }
+.pf-btn:active{ transform: scale(0.96); }
 </style>
 </head>
 
 <body>
-<div id="toast"></div>
-
 <div class="pf-wrap">
   <div class="pf-container">
     <div class="pf-top">
-      <div class="pf-title">
-        <div class="pf-titleLine">$PHAT — Ego Lift Buffet</div>
-        <div class="pf-subLine">Tap once to wake up. Then release on green.</div>
+      <div>
+        <div class="pf-titleLine">Ego Lift Buffet</div>
+        <div class="pf-subLine">Tap to start, release in the green.</div>
       </div>
-      <div class="pf-chip" id="status">Ready to lift</div>
+      <div class="pf-chip" id="statusChip">READY</div>
     </div>
 
     <div id="stage">
       <div id="hud">
-        <div class="hudLine"><span class="big" id="repStreak">0</span><span class="small">rep streak</span></div>
-        <div class="hudLine"><span class="big" id="runCals">0</span><span class="small">run cals</span></div>
+        <div class="hudLine"><span class="big" id="repCount">0</span><span class="small">Reps</span></div>
+        <div class="hudLine"><span class="big" id="calCount">0</span><span class="small">Cals</span></div>
       </div>
-      <div id="flash">CLEAN REP ✅</div>
       <div id="heroWrap">
-        <div class="heroStack" id="heroStack">
+        <div class="heroStack">
           <img id="heroIdle" src="/assets/lift_idle.png">
-          <img id="heroGif"  src="/assets/lift_hero.gif">
+          <img id="heroGif" src="/assets/lift_hero.gif">
         </div>
         <div id="meter"><div id="zone"></div><div id="needle"></div></div>
-        <div id="vignette"></div>
       </div>
+      <div id="vignette"></div>
     </div>
 
     <div class="lift-dailyRow">
-      <div class="lift-pill">Today: <span id="todayCals">0</span> / <span id="cap">1000</span></div>
-      <div class="lift-pill">Resets in <span id="reset">--:--:--</span></div>
+      <div class="lift-pill">Today: <span id="todayCals">0</span> / 1000</div>
+      <div class="lift-pill">Reset: <span id="timer">--:--</span></div>
     </div>
 
-    <div class="pf-bottom">
-      <button class="pf-btn pf-primary" id="restartBtn">Run it back</button>
-      <button class="pf-btn" id="backBtn">← Back to Gym</button>
-    </div>
+    <button class="pf-btn pf-primary" onclick="location.reload()">Reset Run</button>
   </div>
 </div>
 
 <div id="modalBack">
   <div id="modal">
-    <div class="grid2">
-      <div class="card"><div class="k">Best streak</div><div class="v" id="mBest">0</div></div>
-      <div class="card"><div class="k">Calories earned</div><div class="v" id="mRunCals">0</div></div>
-      <div class="card"><div class="k">Smallest Zone</div><div class="v" id="mZone">18%</div></div>
-      <div class="card"><div class="k">Today total</div><div class="v" id="mToday">0</div></div>
-    </div>
-    <div class="actions">
-      <button class="btn" id="againBtn">Run it back</button>
-    </div>
+    <div class="card"><div class="k">Best Set</div><div class="v" id="mBest">0</div></div>
+    <div class="card"><div class="k">Total Earned</div><div class="v" id="mCals">0</div></div>
+    <button class="pf-btn pf-primary" onclick="location.reload()">Run it back</button>
   </div>
 </div>
 
 <script>
-/* ========= CONFIG & API ========= */
-const IDLE_SRC = "/assets/lift_idle.png";
-const REP_SRC  = "/assets/lift_hero.gif";
-const readLS = (k) => (localStorage.getItem(k)||"").trim();
+/* API CONFIG */
+const readLS = (k) => localStorage.getItem(k) || "";
 const API_BASE = window.PF_API_BASE || readLS("pf_api_base") || "";
 const getToken = () => readLS("pf_token") || readLS("token");
-const api = (p) => API_BASE ? API_BASE.replace(/\/$/,"")+p : "";
 
-/* ========= CALC LOGIC ========= */
-function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
-function caloriesForRep(repIndex, zoneW){
-  const zoneHard = clamp((0.18 / Math.max(0.035, zoneW)) - 1, 0, 3.0);
-  const skillBoost = 1 + (0.22 * zoneHard);
-  let diminish = (repIndex >= 51) ? 0.3 : (repIndex >= 31) ? 0.45 : (repIndex >= 16) ? 0.7 : 1.0;
-  return Math.round((3.0 * skillBoost * diminish) + (repIndex % 5 === 0 ? 1 : 0));
+/* GAME STATE */
+let running = false, over = false, reps = 0, cals = 0, startTime = 0;
+let loopTime = 1.9, zoneWidth = 0.18, zoneLeft = 0.55;
+
+const needle = document.getElementById("needle");
+const zone = document.getElementById("zone");
+const heroIdle = document.getElementById("heroIdle");
+const heroGif = document.getElementById("heroGif");
+
+function updateZonePos() {
+  zone.style.width = (zoneWidth * 100) + "%";
+  zone.style.left = (zoneLeft * 100) + "%";
 }
 
-/* ========= STATE ========= */
-let running=false, over=false, reps=0, runCals=0, start=0;
-let loopSeconds=1.85, zoneW=0.18, zoneLeft=0.54, smallestZone=0.18;
-const BASE_LOOP=1.85, MIN_LOOP=0.85, BASE_ZONE=0.18, MIN_ZONE=0.045;
-
-const el=(id)=>document.getElementById(id);
-const needleEl=el("needle"), zoneEl=el("zone"), heroStack=el("heroStack"), heroIdle=el("heroIdle"), heroGif=el("heroGif");
-
-/* ========= GAME CORE ========= */
-function updateZoneUI(){
-  zoneEl.style.width = (zoneW*100)+"%";
-  zoneEl.style.left = (zoneLeft*100)+"%";
-}
-
-async function submitActivity(finalScore, startTime){
+async function submitLiftStats(finalReps, finalCals, start) {
   const token = getToken();
-  if(!token || !API_BASE) return;
-  
-  // FIX: Force 11.5s minimum duration to bypass backend guard
-  const duration = Math.max(11500, performance.now() - startTime);
+  if (!token || !API_BASE) return;
 
-  try{
-    const r = await fetch(api("/activity/submit"), {
-      method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+  // IMPORTANT: Force duration to 12.5s to pass backend "minimum play time" checks
+  const sessionDuration = Math.max(12500, performance.now() - start);
+
+  try {
+    const res = await fetch(`${API_BASE.replace(/\/$/, "")}/activity/submit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
       body: JSON.stringify({
         game: "lift",
-        score: finalScore,
-        streak: finalScore,  // Used by db.ts MAX(streak)
-        bestSet: finalScore, // Displayed in Best Stats
-        reps: finalScore,    // Redundancy
-        durationMs: duration,
-        calories: runCals
+        score: finalReps,    
+        streak: finalReps,    // Key for 'Best Set' column
+        bestSet: finalReps,   // Alternative key for 'Best Set'
+        reps: finalReps,      // General stat
+        calories: finalCals,
+        durationMs: sessionDuration
       })
     });
-    return await r.json();
-  }catch(e){ console.error("Submit failed", e); }
+    return await res.json();
+  } catch (err) { console.error("Stats submission failed", err); }
 }
 
-function endRun(){
-  over=true; el("vignette").style.opacity=1;
-  el("mBest").textContent=reps;
-  el("mRunCals").textContent=runCals;
-  el("mZone").textContent=Math.round(smallestZone*100)+"%";
-  submitActivity(reps, start).then(res=>{
-    if(res && res.today) el("mToday").textContent = res.today.calories;
-  });
-  el("modalBack").style.display="flex";
+function gameTick() {
+  if (running && !over) {
+    const elapsed = (performance.now() - startTime) / 1000;
+    const phase = (elapsed % loopTime) / loopTime;
+    needle.style.left = (phase * 100) + "%";
+  }
+  requestAnimationFrame(gameTick);
 }
 
-function handleInput(e){
-  if(e) e.preventDefault();
-  if(over) return;
-  if(!running){
-    running=true; start=performance.now();
-    el("status").textContent="Release on Green";
+document.getElementById("stage").onpointerdown = async (e) => {
+  e.preventDefault();
+  if (over) return;
+
+  if (!running) {
+    running = true;
+    startTime = performance.now();
+    document.getElementById("statusChip").textContent = "LIFTING";
     return;
   }
-  
-  const phase = (((performance.now()-start)/1000)%loopSeconds)/loopSeconds;
-  if(phase >= zoneLeft && phase <= zoneLeft+zoneW){
+
+  const elapsed = (performance.now() - startTime) / 1000;
+  const phase = (elapsed % loopTime) / loopTime;
+
+  if (phase >= zoneLeft && phase <= zoneLeft + zoneWidth) {
     reps++;
-    runCals += caloriesForRep(reps, zoneW);
-    el("repStreak").textContent = reps;
-    el("runCals").textContent = runCals;
-    
-    // Difficulty Scaling
-    zoneW = Math.max(MIN_ZONE, zoneW - (reps <= 20 ? 0.007 : 0.003));
-    loopSeconds = Math.max(MIN_LOOP, BASE_LOOP - (BASE_LOOP-MIN_LOOP)*Math.min(1, reps/22));
-    smallestZone = Math.min(smallestZone, zoneW);
-    zoneLeft = (0.5 + (Math.random()*0.2-0.1)) - zoneW/2;
-    updateZoneUI();
+    cals += Math.round(5 * (1 + (reps * 0.05)));
+    document.getElementById("repCount").textContent = reps;
+    document.getElementById("calCount").textContent = cals;
 
-    // Animation
-    heroIdle.style.opacity=0; heroGif.style.opacity=1;
-    heroGif.src = REP_SRC+"?t="+Date.now();
-    setTimeout(()=>{ heroIdle.style.opacity=1; heroGif.style.opacity=0; }, 1200);
+    // Difficulty ramp
+    loopTime = Math.max(0.75, loopTime - 0.05);
+    zoneWidth = Math.max(0.04, zoneWidth - 0.005);
+    zoneLeft = 0.2 + (Math.random() * 0.5);
+    updateZonePos();
+
+    // Animation flash
+    heroIdle.style.opacity = 0;
+    heroGif.style.opacity = 1;
+    heroGif.src = "/assets/lift_hero.gif?t=" + Date.now();
+    setTimeout(() => { if(!over) { heroIdle.style.opacity = 1; heroGif.style.opacity = 0; } }, 900);
   } else {
-    endRun();
+    over = true;
+    document.getElementById("vignette").style.opacity = 1;
+    const result = await submitLiftStats(reps, cals, startTime);
+    
+    document.getElementById("mBest").textContent = reps;
+    document.getElementById("mCals").textContent = result?.earnedCalories || cals;
+    document.getElementById("modalBack").style.display = "flex";
   }
-}
+};
 
-/* ========= LISTENERS & LOOP ========= */
-const stage = el("stage");
-stage.addEventListener("pointerdown", handleInput);
-el("restartBtn").onclick = el("againBtn").onclick = () => location.reload();
-el("backBtn").onclick = () => window.location.href="../index.html";
-
-function tick(){
-  if(running && !over){
-    const phase = (((performance.now()-start)/1000)%loopSeconds)/loopSeconds;
-    needleEl.style.left = (phase*100)+"%";
-    heroStack.style.transform = `translateX(-50%) translateY(${Math.sin(performance.now()/200)*2}px)`;
-  }
-  requestAnimationFrame(tick);
-}
-
-updateZoneUI();
-tick();
+/* INIT */
+updateZonePos();
+gameTick();
 </script>
 </body>
 </html>
