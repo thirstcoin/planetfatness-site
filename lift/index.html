@@ -383,20 +383,29 @@ async function fetchDailyProgress(){
 async function submitSecureLift({ score, durationMs }){
   const token = getToken();
   if (!API_BASE || !token) return null;
+
+  // Calculate calories locally so we can send the correct amount for the session log
+  const sessionCalories = caloriesForRep(score, zoneW, loopSeconds);
+
   try {
     const payload = {
       game: "lift",
       durationMs: Math.max(0, Math.floor(Number(durationMs || 0))),
       score: Number(score || 0),
+      
+      // ✅ DB FIX: Your backend db.ts requires 'streak' for MAX(streak) logic
+      streak: Number(score || 0), 
+      
+      // ✅ DB FIX: explicitly sending calories for the logSession insert
+      calories: Number(sessionCalories),
+
       reps: Number(score || 0),
-      
-      // ✅ Using both bestSet and bestScore to ensure tracker coverage
-      bestSet: Number(score || 0), 
+      bestSet: Number(score || 0),
       bestScore: Number(score || 0),
-      
       miles: 0,
       bestSeconds: 0
     };
+
     const r = await fetch(api("/activity/submit"), {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
