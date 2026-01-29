@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
 <title>$PHAT — Ego Lift Buffet</title>
 
-<!-- ✅ Shared UI -->
 <link rel="stylesheet" href="/assets/pf-ui.css">
 <script src="/assets/pf-ui.js" defer></script>
 
@@ -49,7 +48,6 @@ body{
   -webkit-overflow-scrolling: touch;
 }
 
-/* ===== Shared page shell (scroll-safe) ===== */
 .pf-wrap{
   min-height:100%;
   display:flex;
@@ -64,7 +62,6 @@ body{
   gap:12px;
 }
 
-/* keep toast fixed */
 #toast{
   position:fixed;
   left:50%;
@@ -82,7 +79,6 @@ body{
   z-index:50;
 }
 
-/* ===== Game stage ===== */
 #stage{
   position:relative;
   width:100%;
@@ -93,8 +89,6 @@ body{
   background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
   box-shadow:0 30px 90px rgba(0,0,0,.55);
   overflow:hidden;
-
-  /* IMPORTANT: allow accurate taps without scrolling/zooming */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select:none;
@@ -143,14 +137,8 @@ body{
   -webkit-user-drag:none;
 }
 
-#heroIdle{
-  opacity:1;
-  transform: translateX(-50%) translateY(var(--idleY)) scale(var(--idleScale));
-}
-#heroGif{
-  opacity:0;
-  transform: translateX(-50%) translateY(var(--gifY)) scale(var(--gifScale));
-}
+#heroIdle{ opacity:1; transform: translateX(-50%) translateY(var(--idleY)) scale(var(--idleScale)); }
+#heroGif{ opacity:0; transform: translateX(-50%) translateY(var(--gifY)) scale(var(--gifScale)); }
 
 #meter{
   position:absolute;
@@ -224,7 +212,6 @@ body{
   pointer-events:none;
 }
 
-/* ===== Daily row ===== */
 .lift-dailyRow{
   display:flex;
   justify-content:space-between;
@@ -244,7 +231,6 @@ body{
   white-space:nowrap;
 }
 
-/* ===== Modal ===== */
 #modalBack{
   position:fixed; inset:0;
   display:none;
@@ -293,7 +279,6 @@ body{
   box-shadow:0 14px 30px rgba(255,212,0,.45);
   cursor:pointer;
 }
-.btn:active{transform:scale(.98)}
 .btn2{
   padding:10px 14px;
   border-radius:14px;
@@ -304,7 +289,6 @@ body{
   backdrop-filter: blur(10px);
   cursor:pointer;
 }
-.btn2:active{transform:scale(.98)}
 </style>
 </head>
 
@@ -313,13 +297,12 @@ body{
 
 <div class="pf-wrap">
   <div class="pf-container">
-
     <div class="pf-top">
       <div class="pf-title">
         <div class="pf-titleLine">$PHAT — Ego Lift Buffet</div>
         <div class="pf-subLine">Tap once to wake up. Then release on green. Miss once = pinned.</div>
       </div>
-      <div class="pf-chip" id="status">Tap once to wake up. Then release on green. Miss once = pinned.</div>
+      <div class="pf-chip" id="status">Tap once to wake up. Then release on green.</div>
     </div>
 
     <div id="stage">
@@ -328,20 +311,13 @@ body{
         <div class="hudLine"><span class="big" id="runCals">0</span><span class="small">calories this run</span></div>
         <div class="hudLine"><span class="big" id="zonePct">18%</span><span class="small">green zone</span></div>
       </div>
-
       <div id="flash">CLEAN REP ✅</div>
-
       <div id="heroWrap">
         <div class="heroStack" id="heroStack">
-          <img id="heroIdle" src="/assets/lift_idle.png" alt="Planet Fatness lifter idle"/>
-          <img id="heroGif"  src="/assets/lift_hero.gif" alt="Planet Fatness lifter rep"/>
+          <img id="heroIdle" src="/assets/lift_idle.png" alt="Idle"/>
+          <img id="heroGif"  src="/assets/lift_hero.gif" alt="Rep"/>
         </div>
-
-        <div id="meter">
-          <div id="zone"></div>
-          <div id="needle"></div>
-        </div>
-
+        <div id="meter"><div id="zone"></div><div id="needle"></div></div>
         <div id="vignette"></div>
       </div>
     </div>
@@ -353,50 +329,26 @@ body{
 
     <div class="pf-bottom">
       <button class="pf-btn pf-primary" id="restartBtn">Run it back</button>
-      <button class="pf-btn" id="pfShareBtn" data-pf-share="lift">Share score</button>
+      <button class="pf-btn" id="pfShareBtn">Share score</button>
       <button class="pf-btn" id="backBtn">← Back to Gym</button>
     </div>
-
   </div>
 </div>
 
 <div id="modalBack">
   <div id="modal">
-    <div class="row" style="width:100%; margin:0 0 10px">
+    <div class="row" style="width:100%; margin:0 0 10px; display:flex; gap:8px;">
       <div class="lift-pill" style="background:rgba(0,0,0,.25)">Run ended</div>
       <div class="lift-pill" id="endTag">Pinned by Pizza</div>
     </div>
-
     <div class="grid2">
-      <div class="card">
-        <div class="k">Best streak</div>
-        <div class="v" id="mBest">0</div>
-        <div class="s">how long you stayed blessed</div>
-      </div>
-      <div class="card">
-        <div class="k">Smallest zone</div>
-        <div class="v" id="mZone">18%</div>
-        <div class="s">tiny green = legendary timing</div>
-      </div>
-      <div class="card">
-        <div class="k">Calories earned</div>
-        <div class="v" id="mRunCals">0</div>
-        <div class="s">server-scored + capped (no farming)</div>
-      </div>
-      <div class="card">
-        <div class="k">Today total</div>
-        <div class="v" id="mToday">0</div>
-        <div class="s">daily cap keeps it honest</div>
-      </div>
+      <div class="card"><div class="k">Best streak</div><div class="v" id="mBest">0</div><div class="s">how long you stayed blessed</div></div>
+      <div class="card"><div class="k">Smallest zone</div><div class="v" id="mZone">18%</div><div class="s">tiny green = legendary</div></div>
+      <div class="card"><div class="k">Calories earned</div><div class="v" id="mRunCals">0</div><div class="s">server-scored + capped</div></div>
+      <div class="card"><div class="k">Today total</div><div class="v" id="mToday">0</div><div class="s">daily cap total</div></div>
     </div>
-
     <div class="sep"></div>
-
-    <div class="row" style="width:100%; justify-content:space-between; gap:10px; margin:0 0 10px">
-      <div class="lift-pill" style="background:rgba(0,0,0,.25)">Share the flex</div>
-      <div class="lift-pill" id="shareLine">Rep streak: 0 • Zone: 18% • Calories: 0</div>
-    </div>
-
+    <div class="lift-pill" id="shareLine" style="width:100%; text-align:center; margin-bottom:10px">Rep streak: 0 • Zone: 18%</div>
     <div class="actions">
       <button class="btn" id="againBtn">Run it back</button>
       <button class="btn2" id="shareBtn">Share</button>
@@ -411,7 +363,7 @@ body{
 const IDLE_SRC = "/assets/lift_idle.png";
 const REP_SRC  = "/assets/lift_hero.gif";
 
-/* ========= API + AUTH (matches your backend) ========= */
+/* ========= API + AUTH ========= */
 function readLS(k){ try{return (localStorage.getItem(k)||"").trim();}catch{return "";} }
 const API_BASE = (window.PF_API_BASE) || readLS("pf_api_base") || readLS("phat_api_base") || "";
 function getToken(){ return readLS("pf_token") || readLS("phat_token") || readLS("token"); }
@@ -431,463 +383,165 @@ async function fetchDailyProgress(){
 async function submitSecureLift({ score, durationMs }){
   const token = getToken();
   if (!API_BASE || !token) return null;
-
   try {
     const payload = {
       game: "lift",
       durationMs: Math.max(0, Math.floor(Number(durationMs || 0))),
       score: Number(score || 0),
-      reps: Number(score || 0),    // 👈 The key the tracker needs
-      miles: 0,                    // 👈 Matches Runner schema
-      bestSeconds: 0               // 👈 Matches Runner schema
+      reps: Number(score || 0),
+      miles: 0,
+      bestSeconds: 0
     };
-
     const r = await fetch(api("/activity/submit"), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
-      },
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
       body: JSON.stringify(payload)
     });
-
     const j = await r.json().catch(() => ({}));
-
-    // ✅ Return both the HTTP status and the body for calorie logic
     return { status: r.status, okHttp: r.ok, ...(j || {}) };
-
   } catch(e) {
     console.log("[lift] submit error", e);
     return null;
   }
 }
 
-
-
-    const r = await fetch(api("/activity/submit"), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const j = await r.json().catch(()=> ({}));
-
-    // ✅ IMPORTANT: return body even when not ok so we can see reason
-    return { status: r.status, okHttp: r.ok, ...(j || {}) };
-
-  }catch(e){
-    console.log("[lift] submit error", e);
-    return null;
-  }
-}
-
-/* ========= DAILY FALLBACK (guest only) ========= */
+/* ========= DAILY LOGIC ========= */
 let DAILY_CAP = 1000;
 const KEY_RESET = "pf_daily_reset_at";
 const KEY_TODAY = "pf_daily_today_cals";
-
-function nextMidnight(){
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
-}
+function nextMidnight(){ const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime(); }
 let resetAt = Number(readLS(KEY_RESET) || nextMidnight());
 let today = Number(readLS(KEY_TODAY) || 0);
-if (Date.now() > resetAt){
-  today = 0;
-  resetAt = nextMidnight();
-  try{ localStorage.setItem(KEY_RESET, String(resetAt)); localStorage.setItem(KEY_TODAY, String(today)); }catch{}
-}
 
 async function syncFromServer(){
   const prog = await fetchDailyProgress();
   if (!prog) return;
   const g = prog.games.lift;
-  if (g?.caps?.dailyCapCalories != null) DAILY_CAP = Number(g.caps.dailyCapCalories || DAILY_CAP);
-  if (g?.today?.calories != null) today = Number(g.today.calories || 0);
+  if (g?.caps?.dailyCapCalories != null) DAILY_CAP = Number(g.caps.dailyCapCalories);
+  if (g?.today?.calories != null) today = Number(g.today.calories);
   try{ localStorage.setItem(KEY_TODAY, String(today)); }catch{}
 }
 
-/* ========= FAIR CALORIES (local preview only; server final) ========= */
+/* ========= DIFFICULTY & CALS ========= */
 function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
-function roundInt(n){ return Math.max(0, Math.round(n)); }
-
 function caloriesForRep(repIndex, zoneW, loopSeconds){
-  const BASE_ZONE_W = 0.18;
-  const BASE_LOOP = 1.85;
-
-  const zoneHard = clamp((BASE_ZONE_W / Math.max(0.035, zoneW)) - 1, 0, 3.0);
-  const speedHard = clamp((BASE_LOOP / Math.max(0.70, loopSeconds)) - 1, 0, 1.6);
-  const skillBoost = 1 + (0.22 * zoneHard) + (0.18 * speedHard);
-
-  let diminish = 1.0;
-  if (repIndex >= 16) diminish = 0.70;
-  if (repIndex >= 31) diminish = 0.45;
-  if (repIndex >= 51) diminish = 0.30;
-
-  const streakBonus = (repIndex % 5 === 0) ? 1 : 0;
-  return roundInt((3.0 * skillBoost * diminish) + streakBonus);
+  const zoneHard = clamp((0.18 / Math.max(0.035, zoneW)) - 1, 0, 3.0);
+  const skillBoost = 1 + (0.22 * zoneHard);
+  let diminish = (repIndex >= 51) ? 0.3 : (repIndex >= 31) ? 0.45 : (repIndex >= 16) ? 0.7 : 1.0;
+  return Math.round((3.0 * skillBoost * diminish) + (repIndex % 5 === 0 ? 1 : 0));
 }
 
-/* ========= DIFFICULTY ========= */
-const BASE_LOOP = 1.85;
-const MIN_LOOP  = 0.85;
-const BASE_ZONE_W = 0.18;
-const MIN_ZONE_W  = 0.045;
-const SHRINK_EARLY = 0.007;
-const SHRINK_LATE  = 0.003;
-const JITTER = 0.12;
-const CENTER = 0.62;
-
-/* ========= FEEL ========= */
-const REP_HOLD_MS = 1250;
-const COOLDOWN_MS = 90;
-const FLASH_MS    = 320;
-
+const BASE_LOOP = 1.85, MIN_LOOP = 0.85, BASE_ZONE_W = 0.18, MIN_ZONE_W = 0.045;
+const CENTER = 0.62, JITTER = 0.12;
 const el = (id)=>document.getElementById(id);
+const stage = el("stage"), heroStack = el("heroStack"), heroIdle = el("heroIdle"), heroGif = el("heroGif");
+const zoneEl = el("zone"), needleEl = el("needle"), vignette = el("vignette");
+const repStreakEl = el("repStreak"), runCalsEl = el("runCals"), zonePctEl = el("zonePct");
+const todayCalsEl = el("todayCals"), capEl = el("cap"), resetEl = el("reset");
+const statusEl = el("status"), flashEl = el("flash"), toastEl = el("toast");
+const modalBack = el("modalBack"), endTagEl = el("endTag"), mBestEl = el("mBest");
+const mZoneEl = el("mZone"), mRunCalsEl = el("mRunCals"), mTodayEl = el("mToday"), shareLine = el("shareLine");
 
-const stage = el("stage");
-const heroStack = el("heroStack");
-const heroIdle  = el("heroIdle");
-const heroGif   = el("heroGif");
+function toast(msg){ toastEl.textContent = msg; toastEl.style.display = "block"; setTimeout(()=>toastEl.style.display="none", 2300); }
+function flash(msg){ flashEl.textContent = msg; flashEl.style.opacity = 1; setTimeout(()=>flashEl.style.opacity = 0, 320); }
 
-const zoneEl   = el("zone");
-const needleEl = el("needle");
-const vignette = el("vignette");
-
-const repStreakEl = el("repStreak");
-const runCalsEl   = el("runCals");
-const zonePctEl   = el("zonePct");
-
-const todayCalsEl = el("todayCals");
-const capEl       = el("cap");
-const resetEl     = el("reset");
-const statusEl    = el("status");
-const flashEl     = el("flash");
-const toastEl     = el("toast");
-
-const modalBack = el("modalBack");
-const endTagEl  = el("endTag");
-const mBestEl   = el("mBest");
-const mZoneEl   = el("mZone");
-const mRunCalsEl= el("mRunCals");
-const mTodayEl  = el("mToday");
-const shareLine = el("shareLine");
-
-function toast(msg){
-  toastEl.textContent = msg;
-  toastEl.style.display = "block";
-  clearTimeout(window.__t);
-  window.__t = setTimeout(()=>toastEl.style.display="none", 2300);
-}
-function flash(msg){
-  flashEl.textContent = msg;
-  flashEl.style.opacity = 1;
-  flashEl.style.transform = "translateX(-50%) scale(1)";
-  setTimeout(()=>{
-    flashEl.style.opacity = 0;
-    flashEl.style.transform = "translateX(-50%) scale(.98)";
-  }, FLASH_MS);
-}
-
-/* zone */
-let loopSeconds = BASE_LOOP;
-let zoneW = BASE_ZONE_W;
-let zoneLeft = 0.54;
-let smallestZone = BASE_ZONE_W;
+let loopSeconds = BASE_LOOP, zoneW = BASE_ZONE_W, zoneLeft = 0.54, smallestZone = BASE_ZONE_W;
+let running=false, over=false, lock=false, reps=0, bestReps=0, runCals=0, start=0;
 
 function setZoneUI(){
   zoneW = Math.max(MIN_ZONE_W, Math.min(BASE_ZONE_W, zoneW));
   zoneLeft = Math.max(0, Math.min(1-zoneW, zoneLeft));
   zoneEl.style.width = (zoneW*100)+"%";
-  zoneEl.style.left  = (zoneLeft*100)+"%";
+  zoneEl.style.left = (zoneLeft*100)+"%";
   zonePctEl.textContent = Math.round(zoneW*100) + "%";
 }
-function rerollZone(){
-  const center = CENTER + (Math.random()*2-1)*JITTER;
-  zoneLeft = center - zoneW/2;
-  setZoneUI();
-}
-function setDifficulty(reps){
-  const shrink = reps <= 20 ? SHRINK_EARLY : SHRINK_LATE;
-  zoneW = Math.max(MIN_ZONE_W, zoneW - shrink);
-  const t = Math.min(1, reps/22);
-  loopSeconds = Math.max(MIN_LOOP, BASE_LOOP - (BASE_LOOP - MIN_LOOP)*t);
+function rerollZone(){ zoneLeft = (CENTER + (Math.random()*2-1)*JITTER) - zoneW/2; setZoneUI(); }
+function setDifficulty(r){
+  zoneW = Math.max(MIN_ZONE_W, zoneW - (r <= 20 ? 0.007 : 0.003));
+  loopSeconds = Math.max(MIN_LOOP, BASE_LOOP - (BASE_LOOP - MIN_LOOP)*Math.min(1, r/22));
   smallestZone = Math.min(smallestZone, zoneW);
   rerollZone();
 }
 
-/* rep anim (same as your working one) */
-let repTimer=null, repSeq=0;
-let lock=false;
-
 function playRep(){
-  if (lock || over) return;
-  lock = true;
-
-  heroIdle.style.opacity = 0;
-  heroGif.style.opacity = 1;
-
-  repSeq++;
-  heroGif.src = REP_SRC + "?r=" + repSeq;
-
-  clearTimeout(repTimer);
-  repTimer = setTimeout(()=>{
-    heroGif.style.opacity = 0;
-    heroIdle.style.opacity = 1;
-    repTimer = null;
-    setTimeout(()=>{ lock=false; }, COOLDOWN_MS);
-  }, REP_HOLD_MS);
+  if (lock || over) return; lock = true;
+  heroIdle.style.opacity = 0; heroGif.style.opacity = 1;
+  heroGif.src = REP_SRC + "?r=" + Date.now();
+  setTimeout(()=>{ heroGif.style.opacity = 0; heroIdle.style.opacity = 1; setTimeout(()=>lock=false, 90); }, 1250);
 }
-
-/* state (same model) */
-let running=false;
-let over=false;
-let start=performance.now();
-
-let reps=0;
-let bestReps=0;
-let runCals=0;
-
-/* modal */
-function showModal(){ modalBack.style.display="flex"; }
-function hideModal(){ modalBack.style.display="none"; }
 
 function resetRun(){
-  running=false; over=false; lock=false;
-  reps=0; bestReps=0; runCals=0;
-  loopSeconds=BASE_LOOP;
-  zoneW=BASE_ZONE_W;
-  smallestZone=zoneW;
-  start=performance.now();
-
-  repStreakEl.textContent="0";
-  runCalsEl.textContent="0";
-  vignette.style.opacity=0;
-  statusEl.textContent="Tap once to wake up. Then release on green. Miss once = pinned.";
-  hideModal();
-
-  rerollZone();
-
-  capEl.textContent = String(DAILY_CAP);
-  todayCalsEl.textContent = String(today);
-
-  syncFromServer().then(()=>{
-    capEl.textContent = String(DAILY_CAP);
-    todayCalsEl.textContent = String(today);
-  });
+  running=over=lock=false; reps=bestReps=runCals=0;
+  loopSeconds=BASE_LOOP; zoneW=BASE_ZONE_W; smallestZone=zoneW;
+  repStreakEl.textContent=runCalsEl.textContent="0";
+  vignette.style.opacity=0; statusEl.textContent="Release on green.";
+  modalBack.style.display="none"; rerollZone(); syncFromServer();
 }
 
-async function endRun(reason){
-  over = true;
-  vignette.style.opacity = 1;
-
-  const tags = ["Pinned by Pizza","Ego too heavy","Spotter went to vape","Elbows said “nah”","Yoo-hoo fueled delusion"];
-  endTagEl.textContent = reason || tags[(Math.random()*tags.length)|0];
-
-  bestReps = Math.max(bestReps, reps);
-  const durationMs = Math.max(0, Math.round(performance.now() - start));
-
-  let res = null;
+async function endRun(){
+  over = true; vignette.style.opacity = 1;
+  const tags = ["Pinned by Pizza","Ego too heavy","Spotter vaped"];
+  endTagEl.textContent = tags[(Math.random()*tags.length)|0];
+  bestReps = reps;
+  
   if (isLoggedIn()){
-    res = await submitSecureLift({ score: bestReps, durationMs });
-    if (res && res.ok){
+    const res = await submitSecureLift({ score: bestReps, durationMs: performance.now() - start });
+    if (res && res.okHttp){
       runCals = Number(res.earnedCalories || 0);
-      if (res.today && typeof res.today.calories === "number") today = Number(res.today.calories || 0);
-      if (res.caps && typeof res.caps.dailyCapCalories === "number") DAILY_CAP = Number(res.caps.dailyCapCalories || DAILY_CAP);
-      if (runCals === 0 && res.reason === "too_short") toast("Too short. No calories.");
-      if (runCals === 0 && res.reason === "score_too_high") toast("Too fast. No calories.");
-   } else {
-  const msg =
-    (res && (res.error || res.message || res.reason)) ? String(res.error || res.message || res.reason) :
-    (res && res.status) ? ("HTTP " + res.status) :
-    "unknown";
-  console.log("[lift] submit failed:", res);
-  toast("Couldn’t sync run: " + msg);
-}
-  } else {
-    toast("Guest run. Connect via hub to stack lifetime calories.");
-  }
+      today = Number(res.today?.calories ?? today);
+    } else { toast("Sync error: " + (res?.message || "Check connection")); }
+  } else { toast("Guest run. No cals saved."); }
 
-  runCalsEl.textContent = String(runCals);
-  todayCalsEl.textContent = String(today);
-  capEl.textContent = String(DAILY_CAP);
-
+  runCalsEl.textContent = mRunCalsEl.textContent = String(runCals);
+  todayCalsEl.textContent = mTodayEl.textContent = String(today);
   mBestEl.textContent = String(bestReps);
   mZoneEl.textContent = Math.round(smallestZone*100) + "%";
-  mRunCalsEl.textContent = String(runCals);
-  mTodayEl.textContent = String(today);
-
-  const shareText =
-    `$PHAT Ego Lift Buffet 🟣\n` +
-    `Rep streak: ${bestReps}\n` +
-    `Smallest green zone: ${Math.round(smallestZone*100)}%\n` +
-    `Calories: ${runCals} (today ${today}/${DAILY_CAP})\n` +
-    `planetfatness.fit/lift`;
-
-  shareLine.textContent = `Rep streak: ${bestReps} • Zone: ${Math.round(smallestZone*100)}% • Calories: ${runCals}`;
-  window.__shareText = shareText;
-
-  showModal();
+  shareLine.textContent = `Streak: ${bestReps} • Zone: ${Math.round(smallestZone*100)}%`;
+  modalBack.style.display="flex";
 }
 
-/* ✅ INPUT: keep your “release-only” mechanic, but fix iOS double-fire.
-   - start on first RELEASE (same as your working file)
-   - evaluate only once per physical tap
-   - bind to STAGE so releasing outside doesn’t cause weirdness
-*/
-let tapArmed = false;
-let lastEvalTs = 0;
-
-function armTap(){
-  tapArmed = true;
-}
-
+let tapArmed = false, lastEvalTs = 0;
 function onRelease(e){
-  // stop iOS from also generating a second synthetic event
   try{ e.preventDefault(); }catch{}
+  if (over || !tapArmed || Date.now() - lastEvalTs < 40) return;
+  lastEvalTs = Date.now(); tapArmed = false;
 
-  const nowTs = Date.now();
-  if (nowTs - lastEvalTs < 40) return; // double-fire guard
-  lastEvalTs = nowTs;
-
-  if (over) return;
-  if (!tapArmed) return; // must have had a down inside stage
-  tapArmed = false;
-
-  if (!running){
-    running = true;
-    start = performance.now();
-    statusEl.textContent = "Release on green. Miss once and you’re done.";
-    const pre = new Image(); pre.src = REP_SRC;
-    syncFromServer(); // doesn’t block
-    return;
-  }
+  if (!running){ running = true; start = performance.now(); syncFromServer(); return; }
   if (lock) return;
 
-  const now = performance.now();
-  const phase = (((now - start)/1000) % loopSeconds) / loopSeconds;
-
-  const inGreen = (phase >= zoneLeft) && (phase <= zoneLeft + zoneW);
-
-  if (inGreen){
-    reps++;
-    repStreakEl.textContent = String(reps);
-
-    // guest preview only (server truth on end)
-    const add = caloriesForRep(reps, zoneW, loopSeconds);
-    if (!isLoggedIn()){
-      if (today < DAILY_CAP && add > 0){
-        const actualAdd = Math.min(add, DAILY_CAP - today);
-        runCals += actualAdd;
-        today += actualAdd;
-        runCalsEl.textContent = String(runCals);
-        todayCalsEl.textContent = String(today);
-        try{ localStorage.setItem(KEY_TODAY, String(today)); }catch{}
-      }
-    }
-
-    if (reps === 1) flash("CLEAN REP ✅");
-    else if (reps % 5 === 0) flash(`CLEAN REP x${reps} ✅`);
-    else flash("CLEAN ✅");
-
-    setDifficulty(reps);
-    playRep();
-  } else {
-    endRun();
-  }
+  const phase = (((performance.now() - start)/1000) % loopSeconds) / loopSeconds;
+  if (phase >= zoneLeft && phase <= zoneLeft + zoneW){
+    reps++; repStreakEl.textContent = String(reps);
+    if (!isLoggedIn()){ runCals += caloriesForRep(reps, zoneW, loopSeconds); runCalsEl.textContent = String(runCals); }
+    flash(reps % 5 === 0 ? `CLEAN x${reps} ✅` : "CLEAN ✅");
+    setDifficulty(reps); playRep();
+  } else { endRun(); }
 }
 
-// pointer path
-stage.addEventListener("pointerdown", (e)=>{ try{ e.preventDefault(); }catch{} armTap(); }, { passive:false });
-stage.addEventListener("pointerup", onRelease, { passive:false });
+stage.addEventListener("pointerdown", (e)=>{ try{e.preventDefault();}catch{} tapArmed=true; });
+stage.addEventListener("pointerup", onRelease);
+stage.addEventListener("touchstart", (e)=>{ try{e.preventDefault();}catch{} tapArmed=true; });
+stage.addEventListener("touchend", onRelease);
 
-// touch fallback (some iOS builds are flaky with pointer events)
-stage.addEventListener("touchstart", (e)=>{ try{ e.preventDefault(); }catch{} armTap(); }, { passive:false });
-stage.addEventListener("touchend", onRelease, { passive:false });
+el("restartBtn").onclick = el("againBtn").onclick = resetRun;
+el("closeBtn").onclick = ()=> modalBack.style.display="none";
+el("backBtn").onclick = ()=> window.location.href = "../index.html#gym";
 
-/* Buttons */
-el("restartBtn").onclick = ()=> resetRun();
-el("againBtn").onclick   = ()=> resetRun();
-el("closeBtn").onclick   = ()=> hideModal();
-
-const backBtn = el("backBtn");
-backBtn.addEventListener("click", ()=>{ window.location.href = "../index.html#gym"; });
-
-/* Share */
-const pfShareBtn = el("pfShareBtn");
-pfShareBtn.addEventListener("click", async ()=>{
-  try{
-    if (window.PF_UI && typeof window.PF_UI.share === "function"){ window.PF_UI.share({ game:"lift" }); return; }
-    if (window.PFUI && typeof window.PFUI.share === "function"){ window.PFUI.share({ game:"lift" }); return; }
-  }catch{}
-
-  const text = window.__shareText || `$PHAT Ego Lift Buffet 🟣\nplanetfatness.fit/lift`;
-  if (navigator.share){ try{ await navigator.share({ text }); }catch{} return; }
-  try{ await navigator.clipboard.writeText(text); toast("Copied. Paste it into X."); }catch{ toast("Screenshot + post."); }
-});
-
-el("copyBtn").onclick = async ()=>{
-  try{ await navigator.clipboard.writeText(window.__shareText || ""); toast("Copied. Post the flex."); }
-  catch{ toast("Couldn’t copy. Screenshot it."); }
-};
-el("shareBtn").onclick = async ()=>{
-  const text = window.__shareText || "";
-  if (navigator.share){ try{ await navigator.share({ text }); }catch{} return; }
-  try{ await navigator.clipboard.writeText(text); toast("Copied. Paste it into X."); }catch{ toast("Screenshot + post."); }
-};
-
-/* Countdown */
-function tick(){
-  if (Date.now() > resetAt){
-    today = 0;
-    resetAt = nextMidnight();
-    try{ localStorage.setItem(KEY_RESET, String(resetAt)); localStorage.setItem(KEY_TODAY, String(today)); }catch{}
-  }
-  const r = Math.max(0, resetAt - Date.now());
-  const h = String(Math.floor(r/36e5)).padStart(2,'0');
-  const m = String(Math.floor((r%36e5)/6e4)).padStart(2,'0');
-  const s = String(Math.floor((r%6e4)/1e3)).padStart(2,'0');
-  resetEl.textContent = `${h}:${m}:${s}`;
-}
-setInterval(tick,1000); tick();
-
-/* Loop */
 function loop(){
-  const now = performance.now();
   if (!over){
-    const phase = (((now - start)/1000) % loopSeconds) / loopSeconds;
+    const phase = (((performance.now() - start)/1000) % loopSeconds) / loopSeconds;
     needleEl.style.left = (phase*100) + "%";
-    const wob = Math.sin(now/160)*0.010 + Math.sin(now/520)*0.010;
-    const scale = 1.02 + wob;
-    heroStack.style.transform = `translateX(-50%) translateY(${Math.sin(now/220)*2}px) scale(${scale})`;
+    heroStack.style.transform = `translateX(-50%) translateY(${Math.sin(performance.now()/220)*2}px) scale(${1.02 + Math.sin(performance.now()/160)*0.01})`;
   }
   requestAnimationFrame(loop);
 }
+setInterval(()=>{
+  if (Date.now() > resetAt){ today=0; resetAt=nextMidnight(); }
+  const r = Math.max(0, resetAt - Date.now());
+  resetEl.textContent = `${String(Math.floor(r/36e5)).padStart(2,'0')}:${String(Math.floor((r%36e5)/6e4)).padStart(2,'0')}:${String(Math.floor((r%6e4)/1e3)).padStart(2,'0')}`;
+},1000);
 
-/* Init */
-heroIdle.src = IDLE_SRC;
-heroGif.src  = REP_SRC;
-
-repStreakEl.textContent = "0";
-runCalsEl.textContent = "0";
-
-loopSeconds = BASE_LOOP;
-zoneW = BASE_ZONE_W;
-smallestZone = zoneW;
-rerollZone();
-
-capEl.textContent = String(DAILY_CAP);
-todayCalsEl.textContent = String(today);
-
-syncFromServer().then(()=>{
-  capEl.textContent = String(DAILY_CAP);
-  todayCalsEl.textContent = String(today);
-});
-
-requestAnimationFrame(loop);
+resetRun(); requestAnimationFrame(loop);
 </script>
 </body>
 </html>
