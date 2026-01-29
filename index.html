@@ -1,5 +1,4 @@
-New index
-
+<!-- PART 1/4 — paste this first (start of file) -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -39,8 +38,6 @@ New index
 
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
-    html{ scroll-behavior:smooth; }
-
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -89,39 +86,11 @@ New index
       z-index:-1;
     }
 
-    @media (prefers-reduced-motion: reduce){
-      *{ scroll-behavior:auto !important; transition:none !important; animation:none !important; }
-    }
-
-    /* Toast */
-    .toast{
-      position: fixed;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%);
-      z-index: 100;
-      display:none;
-      padding: 10px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.55);
-      color: rgba(255,255,255,.94);
-      font-weight: 1000;
-      font-size: 13px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 0 18px rgba(255,212,0,.18), 0 0 34px rgba(91,44,255,.14);
-      max-width: min(720px, calc(100% - 30px));
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Topbar */
     .topbar{
       position:sticky; top:0;
       z-index:20;
       backdrop-filter: blur(14px);
-      background: linear-gradient(180deg, rgba(8,6,14,.82), rgba(8,6,14,.36));
+      background: linear-gradient(180deg, rgba(8,6,14,.80), rgba(8,6,14,.35));
       border-bottom:1px solid rgba(255,255,255,.08);
     }
     .topbar .inner{
@@ -133,14 +102,22 @@ New index
       display:flex; align-items:center; gap:12px;
       min-width: 240px;
     }
+
     .logoMark{
-      width:54px; height:54px;
+      width:216px;
+      height:216px;
       display:block;
       flex:0 0 auto;
+      border:0;
+      border-radius:0;
       background:transparent;
       object-fit:contain;
       filter: drop-shadow(0 16px 26px rgba(0,0,0,.45));
     }
+    @media (max-width: 520px){
+      .logoMark{ width:48px; height:48px; }
+    }
+
     .brand h3{ margin:0; font-size:14px; letter-spacing:.3px; }
     .brand p{ margin:0; font-size:12px; color:var(--muted); }
 
@@ -159,11 +136,7 @@ New index
       font-size:13px;
       transition: transform .12s ease, border-color .12s ease, background .12s ease;
     }
-    .chip:hover{
-      transform: translateY(-1px);
-      border-color: rgba(255,255,255,.18);
-      background: rgba(255,255,255,.07);
-    }
+    .chip:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.07); }
 
     .cta{
       padding:10px 14px;
@@ -179,7 +152,6 @@ New index
     }
     .cta:hover{ transform: translateY(-2px); box-shadow: 0 18px 46px rgba(255,212,0,.38); filter: saturate(1.08); }
 
-    /* Panels */
     .panel{
       border-radius: var(--radius);
       background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
@@ -199,24 +171,7 @@ New index
     }
     .panel .pad{ position:relative; padding: 26px; }
 
-    /* Section titles */
-    .sectionTitle{ margin: 26px 0 12px; }
-    .sectionTitle h2{
-      margin:0;
-      font-size: 20px;
-      font-weight: 1000;
-      letter-spacing: -.2px;
-    }
-    .sectionTitle p{
-      margin: 6px 0 0;
-      color: var(--muted);
-      font-weight: 800;
-      font-size: 13px;
-      line-height: 1.35;
-    }
-
-    /* Hero */
-    header.hero{ padding: 34px 0 14px; }
+    header.hero{ padding: 40px 0 14px; }
     .heroGrid{
       display:grid;
       grid-template-columns: 1.12fr .88fr;
@@ -261,9 +216,8 @@ New index
       color: rgba(255,255,255,.78);
       max-width: 72ch;
       line-height:1.50;
-      font-weight: 800;
     }
-    .subtitle b{ color: rgba(255,255,255,.94); }
+    .subtitle b{ color: rgba(255,255,255,.92); }
 
     .heroActions{ display:flex; gap:12px; flex-wrap:wrap; margin-top: 16px; }
     .btn{
@@ -278,7 +232,6 @@ New index
       transition: transform .12s ease, border-color .12s ease, background .12s ease;
       user-select:none;
       cursor:pointer;
-      white-space: nowrap;
     }
     .btn:hover{ transform: translateY(-2px); border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.06); }
     .btnPrimary{
@@ -290,9 +243,8 @@ New index
     .btnPrimary:hover{ background: linear-gradient(180deg, #ffe566, var(--yellow)); }
 
     .miniRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; color: rgba(255,255,255,.70); font-size: 13px; }
-    .miniRow span{ padding: 8px 10px; border-radius: 999px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.04); font-weight:900; }
+    .miniRow span{ padding: 8px 10px; border-radius: 999px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.04); }
 
-    /* Logo card */
     .logoFrame{ display:flex; align-items:center; justify-content:center; padding: 14px; min-height: 360px; }
     .logoCard{
       width:100%;
@@ -325,7 +277,6 @@ New index
       display:flex; justify-content:space-between; gap:10px; align-items:center;
       color: rgba(255,255,255,.72);
       font-size: 12px;
-      font-weight: 900;
     }
     .tag{
       padding: 7px 10px;
@@ -334,231 +285,11 @@ New index
       background: rgba(255,255,255,.04);
       font-weight: 1000;
     }
-
-    /* Gym game grid */
-    .gameGrid{
-      display:grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      margin-top: 12px;
-    }
-    @media (max-width: 860px){
-      .gameGrid{ grid-template-columns: 1fr; }
-    }
-    .gameCard{
-      border-radius: var(--radius);
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      box-shadow: var(--shadow2);
-      overflow:hidden;
-      position:relative;
-    }
-    .gameCard::before{
-      content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(520px 280px at 10% 0%, rgba(91,44,255,.22), transparent 60%),
-        radial-gradient(520px 280px at 90% 10%, rgba(255,212,0,.12), transparent 62%);
-      opacity:.9;
-      pointer-events:none;
-    }
-    .gamePad{
-      position:relative;
-      padding: 18px;
-      display:flex;
-      gap: 14px;
-      align-items:flex-start;
-    }
-
-    /* UPDATED: emoji goes inside this box */
-    .gameIcon{
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.12);
-      background:
-        radial-gradient(28px 28px at 30% 30%, rgba(255,212,0,.18), transparent 62%),
-        radial-gradient(36px 36px at 80% 25%, rgba(91,44,255,.28), transparent 60%),
-        rgba(255,255,255,.05);
-      box-shadow: 0 18px 50px rgba(0,0,0,.35);
-      flex:0 0 auto;
-
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size: 26px;
-      line-height: 1;
-      user-select:none;
-    }
-
-    .gameTitle{ margin:0; font-weight: 1000; font-size: 16px; letter-spacing: -.2px; }
-    .gameDesc{ margin:6px 0 12px; color: rgba(255,255,255,.72); font-weight: 850; line-height:1.35; }
-    .gameBtns{ display:flex; gap:10px; flex-wrap:wrap; }
-
-    /* Stat grids */
-    .statGrid{
-      display:grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-top: 12px;
-    }
-    @media (max-width: 960px){
-      .statGrid{ grid-template-columns: repeat(2, 1fr); }
-    }
-    .stat{
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      padding: 14px;
-      position:relative;
-      overflow:hidden;
-    }
-    .stat::before{
-      content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(260px 160px at 20% 0%, rgba(91,44,255,.16), transparent 60%),
-        radial-gradient(260px 160px at 80% 10%, rgba(255,212,0,.10), transparent 62%);
-      opacity:.9;
-      pointer-events:none;
-    }
-    .stat .k{ position:relative; font-weight: 1000; font-size: 12px; color: rgba(255,255,255,.72); }
-    .stat .v{ position:relative; margin-top: 6px; font-weight: 1100; font-size: 22px; letter-spacing:-.3px; color: rgba(255,212,0,.95); }
-    .stat .s{ position:relative; margin-top: 6px; font-weight: 850; font-size: 12px; color: rgba(255,255,255,.64); }
-
-    /* Leaderboard tabs */
-    .tabs{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-top: 12px;
-    }
-    .tab{
-      padding: 10px 12px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      font-weight: 1000;
-      font-size: 12px;
-      color: rgba(255,255,255,.84);
-      cursor:pointer;
-      user-select:none;
-    }
-    .tab.active{
-      background: linear-gradient(180deg, rgba(255,212,0,.20), rgba(255,212,0,.10));
-      border-color: rgba(255,212,0,.28);
-      color: rgba(255,255,255,.96);
-    }
-
-    /* Tables */
-    .tableWrap{
-      margin-top: 12px;
-      overflow:auto;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.16);
-      -webkit-overflow-scrolling: touch;
-    }
-    table{
-      width:100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      min-width: 740px;
-    }
-    th,td{
-      padding: 10px 10px;
-      text-align:left;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      font-weight: 900;
-      white-space: nowrap;
-    }
-    th{ color: rgba(255,255,255,.70); font-size: 11px; letter-spacing:.35px; text-transform: uppercase; }
-    .rank{ width: 54px; }
-    .muted{ color: var(--muted); }
-
-    /* Per-game leaderboard grid */
-    .lbGrid{
-      display:grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      margin-top: 14px;
-    }
-    @media (max-width: 940px){
-      .lbGrid{ grid-template-columns: 1fr; }
-      table{ min-width: 640px; }
-    }
-    .lbCard{
-      border-radius: var(--radius);
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.16);
-      box-shadow: var(--shadow2);
-      overflow:hidden;
-      position:relative;
-    }
-    .lbCard .pad{ padding: 16px; }
-    .lbHead{
-      display:flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
-    .lbHead h3{
-      margin:0;
-      font-weight: 1100;
-      font-size: 14px;
-      letter-spacing: -.2px;
-    }
-    .pill{
-      padding: 7px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.05);
-      font-size: 12px;
-      font-weight: 1000;
-      color: rgba(255,255,255,.76);
-    }
-
-    footer{
-      padding: 24px 0 40px;
-      color: rgba(255,255,255,.72);
-    }
-    .footRow{
-      display:flex;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items:center;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255,255,255,.08);
-      font-weight: 900;
-      font-size: 12px;
-    }
-    .links{ display:flex; gap: 12px; flex-wrap:wrap; }
-    .link{
-      padding: 8px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-    }
-    .disclaimer{
-      margin-top: 12px;
-      padding: 14px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.16);
-      font-weight: 850;
-      line-height: 1.4;
-      color: rgba(255,255,255,.72);
-    }
   </style>
 </head>
 <body>
   <div class="grain"></div>
   <div class="toast" id="toast"></div>
-
   <div class="topbar">
     <div class="wrap">
       <div class="container inner">
@@ -572,7 +303,7 @@ New index
 
         <div class="nav">
           <a class="chip" href="#gym">Gym</a>
-          <a class="chip" href="#leaderboard">Leaderboards</a>
+          <a class="chip" href="#leaderboard">Leaderboard</a>
           <a class="chip" href="#rewards">Rewards</a>
           <a class="chip" href="#manifesto">Manifesto</a>
           <button class="cta" id="playBtn">Play</button>
@@ -596,26 +327,42 @@ New index
               and “I’ll start Monday” as a <b>lifestyle</b>.
               <br><br>
               The only gym where <b>tapping counts as cardio</b>.
-              Play the Gym Games, stack <b>Calories</b>,
-              climb the ranks, and get rewarded like a certified Planet Fatness member.
+              Play the Gym Games, stack <b>Lifetime Calories</b>,
+              climb the ranks, and get rewarded like a certified Planet Fatness Gym member.
             </p>
 
             <div class="heroActions">
               <button class="btn btnPrimary" id="connectBtn">🟣 Connect Phantom</button>
-              <a class="btn" href="https://planetfatness.fit/runner/">Rage Treadmill</a>
-              <a class="btn" href="https://planetfatness.fit/lift/">Ego Lift Buffet</a>
-              <a class="btn" href="https://planetfatness.fit/snack/">Conveyor Munch</a>
-              <a class="btn" href="https://planetfatness.fit/basket/">Streak Shot</a>
+              <a class="btn" href="https://planetfatness.fit/runner/">🏃‍♂️ Rage Treadmill</a>
+              <a class="btn" href="https://planetfatness.fit/lift/">💪 Ego Lift Buffet</a>
+              <a class="btn" href="https://planetfatness.fit/snack/">🍔 Conveyor Munch</a>
+              <a class="btn" href="https://planetfatness.fit/basket/">🏀 Streak Shot</a>
             </div>
 
             <div class="miniRow">
               <span>🍕 Snack-first philosophy</span>
               <span>🛋️ Couch cardio certified</span>
-              <span>🏃‍♂️ Best time flex</span>
-              <span>📈 Daily/Weekly/Monthly/Lifetime</span>
-              <span>🏀 Streak Shot beasts</span>
-              <span>💸 Rewards trackable</span>
+              <span>🏃‍♂️ Rage treadmill mini-game</span>
+              <span>💪 Food-plate curl chaos</span>
+              <span>🍔 Eat big to get big</span>
+              <span>🏀 Streak Shot arena</span>
+              <span>💸 Rewards for grinders</span>
             </div>
+            <!-- PART 2/4 — paste immediately after Part 1 -->
+            <div style="margin-top:14px;">
+              <div class="sectionTitle" style="margin:0 0 8px;">
+                <h2 style="font-size:15px;">Official Links</h2>
+                <p style="font-size:12px;">Drop the real links when you’re ready. The slots are here.</p>
+              </div>
+              <div class="linkStrip">
+                <a class="pillLink primary soon" href="#" onclick="return false;" aria-disabled="true">Buy $PHAT (Soon)</a>
+                <a class="pillLink soon" href="#" onclick="return false;" aria-disabled="true">Pump.fun (Soon)</a>
+                <a class="pillLink soon" href="#" onclick="return false;" aria-disabled="true">DEX Screener (Soon)</a>
+                <a class="pillLink soon" href="#" onclick="return false;" aria-disabled="true">Telegram (Soon)</a>
+                <a class="pillLink soon" href="#" onclick="return false;" aria-disabled="true">X / Twitter (Soon)</a>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -642,19 +389,19 @@ New index
       <div class="container">
         <div class="sectionTitle">
           <h2>Planet Fatness Gym</h2>
-          <p>Pick your suffering (or snacks). Every game feeds the same calorie stack.</p>
+          <p>Welcome to the only gym where tapping counts as cardio.</p>
         </div>
 
         <div class="gameGrid">
           <div class="gameCard">
             <div class="gamePad">
-              <div class="gameIcon" aria-hidden="true">🏃‍♂️</div>
+              <div class="gameIcon"></div>
               <div class="gameText">
-                <h3 class="gameTitle">Treadmill Rage Runner</h3>
-                <p class="gameDesc">Tap to survive. Stack calories. Fly off with honor. The belt is disrespectful.</p>
+                <h3 class="gameTitle">🏃‍♂️ Treadmill Rage Runner</h3>
+                <p class="gameDesc">Tap to survive. Stack calories. Fly off with honor. The belt is disrespectful and it gets worse.</p>
                 <div class="gameBtns">
                   <a class="btn btnPrimary" href="https://planetfatness.fit/runner/">Play Runner</a>
-                  <a class="btn" href="#leaderboard">See Winners</a>
+                  <a class="btn" href="#leaderboard">Peep Ranks</a>
                 </div>
               </div>
             </div>
@@ -662,13 +409,13 @@ New index
 
           <div class="gameCard">
             <div class="gamePad">
-              <div class="gameIcon" aria-hidden="true">💪</div>
+              <div class="gameIcon"></div>
               <div class="gameText">
-                <h3 class="gameTitle">Ego Lift Buffet</h3>
-                <p class="gameDesc">Time the curl. Food plates count as weights. Respect the wobble or it claps you.</p>
+                <h3 class="gameTitle">💪 Ego Lift Buffet</h3>
+                <p class="gameDesc">Time the curl. Don’t ego it. Food plates count as “weights.” Respect the wobble or it claps you.</p>
                 <div class="gameBtns">
                   <a class="btn btnPrimary" href="https://planetfatness.fit/lift/">Play Lift</a>
-                  <a class="btn" href="#leaderboard">See Winners</a>
+                  <a class="btn" href="#rewards">How Rewards Hit</a>
                 </div>
               </div>
             </div>
@@ -676,13 +423,13 @@ New index
 
           <div class="gameCard">
             <div class="gamePad">
-              <div class="gameIcon" aria-hidden="true">🍔</div>
+              <div class="gameIcon"></div>
               <div class="gameText">
-                <h3 class="gameTitle">Conveyor Munch</h3>
-                <p class="gameDesc">Eat big to get big. Drag the snack into his mouth. Missed meals kill gains.</p>
+                <h3 class="gameTitle">🍔 Conveyor Munch</h3>
+                <p class="gameDesc">Eat big to get big. Drag the snack he’s thinking about into his mouth. Missed meals kill gains.</p>
                 <div class="gameBtns">
                   <a class="btn btnPrimary" href="https://planetfatness.fit/snack/">Play Munch</a>
-                  <a class="btn" href="#leaderboard">See Winners</a>
+                  <a class="btn" href="#rewards">What it feeds</a>
                 </div>
               </div>
             </div>
@@ -690,107 +437,47 @@ New index
 
           <div class="gameCard">
             <div class="gamePad">
-              <div class="gameIcon" aria-hidden="true">🏀</div>
+              <div class="gameIcon"></div>
               <div class="gameText">
-                <h3 class="gameTitle">Streak Shot</h3>
-                <p class="gameDesc">One miss ends the run. Drag, aim, and feed the mouth. Golden donuts hit harder.</p>
+                <h3 class="gameTitle">🏀 Streak Shot</h3>
+                <p class="gameDesc">One miss ends the run. Drag, aim, and feed the mouth. Stack streaks like snacks on a cheat day.</p>
                 <div class="gameBtns">
                   <a class="btn btnPrimary" href="https://planetfatness.fit/basket/">Play Streak Shot</a>
-                  <a class="btn" href="#leaderboard">See Winners</a>
+                  <a class="btn" href="https://planetfatness.fit/basket/">Chase #1</a>
                 </div>
               </div>
             </div>
           </div>
+
         </div>
 
-        <div style="margin-top:14px" class="panel">
+        <div style="margin-top:12px" class="panel">
           <div class="pad">
             <div class="sectionTitle" style="margin-top:0">
               <h2>Your Gym Card</h2>
-              <p id="authStatus" class="muted">Not connected yet — open in Telegram or connect Phantom to lock your member card.</p>
+              <p id="authStatus" class="muted">Not connected yet — connect Phantom or open in Telegram to start stacking.</p>
             </div>
 
             <div class="statGrid">
               <div class="stat">
                 <div class="k">Member Identity</div>
-                <div class="v" id="meIdentity">—</div>
+                <div class="v" id="meWallet">—</div>
                 <div class="s">telegram-first • wallet optional</div>
               </div>
               <div class="stat">
                 <div class="k">Lifetime Calories</div>
-                <div class="v" id="meCaloriesLife">—</div>
+                <div class="v" id="meCalories">—</div>
                 <div class="s">stacked across games</div>
               </div>
               <div class="stat">
-                <div class="k">Runner Best Time</div>
-                <div class="v" id="meRunnerBestTime">—</div>
-                <div class="s">best single run</div>
+                <div class="k">Best Run</div>
+                <div class="v" id="meBest">—</div>
+                <div class="s">treadmill survival flex</div>
               </div>
               <div class="stat">
-                <div class="k">Lifetime Miles</div>
-                <div class="v" id="meRunnerMiles">—</div>
-                <div class="s">distance ran (lifetime)</div>
-              </div>
-            </div>
-
-            <div class="sectionTitle" style="margin-top:16px">
-              <h2>Calories Breakdown</h2>
-              <p>Daily / Weekly / Monthly / Lifetime — so rewards are easy to track.</p>
-            </div>
-
-            <div class="statGrid">
-              <div class="stat">
-                <div class="k">Daily</div>
-                <div class="v" id="meCaloriesDaily">—</div>
-                <div class="s">today’s burn</div>
-              </div>
-              <div class="stat">
-                <div class="k">Weekly</div>
-                <div class="v" id="meCaloriesWeekly">—</div>
-                <div class="s">this week</div>
-              </div>
-              <div class="stat">
-                <div class="k">Monthly</div>
-                <div class="v" id="meCaloriesMonthly">—</div>
-                <div class="s">this month</div>
-              </div>
-              <div class="stat">
-                <div class="k">Lifetime</div>
-                <div class="v" id="meCaloriesLifetime2">—</div>
-                <div class="s">all-time stack</div>
-              </div>
-            </div>
-
-            <div class="sectionTitle" style="margin-top:16px">
-              <h2>Best Stats (Per Game)</h2>
-              <p>Your best flexes — one glance, no hunting.</p>
-            </div>
-
-            <div class="statGrid">
-              <div class="stat">
-                <div class="k">Runner</div>
-                <div class="v" id="meRunnerBest">—</div>
-                <div class="s" id="meRunnerBestSub">best time • best score</div>
-              </div>
-              <div class="stat">
-                <div class="k">Lift</div>
-                <div class="v" id="meLiftBest">—</div>
-                <div class="s" id="meLiftBestSub">best set • best score</div>
-              </div>
-              <div class="stat">
-                <div class="k">Munch</div>
-                <div class="v" id="meSnackBest">—</div>
-                <div class="s" id="meSnackBestSub">best combo</div>
-              </div>
-              <div class="stat">
-                <div class="k">Streak Shot Best</div>
-                <div class="v" id="meBasketBest">—</div>
-                <div class="s" id="meBasketBestSub">best streak • best score</div>
-              </div>
-              <div class="stat">
-                <div class="k">Streak Shot Lifetime Makes</div>
-                <div class="v" id="meBasketMakes">—</div>
-                <div class="s">total baskets made (lifetime)</div>
+                <div class="k">Gym Status</div>
+                <div class="v" id="meRankHint">—</div>
+                <div class="s">climb ranks for rewards</div>
               </div>
             </div>
 
@@ -808,156 +495,41 @@ New index
       </div>
     </div>
   </section>
-    <section id="leaderboard">
+  <!-- PART 3/4 — paste immediately after Part 2 -->
+  <section id="leaderboard">
     <div class="wrap">
       <div class="container">
         <div class="sectionTitle">
-          <h2>Leaderboards</h2>
-          <p>Easy rewards tracking. One screen tells you who’s leading overall + who’s leading each game.</p>
+          <h2>Leaderboard</h2>
+          <p>Top gym members by Lifetime Calories. If you’re not here, your thumb is sleeping.</p>
         </div>
 
         <div class="panel">
           <div class="pad">
             <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center;">
-              <div class="muted">Switch the window: Daily / Weekly / Monthly / Lifetime.</div>
+              <div class="muted">Pro tip: do all four games so your calories don’t get lonely.</div>
               <button class="btn" id="refreshLbBtn">Refresh</button>
             </div>
 
-            <div class="tabs" id="lbTabs">
-              <button class="tab active" data-window="daily">Daily</button>
-              <button class="tab" data-window="weekly">Weekly</button>
-              <button class="tab" data-window="monthly">Monthly</button>
-              <button class="tab" data-window="lifetime">Lifetime</button>
-            </div>
-
-            <div class="sectionTitle" style="margin-top:16px">
-              <h2>Overall Gym Winners</h2>
-              <p>Top members by calories (this window).</p>
-            </div>
-
-            <div class="tableWrap">
+            <div style="margin-top:12px; overflow:auto;">
               <table>
                 <thead>
                   <tr>
                     <th class="rank">#</th>
                     <th>Identity</th>
-                    <th>Calories</th>
-                    <th>Runner Best</th>
-                    <th>Lifetime Miles</th>
+                    <th>Lifetime Calories</th>
+                    <th>Best Run</th>
                   </tr>
                 </thead>
-                <tbody id="lbOverallBody">
-                  <tr><td colspan="5" class="muted">Loading…</td></tr>
+                <tbody id="lbBody">
+                  <tr><td colspan="4" class="muted">Loading leaderboard…</td></tr>
                 </tbody>
               </table>
             </div>
 
-            <div class="sectionTitle" style="margin-top:18px">
-              <h2>Game Leaders</h2>
-              <p>Who’s #1 in each arena (this window).</p>
-            </div>
-
-            <div class="lbGrid">
-              <div class="lbCard">
-                <div class="pad">
-                  <div class="lbHead">
-                    <h3>🏃‍♂️ Runner Leaders</h3>
-                    <span class="pill">Calories + Best Time</span>
-                  </div>
-                  <div class="tableWrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th class="rank">#</th>
-                          <th>Identity</th>
-                          <th>Calories</th>
-                          <th>Best Time</th>
-                        </tr>
-                      </thead>
-                      <tbody id="lbRunnerBody">
-                        <tr><td colspan="4" class="muted">Loading…</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <div class="lbCard">
-                <div class="pad">
-                  <div class="lbHead">
-                    <h3>💪 Lift Leaders</h3>
-                    <span class="pill">Calories + Best</span>
-                  </div>
-                  <div class="tableWrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th class="rank">#</th>
-                          <th>Identity</th>
-                          <th>Calories</th>
-                          <th>Best</th>
-                        </tr>
-                      </thead>
-                      <tbody id="lbLiftBody">
-                        <tr><td colspan="4" class="muted">Loading…</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <div class="lbCard">
-                <div class="pad">
-                  <div class="lbHead">
-                    <h3>🍔 Munch Leaders</h3>
-                    <span class="pill">Calories + Best</span>
-                  </div>
-                  <div class="tableWrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th class="rank">#</th>
-                          <th>Identity</th>
-                          <th>Calories</th>
-                          <th>Best</th>
-                        </tr>
-                      </thead>
-                      <tbody id="lbSnackBody">
-                        <tr><td colspan="4" class="muted">Loading…</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <div class="lbCard">
-                <div class="pad">
-                  <div class="lbHead">
-                    <h3>🏀 Streak Shot Leaders</h3>
-                    <span class="pill">Best Streak + Best Score</span>
-                  </div>
-                  <div class="tableWrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th class="rank">#</th>
-                          <th>Identity</th>
-                          <th>Best Streak</th>
-                          <th>Best Score</th>
-                        </tr>
-                      </thead>
-                      <tbody id="lbBasketBody">
-                        <tr><td colspan="4" class="muted">Loading…</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
           </div>
         </div>
+
       </div>
     </div>
   </section>
@@ -970,33 +542,39 @@ New index
           <p>We don’t reward promises. We reward showing up… and tapping like you mean it.</p>
         </div>
 
-        <div class="panel">
+        <div class="grid3">
+          <div class="card">
+            <h3>Weekly Gym Rats</h3>
+            <p>Top burners get rewarded. No abs required — just commitment to chaos.</p>
+          </div>
+          <div class="card">
+            <h3>Season Resets</h3>
+            <p>Fresh starts keep it spicy. Legends stay legendary. Newbies can still climb.</p>
+          </div>
+          <div class="card">
+            <h3>More Gym Games</h3>
+            <p>Runner + Lift + Munch + Streak Shot is the combo meal. Everything feeds the same calorie stack.</p>
+          </div>
+        </div>
+
+        <div style="margin-top:14px" class="panel">
           <div class="pad">
             <div class="sectionTitle" style="margin-top:0">
               <h2>How it goes down</h2>
               <p class="muted">You show up → you tap → you stack → you get rewarded.</p>
             </div>
-
-            <div class="statGrid">
-              <div class="stat">
-                <div class="k">1) Join</div>
-                <div class="v">Telegram</div>
-                <div class="s">you’re basically already logged in</div>
+            <div class="grid3">
+              <div class="card">
+                <h3>1) Join</h3>
+                <p>Inside Telegram? You’re already in. Want wallet perks? Connect Phantom.</p>
               </div>
-              <div class="stat">
-                <div class="k">2) Grind</div>
-                <div class="v">4 Games</div>
-                <div class="s">everything feeds the same stack</div>
+              <div class="card">
+                <h3>2) Grind</h3>
+                <p>Run the treadmill, hit the lifts, munch the belt, and chase streaks. Calories stack either way.</p>
               </div>
-              <div class="stat">
-                <div class="k">3) Climb</div>
-                <div class="v">Leaderboards</div>
-                <div class="s">daily/weekly/monthly/lifetime</div>
-              </div>
-              <div class="stat">
-                <div class="k">4) Eat</div>
-                <div class="v">Rewards</div>
-                <div class="s">top grinders get the love</div>
+              <div class="card">
+                <h3>3) Eat</h3>
+                <p>If you’re top activity, you get rewarded. Then you celebrate with snacks.</p>
               </div>
             </div>
           </div>
@@ -1014,26 +592,18 @@ New index
           <p>Respect the indulge. Honor the nap. Protect the vibe.</p>
         </div>
 
-        <div class="statGrid">
-          <div class="stat">
-            <div class="k">Snack-first</div>
-            <div class="v">Dopamine</div>
-            <div class="s">pain is optional around here</div>
+        <div class="grid3">
+          <div class="card">
+            <h3>Snack-first</h3>
+            <p>We don’t chase pain. We chase dopamine. That’s the whole program.</p>
           </div>
-          <div class="stat">
-            <div class="k">Consistency</div>
-            <div class="v">Tomorrow</div>
-            <div class="s">starting Monday is tradition</div>
+          <div class="card">
+            <h3>Consistency &gt; delusion</h3>
+            <p>Starting Monday is tradition. Coming back tomorrow is the real flex.</p>
           </div>
-          <div class="stat">
-            <div class="k">Cardio</div>
-            <div class="v">Thumb</div>
-            <div class="s">tapping counts as cardio</div>
-          </div>
-          <div class="stat">
-            <div class="k">Culture</div>
-            <div class="v">$PHAT</div>
-            <div class="s">gym parody • community • games</div>
+          <div class="card">
+            <h3>Tap counts as cardio</h3>
+            <p>Survive the treadmill. Time the curls. Munch the belt. Stack calories. Repeat with pride.</p>
           </div>
         </div>
       </div>
@@ -1050,7 +620,7 @@ New index
             <a class="link" href="https://planetfatness.fit/lift/">Lift</a>
             <a class="link" href="https://planetfatness.fit/snack/">Munch</a>
             <a class="link" href="https://planetfatness.fit/basket/">Streak Shot</a>
-            <a class="link" href="#leaderboard">Leaderboards</a>
+            <a class="link" href="#leaderboard">Leaderboard</a>
             <a class="link" href="#rewards">Rewards</a>
           </div>
         </div>
@@ -1059,8 +629,8 @@ New index
           <b>Gym Disclaimer:</b> $PHAT is a memecoin.
           Nothing on this site is financial advice, fitness advice, or life advice.
           <br><br>
-          This is entertainment + culture + games. Calories are tracked. Leaderboards are real.
-          Rewards (when live) are earned by participation.
+          This is an entertainment-driven culture project built around games, attention, and community.
+          Calories are tracked. Leaderboards are real. Rewards are earned by participation.
           <br><br>
           Do your own research, manage your risk, and don’t fade a gym where tapping counts as cardio.
         </div>
@@ -1068,426 +638,469 @@ New index
     </div>
   </footer>
 
+  <!-- ✅ Telegram SDK MUST be loaded BEFORE our app script (no defer). -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <script>
-  // ---------- tiny UI helpers (no secrets, no TG keys) ----------
-  const $ = (id) => document.getElementById(id);
+    const API_BASE = "https://planetfatness-backend.onrender.com";
 
-  // Year
-  try { $("yr").textContent = String(new Date().getFullYear()); } catch {}
+    // persist API base so mini-games can auto-submit without editing them
+    try { localStorage.setItem("pf_api_base", API_BASE); } catch {}
 
-  // Smooth "Play" button
-  try {
-    $("playBtn").addEventListener("click", () => {
-      const el = document.querySelector("#gym");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    // unify keys with mini-games
+    const TOKEN_KEY = "pf_token";
+    const ADDR_KEY  = "pf_address";
+    const TG_KEY    = "pf_tg";            // JSON: {id, username, name}
+    const ID_KIND   = "pf_identity_kind"; // "tg" | "wallet"
+
+    const toastEl = document.getElementById("toast");
+    const authStatusEl = document.getElementById("authStatus");
+    const meWalletEl = document.getElementById("meWallet");
+    const meCaloriesEl = document.getElementById("meCalories");
+    const meBestEl = document.getElementById("meBest");
+    const meRankHintEl = document.getElementById("meRankHint");
+    const lbBody = document.getElementById("lbBody");
+
+    document.getElementById("yr").textContent = new Date().getFullYear();
+
+    document.getElementById("playBtn").addEventListener("click", () => {
+      window.location.href = "https://planetfatness.fit/runner/";
     });
-  } catch {}
 
-  // Toast
-  function toast(msg, ms = 2200) {
-    const t = $("toast");
-    if (!t) return;
-    t.textContent = msg;
-    t.style.display = "block";
-    clearTimeout(window.__pfToastT);
-    window.__pfToastT = setTimeout(() => (t.style.display = "none"), ms);
-  }
+    document.getElementById("connectBtn").addEventListener("click", connectAndLogin);
+    document.getElementById("refreshMeBtn").addEventListener("click", loadMe);
+    document.getElementById("refreshLbBtn").addEventListener("click", loadLeaderboard);
+    document.getElementById("logoutBtn").addEventListener("click", logout);
 
-  // ---------- API wrapper (same-origin) ----------
-  const TOKEN_KEY = "pf_token";
-  const API_BASE = ""; // keep same-origin so nothing breaks in TG/web
-
-  const getToken = () => localStorage.getItem(TOKEN_KEY) || "";
-  const setToken = (tok) => localStorage.setItem(TOKEN_KEY, tok || "");
-  const clearToken = () => localStorage.removeItem(TOKEN_KEY);
-
-  async function api(path, opts = {}) {
-    const headers = Object.assign(
-      { "Content-Type": "application/json" },
-      opts.headers || {}
-    );
-    const tok = getToken();
-    if (tok) headers.Authorization = `Bearer ${tok}`;
-
-    const res = await fetch(API_BASE + path, { ...opts, headers });
-    const text = await res.text();
-    let json = null;
-    try { json = text ? JSON.parse(text) : null; } catch {}
-    if (!res.ok) {
-      const msg = (json && (json.error || json.message)) || text || `HTTP ${res.status}`;
-      throw new Error(msg);
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.style.display = "block";
+      clearTimeout(window.__toastT);
+      window.__toastT = setTimeout(() => toastEl.style.display = "none", 2400);
     }
-    return json;
-  }
 
-  // ---------- render helpers ----------
-  const safe = (v) => (v === null || v === undefined ? "" : String(v));
-  const ell = (s, n = 22) => (s && s.length > n ? s.slice(0, n - 1) + "…" : s || "—");
-
-  function setText(id, val) {
-    const el = $(id);
-    if (el) el.textContent = safe(val) || "—";
-  }
-
-  function fmtNum(n) {
-    const x = Number(n);
-    if (!isFinite(x)) return "—";
-    return x.toLocaleString();
-  }
-
-  function fmtTime(t) {
-    // Accept "mm:ss", number seconds, or ms
-    if (t === null || t === undefined) return "—";
-    if (typeof t === "string") return t;
-    const num = Number(t);
-    if (!isFinite(num)) return "—";
-    // if it looks like ms, convert
-    const sec = num > 999 ? Math.round(num / 1000) : Math.round(num);
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m}:${String(s).padStart(2, "0")}`;
-  }
-
-  function renderRows(tbodyId, rows, cols) {
-    const tb = $(tbodyId);
-    if (!tb) return;
-    if (!rows || !rows.length) {
-      tb.innerHTML = `<tr><td colspan="${cols}" class="muted">No entries yet.</td></tr>`;
-      return;
+    function shortAddr(a){
+      if (!a) return "—";
+      return a.slice(0, 4) + "…" + a.slice(-4);
     }
-    tb.innerHTML = rows
-      .map((r, i) => {
-        const rank = i + 1;
-        const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
-        const calories = fmtNum(r.calories ?? r.kcal ?? r.points ?? r.totalCalories);
-        const bestTime = fmtTime(r.bestTime ?? r.runnerBestTime ?? r.best ?? r.best_time);
-        const miles = fmtNum(r.lifetimeMiles ?? r.miles ?? r.distanceMiles);
 
-        // Caller can pass a row-builder instead; but keep this generic
-        return `<tr>
-          <td class="rank">${rank}</td>
-          <td>${safe(id)}</td>
-          <td>${calories}</td>
-          <td>${bestTime}</td>
-          <td>${miles}</td>
-        </tr>`;
-      })
-      .join("");
-  }
+    function getToken(){ return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
+    function getAddr(){ return (localStorage.getItem(ADDR_KEY) || "").trim(); }
 
-  // ---------- leaderboards ----------
-  let LB_WINDOW = "daily";
-
-  function setActiveWindow(win) {
-    LB_WINDOW = win;
-    const tabs = document.querySelectorAll("#lbTabs .tab");
-    tabs.forEach((b) => b.classList.toggle("active", b.dataset.window === win));
-  }
-
-  async function loadLeaderboards() {
-    // Supports multiple backend shapes without breaking:
-    // 1) /leaderboard/v2?window=daily
-    // 2) /leaderboard/v2?range=daily
-    // 3) /leaderboard/v2/daily
-    let data = null;
-
-    const tries = [
-      `/leaderboard/v2?window=${encodeURIComponent(LB_WINDOW)}`,
-      `/leaderboard/v2?range=${encodeURIComponent(LB_WINDOW)}`,
-      `/leaderboard/v2/${encodeURIComponent(LB_WINDOW)}`
-    ];
-
-    for (const url of tries) {
-      try { data = await api(url, { method: "GET" }); break; } catch {}
+    function getTG(){
+      try { return JSON.parse(localStorage.getItem(TG_KEY) || "null"); }
+      catch { return null; }
     }
-    if (!data) throw new Error("Leaderboard endpoint not reachable.");
 
-    // Normalize
-    const overall =
-      data.overall ||
-      data.leaderboard ||
-      data.rows ||
-      data.data?.overall ||
-      [];
+    function setSession(addr, token){
+      localStorage.setItem(ADDR_KEY, addr);
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(ID_KIND, "wallet");
+    }
 
-    const games =
-      data.games ||
-      data.data?.games ||
-      {
-        runner: data.runner || data.data?.runner,
-        lift: data.lift || data.data?.lift,
-        snack: data.snack || data.data?.snack,
-        basket: data.basket || data.data?.basket
-      };
+    function setTGSession(tg, token){
+      try { localStorage.setItem(TG_KEY, JSON.stringify(tg)); } catch {}
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(ID_KIND, "tg");
+      if (tg?.id) localStorage.setItem(ADDR_KEY, `tg:${tg.id}`);
+    }
 
-    // Overall table (expects 5 cols already in HTML)
-    {
-      const tb = $("lbOverallBody");
-      if (tb) {
-        if (!overall.length) {
-          tb.innerHTML = `<tr><td colspan="5" class="muted">No entries yet.</td></tr>`;
-        } else {
-          tb.innerHTML = overall.slice(0, 50).map((r, i) => {
-            const rank = i + 1;
-            const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-            const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
-            const best = fmtTime(r.runnerBestTime ?? r.bestTime ?? r.best ?? r.best_time);
-            const miles = fmtNum(r.lifetimeMiles ?? r.miles ?? r.distanceMiles);
-            return `<tr>
-              <td class="rank">${rank}</td>
-              <td>${safe(id)}</td>
-              <td>${calories}</td>
-              <td>${best}</td>
-              <td>${miles}</td>
-            </tr>`;
-          }).join("");
+    function clearSession(){
+      localStorage.removeItem(ADDR_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TG_KEY);
+      localStorage.removeItem(ID_KIND);
+    }
+
+    function displayIdentity(){
+      const kind = (localStorage.getItem(ID_KIND) || "").trim();
+      const tg = getTG();
+      const addr = getAddr();
+
+      if (kind === "tg" && tg){
+        return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
+      }
+      if (addr){
+        if (addr.startsWith("tg:") && tg){
+          return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
         }
+        return shortAddr(addr);
+      }
+      if (tg){
+        return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
+      }
+      return "—";
+    }
+
+    function setAuthUI(){
+      const token = getToken();
+      const ident = displayIdentity();
+
+      if (token && ident !== "—"){
+        authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
+        meWalletEl.textContent = ident;
+      } else {
+        authStatusEl.textContent = "Not connected yet — connect Phantom or open in Telegram to start stacking.";
+        meWalletEl.textContent = "—";
+        meCaloriesEl.textContent = "—";
+        meBestEl.textContent = "—";
+        meRankHintEl.textContent = "—";
       }
     }
 
-    // Runner
-    {
-      const rows = (games.runner || []).slice(0, 50);
-      const tb = $("lbRunnerBody");
-      if (tb) {
-        tb.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
-          const best = fmtTime(r.bestTime ?? r.runnerBestTime ?? r.best ?? r.best_time);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${calories}</td>
-            <td>${best}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+    // ✅ Hard wait: prevents iOS/TG timing + script order issues
+    function waitForTelegram(ms = 3000){
+      return new Promise((resolve) => {
+        const start = Date.now();
+        (function tick(){
+          if (window.Telegram && window.Telegram.WebApp) return resolve(true);
+          if (Date.now() - start > ms) return resolve(false);
+          setTimeout(tick, 50);
+        })();
+      });
+    }
+
+    // ==========================================================
+    // ✅ TELEGRAM AUTO-LOGIN (reliable)
+    // ==========================================================
+    const PF_TG_DEBUG = true; // leave on; only logs/one toast (no temp lines)
+
+    function tgDebugLog(...args){
+      if (!PF_TG_DEBUG) return;
+      try { console.log(...args); } catch {}
+    }
+
+    function isInTelegram(){
+      return !!(window.Telegram && window.Telegram.WebApp);
+    }
+
+    function tgSafeUser(tgu){
+      const id = tgu?.id;
+      const username = (tgu?.username || "").trim();
+      const name = [tgu?.first_name || "", tgu?.last_name || ""].join(" ").trim();
+      return { id, username, name };
+    }
+
+    async function telegramBootstrapOnce(){
+      const tg = isInTelegram() ? window.Telegram.WebApp : null;
+      if (!tg) {
+        tgDebugLog("[TG] Not in Telegram WebApp context");
+        return false;
       }
-    }
 
-    // Lift
-    {
-      const rows = (games.lift || []).slice(0, 50);
-      const tb = $("lbLiftBody");
-      if (tb) {
-        tb.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
-          const best = fmtNum(r.best ?? r.bestScore ?? r.bestSet ?? r.value);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${calories}</td>
-            <td>${best}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
-    }
+      try{
+        tg.ready && tg.ready();
+        tg.expand && tg.expand();
 
-    // Snack
-    {
-      const rows = (games.snack || []).slice(0, 50);
-      const tb = $("lbSnackBody");
-      if (tb) {
-        tb.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
-          const best = fmtNum(r.best ?? r.bestScore ?? r.bestCombo ?? r.value);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${calories}</td>
-            <td>${best}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
-    }
+        const unsafeUser = tgSafeUser(tg.initDataUnsafe && tg.initDataUnsafe.user);
+        const initData = (tg && typeof tg.initData === "string") ? tg.initData : "";
 
-    // Basket (Best Streak + Best Score)
-    {
-      const rows = (games.basket || []).slice(0, 50);
-      const tb = $("lbBasketBody");
-      if (tb) {
-        tb.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
-          const bestStreak = fmtNum(r.bestStreak ?? r.streak ?? r.maxStreak ?? r.best_run);
-          const bestScore = fmtNum(r.bestScore ?? r.score ?? r.maxScore ?? r.best_points);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${bestStreak}</td>
-            <td>${bestScore}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
-    }
-  }
+        tgDebugLog("[TG] platform:", tg.platform, "version:", tg.version);
+        tgDebugLog("[TG] initData length:", initData.length);
+        tgDebugLog("[TG] unsafe user:", tg.initDataUnsafe?.user || null);
 
-  // ---------- "Me" (Gym Card) ----------
-  async function loadMe() {
-    // Try a few common endpoints; keep it defensive
-    const tries = ["/me", "/auth/me", "/users/me"];
-    let me = null;
-    for (const url of tries) {
-      try { me = await api(url, { method: "GET" }); break; } catch {}
-    }
-    if (!me) return;
-
-    const identity = me.identity || me.username || me.handle || me.wallet || me.id || "—";
-    setText("meIdentity", identity);
-
-    setText("meCaloriesLife", fmtNum(me.lifetimeCalories ?? me.caloriesLife ?? me.totalCalories ?? me.calories));
-    setText("meRunnerBestTime", fmtTime(me.runnerBestTime ?? me.bestTime ?? me.best_time));
-    setText("meRunnerMiles", fmtNum(me.lifetimeMiles ?? me.runnerMiles ?? me.miles));
-
-    setText("meCaloriesDaily", fmtNum(me.caloriesDaily ?? me.dailyCalories ?? me.daily));
-    setText("meCaloriesWeekly", fmtNum(me.caloriesWeekly ?? me.weeklyCalories ?? me.weekly));
-    setText("meCaloriesMonthly", fmtNum(me.caloriesMonthly ?? me.monthlyCalories ?? me.monthly));
-    setText("meCaloriesLifetime2", fmtNum(me.lifetimeCalories ?? me.caloriesLife ?? me.totalCalories));
-
-    // Per-game bests (accept multiple shapes)
-    setText("meRunnerBest", fmtTime(me.runner?.bestTime ?? me.runnerBestTime ?? me.bestTime));
-    setText("meLiftBest", fmtNum(me.lift?.best ?? me.liftBest ?? me.liftBestScore ?? me.lift?.bestScore));
-    setText("meSnackBest", fmtNum(me.snack?.best ?? me.snackBest ?? me.snackBestScore ?? me.snack?.bestScore));
-    setText("meBasketBest", fmtNum(me.basket?.bestScore ?? me.basketBest ?? me.basketBestScore ?? me.basket?.best));
-
-    // Lifetime makes (new)
-    setText("meBasketMakes", fmtNum(me.basket?.lifetimeMakes ?? me.basketMakes ?? me.lifetimeMakes ?? me.basket?.makes));
-
-    // Auth status label
-    const auth = $("authStatus");
-    if (auth) {
-      auth.textContent = `Member loaded — ${ell(String(identity), 28)}.`;
-    }
-  }
-
-  // ---------- Tabs wiring ----------
-  try {
-    document.querySelectorAll("#lbTabs .tab").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        setActiveWindow(btn.dataset.window || "daily");
-        try {
-          await loadLeaderboards();
-          toast(`Loaded ${LB_WINDOW} leaderboard`);
-        } catch (e) {
-          toast(`Leaderboard error: ${e.message || e}`);
+        // If initData is missing, at least show the username label immediately
+        if (!initData){
+          if (unsafeUser && unsafeUser.id){
+            try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
+            setAuthUI();
+            toast("Telegram detected (waiting on initData)…");
+          } else {
+            toast("Telegram detected but user not available yet…");
+          }
+          return false;
         }
-      });
-    });
-  } catch {}
 
-  // ---------- Buttons ----------
-  try {
-    $("refreshLbBtn").addEventListener("click", async () => {
-      try { await loadLeaderboards(); toast("Leaderboards refreshed"); } catch (e) { toast(e.message || e); }
-    });
-  } catch {}
+        // If already same TG session, reuse
+        const existingKind = (localStorage.getItem(ID_KIND) || "").trim();
+        const existingTg = getTG();
+        const existingToken = getToken();
+        const alreadySameTg =
+          existingKind === "tg" &&
+          existingToken &&
+          existingTg &&
+          unsafeUser?.id &&
+          String(existingTg.id) === String(unsafeUser.id);
 
-  try {
-    $("refreshMeBtn").addEventListener("click", async () => {
-      try { await loadMe(); toast("Gym card refreshed"); } catch (e) { toast(e.message || e); }
-    });
-  } catch {}
+        if (alreadySameTg){
+          tgDebugLog("[TG] alreadySameTg=true, reusing existing TG token");
+          setAuthUI();
+          await loadMe();
+          await loadLeaderboard();
+          return true;
+        }
 
-  try {
-    $("logoutBtn").addEventListener("click", () => {
-      clearToken();
-      toast("Logged out");
-      const auth = $("authStatus");
-      if (auth) auth.textContent = "Not connected yet — open in Telegram or connect Phantom to lock your member card.";
-      ["meIdentity","meCaloriesLife","meRunnerBestTime","meRunnerMiles","meCaloriesDaily","meCaloriesWeekly","meCaloriesMonthly","meCaloriesLifetime2","meRunnerBest","meLiftBest","meSnackBest","meBasketBest","meBasketMakes"]
-        .forEach((id) => setText(id, "—"));
-    });
-  } catch {}
+       tgDebugLog("[TG] POST /auth/telegram…");
+const r = await fetch(API_BASE + "/auth/telegram", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ initData })
+});
 
-  // ---------- Telegram auth (safe + non-breaking) ----------
-  // If your backend already supports /auth/telegram, this will log you in.
-  // If not, it will simply no-op and won’t break anything.
-  async function tryTelegramAuth() {
-    const tg = window.Telegram && window.Telegram.WebApp;
-    const initData = tg && typeof tg.initData === "string" ? tg.initData : "";
-    if (!initData) return false;
+const j = await r.json().catch(() => ({}));
+tgDebugLog("[TG] /auth/telegram status:", r.status, "ok:", r.ok, "body:", j);
 
-    try {
-      const out = await api("/auth/telegram", {
-        method: "POST",
-        body: JSON.stringify({ initData })
-      });
-      if (out && out.token) {
-        setToken(out.token);
-        toast("Telegram verified ✅");
-        return true;
-      }
-    } catch {}
-    return false;
+// ✅ Show actual backend error on-screen + console
+if (!r.ok || !j || !j.token) {
+  const msg =
+    (j && (j.error || j.message)) ? String(j.error || j.message) :
+    ("HTTP " + String(r.status));
+
+  console.log("[TG] BACKEND FAIL", { status: r.status, ok: r.ok, body: j });
+
+  // If we at least know the TG user, store it so the label can show
+  if (unsafeUser && unsafeUser.id) {
+    try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
+    setAuthUI();
   }
 
-  // ---------- Phantom connect (safe + non-breaking) ----------
-  // If your backend supports /auth/wallet/challenge + /auth/wallet/verify, this will work.
-  async function tryPhantomAuth() {
-    if (!window.solana || !window.solana.isPhantom) {
-      toast("Phantom not found");
-      return false;
-    }
+  // 🔥 This is the money line: the real reason shows on-screen
+  toast("TG verify failed: " + msg);
 
-    const provider = window.solana;
-    const resp = await provider.connect({ onlyIfTrusted: false });
-    const pubkey = resp?.publicKey?.toString?.() || provider.publicKey?.toString?.();
-    if (!pubkey) throw new Error("Wallet connect failed");
-
-    // Challenge
-    const chal = await api("/auth/wallet/challenge", {
-      method: "POST",
-      body: JSON.stringify({ address: pubkey })
-    });
-
-    const message = chal?.message || chal?.data?.message;
-    if (!message) throw new Error("No challenge message");
-
-    const enc = new TextEncoder().encode(message);
-    const signed = await provider.signMessage(enc, "utf8");
-
-    const verify = await api("/auth/wallet/verify", {
-      method: "POST",
-      body: JSON.stringify({
-        address: pubkey,
-        signature: Array.from(signed.signature || signed),
-        message
-      })
-    });
-
-    if (verify?.token) {
-      setToken(verify.token);
-      toast("Wallet verified ✅");
-      return true;
-    }
-    throw new Error("Wallet verify failed");
+  // Optional loud alert in debug mode
+  if (PF_TG_DEBUG) {
+    try { alert("TG verify failed:\n" + msg); } catch {}
   }
 
-  try {
-    $("connectBtn").addEventListener("click", async () => {
-      try {
-        await tryPhantomAuth();
+  return false;
+}
+
+        const tgu = j.telegram || (tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
+        const tgUser = tgSafeUser(tgu);
+
+        setTGSession(tgUser, j.token);
+        setAuthUI();
+        toast("Telegram gym card locked ✅ " + (tgUser.username ? "@"+tgUser.username : (tgUser.name || "TG")));
+
         await loadMe();
-        await loadLeaderboards();
-      } catch (e) {
-        toast(e.message || e);
+        await loadLeaderboard();
+        return true;
+
+      } catch(e){
+        console.error("TG bootstrap exception:", e);
+        toast("TG bootstrap error (see console).");
+        return false;
       }
-    });
-  } catch {}
+    }
 
-  // ---------- Boot ----------
-  (async function boot() {
-    // Don’t break anything if TG isn’t present
-    try { await tryTelegramAuth(); } catch {}
-    try { await loadMe(); } catch {}
-    try { await loadLeaderboards(); } catch {}
-  })();
-</script>
+    async function telegramBootstrapRetry(){
+      if (!isInTelegram()) return;
 
+      const delays = [0, 120, 200, 320, 500, 750, 900, 1200, 1500, 1800, 2200, 2600, 3200];
+      for (let i = 0; i < delays.length; i++){
+        if (delays[i]) await new Promise(r => setTimeout(r, delays[i]));
+        const ok = await telegramBootstrapOnce();
+        if (ok) break;
+      }
+    }
+
+    function wireTelegramWakeups(){
+      if (!isInTelegram()) return;
+
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) telegramBootstrapRetry();
+      });
+
+      window.addEventListener("focus", () => telegramBootstrapRetry());
+
+      try{
+        const tg = window.Telegram.WebApp;
+        if (tg && tg.onEvent){
+          tg.onEvent("viewportChanged", () => telegramBootstrapRetry());
+        }
+      }catch{}
+    }
+    <!-- PART 4/4 — paste immediately after Part 3 (finish file) -->
+    // ==========================================================
+    // ✅ PHANTOM CONNECT
+    // ==========================================================
+    async function connectAndLogin(){
+      const provider = window.solana;
+      if (provider?.isPhantom) return await connectInjected(provider);
+      toast("Opening Phantom… (install Phantom if it doesn’t open)");
+      openInPhantomBrowser(window.location.href);
+    }
+
+    async function connectInjected(provider){
+      try{
+        const resp = await provider.connect();
+        const address = resp.publicKey.toString();
+
+        toast("Connected " + shortAddr(address) + " • lock in your gym card…");
+
+        const ch = await fetch(API_BASE + "/auth/challenge", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ address })
+        }).then(r => r.json());
+
+        if (ch.error) { toast(ch.error); return; }
+
+        const msgBytes = new TextEncoder().encode(ch.message);
+        const signed = await provider.signMessage(msgBytes, "utf8");
+        const sigB64 = bytesToBase64(signed.signature);
+
+        const v = await fetch(API_BASE + "/auth/verify", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ address, nonce: ch.nonce, signature: sigB64 })
+        }).then(r => r.json());
+
+        if (!v.token){ toast(v.error || "Login failed"); return; }
+
+        setSession(address, v.token);
+        toast("Gym card locked ✅ " + shortAddr(address));
+        setAuthUI();
+        await loadMe();
+        await loadLeaderboard();
+
+      }catch(e){
+        console.error(e);
+        toast("Connect cancelled.");
+      }
+    }
+
+    function openInPhantomBrowser(url){
+      const target = encodeURIComponent(url);
+      window.location.href = `https://phantom.app/ul/browse/${target}`;
+    }
+
+    function bytesToBase64(bytes){
+      let bin = "";
+      const arr = new Uint8Array(bytes);
+      for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+      return btoa(bin);
+    }
+
+    // ==========================================================
+    // ✅ GYM CARD LOAD — /activity/summary
+    // ==========================================================
+    async function loadMe(){
+      const token = getToken();
+      if (!token){ setAuthUI(); return; }
+
+      try{
+        const me = await fetch(API_BASE + "/activity/summary", {
+          headers:{ "Authorization":"Bearer " + token }
+        }).then(r => r.json());
+
+        if (me.error){ toast(me.error); return; }
+
+        meWalletEl.textContent = displayIdentity();
+
+        const totalCals = Number(me?.lifetime?.totalCalories || 0);
+        const bestSecs = Number(me?.lifetime?.bestSeconds || 0);
+
+        meCaloriesEl.textContent = totalCals.toLocaleString();
+        meBestEl.textContent = bestSecs ? bestSecs.toFixed(1) + "s" : "—";
+        meRankHintEl.textContent = "Stack calories. Climb ranks. Get rewarded.";
+
+      } catch(e){
+        console.error(e);
+        toast("Couldn’t load your gym card.");
+      }
+    }
+
+    // ==========================================================
+    // ✅ LEADERBOARD — v2 + fallback
+    // ==========================================================
+    async function loadLeaderboard(){
+      try{
+        let rows = null;
+
+        try{
+          const r2 = await fetch(API_BASE + "/leaderboard/v2?window=lifetime&metric=calories&limit=30");
+          if (r2.ok) rows = await r2.json();
+        }catch{}
+
+        if (!rows){
+          const r1 = await fetch(API_BASE + "/leaderboard?limit=30");
+          rows = await r1.json();
+        }
+
+        if (!Array.isArray(rows)) throw new Error("Bad leaderboard");
+
+        if (rows.length === 0){
+          lbBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet. First gym rat gets bragging rights.</td></tr>`;
+          return;
+        }
+
+        lbBody.innerHTML = rows.slice(0, 30).map((u, i) => {
+          const address = String(u.address || "").trim();
+          const name = String(u.display_name || u.displayName || u.name || "").trim();
+
+          const ident =
+            name ? name :
+            address.startsWith("tg:") ? ("TG:" + address.slice(3)) :
+            address ? (address.slice(0,4) + "…" + address.slice(-4)) :
+            "—";
+
+          const cals =
+            u.total_calories != null ? Number(u.total_calories || 0) :
+            u.totalCalories != null ? Number(u.totalCalories || 0) :
+            u.value != null ? Number(u.value || 0) : 0;
+
+          const best =
+            u.best_seconds != null ? Number(u.best_seconds || 0) :
+            u.bestSeconds != null ? Number(u.bestSeconds || 0) : 0;
+
+          return `
+            <tr>
+              <td class="rank">${i+1}</td>
+              <td class="addr">${escapeHtml(ident)}</td>
+              <td>${Number(cals).toLocaleString()}</td>
+              <td>${best ? best.toFixed(1) + "s" : "—"}</td>
+            </tr>
+          `;
+        }).join("");
+
+      } catch(e){
+        console.error(e);
+        lbBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+      }
+    }
+
+    function escapeHtml(s){
+      return String(s || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function logout(){
+      clearSession();
+      setAuthUI();
+      toast("Logged out.");
+    }
+
+    // ==========================================================
+    // ✅ BOOT (wait for TG, then run TG bootstrap)
+    // ==========================================================
+    (async () => {
+      setAuthUI();
+      loadLeaderboard();
+      loadMe();
+
+      const tgReady = await waitForTelegram(3000);
+      console.log(
+        "TG ready after wait?",
+        tgReady,
+        "TG exists?",
+        !!window.Telegram,
+        "WebApp?",
+        !!(window.Telegram && window.Telegram.WebApp)
+      );
+
+      if (tgReady){
+        wireTelegramWakeups();
+        telegramBootstrapRetry();
+      } else {
+        // not in webapp context (or TG not available) — wallet still works
+        // we keep it quiet besides console; UI already says connect Phantom or open in Telegram
+      }
+    })();
+  </script>
 </body>
 </html>
