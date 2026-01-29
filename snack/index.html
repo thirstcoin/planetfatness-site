@@ -541,14 +541,6 @@
   const tapStart = document.getElementById('tapStart');
   const tapBtn = document.getElementById('tapBtn');
 
-  const backBtn = document.getElementById('backBtn');
-  if (backBtn){
-    backBtn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      window.location.href = '../index.html#gym';
-    });
-  }
-
   // PF shared share button
   const pfShareBtn = document.getElementById('pfShareBtn');
 
@@ -754,6 +746,40 @@
     updateHUD();
   }
 
+  // ✅ NEW: flush current run to server without requiring a miss (used by Share/Back)
+  async function flushSubmitIfRunning(){
+    if (!running) return null;
+
+    running = false;
+    freezeLoop();
+
+    const dur = Math.max(0, Math.floor(performance.now() - roundStartAt));
+
+    // persist local fallback (server will override if logged in)
+    try{
+      localStorage.setItem(KEY_RESET, resetAt);
+      localStorage.setItem(KEY_TODAY, today);
+    }catch{}
+
+    const res = await submitSecureSnack({ score, durationMs: dur });
+
+    if (res && res.ok){
+      const earned = Number(res.earnedCalories || 0);
+      runCals = earned;
+
+      if (res.today && typeof res.today.calories === "number") today = Number(res.today.calories || 0);
+      if (res.caps && typeof res.caps.dailyCapCalories === "number") DAILY_CAP = Number(res.caps.dailyCapCalories || DAILY_CAP);
+      if (res.goal && typeof res.goal.goal === "number") goalTarget = Number(res.goal.goal || goalTarget);
+
+      updateHUD();
+    }
+
+    activeDrag = null;
+    lastPointerId = null;
+
+    return res;
+  }
+
   async function endRound(reasonText){
     if (!running) return;
     running = false;
@@ -814,6 +840,13 @@
 
     score += 1;
     streak += 1;
+
+    // ✅ NEW: if you hit the goal, auto-finish + submit so perfect runs count
+    if (score >= goalTarget){
+      updateHUD();
+      endRound('GOAL HIT');
+      return;
+    }
 
     const prevSpeed = speedMult;
     speedMult = clamp(speedMult + speedStep, 1.00, speedCap);
@@ -1021,7 +1054,10 @@
     resetRoundState();
   }
 
-  function share(){
+  // ✅ UPDATED: Share forces a submit first so your best run is recorded even if you don't miss
+  async function share(){
+    await flushSubmitIfRunning();
+
     const txt =
       `$PHAT Conveyor Munch — ${score} correct · streak ${streak} · belt ${speedMult.toFixed(2)}x · cals ${runCals}\n` +
       `Today: ${today}/${DAILY_CAP}\n` +
@@ -1039,6 +1075,9 @@
   if (pfShareBtn){
     pfShareBtn.addEventListener('click', async ()=>{
       try{
+        // if shared UI exists, still flush first so leaderboard updates
+        await flushSubmitIfRunning();
+
         if (window.PF_UI && typeof window.PF_UI.share === "function"){
           window.PF_UI.share({ game:"snack" });
           return;
@@ -1049,6 +1088,16 @@
         }
       }catch{}
       share();
+    });
+  }
+
+  // ✅ UPDATED: Back to Gym forces a submit first so perfect / mid-run doesn't get lost
+  const backBtn = document.getElementById('backBtn');
+  if (backBtn){
+    backBtn.addEventListener('click', async (e)=>{
+      e.preventDefault();
+      await flushSubmitIfRunning();
+      window.location.href = '../index.html#gym';
     });
   }
 
@@ -1070,7 +1119,7 @@
 
   resetBtn.addEventListener('click', runItBack);
   // keep legacy shareBtn working if anything calls it
-  shareBtn.addEventListener('click', share);
+  shareBtn.addEventListener('click', () => { share(); });
 
   tapBtn.addEventListener('click', startRoundFromGesture);
   tapStart.addEventListener('click', startRoundFromGesture);
