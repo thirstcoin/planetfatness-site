@@ -768,7 +768,9 @@ function update(dt){
         }).then((res)=>{
           if (res && res.ok){
             const earned = Number(res.earnedCalories || 0);
-            const todayServer = Number(res.today?.calories ?? today);
+           creditedThisRun = earned;
+caloriesThisRun = earned; // keep UI preview aligned after server truth arrives
+             const todayServer = Number(res.today?.calories ?? today);
             const capServer = Number(res.caps?.dailyCapCalories ?? DAILY_CAP);
 
             DAILY_CAP = capServer;
