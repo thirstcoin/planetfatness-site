@@ -782,10 +782,13 @@ caloriesThisRun = earned; // keep UI preview aligned after server truth arrives
 
             mCals.textContent = String(earned);
             mCalsNote.textContent = `Run logged ✅ (${earned} credited • today ${today}/${DAILY_CAP})`;
-          } else {
-            const creditedFallback = Math.max(0, Math.min(rawPreview, DAILY_CAP - today));
-            today += creditedFallback;
+         } else {
+  const creditedFallback = Math.max(0, Math.min(rawPreview, DAILY_CAP - today));
 
+  creditedThisRun = creditedFallback;
+  caloriesThisRun = creditedFallback;
+
+  today += creditedFallback;
             try{
               localStorage.setItem(KEY_TODAY, String(today));
               localStorage.setItem(KEY_RESET, String(resetAt));
