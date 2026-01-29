@@ -1468,13 +1468,39 @@
     toast("Logged out.");
   }
 
+  // ---------- Tabs wiring (makes Daily/Weekly/Monthly/Lifetime clickable) ----------
+  (function wireLbTabs(){
+    const wrap = document.getElementById("lbTabs");
+    if (!wrap) return;
+
+    // event delegation = reliable in Telegram/iOS
+    wrap.addEventListener("click", async (e) => {
+      const btn = e.target && e.target.closest ? e.target.closest(".tab") : null;
+      if (!btn) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      // UI only: toggle the active pill so it feels responsive
+      const win = (btn.dataset.window || "daily").toLowerCase();
+      wrap.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b === btn));
+
+      try{
+        await loadLeaderboard(); // keep your existing working call
+        toast(`Loaded ${win} leaderboard`);
+      }catch(err){
+        toast(`Leaderboard error: ${err?.message || err}`);
+      }
+    }, { passive:false });
+  })();
+
   // ==========================================================
   // ✅ BOOT (same as working file)
   // ==========================================================
   (async () => {
     setAuthUI();
     loadLeaderboard();
-    loadMe();
+       loadMe();
 
     const tgReady = await waitForTelegram(3000);
     console.log(
@@ -1491,6 +1517,6 @@
       telegramBootstrapRetry();
     }
   })();
-</script>
+    </script>
 </body>
 </html>
