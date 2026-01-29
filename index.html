@@ -961,727 +961,537 @@
   <!-- ✅ Telegram SDK MUST be loaded BEFORE our app script (no defer). -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <script>
-    // =========================
-    // Planet Fatness — Hub JS
-    // UI polish + leaderboards
-    // Keeps the SAME TG auth language/flow that works in your unpolished index
-    // =========================
 
-    // ---------- tiny helpers ----------
-    const $ = (id) => document.getElementById(id);
+<script>
+  // =========================
+  // Planet Fatness — Hub JS
+  // Keeps the SAME TG auth language/flow that worked
+  // Only adapts DOM ids + leaderboard rendering to your polished layout.
+  // =========================
 
-    // Year
-    try { $("yr").textContent = String(new Date().getFullYear()); } catch {}
+  const API_BASE = "https://planetfatness-backend.onrender.com";
+  try { localStorage.setItem("pf_api_base", API_BASE); } catch {}
 
-    // Toast
-    function toast(msg, ms = 2400) {
-      const t = $("toast");
-      if (!t) return;
-      t.textContent = String(msg || "");
-      t.style.display = "block";
-      clearTimeout(window.__pfToastT);
-      window.__pfToastT = setTimeout(() => (t.style.display = "none"), ms);
+  // unify keys with mini-games
+  const TOKEN_KEY = "pf_token";
+  const ADDR_KEY  = "pf_address";
+  const TG_KEY    = "pf_tg";            // JSON: {id, username, name}
+  const ID_KIND   = "pf_identity_kind"; // "tg" | "wallet"
+
+  // ---------- DOM ----------
+  const toastEl = document.getElementById("toast");
+  const authStatusEl = document.getElementById("authStatus");
+
+  // Polished "Me" fields
+  const meIdentityEl          = document.getElementById("meIdentity");
+  const meCaloriesLifeEl      = document.getElementById("meCaloriesLife");
+  const meRunnerBestTimeEl    = document.getElementById("meRunnerBestTime");
+  const meRunnerMilesEl       = document.getElementById("meRunnerMiles");
+  const meCaloriesDailyEl     = document.getElementById("meCaloriesDaily");
+  const meCaloriesWeeklyEl    = document.getElementById("meCaloriesWeekly");
+  const meCaloriesMonthlyEl   = document.getElementById("meCaloriesMonthly");
+  const meCaloriesLifetime2El = document.getElementById("meCaloriesLifetime2");
+  const meRunnerBestEl        = document.getElementById("meRunnerBest");
+  const meLiftBestEl          = document.getElementById("meLiftBest");
+  const meSnackBestEl         = document.getElementById("meSnackBest");
+  const meBasketBestEl        = document.getElementById("meBasketBest");
+  const meBasketMakesEl       = document.getElementById("meBasketMakes");
+
+  // Polished leaderboards
+  const lbOverallBody = document.getElementById("lbOverallBody");
+  const lbRunnerBody  = document.getElementById("lbRunnerBody");
+  const lbLiftBody    = document.getElementById("lbLiftBody");
+  const lbSnackBody   = document.getElementById("lbSnackBody");
+  const lbBasketBody  = document.getElementById("lbBasketBody");
+
+  // Buttons
+  try { document.getElementById("connectBtn").addEventListener("click", connectAndLogin); } catch {}
+  try { document.getElementById("refreshMeBtn").addEventListener("click", loadMe); } catch {}
+  try { document.getElementById("refreshLbBtn").addEventListener("click", loadLeaderboard); } catch {}
+  try { document.getElementById("logoutBtn").addEventListener("click", logout); } catch {}
+
+  // Year
+  try { document.getElementById("yr").textContent = new Date().getFullYear(); } catch {}
+
+  // Smooth "Play" button (scroll to gym)
+  try {
+    document.getElementById("playBtn").addEventListener("click", () => {
+      const el = document.querySelector("#gym");
+      if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
+    });
+  } catch {}
+
+  function toast(msg){
+    if (!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.style.display = "block";
+    clearTimeout(window.__toastT);
+    window.__toastT = setTimeout(() => toastEl.style.display = "none", 2400);
+  }
+
+  function shortAddr(a){
+    if (!a) return "—";
+    return a.slice(0, 4) + "…" + a.slice(-4);
+  }
+
+  function fmtNum(n){
+    const x = Number(n);
+    if (!isFinite(x)) return "—";
+    return x.toLocaleString();
+  }
+
+  // -------- session helpers --------
+  function getToken(){ return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
+  function getAddr(){ return (localStorage.getItem(ADDR_KEY) || "").trim(); }
+
+  function getTG(){
+    try { return JSON.parse(localStorage.getItem(TG_KEY) || "null"); }
+    catch { return null; }
+  }
+
+  function setSession(addr, token){
+    localStorage.setItem(ADDR_KEY, addr);
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(ID_KIND, "wallet");
+  }
+
+  function setTGSession(tg, token){
+    try { localStorage.setItem(TG_KEY, JSON.stringify(tg)); } catch {}
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(ID_KIND, "tg");
+    if (tg?.id) localStorage.setItem(ADDR_KEY, `tg:${tg.id}`);
+  }
+
+  function clearSession(){
+    localStorage.removeItem(ADDR_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TG_KEY);
+    localStorage.removeItem(ID_KIND);
+  }
+
+  function displayIdentity(){
+    const kind = (localStorage.getItem(ID_KIND) || "").trim();
+    const tg = getTG();
+    const addr = getAddr();
+
+    if (kind === "tg" && tg){
+      return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
     }
-
-    // Smooth "Play" button
-    try {
-      $("playBtn").addEventListener("click", () => {
-        // If you want it to jump to runner instead, swap to location.href
-        const el = document.querySelector("#gym");
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    } catch {}
-
-    // ---------- API base ----------
-    const API_BASE = "https://planetfatness-backend.onrender.com";
-
-    // persist API base so mini-games can auto-submit without editing them
-    try { localStorage.setItem("pf_api_base", API_BASE); } catch {}
-
-    // unify keys with mini-games
-    const TOKEN_KEY = "pf_token";
-    const ADDR_KEY  = "pf_address";
-    const TG_KEY    = "pf_tg";            // JSON: {id, username, name}
-    const ID_KIND   = "pf_identity_kind"; // "tg" | "wallet"
-
-    // ---------- DOM refs ----------
-    const authStatusEl = $("authStatus");
-
-    // Gym card fields
-    const meIdentityEl        = $("meIdentity");
-    const meCaloriesLifeEl    = $("meCaloriesLife");
-    const meRunnerBestTimeEl  = $("meRunnerBestTime");
-    const meRunnerMilesEl     = $("meRunnerMiles");
-
-    const meCaloriesDailyEl    = $("meCaloriesDaily");
-    const meCaloriesWeeklyEl   = $("meCaloriesWeekly");
-    const meCaloriesMonthlyEl  = $("meCaloriesMonthly");
-    const meCaloriesLifetime2El= $("meCaloriesLifetime2");
-
-    const meRunnerBestEl  = $("meRunnerBest");
-    const meLiftBestEl    = $("meLiftBest");
-    const meSnackBestEl   = $("meSnackBest");
-    const meBasketBestEl  = $("meBasketBest");
-    const meBasketMakesEl = $("meBasketMakes");
-
-    // Leaderboard tbodies
-    const lbOverallBody = $("lbOverallBody");
-    const lbRunnerBody  = $("lbRunnerBody");
-    const lbLiftBody    = $("lbLiftBody");
-    const lbSnackBody   = $("lbSnackBody");
-    const lbBasketBody  = $("lbBasketBody");
-
-    // ---------- session helpers ----------
-    function getToken(){ return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
-    function setToken(tok){ try { localStorage.setItem(TOKEN_KEY, String(tok || "")); } catch {} }
-    function clearToken(){ try { localStorage.removeItem(TOKEN_KEY); } catch {} }
-
-    function getAddr(){ return (localStorage.getItem(ADDR_KEY) || "").trim(); }
-    function setAddr(addr){ try { localStorage.setItem(ADDR_KEY, String(addr || "")); } catch {} }
-
-    function getTG(){
-      try { return JSON.parse(localStorage.getItem(TG_KEY) || "null"); }
-      catch { return null; }
-    }
-
-    function setSession(addr, token){
-      setAddr(addr);
-      setToken(token);
-      try { localStorage.setItem(ID_KIND, "wallet"); } catch {}
-    }
-
-    function setTGSession(tg, token){
-      try { localStorage.setItem(TG_KEY, JSON.stringify(tg || {})); } catch {}
-      setToken(token);
-      try { localStorage.setItem(ID_KIND, "tg"); } catch {}
-      if (tg?.id) setAddr(`tg:${tg.id}`);
-    }
-
-    function clearSession(){
-      try {
-        localStorage.removeItem(ADDR_KEY);
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(TG_KEY);
-        localStorage.removeItem(ID_KIND);
-      } catch {}
-    }
-
-    // ---------- identity display ----------
-    function shortAddr(a){
-      if (!a) return "—";
-      return a.slice(0, 4) + "…" + a.slice(-4);
-    }
-
-    function displayIdentity(){
-      const kind = (localStorage.getItem(ID_KIND) || "").trim();
-      const tg = getTG();
-      const addr = getAddr();
-
-      if (kind === "tg" && tg){
+    if (addr){
+      if (addr.startsWith("tg:") && tg){
         return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
       }
-      if (addr){
-        if (addr.startsWith("tg:") && tg){
-          return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
-        }
-        return shortAddr(addr);
-      }
-      if (tg){
-        return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
-      }
-      return "—";
+      return shortAddr(addr);
+    }
+    if (tg){
+      return tg.username ? ("@" + tg.username) : (tg.name || ("TG:" + tg.id));
+    }
+    return "—";
+  }
+
+  function setText(el, v){
+    if (!el) return;
+    el.textContent = (v === null || v === undefined || v === "") ? "—" : String(v);
+  }
+
+  function setAuthUI(){
+    const token = getToken();
+    const ident = displayIdentity();
+
+    if (token && ident !== "—"){
+      if (authStatusEl) authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
+      setText(meIdentityEl, ident);
+    } else {
+      if (authStatusEl) authStatusEl.textContent = "Not connected yet — open in Telegram or connect Phantom to lock your member card.";
+      [
+        meIdentityEl, meCaloriesLifeEl, meRunnerBestTimeEl, meRunnerMilesEl,
+        meCaloriesDailyEl, meCaloriesWeeklyEl, meCaloriesMonthlyEl, meCaloriesLifetime2El,
+        meRunnerBestEl, meLiftBestEl, meSnackBestEl, meBasketBestEl, meBasketMakesEl
+      ].forEach(el => setText(el, "—"));
+    }
+  }
+
+  // ✅ Hard wait: prevents iOS/TG timing + script order issues
+  function waitForTelegram(ms = 3000){
+    return new Promise((resolve) => {
+      const start = Date.now();
+      (function tick(){
+        if (window.Telegram && window.Telegram.WebApp) return resolve(true);
+        if (Date.now() - start > ms) return resolve(false);
+        setTimeout(tick, 50);
+      })();
+    });
+  }
+
+  // ==========================================================
+  // ✅ TELEGRAM AUTO-LOGIN (YOUR WORKING FLOW, UNCHANGED)
+  // ==========================================================
+  const PF_TG_DEBUG = true;
+
+  function tgDebugLog(...args){
+    if (!PF_TG_DEBUG) return;
+    try { console.log(...args); } catch {}
+  }
+
+  function isInTelegram(){
+    return !!(window.Telegram && window.Telegram.WebApp);
+  }
+
+  function tgSafeUser(tgu){
+    const id = tgu?.id;
+    const username = (tgu?.username || "").trim();
+    const name = [tgu?.first_name || "", tgu?.last_name || ""].join(" ").trim();
+    return { id, username, name };
+  }
+
+  async function telegramBootstrapOnce(){
+    const tg = isInTelegram() ? window.Telegram.WebApp : null;
+    if (!tg) {
+      tgDebugLog("[TG] Not in Telegram WebApp context");
+      return false;
     }
 
-    function setAuthUI(){
-      const token = getToken();
-      const ident = displayIdentity();
+    try{
+      tg.ready && tg.ready();
+      tg.expand && tg.expand();
 
-      if (token && ident !== "—"){
-        if (authStatusEl) authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
-        if (meIdentityEl) meIdentityEl.textContent = ident;
-      } else {
-        if (authStatusEl) authStatusEl.textContent = "Not connected yet — open in Telegram or connect Phantom to lock your member card.";
-        // don’t wipe fields aggressively; just show dashes
-        [
-          "meIdentity","meCaloriesLife","meRunnerBestTime","meRunnerMiles",
-          "meCaloriesDaily","meCaloriesWeekly","meCaloriesMonthly","meCaloriesLifetime2",
-          "meRunnerBest","meLiftBest","meSnackBest","meBasketBest","meBasketMakes"
-        ].forEach((id) => { try { if ($(id)) $(id).textContent = "—"; } catch {} });
-      }
-    }
+      const unsafeUser = tgSafeUser(tg.initDataUnsafe && tg.initDataUnsafe.user);
+      const initData = (tg && typeof tg.initData === "string") ? tg.initData : "";
 
-    // ---------- formatting ----------
-    const safe = (v) => (v === null || v === undefined ? "" : String(v));
-    const ell  = (s, n = 22) => (s && s.length > n ? s.slice(0, n - 1) + "…" : s || "—");
+      tgDebugLog("[TG] platform:", tg.platform, "version:", tg.version);
+      tgDebugLog("[TG] initData length:", initData.length);
+      tgDebugLog("[TG] unsafe user:", tg.initDataUnsafe?.user || null);
 
-    function fmtNum(n){
-      const x = Number(n);
-      if (!isFinite(x)) return "—";
-      return x.toLocaleString();
-    }
-
-    function fmtTime(t){
-      // Accept "mm:ss", number seconds, or ms
-      if (t === null || t === undefined) return "—";
-      if (typeof t === "string") return t;
-      const num = Number(t);
-      if (!isFinite(num)) return "—";
-      const sec = num > 999 ? Math.round(num / 1000) : Math.round(num);
-      const m = Math.floor(sec / 60);
-      const s = sec % 60;
-      return `${m}:${String(s).padStart(2, "0")}`;
-    }
-
-    function setText(id, val){
-      const el = $(id);
-      if (el) el.textContent = safe(val) || "—";
-    }
-
-    // ---------- API wrapper ----------
-    async function api(path, opts = {}){
-      const headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
-      const tok = getToken();
-      if (tok) headers.Authorization = `Bearer ${tok}`;
-
-      const res = await fetch(API_BASE + path, { ...opts, headers });
-
-      const text = await res.text();
-      let json = null;
-      try { json = text ? JSON.parse(text) : null; } catch {}
-
-      if (!res.ok){
-        const msg = (json && (json.error || json.message)) || text || `HTTP ${res.status}`;
-        throw new Error(msg);
-      }
-      return json;
-    }
-
-    // ==========================================================
-    // ✅ TELEGRAM AUTO-LOGIN (working flow from your unpolished index)
-    // ==========================================================
-    const PF_TG_DEBUG = true;
-
-    function tgDebugLog(...args){
-      if (!PF_TG_DEBUG) return;
-      try { console.log(...args); } catch {}
-    }
-
-    function isInTelegram(){
-      return !!(window.Telegram && window.Telegram.WebApp);
-    }
-
-    function tgSafeUser(tgu){
-      const id = tgu?.id;
-      const username = (tgu?.username || "").trim();
-      const name = [tgu?.first_name || "", tgu?.last_name || ""].join(" ").trim();
-      return { id, username, name };
-    }
-
-    // ✅ Hard wait: prevents iOS/TG timing + script order issues
-    function waitForTelegram(ms = 3000){
-      return new Promise((resolve) => {
-        const start = Date.now();
-        (function tick(){
-          if (window.Telegram && window.Telegram.WebApp) return resolve(true);
-          if (Date.now() - start > ms) return resolve(false);
-          setTimeout(tick, 50);
-        })();
-      });
-    }
-
-    async function telegramBootstrapOnce(){
-      const tg = isInTelegram() ? window.Telegram.WebApp : null;
-      if (!tg){
-        tgDebugLog("[TG] Not in Telegram WebApp context");
-        return false;
-      }
-
-      try{
-        tg.ready && tg.ready();
-        tg.expand && tg.expand();
-
-        const unsafeUser = tgSafeUser(tg.initDataUnsafe && tg.initDataUnsafe.user);
-        const initData = (tg && typeof tg.initData === "string") ? tg.initData : "";
-
-        tgDebugLog("[TG] platform:", tg.platform, "version:", tg.version);
-        tgDebugLog("[TG] initData length:", initData.length);
-        tgDebugLog("[TG] unsafe user:", tg.initDataUnsafe?.user || null);
-
-        // If initData is missing, at least show the username label immediately
-        if (!initData){
-          if (unsafeUser && unsafeUser.id){
-            try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
-            setAuthUI();
-            toast("Telegram detected (waiting on initData)…");
-          } else {
-            toast("Telegram detected but user not available yet…");
-          }
-          return false;
-        }
-
-        // If already same TG session, reuse
-        const existingKind  = (localStorage.getItem(ID_KIND) || "").trim();
-        const existingTg    = getTG();
-        const existingToken = getToken();
-        const alreadySameTg =
-          existingKind === "tg" &&
-          existingToken &&
-          existingTg &&
-          unsafeUser?.id &&
-          String(existingTg.id) === String(unsafeUser.id);
-
-        if (alreadySameTg){
-          tgDebugLog("[TG] alreadySameTg=true, reusing existing TG token");
+      // If initData is missing, at least show the username label immediately
+      if (!initData){
+        if (unsafeUser && unsafeUser.id){
+          try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
           setAuthUI();
-          await loadMe();
-          await loadLeaderboards();
-          return true;
+          toast("Telegram detected (waiting on initData)…");
+        } else {
+          toast("Telegram detected but user not available yet…");
         }
-
-        tgDebugLog("[TG] POST /auth/telegram…");
-        const r = await fetch(API_BASE + "/auth/telegram", {
-          method: "POST",
-          headers: { "Content-Type":"application/json" },
-          body: JSON.stringify({ initData })
-        });
-
-        const j = await r.json().catch(() => ({}));
-        tgDebugLog("[TG] /auth/telegram status:", r.status, "ok:", r.ok, "body:", j);
-
-        // ✅ show the real backend error
-        if (!r.ok || !j || !j.token){
-          const msg =
-            (j && (j.error || j.message)) ? String(j.error || j.message) :
-            ("HTTP " + String(r.status));
-
-          console.log("[TG] BACKEND FAIL", { status: r.status, ok: r.ok, body: j });
-
-          // Store TG user so label can show
-          if (unsafeUser && unsafeUser.id){
-            try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
-            setAuthUI();
-          }
-
-          toast("TG verify failed: " + msg);
-
-          if (PF_TG_DEBUG){
-            try { alert("TG verify failed:\n" + msg); } catch {}
-          }
-          return false;
-        }
-
-        const tgu = j.telegram || (tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
-        const tgUser = tgSafeUser(tgu);
-
-        setTGSession(tgUser, j.token);
-        setAuthUI();
-        toast("Telegram gym card locked ✅ " + (tgUser.username ? "@"+tgUser.username : (tgUser.name || "TG")));
-
-        await loadMe();
-        await loadLeaderboards();
-        return true;
-
-      } catch(e){
-        console.error("TG bootstrap exception:", e);
-        toast("TG bootstrap error (see console).");
         return false;
       }
-    }
 
-    async function telegramBootstrapRetry(){
-      if (!isInTelegram()) return;
+      // If already same TG session, reuse
+      const existingKind = (localStorage.getItem(ID_KIND) || "").trim();
+      const existingTg = getTG();
+      const existingToken = getToken();
+      const alreadySameTg =
+        existingKind === "tg" &&
+        existingToken &&
+        existingTg &&
+        unsafeUser?.id &&
+        String(existingTg.id) === String(unsafeUser.id);
 
-      const delays = [0, 120, 200, 320, 500, 750, 900, 1200, 1500, 1800, 2200, 2600, 3200];
-      for (let i = 0; i < delays.length; i++){
-        if (delays[i]) await new Promise(r => setTimeout(r, delays[i]));
-        const ok = await telegramBootstrapOnce();
-        if (ok) break;
+      if (alreadySameTg){
+        tgDebugLog("[TG] alreadySameTg=true, reusing existing TG token");
+        setAuthUI();
+        await loadMe();
+        await loadLeaderboard();
+        return true;
       }
-    }
 
-    function wireTelegramWakeups(){
-      if (!isInTelegram()) return;
-
-      document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) telegramBootstrapRetry();
+      tgDebugLog("[TG] POST /auth/telegram…");
+      const r = await fetch(API_BASE + "/auth/telegram", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData })
       });
 
-      window.addEventListener("focus", () => telegramBootstrapRetry());
+      const j = await r.json().catch(() => ({}));
+      tgDebugLog("[TG] /auth/telegram status:", r.status, "ok:", r.ok, "body:", j);
 
-      try{
-        const tg = window.Telegram.WebApp;
-        if (tg && tg.onEvent){
-          tg.onEvent("viewportChanged", () => telegramBootstrapRetry());
-        }
-      } catch {}
-    }
+      if (!r.ok || !j || !j.token) {
+        const msg =
+          (j && (j.error || j.message)) ? String(j.error || j.message) :
+          ("HTTP " + String(r.status));
 
-    // ==========================================================
-    // ✅ PHANTOM CONNECT (same working flow)
-    // ==========================================================
-    function bytesToBase64(bytes){
-      let bin = "";
-      const arr = new Uint8Array(bytes);
-      for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
-      return btoa(bin);
-    }
+        console.log("[TG] BACKEND FAIL", { status: r.status, ok: r.ok, body: j });
 
-    function openInPhantomBrowser(url){
-      const target = encodeURIComponent(url);
-      window.location.href = `https://phantom.app/ul/browse/${target}`;
-    }
-
-    async function connectAndLogin(){
-      const provider = window.solana;
-      if (provider?.isPhantom) return await connectInjected(provider);
-      toast("Opening Phantom… (install Phantom if it doesn’t open)");
-      openInPhantomBrowser(window.location.href);
-    }
-
-    async function connectInjected(provider){
-      try{
-        const resp = await provider.connect();
-        const address = resp.publicKey.toString();
-
-        toast("Connected " + shortAddr(address) + " • lock in your gym card…");
-
-        // NOTE: your backend uses /auth/challenge + /auth/verify in the old working file
-        const ch = await fetch(API_BASE + "/auth/challenge", {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ address })
-        }).then(r => r.json());
-
-        if (ch.error){ toast(ch.error); return; }
-
-        const msgBytes = new TextEncoder().encode(ch.message);
-        const signed = await provider.signMessage(msgBytes, "utf8");
-        const sigB64 = bytesToBase64(signed.signature);
-
-        const v = await fetch(API_BASE + "/auth/verify", {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ address, nonce: ch.nonce, signature: sigB64 })
-        }).then(r => r.json());
-
-        if (!v.token){ toast(v.error || "Login failed"); return; }
-
-        setSession(address, v.token);
-        setAuthUI();
-        toast("Gym card locked ✅ " + shortAddr(address));
-
-        await loadMe();
-        await loadLeaderboards();
-      } catch(e){
-        console.error(e);
-        toast("Connect cancelled.");
-      }
-    }
-
-    // ==========================================================
-    // ✅ GYM CARD LOAD — keep working endpoint (/activity/summary)
-    // ==========================================================
-    async function loadMe(){
-      const token = getToken();
-      if (!token){ setAuthUI(); return; }
-
-      try{
-        const me = await fetch(API_BASE + "/activity/summary", {
-          headers:{ "Authorization":"Bearer " + token }
-        }).then(r => r.json());
-
-        if (me?.error){ toast(me.error); return; }
-
-        // Identity
-        const ident = displayIdentity();
-        setText("meIdentity", ident);
-
-        // Lifetime totals
-        const lifeCals = Number(me?.lifetime?.totalCalories || 0);
-        setText("meCaloriesLife", lifeCals ? lifeCals.toLocaleString() : "—");
-        setText("meCaloriesLifetime2", lifeCals ? lifeCals.toLocaleString() : "—");
-
-        // Runner best (your backend returns bestSeconds in lifetime)
-        const bestSecs = Number(me?.lifetime?.bestSeconds || 0);
-        // show as seconds on the “Runner Best Time” stat, and also in “Best Stats”
-        setText("meRunnerBestTime", bestSecs ? (bestSecs.toFixed(1) + "s") : "—");
-        setText("meRunnerBest", bestSecs ? (bestSecs.toFixed(1) + "s") : "—");
-
-        // Miles may not exist on summary; keep safe
-        const miles = Number(me?.lifetime?.miles || me?.lifetime?.totalMiles || 0);
-        setText("meRunnerMiles", miles ? miles.toLocaleString() : "—");
-
-        // Windows (if backend provides them)
-        const d = Number(me?.daily?.totalCalories || me?.windows?.daily || 0);
-        const w = Number(me?.weekly?.totalCalories || me?.windows?.weekly || 0);
-        const m = Number(me?.monthly?.totalCalories || me?.windows?.monthly || 0);
-        if (d) setText("meCaloriesDaily", d.toLocaleString());
-        if (w) setText("meCaloriesWeekly", w.toLocaleString());
-        if (m) setText("meCaloriesMonthly", m.toLocaleString());
-
-        // Per-game bests (optional on your summary; keep safe)
-        const g = me?.games || me?.lifetime?.games || {};
-        setText("meLiftBest",  fmtNum(g?.lift?.best ?? g?.liftBest ?? me?.liftBest));
-        setText("meSnackBest", fmtNum(g?.snack?.best ?? g?.snackBest ?? me?.snackBest));
-        setText("meBasketBest",fmtNum(g?.basket?.bestScore ?? g?.basketBestScore ?? me?.basketBest));
-        setText("meBasketMakes",fmtNum(g?.basket?.lifetimeMakes ?? g?.basketMakes ?? me?.basketMakes));
-
-        // Auth label
-        if (authStatusEl){
-          authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
+        if (unsafeUser && unsafeUser.id) {
+          try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
+          setAuthUI();
         }
 
-      } catch(e){
-        console.error(e);
-        toast("Couldn’t load your gym card.");
+        toast("TG verify failed: " + msg);
+
+        if (PF_TG_DEBUG) {
+          try { alert("TG verify failed:\n" + msg); } catch {}
+        }
+
+        return false;
       }
+
+      const tgu = j.telegram || (tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
+      const tgUser = tgSafeUser(tgu);
+
+      setTGSession(tgUser, j.token);
+      setAuthUI();
+      toast("Telegram gym card locked ✅ " + (tgUser.username ? "@"+tgUser.username : (tgUser.name || "TG")));
+
+      await loadMe();
+      await loadLeaderboard();
+      return true;
+
+    } catch(e){
+      console.error("TG bootstrap exception:", e);
+      toast("TG bootstrap error (see console).");
+      return false;
     }
+  }
 
-    // ==========================================================
-    // ✅ LEADERBOARDS — use the exact working endpoint format from unpolished index
-    // (v2 lifetime calories works today; we’ll drive windows via query)
-    // ==========================================================
-    let LB_WINDOW = "daily";
+  async function telegramBootstrapRetry(){
+    if (!isInTelegram()) return;
 
-    function setActiveWindow(win){
-      LB_WINDOW = (win || "daily").toLowerCase();
-      const tabs = document.querySelectorAll("#lbTabs .tab");
-      tabs.forEach((b) => b.classList.toggle("active", (b.dataset.window || "") === LB_WINDOW));
+    const delays = [0, 120, 200, 320, 500, 750, 900, 1200, 1500, 1800, 2200, 2600, 3200];
+    for (let i = 0; i < delays.length; i++){
+      if (delays[i]) await new Promise(r => setTimeout(r, delays[i]));
+      const ok = await telegramBootstrapOnce();
+      if (ok) break;
     }
+  }
 
-    // Some backends return { rows: [...] } etc.
-    function asArray(x){
-      if (!x) return [];
-      if (Array.isArray(x)) return x;
-      if (Array.isArray(x.rows)) return x.rows;
-      if (Array.isArray(x.items)) return x.items;
-      if (Array.isArray(x.data)) return x.data;
-      if (Array.isArray(x.leaderboard)) return x.leaderboard;
-      if (Array.isArray(x.results)) return x.results;
-      return [];
+  function wireTelegramWakeups(){
+    if (!isInTelegram()) return;
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) telegramBootstrapRetry();
+    });
+
+    window.addEventListener("focus", () => telegramBootstrapRetry());
+
+    try{
+      const tg = window.Telegram.WebApp;
+      if (tg && tg.onEvent){
+        tg.onEvent("viewportChanged", () => telegramBootstrapRetry());
+      }
+    }catch{}
+  }
+
+  // ==========================================================
+  // ✅ PHANTOM CONNECT (YOUR WORKING FLOW)
+  // ==========================================================
+  async function connectAndLogin(){
+    const provider = window.solana;
+    if (provider?.isPhantom) return await connectInjected(provider);
+    toast("Opening Phantom… (install Phantom if it doesn’t open)");
+    openInPhantomBrowser(window.location.href);
+  }
+
+  async function connectInjected(provider){
+    try{
+      const resp = await provider.connect();
+      const address = resp.publicKey.toString();
+
+      toast("Connected " + shortAddr(address) + " • lock in your gym card…");
+
+      const ch = await fetch(API_BASE + "/auth/challenge", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ address })
+      }).then(r => r.json());
+
+      if (ch.error) { toast(ch.error); return; }
+
+      const msgBytes = new TextEncoder().encode(ch.message);
+      const signed = await provider.signMessage(msgBytes, "utf8");
+      const sigB64 = bytesToBase64(signed.signature);
+
+      const v = await fetch(API_BASE + "/auth/verify", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ address, nonce: ch.nonce, signature: sigB64 })
+      }).then(r => r.json());
+
+      if (!v.token){ toast(v.error || "Login failed"); return; }
+
+      setSession(address, v.token);
+      toast("Gym card locked ✅ " + shortAddr(address));
+      setAuthUI();
+      await loadMe();
+      await loadLeaderboard();
+
+    }catch(e){
+      console.error(e);
+      toast("Connect cancelled.");
     }
+  }
 
-    async function loadLeaderboards(){
-      // ✅ First, try the exact “known-good” pattern:
-      // /leaderboard/v2?window=lifetime&metric=calories&limit=30
-      // Then swap window dynamically.
-      let data = null;
+  function openInPhantomBrowser(url){
+    const target = encodeURIComponent(url);
+    window.location.href = `https://phantom.app/ul/browse/${target}`;
+  }
 
-      const urls = [
-        `/leaderboard/v2?window=${encodeURIComponent(LB_WINDOW)}&metric=calories&limit=50`,
-        `/leaderboard/v2?window=${encodeURIComponent(LB_WINDOW)}&limit=50`,
-        `/leaderboard/v2?window=lifetime&metric=calories&limit=50`, // fallback
-      ];
+  function bytesToBase64(bytes){
+    let bin = "";
+    const arr = new Uint8Array(bytes);
+    for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+    return btoa(bin);
+  }
 
-      for (const u of urls){
-        try {
-          const r = await fetch(API_BASE + u);
-          if (!r.ok) continue;
-          data = await r.json();
-          if (data) break;
-        } catch {}
+  // ==========================================================
+  // ✅ GYM CARD LOAD — /activity/summary (adapted to polished fields)
+  // ==========================================================
+  async function loadMe(){
+    const token = getToken();
+    if (!token){ setAuthUI(); return; }
+
+    try{
+      const me = await fetch(API_BASE + "/activity/summary", {
+        headers:{ "Authorization":"Bearer " + token }
+      }).then(r => r.json());
+
+      if (me?.error){ toast(me.error); return; }
+
+      const ident = displayIdentity();
+      setText(meIdentityEl, ident);
+
+      const totalCals = Number(me?.lifetime?.totalCalories || 0);
+      const bestSecs  = Number(me?.lifetime?.bestSeconds || 0);
+
+      setText(meCaloriesLifeEl, totalCals ? totalCals.toLocaleString() : "—");
+      setText(meCaloriesLifetime2El, totalCals ? totalCals.toLocaleString() : "—");
+
+      // keep your existing runner-best display style
+      const bestLabel = bestSecs ? bestSecs.toFixed(1) + "s" : "—";
+      setText(meRunnerBestTimeEl, bestLabel);
+      setText(meRunnerBestEl, bestLabel);
+
+      // Optional if backend provides
+      const miles = Number(me?.lifetime?.miles || me?.lifetime?.totalMiles || 0);
+      setText(meRunnerMilesEl, miles ? miles.toLocaleString() : "—");
+
+      // If backend includes windows
+      const d = Number(me?.daily?.totalCalories || 0);
+      const w = Number(me?.weekly?.totalCalories || 0);
+      const m = Number(me?.monthly?.totalCalories || 0);
+      setText(meCaloriesDailyEl, d ? d.toLocaleString() : "—");
+      setText(meCaloriesWeeklyEl, w ? w.toLocaleString() : "—");
+      setText(meCaloriesMonthlyEl, m ? m.toLocaleString() : "—");
+
+      // Per-game bests (safe)
+      const g = me?.games || me?.lifetime?.games || {};
+      setText(meLiftBestEl, fmtNum(g?.lift?.best ?? g?.liftBest ?? ""));
+      setText(meSnackBestEl, fmtNum(g?.snack?.best ?? g?.snackBest ?? ""));
+      setText(meBasketBestEl, fmtNum(g?.basket?.bestScore ?? g?.basketBestScore ?? ""));
+      setText(meBasketMakesEl, fmtNum(g?.basket?.lifetimeMakes ?? g?.basketMakes ?? ""));
+
+      if (authStatusEl) authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
+
+    } catch(e){
+      console.error(e);
+      toast("Couldn’t load your gym card.");
+    }
+  }
+
+  // ==========================================================
+  // ✅ LEADERBOARD — EXACT WORKING v2 + fallback (render into polished tables)
+  // ==========================================================
+  async function loadLeaderboard(){
+    try{
+      let rows = null;
+
+      try{
+        const r2 = await fetch(API_BASE + "/leaderboard/v2?window=lifetime&metric=calories&limit=30");
+        if (r2.ok) rows = await r2.json();
+      }catch{}
+
+      if (!rows){
+        const r1 = await fetch(API_BASE + "/leaderboard?limit=30");
+        rows = await r1.json();
       }
 
-      // If v2 fails entirely, fallback to v1 list so the page never looks dead
-      if (!data){
-        try {
-          const r1 = await fetch(API_BASE + "/leaderboard?limit=50");
-          if (r1.ok) data = await r1.json();
-        } catch {}
-      }
+      if (!Array.isArray(rows)) throw new Error("Bad leaderboard");
 
-      // If still nothing, show empty
-      if (!data){
-        if (lbOverallBody) lbOverallBody.innerHTML = `<tr><td colspan="5" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
-        if (lbRunnerBody)  lbRunnerBody.innerHTML  = `<tr><td colspan="4" class="muted">—</td></tr>`;
-        if (lbLiftBody)    lbLiftBody.innerHTML    = `<tr><td colspan="4" class="muted">—</td></tr>`;
-        if (lbSnackBody)   lbSnackBody.innerHTML   = `<tr><td colspan="4" class="muted">—</td></tr>`;
-        if (lbBasketBody)  lbBasketBody.innerHTML  = `<tr><td colspan="4" class="muted">—</td></tr>`;
-        return;
-      }
-
-      // --------- Normalize shapes ---------
-      // If your backend returns the “new” shape:
-      // { overall: [...], games: { runner: [...], lift: [...], snack: [...], basket: [...] } }
-      // OR it might return a plain array (v1 or v2 simple list)
-      const overall = asArray(
-        data.overall ??
-        data.leaderboard ??
-        data.rows ??
-        data.data?.overall ??
-        data.data?.leaderboard ??
-        data.data?.rows ??
-        (Array.isArray(data) ? data : null)
-      );
-
-      const games = (data.games || data.data?.games || {});
-      const runner = asArray(games.runner ?? data.runner ?? data.data?.runner);
-      const lift   = asArray(games.lift   ?? data.lift   ?? data.data?.lift);
-      const snack  = asArray(games.snack  ?? data.snack  ?? data.data?.snack);
-      const basket = asArray(games.basket ?? data.basket ?? data.data?.basket);
-
-      // --------- Overall (top 50) ---------
+      // Overall table in polished markup has 4 cols: #, Identity, Calories, Best Run
       if (lbOverallBody){
-        if (!overall.length){
-          lbOverallBody.innerHTML = `<tr><td colspan="5" class="muted">No entries yet.</td></tr>`;
+        if (!rows.length){
+          lbOverallBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet. First gym rat gets bragging rights.</td></tr>`;
         } else {
-          lbOverallBody.innerHTML = overall.slice(0, 50).map((r, i) => {
-            const rank = i + 1;
-            const id = ell(
-              r.identity || r.display_name || r.displayName || r.username || r.handle ||
-              r.wallet || r.address || r.id || "—",
-              22
-            );
+          lbOverallBody.innerHTML = rows.slice(0, 30).map((u, i) => {
+            const address = String(u.address || "").trim();
+            const name = String(u.display_name || u.displayName || u.name || "").trim();
 
-            const calories =
-              fmtNum(r.calories ?? r.totalCalories ?? r.total_calories ?? r.kcal ?? r.points ?? r.value);
+            const ident =
+              name ? name :
+              address.startsWith("tg:") ? ("TG:" + address.slice(3)) :
+              address ? (address.slice(0,4) + "…" + address.slice(-4)) :
+              "—";
+
+            const cals =
+              u.total_calories != null ? Number(u.total_calories || 0) :
+              u.totalCalories != null ? Number(u.totalCalories || 0) :
+              u.value != null ? Number(u.value || 0) : 0;
 
             const best =
-              // runner best (seconds)
-              (r.bestSeconds != null || r.best_seconds != null)
-                ? (Number(r.bestSeconds ?? r.best_seconds || 0).toFixed(1) + "s")
-                : fmtTime(r.runnerBestTime ?? r.bestTime ?? r.best ?? r.best_time ?? r.time);
+              u.best_seconds != null ? Number(u.best_seconds || 0) :
+              u.bestSeconds != null ? Number(u.bestSeconds || 0) : 0;
 
-            const miles = fmtNum(r.lifetimeMiles ?? r.miles ?? r.distanceMiles ?? r.distance);
-
-            return `<tr>
-              <td class="rank">${rank}</td>
-              <td>${safe(id)}</td>
-              <td>${calories}</td>
-              <td>${best}</td>
-              <td>${miles}</td>
-            </tr>`;
+            return `
+              <tr>
+                <td class="rank">${i+1}</td>
+                <td>${escapeHtml(ident)}</td>
+                <td>${Number(cals).toLocaleString()}</td>
+                <td>${best ? best.toFixed(1) + "s" : "—"}</td>
+              </tr>
+            `;
           }).join("");
         }
       }
 
-      // --------- Runner ---------
-      if (lbRunnerBody){
-        const rows = runner.slice(0, 50);
-        lbRunnerBody.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.display_name || r.username || r.handle || r.wallet || r.address || r.id || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.total_calories ?? r.kcal ?? r.value ?? r.points);
-          const best =
-            (r.bestSeconds != null || r.best_seconds != null)
-              ? (Number(r.bestSeconds ?? r.best_seconds || 0).toFixed(1) + "s")
-              : fmtTime(r.bestTime ?? r.runnerBestTime ?? r.best ?? r.best_time ?? r.time);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${calories}</td>
-            <td>${best}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
+      // Per-game grids: your current working endpoint doesn't provide these,
+      // so keep them harmless (no errors, just "No entries yet.")
+      if (lbRunnerBody) lbRunnerBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+      if (lbLiftBody)   lbLiftBody.innerHTML   = `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+      if (lbSnackBody)  lbSnackBody.innerHTML  = `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+      if (lbBasketBody) lbBasketBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
 
-      // --------- Lift ---------
-      if (lbLiftBody){
-        const rows = lift.slice(0, 50);
-        lbLiftBody.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.display_name || r.username || r.handle || r.wallet || r.address || r.id || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.total_calories ?? r.kcal ?? r.value ?? r.points);
-          const best = fmtNum(r.best ?? r.bestScore ?? r.bestSet ?? r.value ?? r.score);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${calories}</td>
-            <td>${best}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
-
-      // --------- Snack ---------
-      if (lbSnackBody){
-        const rows = snack.slice(0, 50);
-        lbSnackBody.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.display_name || r.username || r.handle || r.wallet || r.address || r.id || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.total_calories ?? r.kcal ?? r.value ?? r.points);
-          const best = fmtNum(r.best ?? r.bestScore ?? r.bestCombo ?? r.value ?? r.score);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${calories}</td>
-            <td>${best}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
-
-      // --------- Basket ---------
-      if (lbBasketBody){
-        const rows = basket.slice(0, 50);
-        lbBasketBody.innerHTML = rows.length ? rows.map((r, i) => {
-          const rank = i + 1;
-          const id = ell(r.identity || r.display_name || r.username || r.handle || r.wallet || r.address || r.id || "—");
-          const bestStreak = fmtNum(r.bestStreak ?? r.streak ?? r.maxStreak ?? r.best_run ?? r.max_run);
-          const bestScore  = fmtNum(r.bestScore ?? r.score ?? r.maxScore ?? r.best_points ?? r.max_points);
-          return `<tr>
-            <td class="rank">${rank}</td>
-            <td>${safe(id)}</td>
-            <td>${bestStreak}</td>
-            <td>${bestScore}</td>
-          </tr>`;
-        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      }
+    } catch(e){
+      console.error(e);
+      if (lbOverallBody) lbOverallBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
     }
+  }
 
-    // ---------- Tabs wiring ----------
-    try {
-      document.querySelectorAll("#lbTabs .tab").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-          setActiveWindow(btn.dataset.window || "daily");
-          try {
-            await loadLeaderboards();
-            toast(`Loaded ${LB_WINDOW} leaderboard`);
-          } catch (e) {
-            toast(`Leaderboard error: ${e.message || e}`);
-          }
-        });
-      });
-    } catch {}
+  function escapeHtml(s){
+    return String(s || "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
 
-    // ---------- Buttons ----------
-    try { $("connectBtn").addEventListener("click", connectAndLogin); } catch {}
-    try { $("refreshMeBtn").addEventListener("click", () => loadMe()); } catch {}
-    try { $("refreshLbBtn").addEventListener("click", () => loadLeaderboards()); } catch {}
+  function logout(){
+    clearSession();
+    setAuthUI();
+    toast("Logged out.");
+  }
 
-    try {
-      $("logoutBtn").addEventListener("click", () => {
-        clearSession();
-        setAuthUI();
-        toast("Logged out.");
-      });
-    } catch {}
+  // ==========================================================
+  // ✅ BOOT (same as working file)
+  // ==========================================================
+  (async () => {
+    setAuthUI();
+    loadLeaderboard();
+    loadMe();
 
-    // ---------- Boot ----------
-    (async () => {
-      setAuthUI();
+    const tgReady = await waitForTelegram(3000);
+    console.log(
+      "TG ready after wait?",
+      tgReady,
+      "TG exists?",
+      !!window.Telegram,
+      "WebApp?",
+      !!(window.Telegram && window.Telegram.WebApp)
+    );
 
-      // Load public leaderboards immediately
-      try { await loadLeaderboards(); } catch {}
-
-      // Load me if already logged in
-      try { await loadMe(); } catch {}
-
-      // TG initData can be late on iOS — wait, then retry bootstrap
-      const tgReady = await waitForTelegram(3000);
-      console.log(
-        "TG ready after wait?",
-        tgReady,
-        "TG exists?",
-        !!window.Telegram,
-        "WebApp?",
-        !!(window.Telegram && window.Telegram.WebApp)
-      );
-
-      if (tgReady){
-        wireTelegramWakeups();
-        telegramBootstrapRetry();
-      }
-    })();
-  </script>
+    if (tgReady){
+      wireTelegramWakeups();
+      telegramBootstrapRetry();
+    }
+  })();
+</script>
 </body>
 </html>
