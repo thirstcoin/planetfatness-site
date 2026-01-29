@@ -411,21 +411,50 @@ body{
 const IDLE_SRC = "/assets/lift_idle.png";
 const REP_SRC  = "/assets/lift_hero.gif";
 
-/* ========= API + AUTH (matches your backend) ========= */
+/* =========================================================
+   Lift — aligned to Runner working contract
+   ✅ localStorage keys: pf_api_base / pf_token (fallback phat_*)
+   ✅ GET  /daily/progress
+   ✅ POST /activity/submit (server-computed calories)
+   ✅ Keeps non-ok responses (so we can show real errors)
+   ========================================================= */
+
 function readLS(k){ try{return (localStorage.getItem(k)||"").trim();}catch{return "";} }
-const API_BASE = (window.PF_API_BASE) || readLS("pf_api_base") || readLS("phat_api_base") || "";
-function getToken(){ return readLS("pf_token") || readLS("phat_token") || ""; }
-function api(path){ const b=String(API_BASE||"").trim(); return b ? b.replace(/\/$/,"")+path : ""; }
-function isLoggedIn(){ return !!(API_BASE && getToken()); }
+
+// Prefer current site keys; match Runner
+const API_BASE =
+  (window.PF_API_BASE) ||
+  readLS("pf_api_base") ||
+  readLS("phat_api_base") ||
+  "";
+
+function getToken(){
+  // IMPORTANT: match Runner (NO generic "token" fallback)
+  return readLS("pf_token") || readLS("phat_token") || "";
+}
+
+function api(path){
+  const b = String(API_BASE || "").trim();
+  if (!b) return "";
+  return b.replace(/\/$/,"") + path;
+}
+
+function isLoggedIn(){
+  return !!(API_BASE && getToken());
+}
 
 async function fetchDailyProgress(){
   const token = getToken();
   if (!API_BASE || !token) return null;
   try{
-    const r = await fetch(api("/daily/progress"), { headers:{ Authorization:"Bearer "+token } });
-    const j = await r.json().catch(()=>null);
+    const r = await fetch(api("/daily/progress"), {
+      headers:{ Authorization:"Bearer " + token }
+    });
+    const j = await r.json().catch(()=> ({}));
     return (j && j.games && j.games.lift) ? j : null;
-  }catch{ return null; }
+  }catch{
+    return null;
+  }
 }
 
 async function submitSecureLift(payload){
@@ -442,10 +471,9 @@ async function submitSecureLift(payload){
       body: JSON.stringify(payload)
     });
 
+    // IMPORTANT: keep error payloads too (Runner behavior)
     const j = await r.json().catch(()=> ({}));
-    // keep error payloads so UI can show the reason
-    if (j && typeof j === "object") return j;
-    return { ok:false, error:"Bad JSON from server" };
+    return (j && typeof j === "object") ? j : { ok:false, error:"Bad JSON" };
   }catch(e){
     return { ok:false, error:String(e?.message || e) };
   }
@@ -453,28 +481,40 @@ async function submitSecureLift(payload){
 
 /* ========= DAILY FALLBACK (guest only) ========= */
 let DAILY_CAP = 1000;
-const KEY_RESET = "pf_daily_reset_at";
-const KEY_TODAY = "pf_daily_today_cals";
+
+// Use lift-specific keys so we don't collide with other games
+const KEY_RESET = "pf_lift_reset";
+const KEY_TODAY = "pf_lift_today";
 
 function nextMidnight(){
   const d = new Date();
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime();
 }
+
 let resetAt = Number(readLS(KEY_RESET) || nextMidnight());
 let today = Number(readLS(KEY_TODAY) || 0);
+
 if (Date.now() > resetAt){
   today = 0;
   resetAt = nextMidnight();
-  try{ localStorage.setItem(KEY_RESET, String(resetAt)); localStorage.setItem(KEY_TODAY, String(today)); }catch{}
+  try{
+    localStorage.setItem(KEY_RESET, String(resetAt));
+    localStorage.setItem(KEY_TODAY, String(today));
+  }catch{}
 }
 
 async function syncFromServer(){
   const prog = await fetchDailyProgress();
   if (!prog) return;
+
   const g = prog.games.lift;
   if (g?.caps?.dailyCapCalories != null) DAILY_CAP = Number(g.caps.dailyCapCalories || DAILY_CAP);
   if (g?.today?.calories != null) today = Number(g.today.calories || 0);
-  try{ localStorage.setItem(KEY_TODAY, String(today)); }catch{}
+
+  try{
+    localStorage.setItem(KEY_TODAY, String(today));
+    localStorage.setItem(KEY_RESET, String(resetAt));
+  }catch{}
 }
 
 /* ========= FAIR CALORIES (local preview only; server final) ========= */
@@ -549,6 +589,7 @@ function toast(msg){
   clearTimeout(window.__t);
   window.__t = setTimeout(()=>toastEl.style.display="none", 2300);
 }
+
 function flash(msg){
   flashEl.textContent = msg;
   flashEl.style.opacity = 1;
@@ -586,7 +627,7 @@ function setDifficulty(reps){
   rerollZone();
 }
 
-/* rep anim (same as your working one) */
+/* rep anim */
 let repTimer=null, repSeq=0;
 let lock=false;
 
@@ -609,13 +650,15 @@ function playRep(){
   }, REP_HOLD_MS);
 }
 
-/* state (same model) */
+/* state */
 let running=false;
 let over=false;
 let start=performance.now();
 
 let reps=0;
 let bestReps=0;
+
+// Guest-only local preview calories
 let runCals=0;
 
 /* modal */
@@ -641,6 +684,7 @@ function resetRun(){
   capEl.textContent = String(DAILY_CAP);
   todayCalsEl.textContent = String(today);
 
+  // quiet sync (doesn't block)
   syncFromServer().then(()=>{
     capEl.textContent = String(DAILY_CAP);
     todayCalsEl.textContent = String(today);
@@ -657,49 +701,69 @@ async function endRun(reason){
   bestReps = Math.max(bestReps, reps);
   const durationMs = Math.max(0, Math.round(performance.now() - start));
 
-  let res = null;
+  // Pre-fill modal/hud so user sees it immediately
+  mBestEl.textContent = String(bestReps);
+  mZoneEl.textContent = Math.round(smallestZone*100) + "%";
+
+  // Default values (guest/local)
+  let credited = runCals;
+
   if (isLoggedIn()){
-    res = await submitSecureLift({ score: bestReps, durationMs });
+    // Match Runner: show pending state while we submit
+    mRunCalsEl.textContent = "…";
+    mTodayEl.textContent = String(today);
+
+    const res = await submitSecureLift({
+      game: "lift",
+      score: bestReps,
+      durationMs
+    });
+
     if (res && res.ok){
-      runCals = Number(res.earnedCalories || 0);
-      if (res.today && typeof res.today.calories === "number") today = Number(res.today.calories || 0);
-      if (res.caps && typeof res.caps.dailyCapCalories === "number") DAILY_CAP = Number(res.caps.dailyCapCalories || DAILY_CAP);
-      if (runCals === 0 && res.reason === "too_short") toast("Too short. No calories.");
-      if (runCals === 0 && res.reason === "score_too_high") toast("Too fast. No calories.");
+      credited = Number(res.earnedCalories || 0);
+      today   = Number(res.today?.calories ?? today);
+      DAILY_CAP = Number(res.caps?.dailyCapCalories ?? DAILY_CAP);
+
+      // persist daily snapshot (safe)
+      try{
+        localStorage.setItem(KEY_TODAY, String(today));
+        localStorage.setItem(KEY_RESET, String(resetAt));
+      }catch{}
+
+      if (credited === 0 && res.reason === "too_short") toast("Too short (<10s). No calories.");
+      else if (credited === 0 && res.reason === "score_too_high") toast("Score rate too high. No calories.");
+      else toast(`Logged ✅ +${credited} cals (today ${today}/${DAILY_CAP})`);
     } else {
-      toast("Couldn’t sync run (server).");
+      toast(`Submit failed: ${String(res?.error || res?.message || "unknown")}`);
+      // No guest crediting when logged in (prevents double counting)
+      credited = 0;
     }
   } else {
     toast("Guest run. Connect via hub to stack lifetime calories.");
   }
 
-  runCalsEl.textContent = String(runCals);
+  // Update HUD + daily row + modal
+  runCalsEl.textContent = String(credited);
   todayCalsEl.textContent = String(today);
   capEl.textContent = String(DAILY_CAP);
 
-  mBestEl.textContent = String(bestReps);
-  mZoneEl.textContent = Math.round(smallestZone*100) + "%";
-  mRunCalsEl.textContent = String(runCals);
+  mRunCalsEl.textContent = String(credited);
   mTodayEl.textContent = String(today);
 
   const shareText =
     `$PHAT Ego Lift Buffet 🟣\n` +
     `Rep streak: ${bestReps}\n` +
     `Smallest green zone: ${Math.round(smallestZone*100)}%\n` +
-    `Calories: ${runCals} (today ${today}/${DAILY_CAP})\n` +
+    `Calories: ${credited} (today ${today}/${DAILY_CAP})\n` +
     `planetfatness.fit/lift`;
 
-  shareLine.textContent = `Rep streak: ${bestReps} • Zone: ${Math.round(smallestZone*100)}% • Calories: ${runCals}`;
+  shareLine.textContent = `Rep streak: ${bestReps} • Zone: ${Math.round(smallestZone*100)}% • Calories: ${credited}`;
   window.__shareText = shareText;
 
   showModal();
 }
 
-/* ✅ INPUT: keep your “release-only” mechanic, but fix iOS double-fire.
-   - start on first RELEASE (same as your working file)
-   - evaluate only once per physical tap
-   - bind to STAGE so releasing outside doesn’t cause weirdness
-*/
+/* ✅ INPUT: release-only mechanic, iOS double-fire guard */
 let tapArmed = false;
 let lastEvalTs = 0;
 
@@ -708,15 +772,14 @@ function armTap(){
 }
 
 function onRelease(e){
-  // stop iOS from also generating a second synthetic event
   try{ e.preventDefault(); }catch{}
 
   const nowTs = Date.now();
-  if (nowTs - lastEvalTs < 40) return; // double-fire guard
+  if (nowTs - lastEvalTs < 40) return;
   lastEvalTs = nowTs;
 
   if (over) return;
-  if (!tapArmed) return; // must have had a down inside stage
+  if (!tapArmed) return;
   tapArmed = false;
 
   if (!running){
@@ -738,7 +801,7 @@ function onRelease(e){
     reps++;
     repStreakEl.textContent = String(reps);
 
-    // guest preview only (server truth on end)
+    // guest preview only
     const add = caloriesForRep(reps, zoneW, loopSeconds);
     if (!isLoggedIn()){
       if (today < DAILY_CAP && add > 0){
@@ -782,8 +845,11 @@ backBtn.addEventListener("click", ()=>{ window.location.href = "../index.html#gy
 const pfShareBtn = el("pfShareBtn");
 pfShareBtn.addEventListener("click", async ()=>{
   try{
-    if (window.PF_UI && typeof window.PF_UI.share === "function"){ window.PF_UI.share({ game:"lift" }); return; }
-    if (window.PFUI && typeof window.PFUI.share === "function"){ window.PFUI.share({ game:"lift" }); return; }
+    if (window.PF_UI && typeof window.PF_UI.shareText === "function"){
+      const txt = window.__shareText || `$PHAT Ego Lift Buffet 🟣\nplanetfatness.fit/lift`;
+      await window.PF_UI.shareText(txt);
+      return;
+    }
   }catch{}
 
   const text = window.__shareText || `$PHAT Ego Lift Buffet 🟣\nplanetfatness.fit/lift`;
@@ -844,6 +910,7 @@ rerollZone();
 capEl.textContent = String(DAILY_CAP);
 todayCalsEl.textContent = String(today);
 
+// quiet sync on load (if logged in)
 syncFromServer().then(()=>{
   capEl.textContent = String(DAILY_CAP);
   todayCalsEl.textContent = String(today);
