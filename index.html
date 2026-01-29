@@ -1,3 +1,5 @@
+New index
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -1091,457 +1093,401 @@
     clearTimeout(window.__pfToastT);
     window.__pfToastT = setTimeout(() => (t.style.display = "none"), ms);
   }
-// ---------- API wrapper (same-origin) ----------
-const TOKEN_KEY = "pf_token";
-const API_BASE = "https://planetfatness-backend.onrender.com";
 
-const getToken = () => localStorage.getItem(TOKEN_KEY) || "";
-const setToken = (tok) => localStorage.setItem(TOKEN_KEY, tok || "");
-const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+  // ---------- API wrapper (same-origin) ----------
+  const TOKEN_KEY = "pf_token";
+  const API_BASE = ""; // keep same-origin so nothing breaks in TG/web
 
-async function api(path, opts = {}) {
-  const headers = Object.assign(
-    { "Content-Type": "application/json" },
-    opts.headers || {}
-  );
+  const getToken = () => localStorage.getItem(TOKEN_KEY) || "";
+  const setToken = (tok) => localStorage.setItem(TOKEN_KEY, tok || "");
+  const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 
-  const tok = getToken();
-  if (tok) headers.Authorization = `Bearer ${tok}`;
+  async function api(path, opts = {}) {
+    const headers = Object.assign(
+      { "Content-Type": "application/json" },
+      opts.headers || {}
+    );
+    const tok = getToken();
+    if (tok) headers.Authorization = `Bearer ${tok}`;
 
-  const res = await fetch(API_BASE + path, { ...opts, headers });
-
-  // 🔍 TEMP DEBUG — shows exactly what endpoint + status is happening
-  try { toast(`API ${res.status}: ${path}`); } catch {}
-
-  const text = await res.text();
-  let json = null;
-  try { json = text ? JSON.parse(text) : null; } catch {}
-
-  if (!res.ok) {
-    const msg = (json && (json.error || json.message)) || text || `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-
-  return json;
-}
-
-// ---------- render helpers ----------
-const safe = (v) => (v === null || v === undefined ? "" : String(v));
-const ell = (s, n = 22) => (s && s.length > n ? s.slice(0, n - 1) + "…" : s || "—");
-
-function setText(id, val) {
-  const el = $(id);
-  if (el) el.textContent = safe(val) || "—";
-}
-
-function fmtNum(n) {
-  const x = Number(n);
-  if (!isFinite(x)) return "—";
-  return x.toLocaleString();
-}
-
-function fmtTime(t) {
-  if (t === null || t === undefined) return "—";
-  if (typeof t === "string") return t;
-  const num = Number(t);
-  if (!isFinite(num)) return "—";
-  const sec = num > 999 ? Math.round(num / 1000) : Math.round(num);
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
-}
-
-// Accept arrays OR objects like {rows:[...]} OR {items:[...]} etc.
-function asArray(x) {
-  if (!x) return [];
-  if (Array.isArray(x)) return x;
-  if (Array.isArray(x.rows)) return x.rows;
-  if (Array.isArray(x.items)) return x.items;
-  if (Array.isArray(x.data)) return x.data;
-  if (Array.isArray(x.leaderboard)) return x.leaderboard;
-  if (Array.isArray(x.results)) return x.results;
-  return [];
-}
-
-// ---------- "Me" (Gym Card) ----------
-async function loadMe() {
-  const tries = ["/me", "/auth/me", "/users/me"];
-  let me = null;
-
-  for (const url of tries) {
-    try { me = await api(url, { method: "GET" }); break; } catch {}
-  }
-
-  if (!me) {
-    const auth = $("authStatus");
-    if (auth) {
-      auth.textContent = getToken()
-        ? "Member not loading — token exists but /me failed."
-        : "Not connected yet — launch inside Telegram or connect Phantom.";
+    const res = await fetch(API_BASE + path, { ...opts, headers });
+    const text = await res.text();
+    let json = null;
+    try { json = text ? JSON.parse(text) : null; } catch {}
+    if (!res.ok) {
+      const msg = (json && (json.error || json.message)) || text || `HTTP ${res.status}`;
+      throw new Error(msg);
     }
-    return;
+    return json;
   }
 
-  const identity = me.identity || me.username || me.handle || me.wallet || me.id || "—";
-  setText("meIdentity", identity);
+  // ---------- render helpers ----------
+  const safe = (v) => (v === null || v === undefined ? "" : String(v));
+  const ell = (s, n = 22) => (s && s.length > n ? s.slice(0, n - 1) + "…" : s || "—");
 
-  setText("meCaloriesLife", fmtNum(me.lifetimeCalories ?? me.caloriesLife ?? me.totalCalories ?? me.calories));
-  setText("meRunnerBestTime", fmtTime(me.runnerBestTime ?? me.bestTime ?? me.best_time));
-  setText("meRunnerMiles", fmtNum(me.lifetimeMiles ?? me.runnerMiles ?? me.miles));
-
-  setText("meCaloriesDaily", fmtNum(me.caloriesDaily ?? me.dailyCalories ?? me.daily));
-  setText("meCaloriesWeekly", fmtNum(me.caloriesWeekly ?? me.weeklyCalories ?? me.weekly));
-  setText("meCaloriesMonthly", fmtNum(me.caloriesMonthly ?? me.monthlyCalories ?? me.monthly));
-  setText("meCaloriesLifetime2", fmtNum(me.lifetimeCalories ?? me.caloriesLife ?? me.totalCalories));
-
-  setText("meRunnerBest", fmtTime(me.runner?.bestTime ?? me.runnerBestTime ?? me.bestTime));
-  setText("meLiftBest", fmtNum(me.lift?.best ?? me.liftBest ?? me.liftBestScore ?? me.lift?.bestScore));
-  setText("meSnackBest", fmtNum(me.snack?.best ?? me.snackBest ?? me.snackBestScore ?? me.snack?.bestScore));
-  setText("meBasketBest", fmtNum(me.basket?.bestScore ?? me.basketBest ?? me.basketBestScore ?? me.basket?.best));
-
-  setText("meBasketMakes", fmtNum(me.basket?.lifetimeMakes ?? me.basketMakes ?? me.lifetimeMakes ?? me.basket?.makes));
-
-  const auth = $("authStatus");
-  if (auth) auth.textContent = `Member loaded — ${ell(String(identity), 28)}.`;
-}
-
-// ---------- leaderboards ----------
-let LB_WINDOW = "daily";
-
-function setActiveWindow(win) {
-  LB_WINDOW = (win || "DAILY").toUpperCase();
-  const tabs = document.querySelectorAll("#lbTabs .tab");
-  tabs.forEach((b) =>
-    b.classList.toggle("active", b.dataset.window === win)
-  );
-}
-
-// extra aliases in case backend uses different window keys
-function windowAliases(win) {
-  const w = String(win || "daily").toLowerCase();
-  if (w === "daily") return ["daily", "day", "24h"];
-  if (w === "weekly") return ["weekly", "week", "7d"];
-  if (w === "monthly") return ["monthly", "month", "30d"];
-  if (w === "lifetime") return ["lifetime", "all", "alltime"];
-  return [w];
-}
-
-// if backend nests by window keys, pick the right one
-function pickWindowObj(obj) {
-  if (!obj || typeof obj !== "object") return obj;
-  for (const k of windowAliases(LB_WINDOW)) {
-    if (obj[k] !== undefined) return obj[k];
-  }
-  return obj;
-}
-
-async function loadLeaderboards() {
-  let data = null;
-
-  const tries = [];
-  for (const w of windowAliases(LB_WINDOW)) {
-    tries.push(`/leaderboard/v2?window=${encodeURIComponent(w)}`);
-    tries.push(`/leaderboard/v2?range=${encodeURIComponent(w)}`);
-    tries.push(`/leaderboard/v2/${encodeURIComponent(w)}`);
+  function setText(id, val) {
+    const el = $(id);
+    if (el) el.textContent = safe(val) || "—";
   }
 
-  for (const url of tries) {
-    try {
-      data = await api(url, { method: "GET" });
-      break;
-    } catch {}
+  function fmtNum(n) {
+    const x = Number(n);
+    if (!isFinite(x)) return "—";
+    return x.toLocaleString();
   }
-  if (!data) throw new Error("Leaderboard endpoint not reachable.");
 
-  // ---- Normalize overall ----
-  const overall = asArray(pickWindowObj(
-    data.overall ??
-    data.leaderboard ??
-    data.rows ??
-    data.data?.overall ??
-    data.data?.leaderboard ??
-    data.data?.rows ??
-    data.data
-  ));
+  function fmtTime(t) {
+    // Accept "mm:ss", number seconds, or ms
+    if (t === null || t === undefined) return "—";
+    if (typeof t === "string") return t;
+    const num = Number(t);
+    if (!isFinite(num)) return "—";
+    // if it looks like ms, convert
+    const sec = num > 999 ? Math.round(num / 1000) : Math.round(num);
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
 
-  // ---- Normalize games ----
-  const g0 = pickWindowObj(data.games ?? data.data?.games ?? {}) || {};
-  const runner = asArray(pickWindowObj(g0.runner ?? data.runner ?? data.data?.runner));
-  const lift   = asArray(pickWindowObj(g0.lift   ?? data.lift   ?? data.data?.lift));
-  const snack  = asArray(pickWindowObj(g0.snack  ?? data.snack  ?? data.data?.snack));
-  const basket = asArray(pickWindowObj(g0.basket ?? data.basket ?? data.data?.basket));
+  function renderRows(tbodyId, rows, cols) {
+    const tb = $(tbodyId);
+    if (!tb) return;
+    if (!rows || !rows.length) {
+      tb.innerHTML = `<tr><td colspan="${cols}" class="muted">No entries yet.</td></tr>`;
+      return;
+    }
+    tb.innerHTML = rows
+      .map((r, i) => {
+        const rank = i + 1;
+        const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
+        const calories = fmtNum(r.calories ?? r.kcal ?? r.points ?? r.totalCalories);
+        const bestTime = fmtTime(r.bestTime ?? r.runnerBestTime ?? r.best ?? r.best_time);
+        const miles = fmtNum(r.lifetimeMiles ?? r.miles ?? r.distanceMiles);
 
-  // ---------- Overall table ----------
-  {
-    const tb = $("lbOverallBody");
-    if (tb) {
-      if (!overall.length) {
-        tb.innerHTML = `<tr><td colspan="5" class="muted">No entries yet.</td></tr>`;
-      } else {
-        tb.innerHTML = overall.slice(0, 50).map((r, i) => {
+        // Caller can pass a row-builder instead; but keep this generic
+        return `<tr>
+          <td class="rank">${rank}</td>
+          <td>${safe(id)}</td>
+          <td>${calories}</td>
+          <td>${bestTime}</td>
+          <td>${miles}</td>
+        </tr>`;
+      })
+      .join("");
+  }
+
+  // ---------- leaderboards ----------
+  let LB_WINDOW = "daily";
+
+  function setActiveWindow(win) {
+    LB_WINDOW = win;
+    const tabs = document.querySelectorAll("#lbTabs .tab");
+    tabs.forEach((b) => b.classList.toggle("active", b.dataset.window === win));
+  }
+
+  async function loadLeaderboards() {
+    // Supports multiple backend shapes without breaking:
+    // 1) /leaderboard/v2?window=daily
+    // 2) /leaderboard/v2?range=daily
+    // 3) /leaderboard/v2/daily
+    let data = null;
+
+    const tries = [
+      `/leaderboard/v2?window=${encodeURIComponent(LB_WINDOW)}`,
+      `/leaderboard/v2?range=${encodeURIComponent(LB_WINDOW)}`,
+      `/leaderboard/v2/${encodeURIComponent(LB_WINDOW)}`
+    ];
+
+    for (const url of tries) {
+      try { data = await api(url, { method: "GET" }); break; } catch {}
+    }
+    if (!data) throw new Error("Leaderboard endpoint not reachable.");
+
+    // Normalize
+    const overall =
+      data.overall ||
+      data.leaderboard ||
+      data.rows ||
+      data.data?.overall ||
+      [];
+
+    const games =
+      data.games ||
+      data.data?.games ||
+      {
+        runner: data.runner || data.data?.runner,
+        lift: data.lift || data.data?.lift,
+        snack: data.snack || data.data?.snack,
+        basket: data.basket || data.data?.basket
+      };
+
+    // Overall table (expects 5 cols already in HTML)
+    {
+      const tb = $("lbOverallBody");
+      if (tb) {
+        if (!overall.length) {
+          tb.innerHTML = `<tr><td colspan="5" class="muted">No entries yet.</td></tr>`;
+        } else {
+          tb.innerHTML = overall.slice(0, 50).map((r, i) => {
+            const rank = i + 1;
+            const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+            const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
+            const best = fmtTime(r.runnerBestTime ?? r.bestTime ?? r.best ?? r.best_time);
+            const miles = fmtNum(r.lifetimeMiles ?? r.miles ?? r.distanceMiles);
+            return `<tr>
+              <td class="rank">${rank}</td>
+              <td>${safe(id)}</td>
+              <td>${calories}</td>
+              <td>${best}</td>
+              <td>${miles}</td>
+            </tr>`;
+          }).join("");
+        }
+      }
+    }
+
+    // Runner
+    {
+      const rows = (games.runner || []).slice(0, 50);
+      const tb = $("lbRunnerBody");
+      if (tb) {
+        tb.innerHTML = rows.length ? rows.map((r, i) => {
           const rank = i + 1;
-          const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
-          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal ?? r.points);
-          const best = fmtTime(r.runnerBestTime ?? r.bestTime ?? r.best ?? r.best_time ?? r.time);
-          const miles = fmtNum(r.lifetimeMiles ?? r.miles ?? r.distanceMiles ?? r.distance);
+          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
+          const best = fmtTime(r.bestTime ?? r.runnerBestTime ?? r.best ?? r.best_time);
           return `<tr>
             <td class="rank">${rank}</td>
             <td>${safe(id)}</td>
             <td>${calories}</td>
             <td>${best}</td>
-            <td>${miles}</td>
           </tr>`;
-        }).join("");
+        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+      }
+    }
+
+    // Lift
+    {
+      const rows = (games.lift || []).slice(0, 50);
+      const tb = $("lbLiftBody");
+      if (tb) {
+        tb.innerHTML = rows.length ? rows.map((r, i) => {
+          const rank = i + 1;
+          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
+          const best = fmtNum(r.best ?? r.bestScore ?? r.bestSet ?? r.value);
+          return `<tr>
+            <td class="rank">${rank}</td>
+            <td>${safe(id)}</td>
+            <td>${calories}</td>
+            <td>${best}</td>
+          </tr>`;
+        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+      }
+    }
+
+    // Snack
+    {
+      const rows = (games.snack || []).slice(0, 50);
+      const tb = $("lbSnackBody");
+      if (tb) {
+        tb.innerHTML = rows.length ? rows.map((r, i) => {
+          const rank = i + 1;
+          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+          const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal);
+          const best = fmtNum(r.best ?? r.bestScore ?? r.bestCombo ?? r.value);
+          return `<tr>
+            <td class="rank">${rank}</td>
+            <td>${safe(id)}</td>
+            <td>${calories}</td>
+            <td>${best}</td>
+          </tr>`;
+        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+      }
+    }
+
+    // Basket (Best Streak + Best Score)
+    {
+      const rows = (games.basket || []).slice(0, 50);
+      const tb = $("lbBasketBody");
+      if (tb) {
+        tb.innerHTML = rows.length ? rows.map((r, i) => {
+          const rank = i + 1;
+          const id = ell(r.identity || r.username || r.handle || r.wallet || "—");
+          const bestStreak = fmtNum(r.bestStreak ?? r.streak ?? r.maxStreak ?? r.best_run);
+          const bestScore = fmtNum(r.bestScore ?? r.score ?? r.maxScore ?? r.best_points);
+          return `<tr>
+            <td class="rank">${rank}</td>
+            <td>${safe(id)}</td>
+            <td>${bestStreak}</td>
+            <td>${bestScore}</td>
+          </tr>`;
+        }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
       }
     }
   }
 
-  // ---------- Runner ----------
-  {
-    const tb = $("lbRunnerBody");
-    const rows = runner.slice(0, 50);
-    if (tb) {
-      tb.innerHTML = rows.length ? rows.map((r, i) => {
-        const rank = i + 1;
-        const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
-        const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal ?? r.points);
-        const best = fmtTime(r.bestTime ?? r.runnerBestTime ?? r.best ?? r.best_time ?? r.time);
-        return `<tr>
-          <td class="rank">${rank}</td>
-          <td>${safe(id)}</td>
-          <td>${calories}</td>
-          <td>${best}</td>
-        </tr>`;
-      }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+  // ---------- "Me" (Gym Card) ----------
+  async function loadMe() {
+    // Try a few common endpoints; keep it defensive
+    const tries = ["/me", "/auth/me", "/users/me"];
+    let me = null;
+    for (const url of tries) {
+      try { me = await api(url, { method: "GET" }); break; } catch {}
+    }
+    if (!me) return;
+
+    const identity = me.identity || me.username || me.handle || me.wallet || me.id || "—";
+    setText("meIdentity", identity);
+
+    setText("meCaloriesLife", fmtNum(me.lifetimeCalories ?? me.caloriesLife ?? me.totalCalories ?? me.calories));
+    setText("meRunnerBestTime", fmtTime(me.runnerBestTime ?? me.bestTime ?? me.best_time));
+    setText("meRunnerMiles", fmtNum(me.lifetimeMiles ?? me.runnerMiles ?? me.miles));
+
+    setText("meCaloriesDaily", fmtNum(me.caloriesDaily ?? me.dailyCalories ?? me.daily));
+    setText("meCaloriesWeekly", fmtNum(me.caloriesWeekly ?? me.weeklyCalories ?? me.weekly));
+    setText("meCaloriesMonthly", fmtNum(me.caloriesMonthly ?? me.monthlyCalories ?? me.monthly));
+    setText("meCaloriesLifetime2", fmtNum(me.lifetimeCalories ?? me.caloriesLife ?? me.totalCalories));
+
+    // Per-game bests (accept multiple shapes)
+    setText("meRunnerBest", fmtTime(me.runner?.bestTime ?? me.runnerBestTime ?? me.bestTime));
+    setText("meLiftBest", fmtNum(me.lift?.best ?? me.liftBest ?? me.liftBestScore ?? me.lift?.bestScore));
+    setText("meSnackBest", fmtNum(me.snack?.best ?? me.snackBest ?? me.snackBestScore ?? me.snack?.bestScore));
+    setText("meBasketBest", fmtNum(me.basket?.bestScore ?? me.basketBest ?? me.basketBestScore ?? me.basket?.best));
+
+    // Lifetime makes (new)
+    setText("meBasketMakes", fmtNum(me.basket?.lifetimeMakes ?? me.basketMakes ?? me.lifetimeMakes ?? me.basket?.makes));
+
+    // Auth status label
+    const auth = $("authStatus");
+    if (auth) {
+      auth.textContent = `Member loaded — ${ell(String(identity), 28)}.`;
     }
   }
 
-  // ---------- Lift ----------
-  {
-    const tb = $("lbLiftBody");
-    const rows = lift.slice(0, 50);
-    if (tb) {
-      tb.innerHTML = rows.length ? rows.map((r, i) => {
-        const rank = i + 1;
-        const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
-        const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal ?? r.points);
-        const best = fmtNum(r.best ?? r.bestScore ?? r.bestSet ?? r.value ?? r.score);
-        return `<tr>
-          <td class="rank">${rank}</td>
-          <td>${safe(id)}</td>
-          <td>${calories}</td>
-          <td>${best}</td>
-        </tr>`;
-      }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-    }
-  }
+  // ---------- Tabs wiring ----------
+  try {
+    document.querySelectorAll("#lbTabs .tab").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        setActiveWindow(btn.dataset.window || "daily");
+        try {
+          await loadLeaderboards();
+          toast(`Loaded ${LB_WINDOW} leaderboard`);
+        } catch (e) {
+          toast(`Leaderboard error: ${e.message || e}`);
+        }
+      });
+    });
+  } catch {}
 
-  // ---------- Snack ----------
-  {
-    const tb = $("lbSnackBody");
-    const rows = snack.slice(0, 50);
-    if (tb) {
-      tb.innerHTML = rows.length ? rows.map((r, i) => {
-        const rank = i + 1;
-        const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
-        const calories = fmtNum(r.calories ?? r.totalCalories ?? r.kcal ?? r.points);
-        const best = fmtNum(r.best ?? r.bestScore ?? r.bestCombo ?? r.value ?? r.score);
-        return `<tr>
-          <td class="rank">${rank}</td>
-          <td>${safe(id)}</td>
-          <td>${calories}</td>
-          <td>${best}</td>
-        </tr>`;
-      }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-    }
-  }
+  // ---------- Buttons ----------
+  try {
+    $("refreshLbBtn").addEventListener("click", async () => {
+      try { await loadLeaderboards(); toast("Leaderboards refreshed"); } catch (e) { toast(e.message || e); }
+    });
+  } catch {}
 
-  // ---------- Basket ----------
-  {
-    const tb = $("lbBasketBody");
-    const rows = basket.slice(0, 50);
-    if (tb) {
-      tb.innerHTML = rows.length ? rows.map((r, i) => {
-        const rank = i + 1;
-        const id = ell(r.identity || r.username || r.handle || r.wallet || r.id || "—");
-        const bestStreak = fmtNum(r.bestStreak ?? r.streak ?? r.maxStreak ?? r.best_run ?? r.max_run);
-        const bestScore  = fmtNum(r.bestScore ?? r.score ?? r.maxScore ?? r.best_points ?? r.max_points);
-        return `<tr>
-          <td class="rank">${rank}</td>
-          <td>${safe(id)}</td>
-          <td>${bestStreak}</td>
-          <td>${bestScore}</td>
-        </tr>`;
-      }).join("") : `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-    }
-  }
+  try {
+    $("refreshMeBtn").addEventListener("click", async () => {
+      try { await loadMe(); toast("Gym card refreshed"); } catch (e) { toast(e.message || e); }
+    });
+  } catch {}
 
-  return data;
-}
+  try {
+    $("logoutBtn").addEventListener("click", () => {
+      clearToken();
+      toast("Logged out");
+      const auth = $("authStatus");
+      if (auth) auth.textContent = "Not connected yet — open in Telegram or connect Phantom to lock your member card.";
+      ["meIdentity","meCaloriesLife","meRunnerBestTime","meRunnerMiles","meCaloriesDaily","meCaloriesWeekly","meCaloriesMonthly","meCaloriesLifetime2","meRunnerBest","meLiftBest","meSnackBest","meBasketBest","meBasketMakes"]
+        .forEach((id) => setText(id, "—"));
+    });
+  } catch {}
 
-// ---------- Telegram auth (safer in WebApp + retries) ----------
-async function tryTelegramAuth() {
-  const tg = window.Telegram && window.Telegram.WebApp;
-  if (!tg) return false;
+  // ---------- Telegram auth (safe + non-breaking) ----------
+  // If your backend already supports /auth/telegram, this will log you in.
+  // If not, it will simply no-op and won’t break anything.
+  async function tryTelegramAuth() {
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const initData = tg && typeof tg.initData === "string" ? tg.initData : "";
+    if (!initData) return false;
 
-  try { tg.ready(); tg.expand(); } catch {}
-
-  // initData can arrive late; retry a bit
-  let initData = "";
-  for (let i = 0; i < 12; i++) {
-    initData = (typeof tg.initData === "string" ? tg.initData : "") || "";
-    if (initData && initData.length > 20) break;
-    await new Promise((r) => setTimeout(r, 180));
-  }
-  if (!initData) {
-    try { toast("TG initData missing ❌"); } catch {}
+    try {
+      const out = await api("/auth/telegram", {
+        method: "POST",
+        body: JSON.stringify({ initData })
+      });
+      if (out && out.token) {
+        setToken(out.token);
+        toast("Telegram verified ✅");
+        return true;
+      }
+    } catch {}
     return false;
   }
 
-  try {
-    const out = await api("/auth/telegram", {
+  // ---------- Phantom connect (safe + non-breaking) ----------
+  // If your backend supports /auth/wallet/challenge + /auth/wallet/verify, this will work.
+  async function tryPhantomAuth() {
+    if (!window.solana || !window.solana.isPhantom) {
+      toast("Phantom not found");
+      return false;
+    }
+
+    const provider = window.solana;
+    const resp = await provider.connect({ onlyIfTrusted: false });
+    const pubkey = resp?.publicKey?.toString?.() || provider.publicKey?.toString?.();
+    if (!pubkey) throw new Error("Wallet connect failed");
+
+    // Challenge
+    const chal = await api("/auth/wallet/challenge", {
       method: "POST",
-      body: JSON.stringify({ initData })
+      body: JSON.stringify({ address: pubkey })
     });
 
-    if (out && out.token) {
-      setToken(out.token);
-      toast("Telegram verified ✅");
+    const message = chal?.message || chal?.data?.message;
+    if (!message) throw new Error("No challenge message");
+
+    const enc = new TextEncoder().encode(message);
+    const signed = await provider.signMessage(enc, "utf8");
+
+    const verify = await api("/auth/wallet/verify", {
+      method: "POST",
+      body: JSON.stringify({
+        address: pubkey,
+        signature: Array.from(signed.signature || signed),
+        message
+      })
+    });
+
+    if (verify?.token) {
+      setToken(verify.token);
+      toast("Wallet verified ✅");
       return true;
     }
-
-    toast("TG auth no token ❌");
-  } catch (e) {
-    toast(`TG auth failed: ${e.message || e}`);
+    throw new Error("Wallet verify failed");
   }
-
-  return false;
-}
-
-// ---------- Phantom connect (safe + non-breaking) ----------
-async function tryPhantomAuth() {
-  if (!window.solana || !window.solana.isPhantom) {
-    toast("Phantom not found");
-    return false;
-  }
-
-  const provider = window.solana;
-  const resp = await provider.connect({ onlyIfTrusted: false });
-  const pubkey = resp?.publicKey?.toString?.() || provider.publicKey?.toString?.();
-  if (!pubkey) throw new Error("Wallet connect failed");
-
-  const chal = await api("/auth/wallet/challenge", {
-    method: "POST",
-    body: JSON.stringify({ address: pubkey })
-  });
-
-  const message = chal?.message || chal?.data?.message;
-  if (!message) throw new Error("No challenge message");
-
-  const enc = new TextEncoder().encode(message);
-  const signed = await provider.signMessage(enc, "utf8");
-
-  const verify = await api("/auth/wallet/verify", {
-    method: "POST",
-    body: JSON.stringify({
-      address: pubkey,
-      signature: Array.from(signed.signature || signed),
-      message
-    })
-  });
-
-  if (verify?.token) {
-    setToken(verify.token);
-    toast("Wallet verified ✅");
-    return true;
-  }
-  throw new Error("Wallet verify failed");
-}
-
-// ---------- Tabs wiring ----------
-try {
-  document.querySelectorAll("#lbTabs .tab").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      setActiveWindow(btn.dataset.window || "daily");
-      try {
-        await loadLeaderboards();
-        toast(`Loaded ${LB_WINDOW} leaderboard`);
-      } catch (e) {
-        toast(`Leaderboard error: ${e.message || e}`);
-      }
-    });
-  });
-} catch {}
-
-// ---------- Buttons ----------
-try {
-  $("refreshLbBtn")?.addEventListener("click", async () => {
-    try { await loadLeaderboards(); toast("Leaderboards refreshed"); }
-    catch (e) { toast(e.message || e); }
-  });
-} catch {}
-
-try {
-  $("refreshMeBtn")?.addEventListener("click", async () => {
-    try { await loadMe(); toast("Gym card refreshed"); }
-    catch (e) { toast(e.message || e); }
-  });
-} catch {}
-
-try {
-  $("logoutBtn")?.addEventListener("click", () => {
-    clearToken();
-    toast("Logged out");
-    const auth = $("authStatus");
-    if (auth) auth.textContent = "Not connected yet — open in Telegram or connect Phantom to lock your member card.";
-    [
-      "meIdentity","meCaloriesLife","meRunnerBestTime","meRunnerMiles",
-      "meCaloriesDaily","meCaloriesWeekly","meCaloriesMonthly","meCaloriesLifetime2",
-      "meRunnerBest","meLiftBest","meSnackBest","meBasketBest","meBasketMakes"
-    ].forEach((id) => setText(id, "—"));
-  });
-} catch {}
-
-try {
-  $("connectBtn")?.addEventListener("click", async () => {
-    try {
-      await tryPhantomAuth();
-      await loadMe();
-      await loadLeaderboards();
-    } catch (e) {
-      toast(e.message || e);
-    }
-  });
-} catch {}
-
-// ---------- Boot ----------
-(async function boot() {
-  // 1) if token already exists, just load
-  if (getToken()) {
-    try { await loadMe(); } catch {}
-    try { await loadLeaderboards(); } catch {}
-    return;
-  }
-
-  // 2) otherwise attempt TG auth, then load
-  try { await tryTelegramAuth(); } catch {}
-  try { await loadMe(); } catch {}
-  try { await loadLeaderboards(); } catch {}
-
-  // 3) TG can inject initData late; retry once on focus/visibility
-  const retry = async () => {
-    if (getToken()) return;
-    try { await tryTelegramAuth(); } catch {}
-    try { await loadMe(); } catch {}
-  };
 
   try {
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) retry();
+    $("connectBtn").addEventListener("click", async () => {
+      try {
+        await tryPhantomAuth();
+        await loadMe();
+        await loadLeaderboards();
+      } catch (e) {
+        toast(e.message || e);
+      }
     });
-    window.addEventListener("focus", retry);
   } catch {}
-})();
+
+  // ---------- Boot ----------
+  (async function boot() {
+    // Don’t break anything if TG isn’t present
+    try { await tryTelegramAuth(); } catch {}
+    try { await loadMe(); } catch {}
+    try { await loadLeaderboards(); } catch {}
+  })();
 </script>
+
 </body>
 </html>
