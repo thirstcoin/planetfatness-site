@@ -519,8 +519,6 @@ let inclinePeak=0;
 
 /* preview calories (UI only; server is truth when logged in) */
 let caloriesThisRun=0;
-/* preview calories (UI only; server is truth when logged in) */
-let caloriesThisRun=0;
 
 /* server-credited calories (UI display should follow this when available) */
 let creditedThisRun = null;
@@ -569,6 +567,7 @@ function resetGame(){
   beltPhase=0;
   inclinePeak=0;
   caloriesThisRun=0;
+  creditedThisRun = null;
   milesThisRun=0;
 
   holding=false;
