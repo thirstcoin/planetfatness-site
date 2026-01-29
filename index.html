@@ -960,7 +960,6 @@
   <!-- ✅ Telegram SDK MUST be loaded BEFORE our app script (no defer). -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-
 <script>
   // =========================
   // Planet Fatness — Hub JS
@@ -1331,7 +1330,7 @@
   }
 
   // ==========================================================
-  // ✅ GYM CARD LOAD — /activity/summary (adapted to polished fields)
+  // ✅ GYM CARD LOAD — /activity/summary + /daily/progress (windowed today) + /leaderboard/v2 (my week/month)
   // ==========================================================
   async function loadMe(){
     const token = getToken();
@@ -1362,20 +1361,91 @@
       const miles = Number(me?.lifetime?.miles || me?.lifetime?.totalMiles || 0);
       setText(meRunnerMilesEl, miles ? miles.toLocaleString() : "—");
 
-      // If backend includes windows
-      const d = Number(me?.daily?.totalCalories || 0);
-      const w = Number(me?.weekly?.totalCalories || 0);
-      const m = Number(me?.monthly?.totalCalories || 0);
-      setText(meCaloriesDailyEl, d ? d.toLocaleString() : "—");
-      setText(meCaloriesWeeklyEl, w ? w.toLocaleString() : "—");
-      setText(meCaloriesMonthlyEl, m ? m.toLocaleString() : "—");
+      // --- Windowed calories ---
+      // Daily (today) comes from auth-only /daily/progress (sum across games)
+      let todayTotal = null;
+      try{
+        const dp = await fetch(API_BASE + "/daily/progress", {
+          headers:{ "Authorization":"Bearer " + token }
+        }).then(r => r.json());
+        if (dp && dp.games){
+          const g = dp.games;
+          todayTotal =
+            Number(g.runner?.today?.calories || 0) +
+            Number(g.lift?.today?.calories || 0) +
+            Number(g.snack?.today?.calories || 0) +
+            Number(g.basket?.today?.calories || 0);
+        }
+      }catch{}
+      setText(meCaloriesDailyEl, (todayTotal && todayTotal > 0) ? todayTotal.toLocaleString() : "—");
 
-      // Per-game bests (safe)
-      const g = me?.games || me?.lifetime?.games || {};
-      setText(meLiftBestEl, fmtNum(g?.lift?.best ?? g?.liftBest ?? ""));
-      setText(meSnackBestEl, fmtNum(g?.snack?.best ?? g?.snackBest ?? ""));
-      setText(meBasketBestEl, fmtNum(g?.basket?.bestScore ?? g?.basketBestScore ?? ""));
-      setText(meBasketMakesEl, fmtNum(g?.basket?.lifetimeMakes ?? g?.basketMakes ?? ""));
+      // Weekly + Monthly: compute "my total calories in window" from /leaderboard/v2 scoped to my address
+      // (no backend changes needed; just query wide and pick my row)
+      async function myWindowCalories(windowKey){
+        try{
+          const rows = await fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(windowKey)}&metric=calories&limit=500`)
+            .then(r => r.ok ? r.json() : null);
+          if (!Array.isArray(rows)) return null;
+          const addr = getAddr();
+          const found = rows.find(x => String(x.address || "").trim() === String(addr || "").trim());
+          if (!found) return 0;
+          const v = (found.value != null) ? Number(found.value || 0) : 0;
+          return isFinite(v) ? v : 0;
+        }catch{
+          return null;
+        }
+      }
+
+      const weekly = await myWindowCalories("week");
+      const monthly = await myWindowCalories("month");
+      setText(meCaloriesWeeklyEl, (weekly && weekly > 0) ? weekly.toLocaleString() : "—");
+      setText(meCaloriesMonthlyEl, (monthly && monthly > 0) ? monthly.toLocaleString() : "—");
+
+      // --- Per-game bests ---
+      // Pull from /daily/progress (it includes bestScore per game), plus lifetime makes from /leaderboard/v2 if you track it
+      let prog = null;
+      try{
+        prog = await fetch(API_BASE + "/daily/progress", {
+          headers:{ "Authorization":"Bearer " + token }
+        }).then(r => r.json());
+      }catch{}
+
+      const runnerBest = Number(me?.lifetime?.bestSeconds || 0);
+      setText(meRunnerBestEl, runnerBest ? runnerBest.toFixed(1) + "s" : "—");
+
+      if (prog?.games){
+        const pg = prog.games;
+
+        // lift/snack/basket bests are stored as bestScore in your backend response
+        const liftBest = Number(pg.lift?.today?.bestScore ?? 0);
+        const snackBest = Number(pg.snack?.today?.bestScore ?? 0);
+        const basketBest = Number(pg.basket?.today?.bestScore ?? 0);
+
+        setText(meLiftBestEl, liftBest ? liftBest.toLocaleString() : "—");
+        setText(meSnackBestEl, snackBest ? snackBest.toLocaleString() : "—");
+        setText(meBasketBestEl, basketBest ? basketBest.toLocaleString() : "—");
+      } else {
+        setText(meLiftBestEl, "—");
+        setText(meSnackBestEl, "—");
+        setText(meBasketBestEl, "—");
+      }
+
+      // Basket lifetime makes (if you expose it as metric=shots_made in leaderboard/v2)
+      // If not available, stays as —
+      try{
+        const rows = await fetch(API_BASE + `/leaderboard/v2?window=lifetime&metric=shots_made&game=basket&limit=500`)
+          .then(r => r.ok ? r.json() : null);
+        if (Array.isArray(rows)){
+          const addr = getAddr();
+          const found = rows.find(x => String(x.address || "").trim() === String(addr || "").trim());
+          const v = found && found.value != null ? Number(found.value || 0) : 0;
+          setText(meBasketMakesEl, (v && v > 0) ? v.toLocaleString() : "—");
+        } else {
+          setText(meBasketMakesEl, "—");
+        }
+      }catch{
+        setText(meBasketMakesEl, "—");
+      }
 
       if (authStatusEl) authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
 
@@ -1386,70 +1456,142 @@
   }
 
   // ==========================================================
-  // ✅ LEADERBOARD — EXACT WORKING v2 + fallback (render into polished tables)
+  // ✅ LEADERBOARD — v2 windows + per-game tables + fallback legacy
   // ==========================================================
+  let ACTIVE_WINDOW = "day"; // default matches your UI "Daily"
+
+  function normWindow(w){
+    const s = String(w || "").toLowerCase();
+    if (s === "daily") return "day";
+    if (s === "weekly") return "week";
+    if (s === "monthly") return "month";
+    if (s === "lifetime") return "lifetime";
+    if (s === "day" || s === "week" || s === "month" || s === "lifetime") return s;
+    return "day";
+  }
+
+  function renderOverall(rows){
+    if (!lbOverallBody) return;
+    if (!rows.length){
+      lbOverallBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet. First gym rat gets bragging rights.</td></tr>`;
+      return;
+    }
+
+    lbOverallBody.innerHTML = rows.slice(0, 30).map((u, i) => {
+      const address = String(u.address || "").trim();
+      const name = String(u.display_name || u.displayName || u.name || u.display_name || "").trim();
+
+      const ident =
+        name ? name :
+        address.startsWith("tg:") ? ("TG:" + address.slice(3)) :
+        address ? (address.slice(0,4) + "…" + address.slice(-4)) :
+        "—";
+
+      const cals =
+        u.total_calories != null ? Number(u.total_calories || 0) :
+        u.totalCalories != null ? Number(u.totalCalories || 0) :
+        u.value != null ? Number(u.value || 0) : 0;
+
+      const best =
+        u.best_seconds != null ? Number(u.best_seconds || 0) :
+        u.bestSeconds != null ? Number(u.bestSeconds || 0) :
+        (u.best_score != null ? Number(u.best_score || 0) : 0);
+
+      return `
+        <tr>
+          <td class="rank">${i+1}</td>
+          <td>${escapeHtml(ident)}</td>
+          <td>${Number(cals).toLocaleString()}</td>
+          <td>${best ? (isFinite(best) && best > 0 ? (best.toFixed ? best.toFixed(1) + "s" : best) : "—") : "—"}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  function renderGameTable(tbody, rows){
+    if (!tbody) return;
+    if (!rows || !rows.length){
+      tbody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.slice(0, 30).map((u, i) => {
+      const address = String(u.address || "").trim();
+      const name = String(u.display_name || u.displayName || u.name || "").trim();
+      const ident =
+        name ? name :
+        address.startsWith("tg:") ? ("TG:" + address.slice(3)) :
+        address ? (address.slice(0,4) + "…" + address.slice(-4)) :
+        "—";
+
+      const score = (u.value != null) ? Number(u.value || 0) : Number(u.score || 0);
+      const cals = Number(u.calories || 0);
+      const best = (u.best_score != null) ? Number(u.best_score || 0) : 0;
+
+      return `
+        <tr>
+          <td class="rank">${i+1}</td>
+          <td>${escapeHtml(ident)}</td>
+          <td>${isFinite(score) ? score.toLocaleString() : "—"}</td>
+          <td>${best ? best.toLocaleString() : "—"}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
   async function loadLeaderboard(){
     try{
-      let rows = null;
-
+      // 1) Overall leaderboard by calories for ACTIVE_WINDOW (v2)
+      let overall = null;
       try{
-        const r2 = await fetch(API_BASE + "/leaderboard/v2?window=lifetime&metric=calories&limit=30");
-        if (r2.ok) rows = await r2.json();
+        const r2 = await fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=calories&limit=30`);
+        if (r2.ok) overall = await r2.json();
       }catch{}
 
-      if (!rows){
+      // fallback to legacy lifetime users table
+      if (!Array.isArray(overall)){
         const r1 = await fetch(API_BASE + "/leaderboard?limit=30");
-        rows = await r1.json();
+        overall = await r1.json();
       }
+      if (!Array.isArray(overall)) throw new Error("Bad leaderboard");
 
-      if (!Array.isArray(rows)) throw new Error("Bad leaderboard");
+      renderOverall(overall);
 
-      // Overall table in polished markup has 4 cols: #, Identity, Calories, Best Run
-      if (lbOverallBody){
-        if (!rows.length){
-          lbOverallBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet. First gym rat gets bragging rights.</td></tr>`;
-        } else {
-          lbOverallBody.innerHTML = rows.slice(0, 30).map((u, i) => {
-            const address = String(u.address || "").trim();
-            const name = String(u.display_name || u.displayName || u.name || "").trim();
+      // 2) Per-game top 30 (score metric) for ACTIVE_WINDOW
+      // Prefer one-call /leaderboard/games; fallback to v2 per game if needed.
+      let gamesPayload = null;
+      try{
+        const rg = await fetch(API_BASE + `/leaderboard/games?window=${encodeURIComponent(ACTIVE_WINDOW)}&limit=30`);
+        if (rg.ok) gamesPayload = await rg.json();
+      }catch{}
 
-            const ident =
-              name ? name :
-              address.startsWith("tg:") ? ("TG:" + address.slice(3)) :
-              address ? (address.slice(0,4) + "…" + address.slice(-4)) :
-              "—";
+      if (gamesPayload && gamesPayload.games){
+        renderGameTable(lbRunnerBody, gamesPayload.games.runner || []);
+        renderGameTable(lbLiftBody,   gamesPayload.games.lift || []);
+        renderGameTable(lbSnackBody,  gamesPayload.games.snack || []);
+        renderGameTable(lbBasketBody, gamesPayload.games.basket || []);
+      } else {
+        // fallback: v2 per game
+        const [rRun, rLift, rSnack, rBasket] = await Promise.all([
+          fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=runner&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
+          fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=lift&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
+          fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=snack&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
+          fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=basket&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
+        ]);
 
-            const cals =
-              u.total_calories != null ? Number(u.total_calories || 0) :
-              u.totalCalories != null ? Number(u.totalCalories || 0) :
-              u.value != null ? Number(u.value || 0) : 0;
-
-            const best =
-              u.best_seconds != null ? Number(u.best_seconds || 0) :
-              u.bestSeconds != null ? Number(u.bestSeconds || 0) : 0;
-
-            return `
-              <tr>
-                <td class="rank">${i+1}</td>
-                <td>${escapeHtml(ident)}</td>
-                <td>${Number(cals).toLocaleString()}</td>
-                <td>${best ? best.toFixed(1) + "s" : "—"}</td>
-              </tr>
-            `;
-          }).join("");
-        }
+        renderGameTable(lbRunnerBody, Array.isArray(rRun)?rRun:[]);
+        renderGameTable(lbLiftBody,   Array.isArray(rLift)?rLift:[]);
+        renderGameTable(lbSnackBody,  Array.isArray(rSnack)?rSnack:[]);
+        renderGameTable(lbBasketBody, Array.isArray(rBasket)?rBasket:[]);
       }
-
-      // Per-game grids: your current working endpoint doesn't provide these,
-      // so keep them harmless (no errors, just "No entries yet.")
-      if (lbRunnerBody) lbRunnerBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      if (lbLiftBody)   lbLiftBody.innerHTML   = `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      if (lbSnackBody)  lbSnackBody.innerHTML  = `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      if (lbBasketBody) lbBasketBody.innerHTML = `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
 
     } catch(e){
       console.error(e);
       if (lbOverallBody) lbOverallBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+      if (lbRunnerBody)  lbRunnerBody.innerHTML  = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+      if (lbLiftBody)    lbLiftBody.innerHTML    = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+      if (lbSnackBody)   lbSnackBody.innerHTML   = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+      if (lbBasketBody)  lbBasketBody.innerHTML  = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
     }
   }
 
@@ -1481,13 +1623,15 @@
       e.preventDefault();
       e.stopPropagation();
 
-      // UI only: toggle the active pill so it feels responsive
-      const win = (btn.dataset.window || "daily").toLowerCase();
+      // ✅ set active window and reload v2 with that window
+      const winRaw = (btn.dataset.window || "daily").toLowerCase();
+      ACTIVE_WINDOW = normWindow(winRaw);
+
       wrap.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b === btn));
 
       try{
-        await loadLeaderboard(); // keep your existing working call
-        toast(`Loaded ${win} leaderboard`);
+        await loadLeaderboard();
+        toast(`Loaded ${winRaw} leaderboard`);
       }catch(err){
         toast(`Leaderboard error: ${err?.message || err}`);
       }
@@ -1500,7 +1644,7 @@
   (async () => {
     setAuthUI();
     loadLeaderboard();
-       loadMe();
+    loadMe();
 
     const tgReady = await waitForTelegram(3000);
     console.log(
@@ -1517,6 +1661,6 @@
       telegramBootstrapRetry();
     }
   })();
-    </script>
+</script>
 </body>
 </html>
