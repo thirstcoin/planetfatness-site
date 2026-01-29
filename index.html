@@ -1209,9 +1209,11 @@ async function loadMe() {
 let LB_WINDOW = "daily";
 
 function setActiveWindow(win) {
-  LB_WINDOW = (win || "daily").toLowerCase();
+  LB_WINDOW = (win || "DAILY").toUpperCase();
   const tabs = document.querySelectorAll("#lbTabs .tab");
-  tabs.forEach((b) => b.classList.toggle("active", b.dataset.window === LB_WINDOW));
+  tabs.forEach((b) =>
+    b.classList.toggle("active", b.dataset.window === win)
+  );
 }
 
 // extra aliases in case backend uses different window keys
