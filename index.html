@@ -1332,60 +1332,66 @@
   // ==========================================================
   // ✅ GYM CARD LOAD — /activity/summary + /daily/progress (windowed today) + /leaderboard/v2 (my week/month)
   // ==========================================================
-  async function loadMe() {
+ async function loadMe() {
   const token = getToken();
   if (!token) { setAuthUI(); return; }
 
+  // 1. Initial Data Fetch
+  let me, prog;
   try {
-    // 1. Get Core Stats First (Daily & Lifetime)
-    const [me, prog] = await Promise.all([
-      fetch(API_BASE + "/activity/summary", { headers: { "Authorization": "Bearer " + token } }).then(r => r.json()),
-      fetch(API_BASE + "/daily/progress", { headers: { "Authorization": "Bearer " + token } }).then(r => r.json())
+    const [meRes, progRes] = await Promise.all([
+      fetch(API_BASE + "/activity/summary", { headers: { "Authorization": "Bearer " + token } }),
+      fetch(API_BASE + "/daily/progress", { headers: { "Authorization": "Bearer " + token } })
     ]);
+    me = await meRes.json();
+    prog = await progRes.json();
+  } catch (e) {
+    console.error("Core Load Fail", e);
+    return;
+  }
 
-    // Identity & Totals
-    setText(meIdentityEl, displayIdentity());
-    const totalCals = Number(me?.lifetime?.totalCalories || 0);
-    setText(meCaloriesLifeEl, totalCals.toLocaleString());
-    setText(meCaloriesLifetime2El, totalCals.toLocaleString());
+  // 2. Restore Identity & Runner (Fixes the missing 39.6s)
+  setText(meIdentityEl, displayIdentity());
+  const rBest = Number(me?.lifetime?.bestSeconds || 0);
+  const rLabel = rBest > 0 ? rBest.toFixed(1) + "s" : "—";
+  setText(meRunnerBestTimeEl, rLabel);
+  setText(meRunnerBestEl, rLabel);
 
-    // 2. Fix Weekly/Monthly/Basket (The "Hunting" Logic)
-    const myAddr = (getAddr() || "").toLowerCase().trim();
+  const totalCals = Number(me?.lifetime?.totalCalories || 0);
+  setText(meCaloriesLifeEl, totalCals.toLocaleString());
+  setText(meCaloriesLifetime2El, totalCals.toLocaleString());
 
-    const fetchStat = async (win, metric, game, element) => {
-      try {
-        const url = API_BASE + `/leaderboard/v2?window=${win}&metric=${metric}${game ? '&game='+game : ''}&limit=50`;
-        const rows = await fetch(url).then(r => r.json());
-        
-        // Use lowercase comparison to prevent "missing" matches
-        const entry = Array.isArray(rows) ? rows.find(x => (x.address || "").toLowerCase().trim() === myAddr) : null;
-        
-        const val = entry ? Number(entry.value || 0) : 0;
-        setText(element, val > 0 ? val.toLocaleString() : "0");
-      } catch (e) {
-        console.warn(`Failed to fetch ${win} ${metric}`, e);
-        setText(element, "—");
-      }
-    };
+  // 3. Fix Weekly/Monthly/Baskets (Independent Background Fetches)
+  const myAddr = (getAddr() || "").toLowerCase().trim();
 
-    // Fire these off!
-    fetchStat("week", "calories", null, meCaloriesWeeklyEl);
-    fetchStat("month", "calories", null, meCaloriesMonthlyEl);
-    fetchStat("lifetime", "score", "basket", meBasketMakesEl);
+  // Weekly/Monthly - ensures they don't block the card if slow
+  const updateWin = (win, el) => {
+    fetch(API_BASE + `/leaderboard/v2?window=${win}&metric=calories&limit=100`)
+      .then(r => r.json()).then(rows => {
+        const found = rows.find(x => (x.address || "").toLowerCase() === myAddr);
+        setText(el, found ? Number(found.value).toLocaleString() : "0");
+      }).catch(() => setText(el, "—"));
+  };
+  updateWin("week", meCaloriesWeeklyEl);
+  updateWin("month", meCaloriesMonthlyEl);
 
-    // 3. Best Stats (Per Game - from your Fixed Backend)
-    if (prog?.games) {
-      const pg = prog.games;
-      setText(meLiftBestEl, pg.lift?.today?.bestScore ? pg.lift.today.bestScore.toLocaleString() : "—");
-      setText(meSnackBestEl, pg.snack?.today?.bestScore ? pg.snack.today.bestScore.toLocaleString() : "—");
-      setText(meBasketBestEl, pg.basket?.today?.bestScore ? pg.basket.today.bestScore.toLocaleString() : "—");
-    }
+  // CRITICAL FIX: Basketball Makes (Uses metric=shots_made to get your 100)
+  fetch(API_BASE + `/leaderboard/v2?window=lifetime&metric=shots_made&game=basket&limit=100`)
+    .then(r => r.json()).then(rows => {
+      const found = rows.find(x => (x.address || "").toLowerCase() === myAddr);
+      // This specifically pulls your historical total (100) instead of best score (14)
+      setText(meBasketMakesEl, found ? Number(found.value).toLocaleString() : "0");
+    }).catch(() => setText(meBasketMakesEl, "0"));
 
-  } catch (err) {
-    console.error("Gym Card Crash:", err);
-    toast("Couldn't load your gym card.");
+  // 4. Per-Game Bests (From your fixed Backend SQL)
+  if (prog?.games) {
+    const pg = prog.games;
+    setText(meLiftBestEl, pg.lift?.today?.bestScore?.toLocaleString() || "—");
+    setText(meSnackBestEl, pg.snack?.today?.bestScore?.toLocaleString() || "—");
+    setText(meBasketBestEl, pg.basket?.today?.bestScore?.toLocaleString() || "—");
   }
 }
+
 
 
 
