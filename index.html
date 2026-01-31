@@ -1330,80 +1330,130 @@
   }
 
   // ==========================================================
-// ✅ GYM CARD LOAD — /activity/summary + /daily/progress + /leaderboard/v2
-// ==========================================================
-async function loadMe() {
-  const token = getToken();
-  if (!token) { setAuthUI(); return; }
+  // ✅ GYM CARD LOAD — /activity/summary + /daily/progress (windowed today) + /leaderboard/v2 (my week/month)
+  // ==========================================================
+  async function loadMe(){
+    const token = getToken();
+    if (!token){ setAuthUI(); return; }
 
-  try {
-    // 1. Fetch Core Data
-    const [me, prog] = await Promise.all([
-      fetch(API_BASE + "/activity/summary", { headers: { "Authorization": "Bearer " + token } }).then(r => r.json()),
-      fetch(API_BASE + "/daily/progress", { headers: { "Authorization": "Bearer " + token } }).then(r => r.json())
-    ]);
+    try{
+      const me = await fetch(API_BASE + "/activity/summary", {
+        headers:{ "Authorization":"Bearer " + token }
+      }).then(r => r.json());
 
-    // 2. RESTORE IDENTITY (TG Username)
-    // Ensures the username shows up even if stats are 0
-    const displayName = me?.displayName || me?.address || "Member";
-    setText(document.getElementById("meDisplayNameEl"), displayName); 
+      if (me?.error){ toast(me.error); return; }
 
-    // 3. RESTORE RUNNER BEST
-    const rBest = Number(me?.lifetime?.bestSeconds || 0);
-    const rLabel = rBest > 0 ? rBest.toFixed(1) + "s" : "0s";
-    setText(meRunnerBestTimeEl, rLabel);
-    setText(meRunnerBestEl, rLabel);
+      const ident = displayIdentity();
+      setText(meIdentityEl, ident);
 
-    // 4. RESTORE DAILY BURN & MILES
-    let dailySum = 0;
-    if (prog && prog.games) {
-      dailySum = Object.values(prog.games).reduce((acc, g) => acc + Number(g.today?.calories || 0), 0);
+      const totalCals = Number(me?.lifetime?.totalCalories || 0);
+      const bestSecs  = Number(me?.lifetime?.bestSeconds || 0);
+
+      setText(meCaloriesLifeEl, totalCals ? totalCals.toLocaleString() : "—");
+      setText(meCaloriesLifetime2El, totalCals ? totalCals.toLocaleString() : "—");
+
+      // keep your existing runner-best display style
+      const bestLabel = bestSecs ? bestSecs.toFixed(1) + "s" : "—";
+      setText(meRunnerBestTimeEl, bestLabel);
+      setText(meRunnerBestEl, bestLabel);
+
+      // Optional if backend provides
+      const miles = Number(me?.lifetime?.miles || me?.lifetime?.totalMiles || 0);
+      setText(meRunnerMilesEl, miles ? miles.toLocaleString() : "—");
+
+      // --- Windowed calories ---
+      // Daily (today) comes from auth-only /daily/progress (sum across games)
+      let todayTotal = null;
+      try{
+        const dp = await fetch(API_BASE + "/daily/progress", {
+          headers:{ "Authorization":"Bearer " + token }
+        }).then(r => r.json());
+        if (dp && dp.games){
+          const g = dp.games;
+          todayTotal =
+            Number(g.runner?.today?.calories || 0) +
+            Number(g.lift?.today?.calories || 0) +
+            Number(g.snack?.today?.calories || 0) +
+            Number(g.basket?.today?.calories || 0);
+        }
+      }catch{}
+      setText(meCaloriesDailyEl, (todayTotal && todayTotal > 0) ? todayTotal.toLocaleString() : "—");
+
+      // Weekly + Monthly: compute "my total calories in window" from /leaderboard/v2 scoped to my address
+      // (no backend changes needed; just query wide and pick my row)
+      async function myWindowCalories(windowKey){
+        try{
+          const rows = await fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(windowKey)}&metric=calories&limit=500`)
+            .then(r => r.ok ? r.json() : null);
+          if (!Array.isArray(rows)) return null;
+          const addr = getAddr();
+          const found = rows.find(x => String(x.address || "").trim() === String(addr || "").trim());
+          if (!found) return 0;
+          const v = (found.value != null) ? Number(found.value || 0) : 0;
+          return isFinite(v) ? v : 0;
+        }catch{
+          return null;
+        }
+      }
+
+      const weekly = await myWindowCalories("week");
+      const monthly = await myWindowCalories("month");
+      setText(meCaloriesWeeklyEl, (weekly && weekly > 0) ? weekly.toLocaleString() : "—");
+      setText(meCaloriesMonthlyEl, (monthly && monthly > 0) ? monthly.toLocaleString() : "—");
+
+      // --- Per-game bests ---
+      // Pull from /daily/progress (it includes bestScore per game), plus lifetime makes from /leaderboard/v2 if you track it
+      let prog = null;
+      try{
+        prog = await fetch(API_BASE + "/daily/progress", {
+          headers:{ "Authorization":"Bearer " + token }
+        }).then(r => r.json());
+      }catch{}
+
+      const runnerBest = Number(me?.lifetime?.bestSeconds || 0);
+      setText(meRunnerBestEl, runnerBest ? runnerBest.toFixed(1) + "s" : "—");
+
+      if (prog?.games){
+        const pg = prog.games;
+
+        // lift/snack/basket bests are stored as bestScore in your backend response
+        const liftBest = Number(pg.lift?.today?.bestScore ?? 0);
+        const snackBest = Number(pg.snack?.today?.bestScore ?? 0);
+        const basketBest = Number(pg.basket?.today?.bestScore ?? 0);
+
+        setText(meLiftBestEl, liftBest ? liftBest.toLocaleString() : "—");
+        setText(meSnackBestEl, snackBest ? snackBest.toLocaleString() : "—");
+        setText(meBasketBestEl, basketBest ? basketBest.toLocaleString() : "—");
+      } else {
+        setText(meLiftBestEl, "—");
+        setText(meSnackBestEl, "—");
+        setText(meBasketBestEl, "—");
+      }
+
+      // Basket lifetime makes (if you expose it as metric=shots_made in leaderboard/v2)
+      // If not available, stays as —
+      try{
+        const rows = await fetch(API_BASE + `/leaderboard/v2?window=lifetime&metric=shots_made&game=basket&limit=500`)
+          .then(r => r.ok ? r.json() : null);
+        if (Array.isArray(rows)){
+          const addr = getAddr();
+          const found = rows.find(x => String(x.address || "").trim() === String(addr || "").trim());
+          const v = found && found.value != null ? Number(found.value || 0) : 0;
+          setText(meBasketMakesEl, (v && v > 0) ? v.toLocaleString() : "—");
+        } else {
+          setText(meBasketMakesEl, "—");
+        }
+      }catch{
+        setText(meBasketMakesEl, "—");
+      }
+
+      if (authStatusEl) authStatusEl.textContent = "Verified gym member: " + ident + " ✅";
+
+    } catch(e){
+      console.error(e);
+      toast("Couldn’t load your gym card.");
     }
-    setText(meCaloriesDailyEl, (dailySum || 0).toLocaleString()); 
-    
-    const miles = Number(me?.lifetime?.totalMiles || me?.lifetime?.miles || 0);
-    setText(meRunnerMilesEl, (miles || 0).toLocaleString());
-
-    // 5. RESTORE LIFETIME CALORIES
-    const lifeCals = Number(me?.lifetime?.totalCalories || 0);
-    setText(meCaloriesLifeEl, (lifeCals || 0).toLocaleString());
-    setText(meCaloriesLifetime2El, (lifeCals || 0).toLocaleString());
-
-    // 6. INDEPENDENT LEADERBOARD FETCHES (Weekly/Monthly/Baskets)
-    const myAddr = (getAddr() || "").toLowerCase().trim();
-    const fetchStat = (win, metric, el, game = null) => {
-      if (!el) return;
-      const url = API_BASE + `/leaderboard/v2?window=${win}&metric=${metric}${game ? '&game='+game : ''}&limit=100`;
-      fetch(url)
-        .then(r => r.json())
-        .then(rows => {
-          if (!Array.isArray(rows)) { setText(el, "0"); return; }
-          const found = rows.find(x => (x.address || "").toLowerCase() === myAddr);
-          if (found) setText(el, Math.floor(found.value).toLocaleString());
-          else setText(el, "0"); 
-        })
-        .catch(() => setText(el, "—"));
-    };
-
-    fetchStat("week", "calories", meCaloriesWeeklyEl);
-    fetchStat("month", "calories", meCaloriesMonthlyEl);
-    fetchStat("lifetime", "shots_made", meBasketMakesEl, "basket");
-
-    // 7. RESTORE PER-GAME BESTS
-    if (prog && prog.games) {
-      const pg = prog.games;
-      setText(meLiftBestEl, (pg.lift?.today?.bestScore || 0).toLocaleString());
-      setText(meSnackBestEl, (pg.snack?.today?.bestScore || 0).toLocaleString());
-      setText(meBasketBestEl, (pg.basket?.today?.bestScore || 0).toLocaleString());
-    }
-
-  } catch (err) {
-    console.error("Gym Card Load Error:", err);
-    // Optional: If it fails, set everything to 0 rather than leaving placeholders
-    setText(meCaloriesDailyEl, "0");
-    setText(meCaloriesLifeEl, "0");
   }
-}
 
   // ==========================================================
   // ✅ LEADERBOARD — v2 windows + per-game tables + fallback legacy
@@ -1515,39 +1565,35 @@ async function loadMe() {
         if (rg.ok) gamesPayload = await rg.json();
       }catch{}
 
-    if (gamesPayload && gamesPayload.games) {
-      renderGameTable(lbRunnerBody, gamesPayload.games.runner || []);
-      renderGameTable(lbLiftBody,   gamesPayload.games.lift || []);
-      renderGameTable(lbSnackBody,  gamesPayload.games.snack || []);
-      // Special handler for Basketball
-      renderBasketTable(lbBasketBody, gamesPayload.games.basket || []);
-    } else {
-      const [rRun, rLift, rSnack, rBasket] = await Promise.all([
-        fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=runner&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
-        fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=lift&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
-        fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=snack&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
-        fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=basket&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
-      ]);
+      if (gamesPayload && gamesPayload.games){
+        renderGameTable(lbRunnerBody, gamesPayload.games.runner || []);
+        renderGameTable(lbLiftBody,   gamesPayload.games.lift || []);
+        renderGameTable(lbSnackBody,  gamesPayload.games.snack || []);
+        renderGameTable(lbBasketBody, gamesPayload.games.basket || []);
+      } else {
+        // fallback: v2 per game
+        const [rRun, rLift, rSnack, rBasket] = await Promise.all([
+          fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=runner&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
+          fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=lift&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
+          fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=snack&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
+          fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=basket&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
+        ]);
 
-      renderGameTable(lbRunnerBody, Array.isArray(rRun)?rRun:[]);
-      renderGameTable(lbLiftBody,   Array.isArray(rLift)?rLift:[]);
-      renderGameTable(lbSnackBody,  Array.isArray(rSnack)?rSnack:[]);
-      // Special handler for Basketball fallback
-      renderBasketTable(lbBasketBody, Array.isArray(rBasket)?rBasket:[]);
+        renderGameTable(lbRunnerBody, Array.isArray(rRun)?rRun:[]);
+        renderGameTable(lbLiftBody,   Array.isArray(rLift)?rLift:[]);
+        renderGameTable(lbSnackBody,  Array.isArray(rSnack)?rSnack:[]);
+        renderGameTable(lbBasketBody, Array.isArray(rBasket)?rBasket:[]);
+      }
+
+    } catch(e){
+      console.error(e);
+      if (lbOverallBody) lbOverallBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+      if (lbRunnerBody)  lbRunnerBody.innerHTML  = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+      if (lbLiftBody)    lbLiftBody.innerHTML    = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+      if (lbSnackBody)   lbSnackBody.innerHTML   = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+      if (lbBasketBody)  lbBasketBody.innerHTML  = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
     }
-    // --- END OF REPLACEMENT ---
-
-  } catch(e) { 
-    // This bracket above closes the 'try' block. Keep this catch section as is.
-    console.error(e);
-    if (lbOverallBody) lbOverallBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
-    if (lbRunnerBody)  lbRunnerBody.innerHTML  = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
-    if (lbLiftBody)    lbLiftBody.innerHTML    = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
-    if (lbSnackBody)   lbSnackBody.innerHTML   = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
-    if (lbBasketBody)  lbBasketBody.innerHTML  = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
   }
-} // This final bracket closes the whole function.
-
 
   function escapeHtml(s){
     return String(s || "")
@@ -1593,43 +1639,7 @@ async function loadMe() {
   })();
 
   // ==========================================================
-  // 🧠 THE BRAIN: Special Basket Table Renderer (Restores Usernames)
-  // ==========================================================
-  function renderBasketTable(container, rows) {
-    if (!container) return;
-    container.innerHTML = "";
-    if (!rows || rows.length === 0) {
-      container.innerHTML = `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
-      return;
-    }
-
-    rows.forEach((entry, i) => {
-      const tr = document.createElement('tr');
-      
-      // RESTORE USERNAMES: Prioritize identity/username over the raw ID
-      const displayName = entry.identity || entry.username || entry.display_name || 
-                        (entry.address ? (entry.address.startsWith('tg:') ? entry.address : entry.address.substring(0,6)+'...'+entry.address.slice(-4)) : "Anonymous");
-
-      // Streak: Raw count of consecutive baskets
-      const streak = entry.best_streak || entry.streak || entry.value || 0;
-      
-      // Score: Points including Golden Donut bonuses (2 points)
-      const score = entry.best_score || entry.score || streak;
-
-      tr.innerHTML = `
-        <td class="rank">${i + 1}</td>
-        <td>${displayName}</td>
-        <td>${Math.floor(streak)}</td>
-        <td style="font-weight:bold; color:${score > streak ? '#FFD700' : 'inherit'}">
-          ${Math.floor(score)}
-        </td>
-      `;
-      container.appendChild(tr);
-    });
-  }
-
-  // ==========================================================
-  // ✅ BOOT (Updated to include Leaderboard logic)
+  // ✅ BOOT (same as working file)
   // ==========================================================
   (async () => {
     setAuthUI();
