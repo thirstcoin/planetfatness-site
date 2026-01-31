@@ -1507,35 +1507,39 @@ async function loadMe() {
         if (rg.ok) gamesPayload = await rg.json();
       }catch{}
 
-      if (gamesPayload && gamesPayload.games){
-        renderGameTable(lbRunnerBody, gamesPayload.games.runner || []);
-        renderGameTable(lbLiftBody,   gamesPayload.games.lift || []);
-        renderGameTable(lbSnackBody,  gamesPayload.games.snack || []);
-        renderGameTable(lbBasketBody, gamesPayload.games.basket || []);
-      } else {
-        // fallback: v2 per game
-        const [rRun, rLift, rSnack, rBasket] = await Promise.all([
-          fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=runner&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
-          fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=lift&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
-          fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=snack&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
-          fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=basket&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
-        ]);
+    if (gamesPayload && gamesPayload.games) {
+      renderGameTable(lbRunnerBody, gamesPayload.games.runner || []);
+      renderGameTable(lbLiftBody,   gamesPayload.games.lift || []);
+      renderGameTable(lbSnackBody,  gamesPayload.games.snack || []);
+      // Special handler for Basketball
+      renderBasketTable(lbBasketBody, gamesPayload.games.basket || []);
+    } else {
+      const [rRun, rLift, rSnack, rBasket] = await Promise.all([
+        fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=runner&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
+        fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=lift&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
+        fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=snack&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
+        fetch(API_BASE + `/leaderboard/v2?window=${encodeURIComponent(ACTIVE_WINDOW)}&metric=score&game=basket&limit=30`).then(r=>r.ok?r.json():[]).catch(()=>[]),
+      ]);
 
-        renderGameTable(lbRunnerBody, Array.isArray(rRun)?rRun:[]);
-        renderGameTable(lbLiftBody,   Array.isArray(rLift)?rLift:[]);
-        renderGameTable(lbSnackBody,  Array.isArray(rSnack)?rSnack:[]);
-        renderGameTable(lbBasketBody, Array.isArray(rBasket)?rBasket:[]);
-      }
-
-    } catch(e){
-      console.error(e);
-      if (lbOverallBody) lbOverallBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
-      if (lbRunnerBody)  lbRunnerBody.innerHTML  = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
-      if (lbLiftBody)    lbLiftBody.innerHTML    = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
-      if (lbSnackBody)   lbSnackBody.innerHTML   = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
-      if (lbBasketBody)  lbBasketBody.innerHTML  = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+      renderGameTable(lbRunnerBody, Array.isArray(rRun)?rRun:[]);
+      renderGameTable(lbLiftBody,   Array.isArray(rLift)?rLift:[]);
+      renderGameTable(lbSnackBody,  Array.isArray(rSnack)?rSnack:[]);
+      // Special handler for Basketball fallback
+      renderBasketTable(lbBasketBody, Array.isArray(rBasket)?rBasket:[]);
     }
+    // --- END OF REPLACEMENT ---
+
+  } catch(e) { 
+    // This bracket above closes the 'try' block. Keep this catch section as is.
+    console.error(e);
+    if (lbOverallBody) lbOverallBody.innerHTML = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+    if (lbRunnerBody)  lbRunnerBody.innerHTML  = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+    if (lbLiftBody)    lbLiftBody.innerHTML    = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+    if (lbSnackBody)   lbSnackBody.innerHTML   = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
+    if (lbBasketBody)  lbBasketBody.innerHTML  = `<tr><td colspan="4" class="muted">Leaderboard couldn’t load right now.</td></tr>`;
   }
+} // This final bracket closes the whole function.
+
 
   function escapeHtml(s){
     return String(s || "")
@@ -1581,7 +1585,39 @@ async function loadMe() {
   })();
 
   // ==========================================================
-  // ✅ BOOT (same as working file)
+  // 🧠 THE BRAIN: Special Basket Table Renderer
+  // ==========================================================
+  function renderBasketTable(container, rows) {
+    if (!container) return;
+    container.innerHTML = "";
+    if (!rows || rows.length === 0) {
+      container.innerHTML = `<tr><td colspan="4" class="muted">No entries yet.</td></tr>`;
+      return;
+    }
+
+    rows.forEach((entry, i) => {
+      const tr = document.createElement('tr');
+      
+      // Streak: Raw count of consecutive baskets
+      const streak = entry.best_streak || entry.streak || entry.value || 0;
+      
+      // Score: Points including Golden Donut bonuses (2 points)
+      const score = entry.best_score || entry.score || streak;
+
+      tr.innerHTML = `
+        <td class="rank">${i + 1}</td>
+        <td>${entry.identity || (entry.address ? entry.address.substring(0,6)+'...'+entry.address.slice(-4) : "Anonymous")}</td>
+        <td>${Math.floor(streak)}</td>
+        <td style="font-weight:bold; color:${score > streak ? '#FFD700' : 'inherit'}">
+          ${Math.floor(score)}
+        </td>
+      `;
+      container.appendChild(tr);
+    });
+  }
+
+  // ==========================================================
+  // ✅ BOOT (Updated to include Leaderboard logic)
   // ==========================================================
   (async () => {
     setAuthUI();
