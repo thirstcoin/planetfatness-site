@@ -976,6 +976,13 @@
   const TG_KEY    = "pf_tg";            // JSON: {id, username, name}
   const ID_KIND   = "pf_identity_kind"; // "tg" | "wallet"
 
+  // ✅ Telegram Game overlay: backend may open ?t=JWT
+  // Store it BEFORE any auth/UI logic runs (does not affect mini-app initData flow)
+  try {
+    const t = new URLSearchParams(location.search).get("t");
+    if (t) localStorage.setItem(TOKEN_KEY, t);
+  } catch {}
+
   // ---------- DOM ----------
   const toastEl = document.getElementById("toast");
   const authStatusEl = document.getElementById("authStatus");
