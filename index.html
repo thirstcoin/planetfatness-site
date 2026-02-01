@@ -970,7 +970,7 @@
   const API_BASE = "https://planetfatness-backend.onrender.com";
   try { localStorage.setItem("pf_api_base", API_BASE); } catch {}
 
-  // unify keys with mini-games
+    // unify keys with mini-games
   const TOKEN_KEY = "pf_token";
   const ADDR_KEY  = "pf_address";
   const TG_KEY    = "pf_tg";            // JSON: {id, username, name}
@@ -982,6 +982,16 @@
     const t = new URLSearchParams(location.search).get("t");
     if (t) localStorage.setItem(TOKEN_KEY, t);
   } catch {}
+
+  // ✅ If token came from TG Game overlay and address isn't set yet,
+  // recover it from stored TG identity so leaderboard lookups work
+  try {
+    const addr = localStorage.getItem(ADDR_KEY) || "";
+    const tg = JSON.parse(localStorage.getItem(TG_KEY) || "null");
+    if (!addr && tg?.id) localStorage.setItem(ADDR_KEY, `tg:${tg.id}`);
+  } catch {}
+
+  // ---------- DOM ----------
 
   // ---------- DOM ----------
   const toastEl = document.getElementById("toast");
