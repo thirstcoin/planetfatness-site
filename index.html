@@ -1122,7 +1122,7 @@
   }
 
   // ==========================================================
-  // ✅ TELEGRAM AUTO-LOGIN (YOUR WORKING FLOW, UNCHANGED)
+  // ✅ TELEGRAM AUTO-LOGIN (WITH GAME BUTTON FALLBACK)
   // ==========================================================
   const PF_TG_DEBUG = true;
 
@@ -1153,19 +1153,34 @@
       tg.ready && tg.ready();
       tg.expand && tg.expand();
 
-      const unsafeUser = tgSafeUser(tg.initDataUnsafe && tg.initDataUnsafe.user);
+      // 1. Get user from WebApp object
+      let unsafeUser = tgSafeUser(tg.initDataUnsafe && tg.initDataUnsafe.user);
+
+      // 2. ✅ FALLBACK: If WebApp is empty, check URL Params (for Game Button launches)
+      if (!unsafeUser.id) {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('id')) {
+          unsafeUser = {
+            id: urlParams.get('id'),
+            username: (urlParams.get('user') || "").replace('@', '').trim(),
+            name: urlParams.get('name') || ''
+          };
+          tgDebugLog("[TG] Using URL Param Fallback:", unsafeUser);
+        }
+      }
+
       const initData = (tg && typeof tg.initData === "string") ? tg.initData : "";
 
       tgDebugLog("[TG] platform:", tg.platform, "version:", tg.version);
       tgDebugLog("[TG] initData length:", initData.length);
-      tgDebugLog("[TG] unsafe user:", tg.initDataUnsafe?.user || null);
+      tgDebugLog("[TG] current user identity:", unsafeUser);
 
-      // If initData is missing, at least show the username label immediately
+      // If initData is missing, at least show the identity labels in the UI
       if (!initData){
         if (unsafeUser && unsafeUser.id){
           try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
           setAuthUI();
-          toast("Telegram detected (waiting on initData)…");
+          tgDebugLog("[TG] Waiting for initData, showing identity from fallback/unsafe...");
         } else {
           toast("Telegram detected but user not available yet…");
         }
@@ -1267,6 +1282,7 @@
       }
     }catch{}
   }
+
 
   // ==========================================================
   // ✅ PHANTOM CONNECT (YOUR WORKING FLOW)
