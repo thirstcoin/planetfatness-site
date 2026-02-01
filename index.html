@@ -1604,7 +1604,7 @@
     toast("Logged out.");
   }
 
-  // ---------- Tabs wiring (makes Daily/Weekly/Monthly/Lifetime clickable) ----------
+    // ---------- Tabs wiring (makes Daily/Weekly/Monthly/Lifetime clickable) ----------
   (function wireLbTabs(){
     const wrap = document.getElementById("lbTabs");
     if (!wrap) return;
@@ -1632,10 +1632,54 @@
     }, { passive:false });
   })();
 
+  // ✅ If we have a token (from TG Play overlay) but no local identity,
+  // recover tg username + address from backend using /auth/me
+  async function hydrateIdentityFromToken(){
+    const token = getToken();
+    if (!token) return false;
+
+    const addrExisting = getAddr();
+    const tgExisting = getTG();
+    if (addrExisting && (tgExisting?.id || tgExisting?.username)) return true;
+
+    try{
+      const r = await fetch(API_BASE + "/auth/me", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j?.ok || !j?.address) return false;
+
+      // Always store address
+      try { localStorage.setItem(ADDR_KEY, String(j.address)); } catch {}
+
+      // If it's TG identity, store pf_tg so UI can show @username
+      const p = j.profile || {};
+      const isTg = String(j.address).startsWith("tg:");
+
+      if (isTg){
+        const id = p.tgId != null ? String(p.tgId) : String(j.address).slice(3);
+        const username = (p.tgUsername || "").replace("@","").trim();
+        const firstName = p.tgFirstName ? String(p.tgFirstName) : "";
+        const lastName = p.tgLastName ? String(p.tgLastName) : "";
+        const name = [firstName, lastName].filter(Boolean).join(" ").trim();
+
+        const tgObj = { id, username, name: name || "TG User" };
+        try { localStorage.setItem(TG_KEY, JSON.stringify(tgObj)); } catch {}
+        try { localStorage.setItem(ID_KIND, "tg"); } catch {}
+      }
+
+      return true;
+    }catch(e){
+      console.log("[hydrateIdentityFromToken] failed:", e);
+      return false;
+    }
+  }
+
   // ==========================================================
   // ✅ BOOT (same as working file)
   // ==========================================================
   (async () => {
+    await hydrateIdentityFromToken(); // ✅ NEW (fixes blank identity on TG Play)
     setAuthUI();
     loadLeaderboard();
     loadMe();
