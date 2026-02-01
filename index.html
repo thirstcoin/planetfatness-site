@@ -1121,8 +1121,8 @@
     });
   }
 
-  // ==========================================================
-  // ✅ TELEGRAM AUTO-LOGIN (WITH GAME BUTTON FALLBACK)
+   // ==========================================================
+  // ✅ TELEGRAM AUTO-LOGIN (MINI-APP + GAME BUTTON FIX)
   // ==========================================================
   const PF_TG_DEBUG = true;
 
@@ -1135,78 +1135,66 @@
     return !!(window.Telegram && window.Telegram.WebApp);
   }
 
+  // Improved to check URL params first for Game Button reliability
   function tgSafeUser(tgu){
-    const id = tgu?.id;
-    const username = (tgu?.username || "").trim();
-    const name = [tgu?.first_name || "", tgu?.last_name || ""].join(" ").trim();
-    return { id, username, name };
+    const params = new URLSearchParams(window.location.search);
+    
+    // Priority 1: Official WebApp Object | Priority 2: URL Parameters
+    const id = tgu?.id || params.get('id');
+    const username = (tgu?.username || params.get('user') || "").replace('@', '').trim();
+    const first = tgu?.first_name || params.get('name') || "";
+    const last = tgu?.last_name || "";
+    
+    return { 
+      id: id ? String(id) : null, 
+      username: username, 
+      name: (first + " " + last).trim() || "TG User"
+    };
   }
 
   async function telegramBootstrapOnce(){
-    const tg = isInTelegram() ? window.Telegram.WebApp : null;
-    if (!tg) {
-      tgDebugLog("[TG] Not in Telegram WebApp context");
-      return false;
-    }
+    const tg = window.Telegram?.WebApp;
+    if (!tg) return false;
 
     try{
       tg.ready && tg.ready();
       tg.expand && tg.expand();
 
-      // 1. Get user from WebApp object
-      let unsafeUser = tgSafeUser(tg.initDataUnsafe && tg.initDataUnsafe.user);
-
-      // 2. ✅ FALLBACK: If WebApp is empty, check URL Params (for Game Button launches)
-      if (!unsafeUser.id) {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('id')) {
-          unsafeUser = {
-            id: urlParams.get('id'),
-            username: (urlParams.get('user') || "").replace('@', '').trim(),
-            name: urlParams.get('name') || ''
-          };
-          tgDebugLog("[TG] Using URL Param Fallback:", unsafeUser);
-        }
-      }
-
+      // 1. GATHER IDENTITY
+      let unsafeUser = tgSafeUser(tg.initDataUnsafe?.user);
       const initData = (tg && typeof tg.initData === "string") ? tg.initData : "";
 
-      tgDebugLog("[TG] platform:", tg.platform, "version:", tg.version);
-      tgDebugLog("[TG] initData length:", initData.length);
-      tgDebugLog("[TG] current user identity:", unsafeUser);
+      tgDebugLog("[TG] Identity found:", unsafeUser);
 
-      // If initData is missing, at least show the identity labels in the UI
-      if (!initData){
-        if (unsafeUser && unsafeUser.id){
-          try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
-          setAuthUI();
-          tgDebugLog("[TG] Waiting for initData, showing identity from fallback/unsafe...");
-        } else {
-          toast("Telegram detected but user not available yet…");
+      // 2. IMMEDIATE UI UPDATE (Shows name/ID while backend verifies)
+      if (unsafeUser.id) {
+        if (!getTG()) {
+          try { 
+            localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); 
+            localStorage.setItem(ID_KIND, "tg");
+          } catch {}
         }
+        setAuthUI();
+      }
+
+      // 3. SECURE AUTH (Crucial for "Remembering" users)
+      if (!initData) {
+        tgDebugLog("[TG] No initData yet, retrying...");
         return false;
       }
 
-      // If already same TG session, reuse
-      const existingKind = (localStorage.getItem(ID_KIND) || "").trim();
+      // Check if we already have a valid session for THIS user
       const existingTg = getTG();
       const existingToken = getToken();
-      const alreadySameTg =
-        existingKind === "tg" &&
-        existingToken &&
-        existingTg &&
-        unsafeUser?.id &&
-        String(existingTg.id) === String(unsafeUser.id);
-
-      if (alreadySameTg){
-        tgDebugLog("[TG] alreadySameTg=true, reusing existing TG token");
+      if (existingToken && existingTg && String(existingTg.id) === String(unsafeUser.id)) {
+        tgDebugLog("[TG] Session already active, loading stats...");
         setAuthUI();
         await loadMe();
         await loadLeaderboard();
         return true;
       }
 
-      tgDebugLog("[TG] POST /auth/telegram…");
+      tgDebugLog("[TG] Syncing with backend to recover session...");
       const r = await fetch(API_BASE + "/auth/telegram", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1214,74 +1202,47 @@
       });
 
       const j = await r.json().catch(() => ({}));
-      tgDebugLog("[TG] /auth/telegram status:", r.status, "ok:", r.ok, "body:", j);
 
-      if (!r.ok || !j || !j.token) {
-        const msg =
-          (j && (j.error || j.message)) ? String(j.error || j.message) :
-          ("HTTP " + String(r.status));
-
-        console.log("[TG] BACKEND FAIL", { status: r.status, ok: r.ok, body: j });
-
-        if (unsafeUser && unsafeUser.id) {
-          try { localStorage.setItem(TG_KEY, JSON.stringify(unsafeUser)); } catch {}
-          setAuthUI();
-        }
-
-        toast("TG verify failed: " + msg);
-
-        if (PF_TG_DEBUG) {
-          try { alert("TG verify failed:\n" + msg); } catch {}
-        }
-
-        return false;
+      if (r.ok && j.token) {
+        // SUCCESS: Backend found your old Mini App data!
+        const verifiedUser = j.telegram || unsafeUser;
+        setTGSession(verifiedUser, j.token);
+        setAuthUI();
+        
+        await loadMe();
+        await loadLeaderboard();
+        
+        tgDebugLog("[TG] Account Synced ✅");
+        return true;
       }
 
-      const tgu = j.telegram || (tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
-      const tgUser = tgSafeUser(tgu);
-
-      setTGSession(tgUser, j.token);
-      setAuthUI();
-      toast("Telegram gym card locked ✅ " + (tgUser.username ? "@"+tgUser.username : (tgUser.name || "TG")));
-
-      await loadMe();
-      await loadLeaderboard();
-      return true;
-
+      return false;
     } catch(e){
-      console.error("TG bootstrap exception:", e);
-      toast("TG bootstrap error (see console).");
+      console.error("[TG] Bootstrap error:", e);
       return false;
     }
   }
 
   async function telegramBootstrapRetry(){
     if (!isInTelegram()) return;
-
-    const delays = [0, 120, 200, 320, 500, 750, 900, 1200, 1500, 1800, 2200, 2600, 3200];
-    for (let i = 0; i < delays.length; i++){
-      if (delays[i]) await new Promise(r => setTimeout(r, delays[i]));
-      const ok = await telegramBootstrapOnce();
-      if (ok) break;
+    const delays = [0, 150, 300, 600, 1000, 2000];
+    for (let delay of delays){
+      if (delay) await new Promise(r => setTimeout(r, delay));
+      if (await telegramBootstrapOnce()) break;
     }
   }
 
   function wireTelegramWakeups(){
     if (!isInTelegram()) return;
-
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) telegramBootstrapRetry();
-    });
-
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) telegramBootstrapRetry(); });
     window.addEventListener("focus", () => telegramBootstrapRetry());
-
-    try{
-      const tg = window.Telegram.WebApp;
-      if (tg && tg.onEvent){
-        tg.onEvent("viewportChanged", () => telegramBootstrapRetry());
+    try {
+      if (window.Telegram.WebApp.onEvent) {
+        window.Telegram.WebApp.onEvent("viewportChanged", () => telegramBootstrapRetry());
       }
-    }catch{}
+    } catch(e) {}
   }
+
 
 
   // ==========================================================
