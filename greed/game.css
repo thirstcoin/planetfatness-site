@@ -1,0 +1,5 @@
+#game-container { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 80%; max-width: 600px; }
+.donut { width: 100%; aspect-ratio: 1; background: #555; border-radius: 50%; cursor: pointer; transition: 0.3s; }
+.donut:hover { box-shadow: 0 0 20px yellow; }
+#status { margin-top: 20px; font-size: 1.5rem; }
