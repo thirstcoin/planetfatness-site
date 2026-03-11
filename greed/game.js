@@ -1,8 +1,11 @@
-alert("JS is running!");
-
-window.onload = function() {
+document.addEventListener("DOMContentLoaded", function() {
     const container = document.getElementById('game-container');
-    const status = document.getElementById('status');
+    
+    // Safety check
+    if (!container) {
+        console.error("game-container not found in HTML!");
+        return;
+    }
 
     const positions = [
         { x: 17, y: 34 }, { x: 38, y: 34 }, { x: 60, y: 34 }, { x: 81, y: 34 },
@@ -14,20 +17,22 @@ window.onload = function() {
         const hitbox = document.createElement('div');
         hitbox.className = 'donut-hitbox';
         
-        // Style directly to ensure visibility during testing
+        // Applying styles directly to ensure visibility
         hitbox.style.position = 'absolute';
-        hitbox.style.width = '12%'; 
+        hitbox.style.width = '12%';
         hitbox.style.height = '15%';
         hitbox.style.left = pos.x + '%';
         hitbox.style.top = pos.y + '%';
-        hitbox.style.backgroundColor = 'rgba(255, 0, 0, 0.3)'; // Visible red for debugging
-        hitbox.style.borderRadius = '50%';
+        hitbox.style.backgroundColor = 'rgba(255, 0, 0, 0.4)'; // Red overlay for testing
+        hitbox.style.zIndex = '999';
         hitbox.style.cursor = 'pointer';
         
-        hitbox.onclick = () => {
-            status.innerText = "Biting donut #" + index + "...";
+        hitbox.onclick = function() {
+            console.log("Donut clicked:", index);
+            alert("Clicked: " + index);
         };
         
         container.appendChild(hitbox);
     });
-};
+    console.log("Hitboxes generated!");
+});
