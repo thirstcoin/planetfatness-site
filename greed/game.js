@@ -1,28 +1,23 @@
-let currentRoundId = null;
+const positions = [
+    { x: 17, y: 34 }, { x: 38, y: 34 }, { x: 60, y: 34 }, { x: 81, y: 34 },
+    { x: 15, y: 54 }, { x: 38, y: 54 }, { x: 61, y: 54 }, { x: 83, y: 54 },
+    { x: 13, y: 74 }, { x: 37, y: 74 }, { x: 62, y: 74 }, { x: 86, y: 74 }
+];
 
-async function startNewGame(wagerAmount) {
-    const response = await fetch('https://your-backend.render.com/greed/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
-        body: JSON.stringify({ wager: wagerAmount, mode: 'classic' })
-    });
-    const data = await response.json();
-    currentRoundId = data.roundId;
-}
+const container = document.getElementById('game-container');
 
-async function bite(donutIndex) {
-    if (!currentRoundId) return alert("Place a bet first!");
-    
-    const response = await fetch('https://your-backend.render.com/greed/step', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
-        body: JSON.stringify({ roundId: currentRoundId, choice: donutIndex })
-    });
-    
-    const result = await response.json();
-    if (result.status === 'lost') {
-        triggerNauseousPhil(); // Show the green screen effect
-    } else {
-        updateMultiplier(result.multiplier);
-    }
+positions.forEach((pos, index) => {
+    const hitbox = document.createElement('div');
+    hitbox.className = 'donut-hitbox';
+    hitbox.style.width = '12%'; 
+    hitbox.style.height = '15%';
+    hitbox.style.left = pos.x + '%';
+    hitbox.style.top = pos.y + '%';
+    hitbox.onclick = () => bite(index);
+    container.appendChild(hitbox);
+});
+
+function bite(id) {
+    console.log("Donut bit:", id);
+    // Future: Add fetch call here
 }
