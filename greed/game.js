@@ -6,11 +6,12 @@ document.addEventListener("DOMContentLoaded", function() {
 const positions = [
     // Top Row
     { x: 18, y: 28 }, { x: 38, y: 28 }, { x: 57, y: 28 }, { x: 76, y: 28 },
-    // Middle Row: Indices 4 and 5 (donuts 5 & 6) shifted down to 42
-    { x: 17, y: 42 }, { x: 37, y: 42 }, { x: 55, y: 42 }, { x: 76, y: 40 },
+    // Middle Row: Index 7 (donut 8) moved to {74, 42}
+    { x: 17, y: 42 }, { x: 37, y: 42 }, { x: 55, y: 42 }, { x: 74, y: 42 },
     // Bottom Row
     { x: 16, y: 64 }, { x: 37, y: 64 }, { x: 57, y: 64 }, { x: 76, y: 64 }
 ];
+
 
 
 
