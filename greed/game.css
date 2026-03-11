@@ -15,11 +15,10 @@ body { margin: 0; background: #1a1a1a; }
 .donut-hitbox {
     position: absolute;
     cursor: pointer;
-    border-radius: 50%;
-    /* This ensures the box is invisible */
-    background: transparent;
-    border: none;
-    /* This ensures it sits on top of the image */
-    z-index: 10;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    z-index: 100; /* Force it to the top layer */
+    -webkit-tap-highlight-color: transparent; /* Removes mobile blue flash */
 }
 
