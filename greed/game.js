@@ -4,11 +4,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Coordinates (Same as before)
  const positions = [
-    // Top Row: Nudged 3rd and 4th columns left
+    // Top Row
     { x: 18, y: 28 }, { x: 38, y: 28 }, { x: 57, y: 28 }, { x: 76, y: 28 },
-    // Middle Row: Nudged 3rd and 4th columns left
-    { x: 17, y: 40 }, { x: 37, y: 40 }, { x: 57, y: 40 }, { x: 76, y: 40 },
-    // Bottom Row: Nudged 3rd and 4th columns left
+    // Middle Row: Index 6 (donut 7) moved from {57, 40} to {55, 42}
+    { x: 17, y: 40 }, { x: 37, y: 40 }, { x: 55, y: 42 }, { x: 76, y: 40 },
+    // Bottom Row
     { x: 16, y: 64 }, { x: 37, y: 64 }, { x: 57, y: 64 }, { x: 76, y: 64 }
 ];
 
