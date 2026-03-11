@@ -15,6 +15,10 @@ body { margin: 0; background: #1a1a1a; }
     position: absolute;
     cursor: pointer;
     border-radius: 50%;
-    /* Optional: Uncomment the next line to see the boxes while you align them */
-    /* border: 2px solid red; */
+    /* This ensures the box is invisible */
+    background: transparent;
+    border: none;
+    /* This ensures it sits on top of the image */
+    z-index: 10;
 }
+
