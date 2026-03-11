@@ -20,22 +20,24 @@ body {
 /* 2. Game Board with "Frosted" Effect */
 #game-container {
     position: relative;
-    width: 100vw; 
+    /* 1. Reduce width so it has room to breathe */
+    width: 85vw; 
+    /* 2. Set a max-height so it never overflows the viewport */
+    max-height: 70vh; 
     aspect-ratio: 1536 / 1024;
+    
     background-image: url('../assets/greed/board.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    margin: 0;
+    
+    margin: 0 auto;
     border: none; 
     
-    /* Layering and Depth */
     filter: drop-shadow(0px 15px 25px rgba(0, 0, 0, 0.8));
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-    background-color: rgba(0, 0, 0, 0.1); 
     z-index: 10;
 }
+
 
 /* 3. Status Text positioned absolutely to stay visible */
 #status {
