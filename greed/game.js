@@ -4,13 +4,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Coordinates (Same as before)
    const positions = [
-    // Top Row (needs to be moved down)
-    { x: 18, y: 18 }, { x: 38, y: 18 }, { x: 59, y: 18 }, { x: 79, y: 18 },
-    // Middle Row (needs to be moved down)
+    // Top Row: Y increased to 28 to shift them down
+    { x: 18, y: 28 }, { x: 38, y: 28 }, { x: 59, y: 28 }, { x: 79, y: 28 },
+    // Middle Row (Working)
     { x: 17, y: 40 }, { x: 37, y: 40 }, { x: 59, y: 40 }, { x: 79, y: 40 },
-    // Bottom Row (needs to be moved down)
+    // Bottom Row (Working)
     { x: 16, y: 64 }, { x: 37, y: 64 }, { x: 59, y: 64 }, { x: 79, y: 64 }
 ];
+
 
 
     container.innerHTML = '';
