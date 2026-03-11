@@ -7,17 +7,17 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    background-color: #2a0a2a; /* Fallback */
+    background-color: #2a0a2a;
     color: white;
     font-family: sans-serif;
     height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    overflow: hidden; /* Prevents unwanted scrolling */
+    /* Use Grid to center the board perfectly without pushing other elements */
+    display: grid;
+    place-items: center; 
+    overflow: hidden;
 }
 
-/* 2. Game Board with "Frosted" Overlap Effect */
+/* 2. Game Board with "Frosted" Effect */
 #game-container {
     position: relative;
     width: 100vw; 
@@ -26,25 +26,24 @@ body {
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    margin: 0 auto;
+    margin: 0;
     border: none; 
     
     /* Layering and Depth */
     filter: drop-shadow(0px 15px 25px rgba(0, 0, 0, 0.8));
-    
-    /* Frosted overlap effect */
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
     background-color: rgba(0, 0, 0, 0.1); 
     z-index: 10;
 }
 
-/* 3. Status Text */
+/* 3. Status Text positioned absolutely to stay visible */
 #status {
-    position: relative;
+    position: absolute;
+    bottom: 5%; 
     text-align: center;
+    width: 100%;
     font-size: 20px;
-    margin-top: 20px;
     z-index: 200;
     text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
@@ -53,7 +52,6 @@ body {
 .donut-hitbox {
     position: absolute;
     cursor: pointer;
-    /* Red overlay for testing. Change to transparent when ready */
     background: rgba(255, 0, 0, 0.6) !important; 
     border: 1px solid white !important;
     z-index: 100;
