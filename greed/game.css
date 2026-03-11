@@ -1,47 +1,59 @@
+/* 1. Reset and Table Setup */
 body { 
     margin: 0; 
     padding: 0; 
-    /* 1. REPLACE background: #000 with your new table asset */
     background-image: url('../assets/greed/custom-table-bg.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed; /* Keeps the table steady while scrolling */
+    background-attachment: fixed;
+    background-color: #2a0a2a; /* Fallback */
     color: white;
     font-family: sans-serif;
-    height: 100vh; /* Ensures the table covers the full screen */
+    height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    overflow: hidden; /* Prevents unwanted scrolling */
 }
 
+/* 2. Game Board with "Frosted" Overlap Effect */
 #game-container {
     position: relative;
-    width: 100vw; /* Keep this, it matches your current hitbox setup */
+    width: 100vw; 
     aspect-ratio: 1536 / 1024;
     background-image: url('../assets/greed/board.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
     margin: 0 auto;
-    /* 2. Remove the border once you're happy with the alignment */
     border: none; 
-    /* 3. Add the drop shadow to make the board "pop" off the table */
+    
+    /* Layering and Depth */
     filter: drop-shadow(0px 15px 25px rgba(0, 0, 0, 0.8));
+    
+    /* Frosted overlap effect */
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    background-color: rgba(0, 0, 0, 0.1); 
+    z-index: 10;
 }
 
+/* 3. Status Text */
 #status {
     position: relative;
     text-align: center;
     font-size: 20px;
     margin-top: 20px;
     z-index: 200;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
+/* 4. Hitbox calibration */
 .donut-hitbox {
     position: absolute;
     cursor: pointer;
-    /* Keep these for now to ensure your hitboxes are still hitting the right spots */
+    /* Red overlay for testing. Change to transparent when ready */
     background: rgba(255, 0, 0, 0.6) !important; 
     border: 1px solid white !important;
     z-index: 100;
