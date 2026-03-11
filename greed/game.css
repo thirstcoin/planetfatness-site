@@ -1,39 +1,36 @@
-/* Ensure the game area is completely clean and responsive */
 body { 
     margin: 0; 
     padding: 0; 
     background: #000; 
-    overflow: hidden; /* Prevents scrollbars in Telegram */
+    color: white; /* Make sure text is visible */
+    font-family: sans-serif;
 }
 
 #game-container {
     position: relative;
     width: 100vw;
-    /* Lock the 1536x1024 aspect ratio */
     aspect-ratio: 1536 / 1024;
     background-image: url('../assets/greed/board.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
     margin: 0 auto;
-    display: block;
+    border: 2px solid yellow; /* If you don't see this, the CSS isn't loading */
+}
+
+#status {
+    position: relative;
+    text-align: center;
+    font-size: 20px;
+    margin-top: 20px;
+    z-index: 200;
 }
 
 .donut-hitbox {
     position: absolute;
     cursor: pointer;
-    /* Force complete transparency and remove any default browser styling */
-    background: transparent !important;
-    border: none !important;
-    outline: none !important;
-    margin: 0;
-    padding: 0;
+    background: rgba(255, 0, 0, 0.6) !important; /* Visible Red */
+    border: 1px solid white !important;
     z-index: 100;
-    -webkit-tap-highlight-color: transparent; /* Clean mobile interaction */
-    box-sizing: border-box;
-}
-
-/* Optional: visual feedback when clicking */
-.donut-hitbox:active {
-    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50%;
 }
