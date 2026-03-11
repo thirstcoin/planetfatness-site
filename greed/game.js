@@ -1,3 +1,5 @@
+alert("JS is running!");
+
 window.onload = function() {
     const container = document.getElementById('game-container');
     const status = document.getElementById('status');
