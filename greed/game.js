@@ -3,14 +3,15 @@ document.addEventListener("DOMContentLoaded", function() {
     const status = document.getElementById('status');
 
     // Coordinates (Same as before)
-   const positions = [
-    // Top Row: Y increased to 28 to shift them down
-    { x: 18, y: 28 }, { x: 38, y: 28 }, { x: 59, y: 28 }, { x: 79, y: 28 },
-    // Middle Row (Working)
-    { x: 17, y: 40 }, { x: 37, y: 40 }, { x: 59, y: 40 }, { x: 79, y: 40 },
-    // Bottom Row (Working)
-    { x: 16, y: 64 }, { x: 37, y: 64 }, { x: 59, y: 64 }, { x: 79, y: 64 }
+ const positions = [
+    // Top Row: Nudged 3rd and 4th columns left
+    { x: 18, y: 28 }, { x: 38, y: 28 }, { x: 57, y: 28 }, { x: 76, y: 28 },
+    // Middle Row: Nudged 3rd and 4th columns left
+    { x: 17, y: 40 }, { x: 37, y: 40 }, { x: 57, y: 40 }, { x: 76, y: 40 },
+    // Bottom Row: Nudged 3rd and 4th columns left
+    { x: 16, y: 64 }, { x: 37, y: 64 }, { x: 57, y: 64 }, { x: 76, y: 64 }
 ];
+
 
 
 
