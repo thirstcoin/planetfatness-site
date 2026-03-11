@@ -1,21 +1,33 @@
 body { 
     margin: 0; 
     padding: 0; 
-    background: #000; 
-    color: white; /* Make sure text is visible */
+    /* 1. REPLACE background: #000 with your new table asset */
+    background-image: url('../assets/greed/custom-table-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* Keeps the table steady while scrolling */
+    color: white;
     font-family: sans-serif;
+    height: 100vh; /* Ensures the table covers the full screen */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 #game-container {
     position: relative;
-    width: 100vw;
+    width: 100vw; /* Keep this, it matches your current hitbox setup */
     aspect-ratio: 1536 / 1024;
     background-image: url('../assets/greed/board.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
     margin: 0 auto;
-    border: 2px solid yellow; /* If you don't see this, the CSS isn't loading */
+    /* 2. Remove the border once you're happy with the alignment */
+    border: none; 
+    /* 3. Add the drop shadow to make the board "pop" off the table */
+    filter: drop-shadow(0px 15px 25px rgba(0, 0, 0, 0.8));
 }
 
 #status {
@@ -29,7 +41,8 @@ body {
 .donut-hitbox {
     position: absolute;
     cursor: pointer;
-    background: rgba(255, 0, 0, 0.6) !important; /* Visible Red */
+    /* Keep these for now to ensure your hitboxes are still hitting the right spots */
+    background: rgba(255, 0, 0, 0.6) !important; 
     border: 1px solid white !important;
     z-index: 100;
     border-radius: 50%;
