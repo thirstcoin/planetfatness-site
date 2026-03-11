@@ -3,11 +3,15 @@ document.addEventListener("DOMContentLoaded", function() {
     const status = document.getElementById('status');
 
     // Coordinates (Same as before)
-    const positions = [
-        { x: 13, y: 14 }, { x: 33, y: 14 }, { x: 53, y: 14 }, { x: 74, y: 14 },
-        { x: 11, y: 37 }, { x: 32, y: 37 }, { x: 53, y: 37 }, { x: 76, y: 37 },
-        { x: 10, y: 59 }, { x: 32, y: 59 }, { x: 55, y: 59 }, { x: 78, y: 59 }
-    ];
+   const positions = [
+    // Top Row (needs to be moved down)
+    { x: 18, y: 18 }, { x: 38, y: 18 }, { x: 59, y: 18 }, { x: 79, y: 18 },
+    // Middle Row (needs to be moved down)
+    { x: 17, y: 40 }, { x: 37, y: 40 }, { x: 59, y: 40 }, { x: 79, y: 40 },
+    // Bottom Row (needs to be moved down)
+    { x: 16, y: 64 }, { x: 37, y: 64 }, { x: 59, y: 64 }, { x: 79, y: 64 }
+];
+
 
     container.innerHTML = '';
 
