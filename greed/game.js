@@ -43,25 +43,31 @@ document.addEventListener("DOMContentLoaded", function() {
             borderRadius: '50%'
         });
 
-        hitbox.onclick = () => {
+               hitbox.onclick = () => {
+            // Prevent interaction if game over or already clicked
             if (isGameOver || hitbox.dataset.clicked === "true") return;
+            
+            // Mark as clicked
             hitbox.dataset.clicked = "true";
+            // Add the new class for visual feedback (defined in CSS)
+            hitbox.classList.add('chosen');
 
             if (poisonIndices.includes(index)) {
-                // POISON HIT: Visual feedback
-                hitbox.style.backgroundColor = 'rgba(255, 0, 0, 0.8)'; // Red Poison
+                // POISON HIT
                 isGameOver = true;
+                // Force red color for the poison donut
+                hitbox.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
                 status.innerText = "POISON! Game Over.";
-                poisonOverlay.style.display = 'flex'; // Trigger Green Screen
+                poisonOverlay.style.display = 'flex'; 
             } else {
-                // GOLD HIT: Visual feedback
-                hitbox.style.backgroundColor = 'rgba(255, 215, 0, 0.8)'; // Gold Reward
+                // GOLD HIT
                 multiplier = multipliers[goldFoundCount] || 3.0;
                 goldFoundCount++;
                 multiplierDisplay.innerText = `x${multiplier.toFixed(1)}`;
                 status.innerText = `Gold Found!`;
             }
         };
+        
         container.appendChild(hitbox);
     });
 });
