@@ -20,35 +20,27 @@ body {
     position: absolute;
     top: 50%; 
     left: 50%;
-    /* REMOVED SCALE to prevent hitbox drift */
-    transform: translate(-50%, -50%); 
+    /* The scale here defines the size; the absolute positioning 
+       of hitboxes is calculated relative to this container. */
+    transform: translate(-50%, -50%) scale(1.15); 
+    
     width: 90vw; 
-    max-width: 800px; /* Adjust based on your original board design */
     aspect-ratio: 1536 / 1024;
+    
     background-image: url('../assets/greed/board.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+    
     background-color: transparent;
+    border: none;
     z-index: 10;
 }
 
-/* 3. Multiplier Display */
-#multiplier-display {
-    position: absolute;
-    top: 10%; 
-    z-index: 500;
-    color: #FFD700;
-    font-size: 40px;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px #000;
-    pointer-events: none;
-}
-
-/* 4. Status Text */
+/* 3. Status Text */
 #status {
     position: absolute;
-    bottom: 5%; 
+    bottom: 8%; 
     text-align: center;
     width: 100%;
     font-size: 22px; 
@@ -59,20 +51,7 @@ body {
     pointer-events: none;
 }
 
-/* 5. Poison Overlay */
-#poison-overlay {
-    display: none; 
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0, 150, 0, 0.85);
-    z-index: 9999;
-    justify-content: center;
-    align-items: center;
-    color: white;
-}
-
-/* 6. Hitboxes - Precision Pinned */
+/* 4. Hitboxes - Precision Pinned */
 .donut-hitbox {
     position: absolute;
     width: 8%; 
@@ -82,14 +61,9 @@ body {
     border: 1px solid white !important;
     border-radius: 50%;
     z-index: 100;
+    
+    /* Using negative margins locks the center point of the hitbox 
+       exactly to the percentage coordinate specified in your JS. */
     margin-left: -4%; 
     margin-top: -4%;
-}
-
-/* 7. Visual state for chosen/safe donuts */
-.donut-hitbox.chosen {
-    background-color: rgba(255, 215, 0, 0.6) !important;
-    border: 1px dashed white !important;
-    opacity: 0.7; 
-    cursor: default;
 }
