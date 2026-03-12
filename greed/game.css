@@ -20,8 +20,7 @@ body {
     position: absolute;
     top: 50%; 
     left: 50%;
-    /* The scale here defines the size; the absolute positioning 
-       of hitboxes is calculated relative to this container. */
+    /* Scale and position remain UNTOUCHED */
     transform: translate(-50%, -50%) scale(1.15); 
     
     width: 90vw; 
@@ -51,22 +50,24 @@ body {
     pointer-events: none;
 }
 
-/* 4. Hitboxes - Precision Pinned */
+/* 4. Hitboxes - Precision Pinned (Now Invisible) */
 .donut-hitbox {
     position: absolute;
     width: 8%; 
     aspect-ratio: 1 / 1;
     cursor: pointer;
-    background: rgba(255, 0, 0, 0.4) !important; 
-    border: 1px solid white !important;
-    border-radius: 50%;
+    
+    /* REMOVED: background and border make them invisible to player */
+    background: transparent !important; 
+    border: none !important;
+    
     z-index: 100;
     
-    /* Using negative margins locks the center point of the hitbox 
-       exactly to the percentage coordinate specified in your JS. */
+    /* Margins remain exactly the same to lock position */
     margin-left: -4%; 
     margin-top: -4%;
 }
+
 /* --- Overlay & UI Overrides --- */
 
 /* Force the multiplier to be large, gold, and at the top */
@@ -75,7 +76,7 @@ body {
     top: 5%; 
     left: 50%;
     transform: translateX(-50%);
-    color: #FFD700 !important; /* Gold */
+    color: #FFD700 !important;
     font-size: 48px !important;
     font-weight: 900 !important;
     text-shadow: 2px 2px 8px #000;
@@ -100,11 +101,13 @@ body {
 .overlay-content {
     font-family: sans-serif;
 }
+
 /* --- Visual Feedback: Chosen State --- */
-/* This changes the look without moving the hitbox */
+/* Hitbox reveals itself ONLY after being clicked */
 .donut-hitbox.chosen {
-    background-color: rgba(255, 215, 0, 0.7) !important; /* Gold */
-    border: 2px dashed #FFF !important; /* New border style */
-    cursor: default !important;         /* Prevent further clicks */
+    background-color: rgba(255, 215, 0, 0.7) !important;
+    border: 2px dashed #FFF !important;
+    border-radius: 50%;
+    cursor: default !important;
     opacity: 0.8;
 }
