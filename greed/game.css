@@ -93,19 +93,22 @@ body {
 
 .overlay-content { font-family: sans-serif; }
 
-/* --- Visual Feedback: Chosen State (Polished) --- */
-@keyframes popReveal {
-    0% { transform: scale(0.8); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
+/* --- Visual Feedback: Chosen State (Polished & Locked) --- */
+
+/* Animation only changes opacity to prevent layout jumping */
+@keyframes fadeInReveal {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .donut-hitbox.chosen {
-    background-color: rgba(255, 215, 0, 0.4) !important;
-    border: 2px dashed rgba(255, 255, 255, 0.8) !important;
+    background-color: rgba(255, 215, 0, 0.7) !important;
+    border: 2px dashed #FFF !important;
     border-radius: 50%;
     cursor: default !important;
     opacity: 0.8;
-    animation: popReveal 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Animation removed 'transform' to lock position perfectly */
+    animation: fadeInReveal 0.2s ease-out;
 }
 
 @keyframes fadeIn {
