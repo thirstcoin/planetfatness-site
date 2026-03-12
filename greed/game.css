@@ -20,22 +20,23 @@ body {
     position: absolute;
     top: 50%; 
     left: 50%;
-    transform: translate(-50%, -50%) scale(1.15); 
+    /* REMOVED SCALE to prevent hitbox drift */
+    transform: translate(-50%, -50%); 
     width: 90vw; 
+    max-width: 800px; /* Adjust based on your original board design */
     aspect-ratio: 1536 / 1024;
     background-image: url('../assets/greed/board.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
     background-color: transparent;
-    border: none;
     z-index: 10;
 }
 
-/* 3. Multiplier Display - Floating at the top */
+/* 3. Multiplier Display */
 #multiplier-display {
     position: absolute;
-    top: 15%;
+    top: 10%; 
     z-index: 500;
     color: #FFD700;
     font-size: 40px;
@@ -47,7 +48,7 @@ body {
 /* 4. Status Text */
 #status {
     position: absolute;
-    bottom: 8%; 
+    bottom: 5%; 
     text-align: center;
     width: 100%;
     font-size: 22px; 
@@ -58,9 +59,9 @@ body {
     pointer-events: none;
 }
 
-/* 5. Poison Overlay - The "Green Screen" */
+/* 5. Poison Overlay */
 #poison-overlay {
-    display: none;
+    display: none; 
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
@@ -68,11 +69,8 @@ body {
     z-index: 9999;
     justify-content: center;
     align-items: center;
-    text-align: center;
     color: white;
 }
-
-#poison-overlay h1 { font-size: 3rem; }
 
 /* 6. Hitboxes - Precision Pinned */
 .donut-hitbox {
@@ -88,10 +86,10 @@ body {
     margin-top: -4%;
 }
 
-/* 7. Chosen/Safe Donut - Visual State Feedback */
+/* 7. Visual state for chosen/safe donuts */
 .donut-hitbox.chosen {
-    background-color: rgba(255, 215, 0, 0.6) !important; /* Gold Tint */
+    background-color: rgba(255, 215, 0, 0.6) !important;
     border: 1px dashed white !important;
-    opacity: 0.7;
+    opacity: 0.7; 
     cursor: default;
 }
