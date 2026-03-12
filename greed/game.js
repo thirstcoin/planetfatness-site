@@ -1,14 +1,20 @@
 document.addEventListener("DOMContentLoaded", function() {
     const container = document.getElementById('game-container');
     const status = document.getElementById('status');
+    
+    // --- GAME STATE ---
+    let multiplier = 1.0;
+    let poisonIndices = [];
+    
+    // Randomly assign 2 poison indices
+    while (poisonIndices.length < 2) {
+        let rand = Math.floor(Math.random() * 12);
+        if (!poisonIndices.includes(rand)) poisonIndices.push(rand);
+    }
 
-    // Final alignment tweak for Column 1
     const positions = [
-        // Top Row: 1 (nudged right), 2, 3, 4
         { x: 37, y: 42 }, { x: 48, y: 42 }, { x: 61, y: 44 }, { x: 74, y: 42 },
-        // Middle Row: 5 (nudged right), 6, 7, 8
         { x: 36, y: 53 }, { x: 49, y: 53 }, { x: 61, y: 53 }, { x: 75, y: 53 },
-        // Bottom Row: 9 (nudged right), 10, 11, 12
         { x: 35, y: 65 }, { x: 49, y: 65 }, { x: 63, y: 65 }, { x: 77, y: 64 }
     ];
 
@@ -18,6 +24,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const hitbox = document.createElement('div');
         hitbox.className = 'donut-hitbox';
         
+        // Applying your exact styles
         Object.assign(hitbox.style, {
             position: 'absolute',
             left: pos.x + '%',
@@ -27,14 +34,28 @@ document.addEventListener("DOMContentLoaded", function() {
             height: '7%',
             cursor: 'pointer',
             zIndex: '100',
-            // Once alignment is perfect, set to 'transparent'
             backgroundColor: 'rgba(255, 0, 0, 0.4)', 
             border: '1px solid white',
             borderRadius: '50%'
         });
 
+        // --- NEW LOGIC LAYER ---
         hitbox.onclick = () => {
-            status.innerText = "You bit donut " + (index + 1);
+            // Prevent double-clicking
+            if (hitbox.dataset.clicked === "true") return;
+            hitbox.dataset.clicked = "true";
+
+            if (poisonIndices.includes(index)) {
+                // POISON HIT
+                status.innerText = "POISON! Multiplier reset.";
+                multiplier = 1.0;
+                // Add code here to trigger your green screen overlay
+            } else {
+                // GOLD HIT
+                multiplier += 0.5;
+                status.innerText = `Gold Found! Multiplier: x${multiplier.toFixed(1)}`;
+                // Add code here to trigger your golden overlay asset
+            }
         };
 
         container.appendChild(hitbox);
