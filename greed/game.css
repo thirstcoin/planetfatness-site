@@ -1,4 +1,4 @@
-/* 1. Table Background */
+/* 1. Table Background & Logo Setup */
 body { 
     margin: 0; 
     padding: 0; 
@@ -7,23 +7,23 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    color: white;
-    font-family: sans-serif;
     height: 100vh;
-    
-    /* Changed from Grid to Flex to control the vertical flow better */
     display: flex;
     flex-direction: column;
-    align-items: center; 
-    justify-content: flex-start; 
+    align-items: center; /* Centers the logo horizontally */
+    justify-content: flex-start; /* Starts content from the top */
     overflow: hidden;
 }
 
-/* 2. Enhanced Transparent Board */
+/* 2. The Board - Now Absolute to allow custom sizing */
 #game-container {
-    position: relative;
-    /* Increased width to 100vw to make the box look bigger */
-    width: 100vw; 
+    position: absolute;
+    top: 45%; /* Adjust this to move the box up or down */
+    left: 50%;
+    transform: translate(-50%, -50%); /* Keeps it perfectly centered */
+    
+    /* Increase width to make the board look big again */
+    width: 95vw; 
     aspect-ratio: 1536 / 1024;
     
     background-image: url('../assets/greed/board.png');
@@ -31,19 +31,15 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     
-    /* Negative margin pulls the box closer to the "Planet Fatness" logo */
-    margin-top: -2vh; 
-    
     background-color: transparent;
     border: none;
-    filter: none;
     z-index: 10;
 }
 
-/* 3. Status Text */
+/* 3. Status Text at the Bottom */
 #status {
     position: absolute;
-    bottom: 10%; /* Lifted slightly to avoid mobile browser bars */
+    bottom: 8%; 
     text-align: center;
     width: 100%;
     font-size: 20px;
@@ -51,11 +47,10 @@ body {
     text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
 
-/* 4. Hitboxes */
+/* 4. Hitboxes - Keep them red while you realign! */
 .donut-hitbox {
     position: absolute;
     cursor: pointer;
-    /* Use these visual helpers until you've confirmed the new alignment */
     background: rgba(255, 0, 0, 0.4) !important; 
     border: 1px solid white !important;
     z-index: 100;
