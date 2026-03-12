@@ -10,48 +10,54 @@ body {
     color: white;
     font-family: sans-serif;
     height: 100vh;
-    display: grid;
-    place-items: center; 
+    
+    /* Changed from Grid to Flex to control the vertical flow better */
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    justify-content: flex-start; 
     overflow: hidden;
 }
 
-/* 2. Transparent Board - No borders, no shadows */
+/* 2. Enhanced Transparent Board */
 #game-container {
     position: relative;
-    width: 85vw; 
-    max-height: 70vh; 
+    /* Increased width to 100vw to make the box look bigger */
+    width: 100vw; 
     aspect-ratio: 1536 / 1024;
     
-    background-image: url('../assets/greed/board.png'); /* Your new transparent PNG */
+    background-image: url('../assets/greed/board.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
     
-    /* Ensure no background-color or filter is creating a box */
+    /* Negative margin pulls the box closer to the "Planet Fatness" logo */
+    margin-top: -2vh; 
+    
     background-color: transparent;
     border: none;
     filter: none;
-    
     z-index: 10;
 }
 
 /* 3. Status Text */
 #status {
     position: absolute;
-    bottom: 5%; 
+    bottom: 10%; /* Lifted slightly to avoid mobile browser bars */
     text-align: center;
     width: 100%;
     font-size: 20px;
     z-index: 200;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
 
-/* 4. Hitboxes (Hidden) */
+/* 4. Hitboxes */
 .donut-hitbox {
     position: absolute;
     cursor: pointer;
-    background: transparent !important; 
-    border: none !important;
+    /* Use these visual helpers until you've confirmed the new alignment */
+    background: rgba(255, 0, 0, 0.4) !important; 
+    border: 1px solid white !important;
     z-index: 100;
     border-radius: 50%;
 }
