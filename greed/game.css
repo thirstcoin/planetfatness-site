@@ -67,3 +67,36 @@ body {
     margin-left: -4%; 
     margin-top: -4%;
 }
+/* --- Overlay & UI Overrides --- */
+
+/* Force the multiplier to be large, gold, and at the top */
+#multiplier-display {
+    position: absolute;
+    top: 5%; 
+    left: 50%;
+    transform: translateX(-50%);
+    color: #FFD700 !important; /* Gold */
+    font-size: 48px !important;
+    font-weight: 900 !important;
+    text-shadow: 2px 2px 8px #000;
+    z-index: 500;
+    pointer-events: none;
+}
+
+/* Ensure the overlay covers everything when poison is hit */
+#poison-overlay {
+    display: none; 
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 150, 0, 0.9);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+}
+
+.overlay-content {
+    font-family: sans-serif;
+}
