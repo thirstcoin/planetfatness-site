@@ -100,3 +100,11 @@ body {
 .overlay-content {
     font-family: sans-serif;
 }
+/* --- Visual Feedback: Chosen State --- */
+/* This changes the look without moving the hitbox */
+.donut-hitbox.chosen {
+    background-color: rgba(255, 215, 0, 0.7) !important; /* Gold */
+    border: 2px dashed #FFF !important; /* New border style */
+    cursor: default !important;         /* Prevent further clicks */
+    opacity: 0.8;
+}
