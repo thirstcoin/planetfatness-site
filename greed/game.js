@@ -2,15 +2,15 @@ document.addEventListener("DOMContentLoaded", function() {
     const container = document.getElementById('game-container');
     const status = document.getElementById('status');
 
-  const positions = [
-    // Top Row: Nudged X values slightly right (added +4 to each)
-    { x: 22, y: 28 }, { x: 42, y: 28 }, { x: 58, y: 28 }, { x: 77, y: 28 },
-    // Middle Row: Nudged X values slightly right
-    { x: 21, y: 42 }, { x: 41, y: 42 }, { x: 59, y: 42 }, { x: 78, y: 42 },
-    // Bottom Row: Nudged X values slightly right
-    { x: 20, y: 64 }, { x: 41, y: 64 }, { x: 61, y: 64 }, { x: 80, y: 64 }
-];
-
+    // These coordinates are manually tuned for perspective
+    const positions = [
+        // Row 1 (Back/Top)
+        { x: 26, y: 35 }, { x: 41, y: 35 }, { x: 58, y: 35 }, { x: 74, y: 35 },
+        // Row 2 (Middle)
+        { x: 25, y: 52 }, { x: 40, y: 52 }, { x: 59, y: 52 }, { x: 75, y: 52 },
+        // Row 3 (Front/Bottom)
+        { x: 23, y: 72 }, { x: 40, y: 72 }, { x: 60, y: 72 }, { x: 77, y: 72 }
+    ];
 
     container.innerHTML = '';
 
@@ -22,13 +22,13 @@ document.addEventListener("DOMContentLoaded", function() {
             position: 'absolute',
             left: pos.x + '%',
             top: pos.y + '%',
-            // ADD THIS: This centers the red circle on the coordinate
             transform: 'translate(-50%, -50%)', 
-            width: '8%', 
-            height: '10%',
+            width: '10%', // Increased slightly for better touch target
+            aspectRatio: '1/1',
             cursor: 'pointer',
             zIndex: '100',
-            backgroundColor: 'rgba(255, 0, 0, 0.5)',
+            backgroundColor: 'rgba(255, 0, 0, 0.4)', // Toggle to 'transparent' when ready
+            border: '1px solid white',
             borderRadius: '50%'
         });
 
