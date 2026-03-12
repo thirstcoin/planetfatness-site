@@ -35,9 +35,9 @@ body {
 /* 3. Multiplier Display - Floating at the top */
 #multiplier-display {
     position: absolute;
-    top: 15%; /* Adjust this to move it above your board */
+    top: 15%;
     z-index: 500;
-    color: #FFD700; /* Gold */
+    color: #FFD700;
     font-size: 40px;
     font-weight: bold;
     text-shadow: 2px 2px 4px #000;
@@ -60,7 +60,7 @@ body {
 
 /* 5. Poison Overlay - The "Green Screen" */
 #poison-overlay {
-    display: none; /* Initially hidden */
+    display: none;
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
@@ -86,4 +86,12 @@ body {
     z-index: 100;
     margin-left: -4%; 
     margin-top: -4%;
+}
+
+/* 7. Chosen/Safe Donut - Visual State Feedback */
+.donut-hitbox.chosen {
+    background-color: rgba(255, 215, 0, 0.6) !important; /* Gold Tint */
+    border: 1px dashed white !important;
+    opacity: 0.7;
+    cursor: default;
 }
