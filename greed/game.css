@@ -20,18 +20,13 @@ body {
     position: absolute;
     top: 50%; 
     left: 50%;
-    /* The scale here defines the size; the absolute positioning 
-       of hitboxes is calculated relative to this container. */
     transform: translate(-50%, -50%) scale(1.15); 
-    
     width: 90vw; 
     aspect-ratio: 1536 / 1024;
-    
     background-image: url('../assets/greed/board.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    
     background-color: transparent;
     border: none;
     z-index: 10;
@@ -57,13 +52,32 @@ body {
     width: 8%; 
     aspect-ratio: 1 / 1;
     cursor: pointer;
-    background: rgba(255, 0, 0, 0.4) !important; 
-    border: 1px solid white !important;
+    background: rgba(255, 0, 0, 0.4); 
+    border: 1px solid white;
     border-radius: 50%;
     z-index: 100;
-    
-    /* Using negative margins locks the center point of the hitbox 
-       exactly to the percentage coordinate specified in your JS. */
     margin-left: -4%; 
     margin-top: -4%;
+}
+
+/* 5. Donut Overlays */
+.golden-donut, .poison-donut {
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: absolute; 
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.golden-donut { background-image: url('../assets/greed/golden-donut.png'); }
+.poison-donut { background-image: url('../assets/greed/poison-donut.png'); }
+
+@keyframes popIn {
+    from { transform: scale(0.3); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
