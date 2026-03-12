@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function() {
             height: '7%',
             cursor: 'pointer',
             zIndex: '100',
-            backgroundColor: 'rgba(255, 0, 0, 0.4)', 
+            backgroundColor: 'rgba(255, 255, 255, 0.2)', // Set to faint white initially
             border: '1px solid white',
             borderRadius: '50%'
         });
@@ -48,17 +48,18 @@ document.addEventListener("DOMContentLoaded", function() {
             hitbox.dataset.clicked = "true";
 
             if (poisonIndices.includes(index)) {
-                // POISON HIT
+                // POISON HIT: Visual feedback
+                hitbox.style.backgroundColor = 'rgba(255, 0, 0, 0.8)'; // Red Poison
                 isGameOver = true;
                 status.innerText = "POISON! Game Over.";
                 poisonOverlay.style.display = 'flex'; // Trigger Green Screen
             } else {
-                // GOLD HIT
+                // GOLD HIT: Visual feedback
+                hitbox.style.backgroundColor = 'rgba(255, 215, 0, 0.8)'; // Gold Reward
                 multiplier = multipliers[goldFoundCount] || 3.0;
                 goldFoundCount++;
                 multiplierDisplay.innerText = `x${multiplier.toFixed(1)}`;
                 status.innerText = `Gold Found!`;
-                // Trigger your Golden Donut visual asset here
             }
         };
         container.appendChild(hitbox);
