@@ -2,11 +2,15 @@ document.addEventListener("DOMContentLoaded", function() {
     const container = document.getElementById('game-container');
     const status = document.getElementById('status');
 
-    const positions = [
-        { x: 18, y: 28 }, { x: 38, y: 28 }, { x: 54, y: 28 }, { x: 73, y: 28 },
-        { x: 17, y: 42 }, { x: 37, y: 42 }, { x: 55, y: 42 }, { x: 74, y: 42 },
-        { x: 16, y: 64 }, { x: 37, y: 64 }, { x: 57, y: 64 }, { x: 76, y: 64 }
-    ];
+  const positions = [
+    // Top Row: Nudged X values slightly right (added +4 to each)
+    { x: 22, y: 28 }, { x: 42, y: 28 }, { x: 58, y: 28 }, { x: 77, y: 28 },
+    // Middle Row: Nudged X values slightly right
+    { x: 21, y: 42 }, { x: 41, y: 42 }, { x: 59, y: 42 }, { x: 78, y: 42 },
+    // Bottom Row: Nudged X values slightly right
+    { x: 20, y: 64 }, { x: 41, y: 64 }, { x: 61, y: 64 }, { x: 80, y: 64 }
+];
+
 
     container.innerHTML = '';
 
