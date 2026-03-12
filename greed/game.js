@@ -2,14 +2,14 @@ document.addEventListener("DOMContentLoaded", function() {
     const container = document.getElementById('game-container');
     const status = document.getElementById('status');
 
-    // These coordinates are manually tuned for perspective
+    // Manually tuned for perspective and your request
     const positions = [
-        // Row 1 (Back/Top)
-        { x: 26, y: 35 }, { x: 41, y: 35 }, { x: 58, y: 35 }, { x: 74, y: 35 },
-        // Row 2 (Middle)
-        { x: 25, y: 52 }, { x: 40, y: 52 }, { x: 59, y: 52 }, { x: 75, y: 52 },
-        // Row 3 (Front/Bottom)
-        { x: 23, y: 72 }, { x: 40, y: 72 }, { x: 60, y: 72 }, { x: 77, y: 72 }
+        // Top Row: 1, 2 moved right. 3, 4 kept original.
+        { x: 29, y: 35 }, { x: 44, y: 35 }, { x: 58, y: 35 }, { x: 74, y: 35 },
+        // Middle Row: 5, 6 moved right. 7, 8 kept original.
+        { x: 28, y: 52 }, { x: 43, y: 52 }, { x: 59, y: 52 }, { x: 75, y: 52 },
+        // Bottom Row: 9, 10 moved right. 11, 12 moved up (y: 69).
+        { x: 26, y: 72 }, { x: 43, y: 72 }, { x: 60, y: 69 }, { x: 77, y: 69 }
     ];
 
     container.innerHTML = '';
@@ -23,11 +23,11 @@ document.addEventListener("DOMContentLoaded", function() {
             left: pos.x + '%',
             top: pos.y + '%',
             transform: 'translate(-50%, -50%)', 
-            width: '10%', // Increased slightly for better touch target
+            width: '10%',
             aspectRatio: '1/1',
             cursor: 'pointer',
             zIndex: '100',
-            backgroundColor: 'rgba(255, 0, 0, 0.4)', // Toggle to 'transparent' when ready
+            backgroundColor: 'rgba(255, 0, 0, 0.4)', 
             border: '1px solid white',
             borderRadius: '50%'
         });
