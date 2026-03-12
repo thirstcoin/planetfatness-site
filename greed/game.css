@@ -1,4 +1,4 @@
-/* 1. Table Background & Logo Setup */
+/* 1. Reset and Table Setup */
 body { 
     margin: 0; 
     padding: 0; 
@@ -10,20 +10,20 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Centers the logo horizontally */
-    justify-content: flex-start; /* Starts content from the top */
-    overflow: hidden;
+    align-items: center; 
+    justify-content: flex-start; 
+    overflow: hidden; /* Crucial for "in-your-face" scaling */
 }
 
-/* 2. The Board - Now Absolute to allow custom sizing */
+/* 2. The High-Impact Board */
 #game-container {
     position: absolute;
-    top: 45%; /* Adjust this to move the box up or down */
+    /* Move it down so it sits perfectly in the middle of the "table" area */
+    top: 50%; 
     left: 50%;
-    transform: translate(-50%, -50%); /* Keeps it perfectly centered */
+    transform: translate(-50%, -50%) scale(1.15); /* Zooms the board 15% larger */
     
-    /* Increase width to make the board look big again */
-    width: 95vw; 
+    width: 100vw; 
     aspect-ratio: 1536 / 1024;
     
     background-image: url('../assets/greed/board.png');
@@ -36,18 +36,19 @@ body {
     z-index: 10;
 }
 
-/* 3. Status Text at the Bottom */
+/* 3. Status Text positioned for visibility */
 #status {
     position: absolute;
-    bottom: 8%; 
+    bottom: 12%; 
     text-align: center;
     width: 100%;
-    font-size: 20px;
+    font-size: 22px; /* Slightly larger for community viewing */
+    font-weight: bold;
     z-index: 200;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    text-shadow: 0 2px 10px rgba(0,0,0,1);
 }
 
-/* 4. Hitboxes - Keep them red while you realign! */
+/* 4. Hitboxes - Keep visible until you've verified the "Scale" zoom! */
 .donut-hitbox {
     position: absolute;
     cursor: pointer;
