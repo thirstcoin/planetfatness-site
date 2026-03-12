@@ -1,11 +1,16 @@
 document.addEventListener("DOMContentLoaded", function() {
     const container = document.getElementById('game-container');
     const status = document.getElementById('status');
+    const multiplierDisplay = document.getElementById('multiplier-display');
+    const poisonOverlay = document.getElementById('poison-overlay');
     
     // --- GAME STATE ---
     let multiplier = 1.0;
+    const multipliers = [1.1, 1.3, 1.5, 1.7, 1.9, 2.1, 2.3, 2.5, 2.7, 3.0];
+    let goldFoundCount = 0;
     let poisonIndices = [];
-    
+    let isGameOver = false;
+
     // Randomly assign 2 poison indices
     while (poisonIndices.length < 2) {
         let rand = Math.floor(Math.random() * 12);
@@ -24,7 +29,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const hitbox = document.createElement('div');
         hitbox.className = 'donut-hitbox';
         
-        // Applying your exact styles
         Object.assign(hitbox.style, {
             position: 'absolute',
             left: pos.x + '%',
@@ -39,25 +43,24 @@ document.addEventListener("DOMContentLoaded", function() {
             borderRadius: '50%'
         });
 
-        // --- NEW LOGIC LAYER ---
         hitbox.onclick = () => {
-            // Prevent double-clicking
-            if (hitbox.dataset.clicked === "true") return;
+            if (isGameOver || hitbox.dataset.clicked === "true") return;
             hitbox.dataset.clicked = "true";
 
             if (poisonIndices.includes(index)) {
                 // POISON HIT
-                status.innerText = "POISON! Multiplier reset.";
-                multiplier = 1.0;
-                // Add code here to trigger your green screen overlay
+                isGameOver = true;
+                status.innerText = "POISON! Game Over.";
+                poisonOverlay.style.display = 'flex'; // Trigger Green Screen
             } else {
                 // GOLD HIT
-                multiplier += 0.5;
-                status.innerText = `Gold Found! Multiplier: x${multiplier.toFixed(1)}`;
-                // Add code here to trigger your golden overlay asset
+                multiplier = multipliers[goldFoundCount] || 3.0;
+                goldFoundCount++;
+                multiplierDisplay.innerText = `x${multiplier.toFixed(1)}`;
+                status.innerText = `Gold Found!`;
+                // Trigger your Golden Donut visual asset here
             }
         };
-
         container.appendChild(hitbox);
     });
 });
