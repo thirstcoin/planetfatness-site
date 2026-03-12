@@ -20,7 +20,7 @@ body {
     position: absolute;
     top: 50%; 
     left: 50%;
-    /* Keep your 1.15 scale */
+    /* This keeps the zoom, but defines the container as the anchor */
     transform: translate(-50%, -50%) scale(1.15); 
     
     width: 90vw; 
@@ -50,16 +50,21 @@ body {
     pointer-events: none;
 }
 
-/* 4. Hitboxes - Mapped via absolute percentages */
+/* 4. Hitboxes - Locked with Margin instead of Transform */
 .donut-hitbox {
     position: absolute;
-    width: 10%; /* Adjust this to size the hitboxes relative to the board */
+    width: 8%; /* Reduced slightly for tighter fit */
     aspect-ratio: 1 / 1;
     cursor: pointer;
     background: rgba(255, 0, 0, 0.4) !important; 
     border: 1px solid white !important;
     border-radius: 50%;
     z-index: 100;
-    /* This centers the circle exactly on your X,Y coordinates */
-    transform: translate(-50%, -50%); 
+    
+    /* REMOVED: transform: translate(-50%, -50%); 
+       This was the cause of the offset shift. */
+       
+    /* Use margin to pull the hitbox up and left to center it */
+    margin-left: -4%; 
+    margin-top: -4%;
 }
