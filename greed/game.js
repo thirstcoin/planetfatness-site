@@ -2,15 +2,13 @@ document.addEventListener("DOMContentLoaded", function() {
     const container = document.getElementById('game-container');
     const status = document.getElementById('status');
 
-    // These coordinates are mapped to the perspective of the donut box.
-    // X and Y are percentages relative to the #game-container.
     const positions = [
-        // Top Row: Nudged to center based on your last feedback
-        { x: 30, y: 38 }, { x: 44, y: 38 }, { x: 59, y: 38 }, { x: 74, y: 38 },
-        // Middle Row
-        { x: 29, y: 53 }, { x: 43, y: 53 }, { x: 58, y: 53 }, { x: 75, y: 53 },
-        // Bottom Row
-        { x: 27, y: 70 }, { x: 43, y: 70 }, { x: 59, y: 70 }, { x: 77, y: 70 }
+        // Top Row: 1, 2 down/right; 3, 4 down
+        { x: 31, y: 40 }, { x: 45, y: 40 }, { x: 59, y: 40 }, { x: 74, y: 40 },
+        // Middle Row: 5 right; 6 right; 7 slightly right; 8 locked
+        { x: 31, y: 53 }, { x: 46, y: 53 }, { x: 59, y: 53 }, { x: 75, y: 53 },
+        // Bottom Row: 9, 10, 11 up/right; 12 up
+        { x: 30, y: 68 }, { x: 46, y: 68 }, { x: 62, y: 68 }, { x: 77, y: 66 }
     ];
 
     container.innerHTML = '';
@@ -19,7 +17,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const hitbox = document.createElement('div');
         hitbox.className = 'donut-hitbox';
         
-        // This keeps the hitbox pinned to the center of the coordinate
         Object.assign(hitbox.style, {
             position: 'absolute',
             left: pos.x + '%',
@@ -29,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function() {
             height: '7%',
             cursor: 'pointer',
             zIndex: '100',
-            // Keep this visible until you confirm alignment, then change to 'transparent'
+            // Once alignment is confirmed, change this to 'transparent'
             backgroundColor: 'rgba(255, 0, 0, 0.4)', 
             border: '1px solid white',
             borderRadius: '50%'
