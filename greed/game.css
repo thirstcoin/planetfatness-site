@@ -20,24 +20,31 @@ body {
     position: absolute;
     top: 50%; 
     left: 50%;
-    /* The scale here defines the size; the absolute positioning 
-       of hitboxes is calculated relative to this container. */
     transform: translate(-50%, -50%) scale(1.15); 
-    
     width: 90vw; 
     aspect-ratio: 1536 / 1024;
-    
     background-image: url('../assets/greed/board.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    
     background-color: transparent;
     border: none;
     z-index: 10;
 }
 
-/* 3. Status Text */
+/* 3. Multiplier Display - Floating at the top */
+#multiplier-display {
+    position: absolute;
+    top: 15%; /* Adjust this to move it above your board */
+    z-index: 500;
+    color: #FFD700; /* Gold */
+    font-size: 40px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px #000;
+    pointer-events: none;
+}
+
+/* 4. Status Text */
 #status {
     position: absolute;
     bottom: 8%; 
@@ -51,7 +58,23 @@ body {
     pointer-events: none;
 }
 
-/* 4. Hitboxes - Precision Pinned */
+/* 5. Poison Overlay - The "Green Screen" */
+#poison-overlay {
+    display: none; /* Initially hidden */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 150, 0, 0.85);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+}
+
+#poison-overlay h1 { font-size: 3rem; }
+
+/* 6. Hitboxes - Precision Pinned */
 .donut-hitbox {
     position: absolute;
     width: 8%; 
@@ -61,9 +84,6 @@ body {
     border: 1px solid white !important;
     border-radius: 50%;
     z-index: 100;
-    
-    /* Using negative margins locks the center point of the hitbox 
-       exactly to the percentage coordinate specified in your JS. */
     margin-left: -4%; 
     margin-top: -4%;
 }
