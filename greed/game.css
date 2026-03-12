@@ -1,79 +1,54 @@
 /* 1. Full Page Setup */
 body { 
-    margin: 0; 
-    padding: 0; 
+    margin: 0; padding: 0; 
     background-image: url('../assets/greed/custom-table-bg.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
-    justify-content: flex-start; 
-    overflow: hidden;
+    background-size: cover; background-position: center;
+    background-attachment: fixed; height: 100vh;
+    display: flex; flex-direction: column; align-items: center; 
 }
 
-/* 2. Game Container - The "Stage" */
 #game-container {
     position: absolute;
-    top: 50%; 
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%) scale(1.15); 
-    width: 90vw; 
-    aspect-ratio: 1536 / 1024;
+    width: 90vw; aspect-ratio: 1536 / 1024;
     background-image: url('../assets/greed/board.png');
-    background-size: contain;
-    background-position: center;
+    background-size: contain; background-position: center;
     background-repeat: no-repeat;
-    background-color: transparent;
-    border: none;
     z-index: 10;
 }
 
-/* 3. Status Text */
 #status {
-    position: absolute;
-    bottom: 8%; 
-    text-align: center;
-    width: 100%;
-    font-size: 22px; 
-    font-weight: bold;
-    color: white;
-    text-shadow: 0 2px 10px rgba(0,0,0,1);
-    z-index: 200;
-    pointer-events: none;
+    position: absolute; bottom: 8%; text-align: center;
+    width: 100%; font-size: 22px; font-weight: bold;
+    color: white; text-shadow: 0 2px 10px rgba(0,0,0,1);
+    z-index: 200; pointer-events: none;
 }
 
-/* 4. Hitboxes - Precision Pinned */
+/* 2. Precision Pinned Hitboxes */
 .donut-hitbox {
     position: absolute;
-    width: 8%; 
+    width: 7%; /* Locked to 7% for perfect fit */
     aspect-ratio: 1 / 1;
     cursor: pointer;
+    z-index: 100;
+    /* Debugging colors - change to transparent later */
     background: rgba(255, 0, 0, 0.4); 
     border: 1px solid white;
     border-radius: 50%;
-    z-index: 100;
-    margin-left: -4%; 
-    margin-top: -4%;
+    /* This centers the hitbox exactly on the coordinate */
+    transform: translate(-50%, -50%);
 }
 
-/* 5. Donut Overlays */
+/* 3. Golden/Poison Overlays */
 .golden-donut, .poison-donut {
-    width: 100%;
-    height: 100%;
-    background-size: contain;
-    background-position: center;
+    width: 100%; height: 100%;
+    background-size: contain; background-position: center;
     background-repeat: no-repeat;
-    position: absolute; 
-    top: 0;
-    left: 0;
+    position: absolute; top: 0; left: 0;
     pointer-events: none;
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
-
 .golden-donut { background-image: url('../assets/greed/golden-donut.png'); }
 .poison-donut { background-image: url('../assets/greed/poison-donut.png'); }
 
