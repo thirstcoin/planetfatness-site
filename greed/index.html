@@ -7,27 +7,17 @@
     <link rel="stylesheet" href="game.css">
 </head>
 <body>
-    <div id="start-screen" style="position: fixed; top:0; left:0; width: 100vw; height: 100vh; background: #000; z-index: 20000; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-        <h1 style="color: gold; font-family: sans-serif; font-size: 32px; text-transform: uppercase; letter-spacing: 2px;">Tap to Start</h1>
+    <div id="start-screen">
+        <img src="assets/greed/start-screen-bg.png" alt="Tap to Start" class="static-fullscreen">
     </div>
 
-    <video id="opening-video" 
-           class="fullscreen-video" 
-           src="assets/greed/seq_intro_opening.mp4" 
-           poster="assets/greed/board.png" 
-           playsinline muted preload="auto"></video>
-           
-    <video id="poison-video" 
-           class="fullscreen-video" 
-           src="assets/greed/seq_poison_reaction.mp4" 
-           poster="assets/greed/board.png" 
-           playsinline muted preload="auto"></video>
-
     <div id="multiplier-display">x1.0</div>
-    <div id="game-container"></div>
     <div id="status">Click a donut to play...</div>
 
-    <div id="poison-overlay">
+    <div id="game-container"></div>
+
+    <div id="poison-overlay" style="display: none;">
+        <img src="assets/greed/poison-hit-overlay.png" alt="Poison Hit" class="static-fullscreen">
         <div class="overlay-content">
             <h1>POISON! Game Over.</h1>
             <button onclick="location.reload()">Play Again</button>
