@@ -29,8 +29,20 @@ document.addEventListener("DOMContentLoaded", function() {
     // --- START LOGIC ---
     startScreen.addEventListener('click', () => {
         startScreen.style.display = 'none';
+        
+        // Ensure video is loaded into memory before playback
+        openingVideo.load();
         openingVideo.style.display = 'block';
-        openingVideo.play().catch(e => console.error("Playback blocked:", e));
+        
+        // Attempt playback with fallback
+        openingVideo.play().then(() => {
+            console.log("Video started successfully");
+        }).catch(e => {
+            console.error("Playback blocked:", e);
+            // If the video stays black or fails, force move to game
+            openingVideo.style.display = 'none';
+            container.style.display = 'block';
+        });
     });
 
     openingVideo.onended = () => {
