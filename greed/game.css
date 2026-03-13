@@ -3,14 +3,14 @@ body {
     margin: 0; padding: 0; 
     background-image: url('../assets/greed/custom-table-bg.png');
     background-size: cover; background-position: center;
-    background-repeat: no-repeat; background-attachment: scroll; /* Changed from fixed to scroll to help mobile rendering */
+    background-repeat: no-repeat; background-attachment: scroll; 
     height: 100vh; display: flex;
     flex-direction: column; align-items: center; 
     justify-content: flex-start; overflow: hidden;
     background-color: #000;
 }
 
-/* 2. Game Container - The "Stage" */
+/* 2. Game Container - The "Stage" (Untouched) */
 #game-container {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%) scale(1.15); 
@@ -21,7 +21,7 @@ body {
     border: none; z-index: 10;
 }
 
-/* 3. Status Text */
+/* 3. Status & Multiplier (Untouched) */
 #status {
     position: absolute; bottom: 8%; text-align: center;
     width: 100%; font-size: 22px; font-weight: bold;
@@ -29,16 +29,6 @@ body {
     z-index: 200; pointer-events: none;
     transition: opacity 0.3s ease;
 }
-
-/* 4. Hitboxes - Precision Pinned (Invisible) */
-.donut-hitbox {
-    position: absolute; width: 8%; aspect-ratio: 1 / 1;
-    cursor: pointer; background: transparent !important; 
-    border: none !important; z-index: 100;
-    margin-left: -4%; margin-top: -4%;
-}
-
-/* --- Overlay & UI Overrides --- */
 
 #multiplier-display {
     position: absolute; top: 5%; left: 50%;
@@ -48,44 +38,40 @@ body {
     z-index: 500; pointer-events: none;
 }
 
-/* --- Video Sequence Overlays --- */
-.fullscreen-video {
-    display: none; 
+/* 4. Hitboxes (Untouched) */
+.donut-hitbox {
+    position: absolute; width: 8%; aspect-ratio: 1 / 1;
+    cursor: pointer; background: transparent !important; 
+    border: none !important; z-index: 100;
+    margin-left: -4%; margin-top: -4%;
+}
+
+/* --- NEW: Image Overlay Logic --- */
+.static-fullscreen {
     position: fixed; top: 0; left: 0;
     width: 100vw; height: 100vh;
-    object-fit: cover; 
-    z-index: 99999; /* Increased to ensure it is absolutely top */
-    background-color: #000;
-    /* GPU acceleration fix for mobile */
-    backface-visibility: hidden;
-    transform: translate3d(0, 0, 0);
+    object-fit: cover;
+    z-index: 99999;
+}
+
+#start-screen {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: 99999; cursor: pointer;
 }
 
 #poison-overlay {
     display: none; position: fixed; top: 0; left: 0;
-    width: 100vw; height: 100vh; background: rgba(0, 150, 0, 0.9);
-    z-index: 10000; justify-content: center; align-items: center;
+    width: 100vw; height: 100vh; z-index: 10000;
+    background: rgba(0, 150, 0, 0.9);
+    justify-content: center; align-items: center;
     text-align: center; color: white;
 }
 
-.overlay-content { font-family: sans-serif; }
-
-/* --- Visual Feedback: Chosen State --- */
-@keyframes fadeInReveal {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
+/* --- Visual Feedback (Untouched) --- */
+@keyframes fadeInReveal { from { opacity: 0; } to { opacity: 1; } }
 .donut-hitbox.chosen {
     background-color: rgba(255, 215, 0, 0.7) !important;
     border: 2px dashed #FFF !important;
-    border-radius: 50%;
-    cursor: default !important;
-    opacity: 0.8;
-    animation: fadeInReveal 0.2s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    border-radius: 50%; cursor: default !important;
+    opacity: 0.8; animation: fadeInReveal 0.2s ease-out;
 }
