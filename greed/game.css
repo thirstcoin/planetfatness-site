@@ -46,7 +46,7 @@ body {
     width: 7% !important; 
     aspect-ratio: 1/1 !important;
     cursor: pointer;
-    border: none; /* Removed circle indicators */
+    border: none;
     z-index: 100 !important;
     margin-left: -3.5%; 
     margin-top: -3.5%;
@@ -79,7 +79,7 @@ body {
     pointer-events: none;
 }
 
-/* 6. Poison Overlay - Fixed Distortion */
+/* 6. Poison Overlay */
 #poison-overlay {
     display: none; 
     position: fixed;
@@ -92,13 +92,74 @@ body {
     align-items: center;
     text-align: center;
     color: white;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-#poison-overlay img {
+/* Video replacement for the old image */
+#poison-overlay video {
     display: block;
     width: auto;
     max-width: 80%;
     max-height: 60%;
-    object-fit: contain; 
+    object-fit: contain;
     margin: 0 auto 20px auto;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+    background: transparent;
+}
+
+.overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    z-index: 2;
+}
+
+.overlay-content h1 {
+    margin: 0;
+    font-size: clamp(28px, 4vw, 48px);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+}
+
+.overlay-content button {
+    appearance: none;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    background: #FFD700;
+    color: #111;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
+
+/* Mobile tuning */
+@media (max-width: 768px) {
+    #multiplier-display {
+        font-size: 36px;
+    }
+
+    #status {
+        font-size: 18px;
+        bottom: 6%;
+        padding: 0 12px;
+        box-sizing: border-box;
+    }
+
+    #poison-overlay video {
+        max-width: 92%;
+        max-height: 48%;
+    }
+
+    .overlay-content h1 {
+        font-size: 30px;
+    }
+
+    .overlay-content button {
+        font-size: 16px;
+        padding: 12px 20px;
+    }
 }
