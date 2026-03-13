@@ -40,6 +40,28 @@ document.addEventListener("DOMContentLoaded", function() {
     let isGameOver = false;
     let hasStartedRound = false;
 
+    const hypeLines = [
+        "Phil says: take another bite.",
+        "Feed your greed.",
+        "Phat donut secured.",
+        "Calories activated.",
+        "Glaze mode engaged.",
+        "That one hit different.",
+        "Greed is looking good on you.",
+        "One more donut won't hurt.",
+        "The box is paying respect.",
+        "Bulk energy rising.",
+        "Degen dessert unlocked.",
+        "Phil is loving this run.",
+        "Stack the glaze higher.",
+        "This box wants action.",
+        "You're cooking now."
+    ];
+
+    function getRandomHypeLine() {
+        return hypeLines[Math.floor(Math.random() * hypeLines.length)];
+    }
+
     while (poisonIndices.length < 2) {
         let rand = Math.floor(Math.random() * 12);
         if (!poisonIndices.includes(rand)) poisonIndices.push(rand);
@@ -80,6 +102,8 @@ document.addEventListener("DOMContentLoaded", function() {
     function revealFinalPushHint() {
         if (safeFoundCount === 9) {
             status.innerText = "FINAL DONUT • 33% shot at x3.50";
+        } else {
+            status.innerText = getRandomHypeLine();
         }
     }
 
@@ -157,7 +181,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function cashOutNow() {
         if (isGameOver || safeFoundCount < 1) return;
         lockBoard();
-        status.innerText = "Cash out locked in.";
+        status.innerText = "Greed fed. Cash locked in.";
         showWinOverlay();
     }
 
@@ -194,6 +218,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
     updateCashoutButton();
+    status.innerText = "Pick a donut to begin.";
 
     container.innerHTML = '';
 
@@ -213,7 +238,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (!hasStartedRound) {
                 hasStartedRound = true;
-                status.innerText = "Choose carefully.";
             }
 
             if (poisonIndices.includes(index)) {
