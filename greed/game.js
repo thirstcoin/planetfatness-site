@@ -4,6 +4,10 @@ document.addEventListener("DOMContentLoaded", function() {
     const multiplierDisplay = document.getElementById('multiplier-display');
     const poisonOverlay = document.getElementById('poison-overlay');
     
+    // Video Elements
+    const openingVideo = document.getElementById('opening-video');
+    const poisonVideo = document.getElementById('poison-video');
+
     // --- GAME STATE ---
     let multiplier = 1.0;
     const multipliers = [1.1, 1.3, 1.5, 1.7, 1.9, 2.1, 2.3, 2.5, 2.7, 3.0];
@@ -11,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let poisonIndices = [];
     let isGameOver = false;
 
-    // Randomly assign 2 poison indices
+    // --- INITIALIZATION ---
     while (poisonIndices.length < 2) {
         let rand = Math.floor(Math.random() * 12);
         if (!poisonIndices.includes(rand)) poisonIndices.push(rand);
@@ -23,8 +27,22 @@ document.addEventListener("DOMContentLoaded", function() {
         { x: 35, y: 65 }, { x: 49, y: 65 }, { x: 63, y: 65 }, { x: 77, y: 64 }
     ];
 
-    container.innerHTML = '';
+    // --- VIDEO SEQUENCE HANDLER ---
+    function playSequence(video, onComplete) {
+        video.style.display = 'block';
+        video.play().catch(e => console.log("Autoplay blocked:", e));
+        video.onended = () => {
+            video.style.display = 'none';
+            video.currentTime = 0;
+            if (onComplete) onComplete();
+        };
+    }
 
+    // Start Intro
+    playSequence(openingVideo);
+
+    // --- HITBOX GENERATION ---
+    container.innerHTML = '';
     positions.forEach((pos, index) => {
         const hitbox = document.createElement('div');
         hitbox.className = 'donut-hitbox';
@@ -38,27 +56,28 @@ document.addEventListener("DOMContentLoaded", function() {
             height: '7%',
             cursor: 'pointer',
             zIndex: '100',
-            backgroundColor: 'rgba(255, 255, 255, 0.2)', // Set to faint white initially
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
             border: '1px solid white',
             borderRadius: '50%'
         });
 
-               hitbox.onclick = () => {
-            // Prevent interaction if game over or already clicked
+        hitbox.onclick = () => {
             if (isGameOver || hitbox.dataset.clicked === "true") return;
             
-            // Mark as clicked
             hitbox.dataset.clicked = "true";
-            // Add the new class for visual feedback (defined in CSS)
             hitbox.classList.add('chosen');
 
             if (poisonIndices.includes(index)) {
-                // POISON HIT
+                // POISON HIT: Trigger Video
                 isGameOver = true;
-                // Force red color for the poison donut
                 hitbox.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
                 status.innerText = "POISON! Game Over.";
-                poisonOverlay.style.display = 'flex'; 
+                
+                // Hide board, play animation, then show overlay
+                container.style.display = 'none';
+                playSequence(poisonVideo, () => {
+                    poisonOverlay.style.display = 'flex';
+                });
             } else {
                 // GOLD HIT
                 multiplier = multipliers[goldFoundCount] || 3.0;
@@ -67,7 +86,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 status.innerText = `Gold Found!`;
             }
         };
-        
         container.appendChild(hitbox);
     });
 });
