@@ -4,8 +4,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const multiplierDisplay = document.getElementById('multiplier-display');
     const poisonOverlay = document.getElementById('poison-overlay');
     const startScreen = document.getElementById('start-screen');
-    const openingVideo = document.getElementById('opening-video');
-    const poisonVideo = document.getElementById('poison-video');
     
     // --- GAME STATE ---
     let multiplier = 1.0;
@@ -27,28 +25,11 @@ document.addEventListener("DOMContentLoaded", function() {
     ];
 
     // --- START LOGIC ---
+    // Now simple: just hide the start image and show the game
     startScreen.addEventListener('click', () => {
         startScreen.style.display = 'none';
-        
-        // Ensure video is loaded into memory before playback
-        openingVideo.load();
-        openingVideo.style.display = 'block';
-        
-        // Attempt playback with fallback
-        openingVideo.play().then(() => {
-            console.log("Video started successfully");
-        }).catch(e => {
-            console.error("Playback blocked:", e);
-            // If the video stays black or fails, force move to game
-            openingVideo.style.display = 'none';
-            container.style.display = 'block';
-        });
-    });
-
-    openingVideo.onended = () => {
-        openingVideo.style.display = 'none';
         container.style.display = 'block';
-    };
+    });
 
     // --- HITBOX GENERATION ---
     container.innerHTML = '';
@@ -73,15 +54,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 hitbox.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
                 status.innerText = "POISON! Game Over.";
                 
-                // Trigger Poison Video
+                // Show poison overlay immediately instead of playing a video
                 container.style.display = 'none';
-                poisonVideo.style.display = 'block';
-                poisonVideo.play();
-                
-                poisonVideo.onended = () => {
-                    poisonVideo.style.display = 'none';
-                    poisonOverlay.style.display = 'flex';
-                };
+                poisonOverlay.style.display = 'flex';
+                poisonOverlay.classList.add('shake-effect');
             } else {
                 multiplier = multipliers[goldFoundCount] || 3.0;
                 goldFoundCount++;
