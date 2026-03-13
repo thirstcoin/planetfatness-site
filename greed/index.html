@@ -12,7 +12,10 @@
     <div id="status">Click a donut to play...</div>
 
     <div id="poison-overlay">
-        <img src="../assets/greed/poison-hit-overlay.png" alt="Poison Hit" class="overlay-img">
+        <video id="poison-video" muted playsinline preload="auto" class="overlay-video">
+            <source src="/assets/greed/phil-poison.mp4" type="video/mp4">
+        </video>
+
         <div class="overlay-content">
             <h1>POISON! Game Over.</h1>
             <button onclick="location.reload()">Play Again</button>
