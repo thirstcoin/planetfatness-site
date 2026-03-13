@@ -88,9 +88,12 @@ body {
     color: white;
 }
 
-/* Ensure the overlay image maintains its aspect ratio */
+/* Ensure the overlay image maintains its aspect ratio and shows properly */
 #poison-overlay img {
+    display: block;
+    width: auto;
     max-width: 80%;
     max-height: 60%;
     object-fit: contain; 
+    margin: 0 auto 20px auto;
 }
