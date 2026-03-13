@@ -2,7 +2,8 @@
 body { 
     margin: 0; 
     padding: 0; 
-    background-image: url('../assets/greed/custom-table-bg.png');
+    /* Changed path to root-relative */
+    background-image: url('/assets/greed/custom-table-bg.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -20,14 +21,13 @@ body {
     position: absolute;
     top: 50%; 
     left: 50%;
-    /* The scale here defines the size; the absolute positioning 
-       of hitboxes is calculated relative to this container. */
     transform: translate(-50%, -50%) scale(1.15); 
     
     width: 90vw; 
     aspect-ratio: 1536 / 1024;
     
-    background-image: url('../assets/greed/board.png');
+    /* Changed path to root-relative */
+    background-image: url('/assets/greed/board.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -57,33 +57,32 @@ body {
     width: 8%; 
     aspect-ratio: 1 / 1;
     cursor: pointer;
-    background: rgba(255, 0, 0, 0.4) !important; 
-    border: 1px solid white !important;
+    /* Removed !important so JS can override colors */
+    background: rgba(255, 255, 255, 0.2); 
+    border: 1px solid white;
     border-radius: 50%;
     z-index: 100;
     
-    /* Using negative margins locks the center point of the hitbox 
-       exactly to the percentage coordinate specified in your JS. */
     margin-left: -4%; 
     margin-top: -4%;
 }
+
 /* --- Overlay & UI Overrides --- */
 
-/* Force the multiplier to be large, gold, and at the top */
+/* Removed !important for better style management */
 #multiplier-display {
     position: absolute;
     top: 5%; 
     left: 50%;
     transform: translateX(-50%);
-    color: #FFD700 !important; /* Gold */
-    font-size: 48px !important;
-    font-weight: 900 !important;
+    color: #FFD700; 
+    font-size: 48px;
+    font-weight: 900;
     text-shadow: 2px 2px 8px #000;
     z-index: 500;
     pointer-events: none;
 }
 
-/* Ensure the overlay covers everything when poison is hit */
 #poison-overlay {
     display: none; 
     position: fixed;
