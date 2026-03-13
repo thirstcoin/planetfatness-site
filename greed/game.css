@@ -3,7 +3,7 @@ body {
     margin: 0; padding: 0; 
     background-image: url('../assets/greed/custom-table-bg.png');
     background-size: cover; background-position: center;
-    background-repeat: no-repeat; background-attachment: fixed;
+    background-repeat: no-repeat; background-attachment: scroll; /* Changed from fixed to scroll to help mobile rendering */
     height: 100vh; display: flex;
     flex-direction: column; align-items: center; 
     justify-content: flex-start; overflow: hidden;
@@ -50,12 +50,15 @@ body {
 
 /* --- Video Sequence Overlays --- */
 .fullscreen-video {
-    display: none; /* Controlled by JavaScript */
+    display: none; 
     position: fixed; top: 0; left: 0;
     width: 100vw; height: 100vh;
     object-fit: cover; 
-    z-index: 9999;
+    z-index: 99999; /* Increased to ensure it is absolutely top */
     background-color: #000;
+    /* GPU acceleration fix for mobile */
+    backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
 }
 
 #poison-overlay {
