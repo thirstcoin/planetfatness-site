@@ -1,12 +1,25 @@
 document.addEventListener("DOMContentLoaded", function() {
-    console.log("Game Loaded"); // Check your browser console for this!
+    console.log("Game Loaded");
     
     const container = document.getElementById('game-container');
     const status = document.getElementById('status');
     const multiplierDisplay = document.getElementById('multiplier-display');
     const poisonOverlay = document.getElementById('poison-overlay');
     
-    if (!container) return; // Stop if container isn't found
+    if (!container) return;
+
+    // --- Phat Phrase Library ---
+    const phatPhrases = [
+        "Phat donut secured!",
+        "Deliciously gluttonous!",
+        "Feed your greed!",
+        "Calories approved!",
+        "Phil says: Take another bite!",
+        "Sugar rush activated!",
+        "Donut demolished!",
+        "Leveling up the gains!",
+        "Pure glaze heaven!"
+    ];
 
     let multiplier = 1.0;
     const multipliers = [1.1, 1.3, 1.5, 1.7, 1.9, 2.1, 2.3, 2.5, 2.7, 3.0];
@@ -14,7 +27,6 @@ document.addEventListener("DOMContentLoaded", function() {
     let poisonIndices = [];
     let isGameOver = false;
 
-    // Randomly assign 2 poison indices
     while (poisonIndices.length < 2) {
         let rand = Math.floor(Math.random() * 12);
         if (!poisonIndices.includes(rand)) poisonIndices.push(rand);
@@ -32,7 +44,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const hitbox = document.createElement('div');
         hitbox.className = 'donut-hitbox';
         
-        // Positioning
         hitbox.style.position = 'absolute';
         hitbox.style.left = pos.x + '%';
         hitbox.style.top = pos.y + '%';
@@ -42,17 +53,22 @@ document.addEventListener("DOMContentLoaded", function() {
             if (isGameOver || this.dataset.clicked === "true") return;
             this.dataset.clicked = "true";
 
+            // Add the 'selected' class to trigger the CSS 'X'
+            this.classList.add('selected');
+
             if (poisonIndices.includes(index)) {
                 this.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
                 isGameOver = true;
                 status.innerText = "POISON! Game Over.";
                 poisonOverlay.style.display = 'flex';
             } else {
-                this.style.backgroundColor = 'rgba(255, 215, 0, 0.8)';
+                // Apply Phat branding instead of "Gold Found"
+                const randomPhrase = phatPhrases[Math.floor(Math.random() * phatPhrases.length)];
+                status.innerText = randomPhrase;
+                
                 multiplier = multipliers[goldFoundCount] || 3.0;
                 goldFoundCount++;
                 multiplierDisplay.innerText = `x${multiplier.toFixed(1)}`;
-                status.innerText = `Gold Found!`;
             }
         };
         container.appendChild(hitbox);
