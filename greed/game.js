@@ -7,9 +7,17 @@ document.addEventListener("DOMContentLoaded", function() {
     const poisonOverlay = document.getElementById('poison-overlay');
     const poisonVideo = document.getElementById('poison-video');
 
+    const winOverlay = document.getElementById('win-overlay');
+    const winVideo = document.getElementById('win-video');
+    const winTitle = document.getElementById('win-title');
+    const winSubtitle = document.getElementById('win-subtitle');
+    const winMultiplier = document.getElementById('win-multiplier');
+
     const introOverlay = document.getElementById('intro-overlay');
     const introVideo = document.getElementById('intro-video');
     const startGameBtn = document.getElementById('start-game-btn');
+
+    const cashoutButton = document.getElementById('cashout-button');
 
     if (!container) return;
 
@@ -21,23 +29,16 @@ document.addEventListener("DOMContentLoaded", function() {
         introVideo.load();
     }
 
-    const phatPhrases = [
-        "Phat donut secured!",
-        "Deliciously gluttonous!",
-        "Feed your greed!",
-        "Calories approved!",
-        "Phil says: Take another bite!",
-        "Sugar rush activated!",
-        "Donut demolished!",
-        "Leveling up the gains!",
-        "Pure glaze heaven!"
-    ];
+    if (winVideo) {
+        winVideo.load();
+    }
 
     let multiplier = 1.0;
-    const multipliers = [1.1, 1.3, 1.5, 1.7, 1.9, 2.1, 2.3, 2.5, 2.7, 3.0];
-    let goldFoundCount = 0;
+    const multipliers = [1.02, 1.07, 1.15, 1.30, 1.48, 1.70, 1.98, 2.28, 2.70, 3.50];
+    let safeFoundCount = 0;
     let poisonIndices = [];
     let isGameOver = false;
+    let hasStartedRound = false;
 
     while (poisonIndices.length < 2) {
         let rand = Math.floor(Math.random() * 12);
@@ -49,6 +50,47 @@ document.addEventListener("DOMContentLoaded", function() {
         { x: 36, y: 53 }, { x: 49, y: 53 }, { x: 61, y: 53 }, { x: 75, y: 53 },
         { x: 35, y: 65 }, { x: 49, y: 65 }, { x: 63, y: 65 }, { x: 77, y: 64 }
     ];
+
+    function updateCashoutButton() {
+        if (!cashoutButton) return;
+
+        if (safeFoundCount > 0 && !isGameOver) {
+            cashoutButton.disabled = false;
+            cashoutButton.classList.add('active');
+            cashoutButton.textContent = `Cash Out x${multiplier.toFixed(2)}`;
+
+            if (safeFoundCount >= 9) {
+                cashoutButton.classList.add('final-push');
+            } else {
+                cashoutButton.classList.remove('final-push');
+            }
+        } else {
+            cashoutButton.disabled = true;
+            cashoutButton.classList.remove('active', 'final-push');
+            cashoutButton.textContent = 'Cash Out';
+        }
+    }
+
+    function popMultiplier() {
+        multiplierDisplay.classList.remove('multiplier-pop');
+        void multiplierDisplay.offsetWidth;
+        multiplierDisplay.classList.add('multiplier-pop');
+    }
+
+    function revealFinalPushHint() {
+        if (safeFoundCount === 9) {
+            status.innerText = "FINAL DONUT • 33% shot at x3.50";
+        }
+    }
+
+    function lockBoard() {
+        isGameOver = true;
+        const hitboxes = container.querySelectorAll('.donut-hitbox');
+        hitboxes.forEach((hitbox) => {
+            hitbox.style.pointerEvents = 'none';
+        });
+        updateCashoutButton();
+    }
 
     function showPoisonOverlay() {
         poisonOverlay.style.display = 'flex';
@@ -70,6 +112,33 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    function showWinOverlay() {
+        if (!winOverlay) return;
+
+        const isPerfect = safeFoundCount >= 10;
+        winTitle.innerText = isPerfect ? "PERFECT RUN" : "YOU FED THE GREED";
+        winSubtitle.innerText = isPerfect ? "Legendary Cash Out" : "Cashed Out";
+        winMultiplier.innerText = `x${multiplier.toFixed(2)}`;
+
+        winOverlay.style.display = 'flex';
+
+        if (winVideo) {
+            try {
+                winVideo.pause();
+                winVideo.currentTime = 0;
+
+                const playPromise = winVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch((err) => {
+                        console.warn("Win video autoplay failed:", err);
+                    });
+                }
+            } catch (err) {
+                console.warn("Win video error:", err);
+            }
+        }
+    }
+
     function startGame() {
         if (introVideo) {
             try {
@@ -83,6 +152,13 @@ document.addEventListener("DOMContentLoaded", function() {
         if (introOverlay) {
             introOverlay.classList.add('hidden');
         }
+    }
+
+    function cashOutNow() {
+        if (isGameOver || safeFoundCount < 1) return;
+        lockBoard();
+        status.innerText = "Cash out locked in.";
+        showWinOverlay();
     }
 
     if (introVideo) {
@@ -112,6 +188,13 @@ document.addEventListener("DOMContentLoaded", function() {
         startGameBtn.addEventListener('click', startGame);
     }
 
+    if (cashoutButton) {
+        cashoutButton.addEventListener('click', cashOutNow);
+    }
+
+    multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+    updateCashoutButton();
+
     container.innerHTML = '';
 
     positions.forEach((pos, index) => {
@@ -126,21 +209,33 @@ document.addEventListener("DOMContentLoaded", function() {
         hitbox.onclick = function() {
             if (isGameOver || this.dataset.clicked === "true") return;
             this.dataset.clicked = "true";
+            this.classList.add('selected', 'revealed');
 
-            this.classList.add('selected');
+            if (!hasStartedRound) {
+                hasStartedRound = true;
+                status.innerText = "Choose carefully.";
+            }
 
             if (poisonIndices.includes(index)) {
                 this.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
-                isGameOver = true;
                 status.innerText = "POISON! Game Over.";
+                lockBoard();
                 showPoisonOverlay();
             } else {
-                const randomPhrase = phatPhrases[Math.floor(Math.random() * phatPhrases.length)];
-                status.innerText = randomPhrase;
+                multiplier = multipliers[safeFoundCount] || 3.50;
+                safeFoundCount++;
+                multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+                popMultiplier();
+                updateCashoutButton();
 
-                multiplier = multipliers[goldFoundCount] || 3.0;
-                goldFoundCount++;
-                multiplierDisplay.innerText = `x${multiplier.toFixed(1)}`;
+                if (safeFoundCount >= 10) {
+                    lockBoard();
+                    status.innerText = "PERFECT RUN!";
+                    showWinOverlay();
+                    return;
+                }
+
+                revealFinalPushHint();
             }
         };
 
