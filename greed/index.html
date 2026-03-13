@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="game.css">
 </head>
 <body>
+    <div id="intro-overlay">
+        <video id="intro-video" muted playsinline preload="auto" class="intro-video">
+            <source src="/assets/greed/intro-open.mp4" type="video/mp4">
+        </video>
+
+        <div class="intro-content">
+            <button id="start-game-btn">Start Game</button>
+        </div>
+    </div>
+
     <div id="multiplier-display">x1.0</div>
     <div id="game-container"></div>
     <div id="status">Click a donut to play...</div>
