@@ -1,7 +1,6 @@
 /* 1. Full Page Setup */
 body { 
     margin: 0; padding: 0; 
-    /* Up one level, then into assets/greed */
     background-image: url('../assets/greed/custom-table-bg.png');
     background-size: cover;
     background-position: center;
@@ -41,15 +40,17 @@ body {
     pointer-events: none;
 }
 
-/* 4. Hitboxes */
+/* 4. Hitboxes - Managed by game.js */
 .donut-hitbox {
     position: absolute;
-    width: 7%; aspect-ratio: 1/1;
+    width: 7% !important; 
+    aspect-ratio: 1/1 !important;
     cursor: pointer;
     border: 1px solid white;
     border-radius: 50%;
-    z-index: 100;
-    margin-left: -3.5%; margin-top: -3.5%;
+    z-index: 100 !important;
+    margin-left: -3.5%; 
+    margin-top: -3.5%;
 }
 
 #multiplier-display {
