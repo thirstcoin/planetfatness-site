@@ -40,17 +40,30 @@ body {
     pointer-events: none;
 }
 
-/* 4. Hitboxes - Managed by game.js */
+/* 4. Hitboxes - Updated for "X" Visual Cue */
 .donut-hitbox {
     position: absolute;
     width: 7% !important; 
     aspect-ratio: 1/1 !important;
     cursor: pointer;
-    border: 1px solid white;
-    border-radius: 50%;
+    border: none; /* Removed circle indicators */
     z-index: 100 !important;
     margin-left: -3.5%; 
     margin-top: -3.5%;
+}
+
+/* Added "X" effect when selected */
+.donut-hitbox.selected::after {
+    content: "✖";
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    text-shadow: 0 0 5px #000;
 }
 
 /* 5. Multiplier Display */
