@@ -5,8 +5,14 @@ document.addEventListener("DOMContentLoaded", function() {
     const status = document.getElementById('status');
     const multiplierDisplay = document.getElementById('multiplier-display');
     const poisonOverlay = document.getElementById('poison-overlay');
+    const poisonVideo = document.getElementById('poison-video');
     
     if (!container) return;
+
+    // Try to warm the video into memory for smoother mobile playback
+    if (poisonVideo) {
+        poisonVideo.load();
+    }
 
     // --- Phat Phrase Library ---
     const phatPhrases = [
@@ -38,6 +44,26 @@ document.addEventListener("DOMContentLoaded", function() {
         { x: 35, y: 65 }, { x: 49, y: 65 }, { x: 63, y: 65 }, { x: 77, y: 64 }
     ];
 
+    function showPoisonOverlay() {
+        poisonOverlay.style.display = 'flex';
+
+        if (poisonVideo) {
+            try {
+                poisonVideo.pause();
+                poisonVideo.currentTime = 0;
+
+                const playPromise = poisonVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch((err) => {
+                        console.warn("Poison video autoplay failed:", err);
+                    });
+                }
+            } catch (err) {
+                console.warn("Poison video error:", err);
+            }
+        }
+    }
+
     container.innerHTML = '';
 
     positions.forEach((pos, index) => {
@@ -53,16 +79,14 @@ document.addEventListener("DOMContentLoaded", function() {
             if (isGameOver || this.dataset.clicked === "true") return;
             this.dataset.clicked = "true";
 
-            // Add the 'selected' class to trigger the CSS 'X'
             this.classList.add('selected');
 
             if (poisonIndices.includes(index)) {
                 this.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
                 isGameOver = true;
                 status.innerText = "POISON! Game Over.";
-                poisonOverlay.style.display = 'flex';
+                showPoisonOverlay();
             } else {
-                // Apply Phat branding instead of "Gold Found"
                 const randomPhrase = phatPhrases[Math.floor(Math.random() * phatPhrases.length)];
                 status.innerText = randomPhrase;
                 
@@ -71,6 +95,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 multiplierDisplay.innerText = `x${multiplier.toFixed(1)}`;
             }
         };
+
         container.appendChild(hitbox);
     });
 });
