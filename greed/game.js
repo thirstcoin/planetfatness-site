@@ -1,12 +1,13 @@
-Js file
-
 document.addEventListener("DOMContentLoaded", function() {
+    console.log("Game Loaded"); // Check your browser console for this!
+    
     const container = document.getElementById('game-container');
     const status = document.getElementById('status');
     const multiplierDisplay = document.getElementById('multiplier-display');
     const poisonOverlay = document.getElementById('poison-overlay');
     
-    // --- GAME STATE ---
+    if (!container) return; // Stop if container isn't found
+
     let multiplier = 1.0;
     const multipliers = [1.1, 1.3, 1.5, 1.7, 1.9, 2.1, 2.3, 2.5, 2.7, 3.0];
     let goldFoundCount = 0;
@@ -31,33 +32,23 @@ document.addEventListener("DOMContentLoaded", function() {
         const hitbox = document.createElement('div');
         hitbox.className = 'donut-hitbox';
         
-        Object.assign(hitbox.style, {
-            position: 'absolute',
-            left: pos.x + '%',
-            top: pos.y + '%',
-            transform: 'translate(-50%, -50%)', 
-            width: '7%', 
-            height: '7%',
-            cursor: 'pointer',
-            zIndex: '100',
-            backgroundColor: 'rgba(255, 255, 255, 0.2)', // Set to faint white initially
-            border: '1px solid white',
-            borderRadius: '50%'
-        });
-
-        hitbox.onclick = () => {
-            if (isGameOver || hitbox.dataset.clicked === "true") return;
-            hitbox.dataset.clicked = "true";
+        // Positioning
+        hitbox.style.position = 'absolute';
+        hitbox.style.left = pos.x + '%';
+        hitbox.style.top = pos.y + '%';
+        hitbox.style.transform = 'translate(-50%, -50%)'; 
+        
+        hitbox.onclick = function() {
+            if (isGameOver || this.dataset.clicked === "true") return;
+            this.dataset.clicked = "true";
 
             if (poisonIndices.includes(index)) {
-                // POISON HIT: Visual feedback
-                hitbox.style.backgroundColor = 'rgba(255, 0, 0, 0.8)'; // Red Poison
+                this.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
                 isGameOver = true;
                 status.innerText = "POISON! Game Over.";
-                poisonOverlay.style.display = 'flex'; // Trigger Green Screen
+                poisonOverlay.style.display = 'flex';
             } else {
-                // GOLD HIT: Visual feedback
-                hitbox.style.backgroundColor = 'rgba(255, 215, 0, 0.8)'; // Gold Reward
+                this.style.backgroundColor = 'rgba(255, 215, 0, 0.8)';
                 multiplier = multipliers[goldFoundCount] || 3.0;
                 goldFoundCount++;
                 multiplierDisplay.innerText = `x${multiplier.toFixed(1)}`;
