@@ -1,20 +1,26 @@
 document.addEventListener("DOMContentLoaded", function() {
     console.log("Game Loaded");
-    
+
     const container = document.getElementById('game-container');
     const status = document.getElementById('status');
     const multiplierDisplay = document.getElementById('multiplier-display');
     const poisonOverlay = document.getElementById('poison-overlay');
     const poisonVideo = document.getElementById('poison-video');
-    
+
+    const introOverlay = document.getElementById('intro-overlay');
+    const introVideo = document.getElementById('intro-video');
+    const startGameBtn = document.getElementById('start-game-btn');
+
     if (!container) return;
 
-    // Try to warm the video into memory for smoother mobile playback
     if (poisonVideo) {
         poisonVideo.load();
     }
 
-    // --- Phat Phrase Library ---
+    if (introVideo) {
+        introVideo.load();
+    }
+
     const phatPhrases = [
         "Phat donut secured!",
         "Deliciously gluttonous!",
@@ -64,17 +70,59 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    function startGame() {
+        if (introVideo) {
+            try {
+                introVideo.pause();
+                introVideo.currentTime = 0;
+            } catch (err) {
+                console.warn("Intro video stop error:", err);
+            }
+        }
+
+        if (introOverlay) {
+            introOverlay.classList.add('hidden');
+        }
+    }
+
+    if (introVideo) {
+        const playIntro = () => {
+            try {
+                introVideo.pause();
+                introVideo.currentTime = 0;
+                const playPromise = introVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch((err) => {
+                        console.warn("Intro autoplay failed:", err);
+                    });
+                }
+            } catch (err) {
+                console.warn("Intro video error:", err);
+            }
+        };
+
+        playIntro();
+
+        introVideo.addEventListener('ended', function() {
+            startGame();
+        });
+    }
+
+    if (startGameBtn) {
+        startGameBtn.addEventListener('click', startGame);
+    }
+
     container.innerHTML = '';
 
     positions.forEach((pos, index) => {
         const hitbox = document.createElement('div');
         hitbox.className = 'donut-hitbox';
-        
+
         hitbox.style.position = 'absolute';
         hitbox.style.left = pos.x + '%';
         hitbox.style.top = pos.y + '%';
-        hitbox.style.transform = 'translate(-50%, -50%)'; 
-        
+        hitbox.style.transform = 'translate(-50%, -50%)';
+
         hitbox.onclick = function() {
             if (isGameOver || this.dataset.clicked === "true") return;
             this.dataset.clicked = "true";
@@ -89,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
                 const randomPhrase = phatPhrases[Math.floor(Math.random() * phatPhrases.length)];
                 status.innerText = randomPhrase;
-                
+
                 multiplier = multipliers[goldFoundCount] || 3.0;
                 goldFoundCount++;
                 multiplierDisplay.innerText = `x${multiplier.toFixed(1)}`;
