@@ -1,8 +1,8 @@
-/* 1. Full Page Setup */
+/* 1. Full Page Setup - The Table Background */
 body { 
     margin: 0; padding: 0; 
     background-image: url('../assets/greed/custom-table-bg.png');
-    background-size: cover;
+    background-size: cover; /* Ensures the table fills the screen background */
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -14,7 +14,7 @@ body {
     overflow: hidden;
 }
 
-/* 2. Game Container */
+/* 2. Game Container - The Board */
 #game-container {
     position: absolute;
     top: 50%; left: 50%;
@@ -22,7 +22,7 @@ body {
     width: 90vw; 
     aspect-ratio: 1536 / 1024;
     background-image: url('../assets/greed/board.png');
-    background-size: contain;
+    background-size: contain; /* Prevents board distortion */
     background-position: center;
     background-repeat: no-repeat;
     z-index: 10;
@@ -53,6 +53,7 @@ body {
     margin-top: -3.5%;
 }
 
+/* 5. Multiplier Display */
 #multiplier-display {
     position: absolute;
     top: 5%; left: 50%;
@@ -65,6 +66,7 @@ body {
     pointer-events: none;
 }
 
+/* 6. Poison Overlay - Fixed Distortion */
 #poison-overlay {
     display: none; 
     position: fixed;
@@ -72,8 +74,16 @@ body {
     width: 100vw; height: 100vh;
     background: rgba(0, 150, 0, 0.9);
     z-index: 9999;
+    flex-direction: column; /* Stacks image and content */
     justify-content: center;
     align-items: center;
     text-align: center;
     color: white;
+}
+
+/* Ensure the overlay image maintains its aspect ratio */
+#poison-overlay img {
+    max-width: 80%;
+    max-height: 60%;
+    object-fit: contain; /* Keeps image from stretching */
 }
