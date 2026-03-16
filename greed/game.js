@@ -7,6 +7,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("game-container");
     const status = document.getElementById("status");
     const multiplierDisplay = document.getElementById("multiplier-display");
+    const multiplierLadder = document.getElementById("multiplier-ladder");
+    const ladderStepLabel = document.getElementById("ladder-step-label");
+    const ladderNextLabel = document.getElementById("ladder-next-label");
+
     const poisonOverlay = document.getElementById("poison-overlay");
     const poisonVideo = document.getElementById("poison-video");
 
@@ -95,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const fairnessBadge = document.createElement("div");
     fairnessBadge.id = "fairness-badge";
     fairnessBadge.style.position = "absolute";
-    fairnessBadge.style.top = "17%";
+    fairnessBadge.style.top = "22.4%";
     fairnessBadge.style.left = "50%";
     fairnessBadge.style.transform = "translateX(-50%)";
     fairnessBadge.style.zIndex = "550";
@@ -112,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function () {
     fairnessBadge.style.whiteSpace = "nowrap";
     fairnessBadge.style.overflow = "hidden";
     fairnessBadge.style.textOverflow = "ellipsis";
-    fairnessBadge.innerText = "Preparing round...";
+    fairnessBadge.innerText = "Waiting to lock round...";
     document.body.appendChild(fairnessBadge);
 
     function shortHash(str) {
@@ -253,6 +257,49 @@ document.addEventListener("DOMContentLoaded", function () {
         multiplierDisplay.classList.add("multiplier-pop");
     }
 
+    function updateLadder() {
+        if (!multiplierLadder || !ladderStepLabel || !ladderNextLabel) return;
+
+        multiplierLadder.innerHTML = "";
+
+        multipliers.forEach((value, idx) => {
+            const step = document.createElement("div");
+            step.className = "ladder-step";
+            step.textContent = `x${value.toFixed(2)}`;
+
+            if (idx === multipliers.length - 1) {
+                step.classList.add("final-step");
+            }
+
+            if (safeFoundCount >= 10) {
+                step.classList.add("done");
+                if (idx === multipliers.length - 1) step.classList.add("current");
+            } else if (safeFoundCount === 0) {
+                if (idx === 0) step.classList.add("next");
+            } else {
+                if (idx < safeFoundCount - 1) step.classList.add("done");
+                if (idx === safeFoundCount - 1) step.classList.add("current");
+                if (idx === safeFoundCount) step.classList.add("next");
+            }
+
+            multiplierLadder.appendChild(step);
+        });
+
+        if (safeFoundCount >= 10) {
+            ladderStepLabel.textContent = "Step 10 of 10";
+            ladderNextLabel.textContent = "Jackpot cleared";
+        } else if (safeFoundCount === 9) {
+            ladderStepLabel.textContent = "Step 9 of 10";
+            ladderNextLabel.textContent = "Final donut live • Next: x3.50";
+        } else if (safeFoundCount > 0) {
+            ladderStepLabel.textContent = `Step ${safeFoundCount} of 10`;
+            ladderNextLabel.textContent = `Next: x${multipliers[safeFoundCount].toFixed(2)}`;
+        } else {
+            ladderStepLabel.textContent = "Step 0 of 10";
+            ladderNextLabel.textContent = `Next: x${multipliers[0].toFixed(2)}`;
+        }
+    }
+
     function revealFinalPushHint() {
         if (safeFoundCount === 9) {
             status.innerText = "FINAL DONUT • 33% shot at x3.50";
@@ -268,6 +315,14 @@ document.addEventListener("DOMContentLoaded", function () {
             hitbox.style.pointerEvents = "none";
         });
         updateCashoutButton();
+        updateLadder();
+    }
+
+    function unlockBoard() {
+        const hitboxes = container.querySelectorAll(".donut-hitbox");
+        hitboxes.forEach((hitbox) => {
+            hitbox.style.pointerEvents = "auto";
+        });
     }
 
     function showPoisonOverlay() {
@@ -349,7 +404,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function startGame() {
+    function hideIntroOverlay() {
         if (introVideo) {
             try {
                 introVideo.pause();
@@ -364,8 +419,49 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    async function beginRoundFromIntro() {
+        if (hasStartedRound || isGameOver) return;
+
+        if (startGameBtn) {
+            startGameBtn.disabled = true;
+            startGameBtn.textContent = "Starting Round...";
+        }
+
+        status.innerText = "Locking wager...";
+        setFairnessBadge("Locking new round...");
+
+        if (usingBackend && !usingLocalFallback) {
+            const started = await startBackendRound();
+
+            if (!started && !usingLocalFallback) {
+                status.innerText = "Could not lock round.";
+                if (startGameBtn) {
+                    startGameBtn.disabled = false;
+                    startGameBtn.textContent = "Lock Wager & Start Round";
+                }
+                return;
+            }
+        }
+
+        if (usingLocalFallback) {
+            seedLocalFallbackPoisons();
+        }
+
+        hasStartedRound = true;
+        unlockBoard();
+        hideIntroOverlay();
+        updateLadder();
+        updateCashoutButton();
+
+        if (usingLocalFallback) {
+            status.innerText = "Demo mode live. Pick a donut.";
+        } else {
+            status.innerText = "Round live. Pick a donut.";
+        }
+    }
+
     async function cashOutNow() {
-        if (isGameOver || safeFoundCount < 1) return;
+        if (isGameOver || safeFoundCount < 1 || !hasStartedRound) return;
 
         if (usingBackend && !usingLocalFallback && roundId) {
             try {
@@ -379,6 +475,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 multiplier = Number(data.currentMultiplier || multiplier);
                 safeFoundCount = Number(data.safeClicks || safeFoundCount);
                 applyRevealData(data.provablyFair);
+                updateLadder();
 
                 lockBoard();
                 status.innerText = "Greed fed. Cash locked in.";
@@ -415,12 +512,12 @@ document.addEventListener("DOMContentLoaded", function () {
         playIntro();
 
         introVideo.addEventListener("ended", function () {
-            startGame();
+            /* keep overlay visible until round is explicitly locked */
         });
     }
 
     if (startGameBtn) {
-        startGameBtn.addEventListener("click", startGame);
+        startGameBtn.addEventListener("click", beginRoundFromIntro);
     }
 
     if (cashoutButton) {
@@ -429,14 +526,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     authToken = getAuthToken();
     if (authToken) {
-        setFairnessBadge("Provably Fair • Waiting to lock round");
+        setFairnessBadge("Provably Fair • Ready to lock round");
     } else {
         switchToLocalFallback("No token");
     }
 
     multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
     updateCashoutButton();
-    status.innerText = "Pick a donut to begin.";
+    updateLadder();
+    status.innerText = usingLocalFallback
+        ? "Demo mode ready. Lock round to begin."
+        : "Lock your round to begin.";
 
     container.innerHTML = "";
 
@@ -448,20 +548,14 @@ document.addEventListener("DOMContentLoaded", function () {
         hitbox.style.left = pos.x + "%";
         hitbox.style.top = pos.y + "%";
         hitbox.style.transform = "translate(-50%, -50%)";
+        hitbox.style.pointerEvents = "none";
 
         hitbox.onclick = async function () {
             if (isGameOver || this.dataset.clicked === "true") return;
 
             if (!hasStartedRound) {
-                hasStartedRound = true;
-
-                if (usingBackend && !usingLocalFallback) {
-                    const started = await startBackendRound();
-                    if (!started && !usingLocalFallback) {
-                        status.innerText = "Could not start round.";
-                        return;
-                    }
-                }
+                status.innerText = "Lock a round first.";
+                return;
             }
 
             this.dataset.clicked = "true";
@@ -481,6 +575,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     safeFoundCount = Number(data.safeClicks || safeFoundCount);
                     multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
                     popMultiplier();
+                    updateLadder();
 
                     if (data.provablyFair) {
                         applyRevealData(data.provablyFair);
@@ -529,6 +624,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 safeFoundCount++;
                 multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
                 popMultiplier();
+                updateLadder();
                 updateCashoutButton();
 
                 if (safeFoundCount >= 10) {
