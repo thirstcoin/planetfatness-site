@@ -65,6 +65,11 @@ body {
     box-shadow: 0 4px 14px rgba(0,0,0,0.35);
 }
 
+.intro-content button:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
 /* 2. Game Container - The Board */
 #game-container {
     position: absolute;
@@ -193,6 +198,133 @@ body {
     }
 }
 
+/* 5.25 Multiplier Ladder */
+#multiplier-ladder-wrap {
+    position: absolute;
+    top: 17.2%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 520;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: min(92vw, 760px);
+    pointer-events: none;
+}
+
+#ladder-step-label,
+#ladder-next-label {
+    color: #fff;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: 0.3px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.95);
+}
+
+#ladder-step-label {
+    font-size: clamp(15px, 1.4vw, 20px);
+}
+
+#ladder-next-label {
+    font-size: clamp(14px, 1.2vw, 18px);
+    opacity: 0.98;
+}
+
+#multiplier-ladder {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+}
+
+.ladder-step {
+    min-height: 42px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 215, 0, 0.18);
+    background: rgba(28, 12, 38, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.88);
+    font-size: clamp(12px, 1vw, 15px);
+    font-weight: 900;
+    letter-spacing: 0.15px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.ladder-step.done {
+    color: #111;
+    background: linear-gradient(180deg, #FFD700 0%, #E2AA00 100%);
+    border-color: rgba(255, 215, 0, 0.7);
+    box-shadow:
+        0 0 14px rgba(255, 215, 0, 0.25),
+        inset 0 1px 0 rgba(255,255,255,0.22);
+}
+
+.ladder-step.current {
+    color: #111;
+    background: linear-gradient(180deg, #FFD700 0%, #E2AA00 100%);
+    border-color: rgba(255, 215, 0, 0.95);
+    box-shadow:
+        0 0 14px rgba(255, 215, 0, 0.25),
+        0 0 24px rgba(255, 215, 0, 0.26),
+        inset 0 1px 0 rgba(255,255,255,0.22);
+    transform: translateY(-1px) scale(1.03);
+}
+
+.ladder-step.next {
+    color: #fff5bf;
+    border-color: rgba(255, 215, 0, 0.5);
+    background: linear-gradient(180deg, rgba(84, 54, 0, 0.92) 0%, rgba(42, 26, 0, 0.92) 100%);
+    box-shadow:
+        0 0 10px rgba(255, 215, 0, 0.18),
+        0 0 18px rgba(255, 215, 0, 0.18);
+    animation: ladderPulse 1.6s infinite ease-in-out;
+}
+
+.ladder-step.final-step {
+    position: relative;
+}
+
+.ladder-step.final-step::after {
+    content: "★";
+    position: absolute;
+    top: -8px;
+    right: 6px;
+    font-size: 11px;
+    color: #FFD700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
+}
+
+.ladder-step.final-step.next {
+    box-shadow:
+        0 0 12px rgba(255, 215, 0, 0.22),
+        0 0 20px rgba(255, 85, 85, 0.20);
+}
+
+@keyframes ladderPulse {
+    0% {
+        transform: scale(1);
+        box-shadow:
+            0 0 10px rgba(255, 215, 0, 0.16),
+            0 0 18px rgba(255, 215, 0, 0.14);
+    }
+    50% {
+        transform: scale(1.03);
+        box-shadow:
+            0 0 14px rgba(255, 215, 0, 0.24),
+            0 0 22px rgba(255, 215, 0, 0.22);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow:
+            0 0 10px rgba(255, 215, 0, 0.16),
+            0 0 18px rgba(255, 215, 0, 0.14);
+    }
+}
+
 /* 5.5 Cash Out */
 #cashout-wrap {
     position: absolute;
@@ -300,7 +432,8 @@ body {
     text-shadow: 0 2px 10px rgba(0,0,0,0.9);
 }
 
-.overlay-content button {
+.overlay-content button,
+.overlay-link-btn {
     appearance: none;
     border: none;
     border-radius: 12px;
@@ -311,6 +444,7 @@ body {
     background: #FFD700;
     color: #111;
     box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    text-decoration: none;
 }
 
 /* Mobile tuning */
@@ -318,6 +452,30 @@ body {
     #multiplier-display {
         top: 7%;
         font-size: clamp(58px, 9vw, 76px);
+    }
+
+    #multiplier-ladder-wrap {
+        top: 15.2%;
+        width: min(94vw, 560px);
+        gap: 6px;
+    }
+
+    #multiplier-ladder {
+        gap: 4px;
+    }
+
+    .ladder-step {
+        min-height: 36px;
+        border-radius: 10px;
+        font-size: clamp(10px, 2.4vw, 12px);
+    }
+
+    #ladder-step-label {
+        font-size: 14px;
+    }
+
+    #ladder-next-label {
+        font-size: 13px;
     }
 
     #status {
@@ -353,6 +511,7 @@ body {
     }
 
     .overlay-content button,
+    .overlay-link-btn,
     .intro-content button {
         font-size: 16px;
         padding: 12px 20px;
