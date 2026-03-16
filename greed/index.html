@@ -13,18 +13,25 @@
         </video>
 
         <div class="intro-content">
-            <button id="start-game-btn">Start Game</button>
+            <button id="start-game-btn" type="button">Lock Wager & Start Round</button>
         </div>
     </div>
 
     <div id="multiplier-display">x1.00</div>
+
+    <div id="multiplier-ladder-wrap">
+        <div id="ladder-step-label">Step 0 of 10</div>
+        <div id="multiplier-ladder"></div>
+        <div id="ladder-next-label">Next: x1.02</div>
+    </div>
+
     <div id="game-container"></div>
 
     <div id="cashout-wrap">
         <button id="cashout-button" type="button" disabled>Cash Out</button>
     </div>
 
-    <div id="status">Pick a donut to begin.</div>
+    <div id="status">Lock your round to begin.</div>
 
     <div id="poison-overlay">
         <video id="poison-video" muted playsinline preload="auto" class="overlay-video">
@@ -33,7 +40,7 @@
 
         <div class="overlay-content">
             <h1>POISON! Game Over.</h1>
-            <button onclick="location.reload()">Play Again</button>
+            <a class="overlay-link-btn" href="/">Back to Gym</a>
         </div>
     </div>
 
@@ -46,7 +53,7 @@
             <h1 id="win-title">YOU FED THE GREED</h1>
             <p id="win-subtitle">Cashed Out</p>
             <p id="win-multiplier">x1.00</p>
-            <button onclick="location.reload()">Play Again</button>
+            <a class="overlay-link-btn" href="/">Back to Gym</a>
         </div>
     </div>
 
