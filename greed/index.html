@@ -19,6 +19,11 @@
 
     <div id="multiplier-display">x1.00</div>
 
+    <div id="jackpot-wrap">
+        <div id="jackpot-label">Progressive Jackpot</div>
+        <div id="jackpot-amount">5,000 PHAT</div>
+    </div>
+
     <div id="multiplier-ladder-wrap">
         <div id="ladder-step-label">Step 0 of 10</div>
         <div id="multiplier-ladder"></div>
@@ -40,7 +45,10 @@
 
         <div class="overlay-content">
             <h1>POISON! Game Over.</h1>
-            <a class="overlay-link-btn" href="/">Back to Gym</a>
+            <div class="overlay-actions">
+                <button id="poison-new-round-btn" type="button">New Round</button>
+                <button id="poison-back-chat-btn" type="button">Back to Chat</button>
+            </div>
         </div>
     </div>
 
@@ -53,10 +61,14 @@
             <h1 id="win-title">YOU FED THE GREED</h1>
             <p id="win-subtitle">Cashed Out</p>
             <p id="win-multiplier">x1.00</p>
-            <a class="overlay-link-btn" href="/">Back to Gym</a>
+            <div class="overlay-actions">
+                <button id="win-new-round-btn" type="button">New Round</button>
+                <button id="win-back-chat-btn" type="button">Back to Chat</button>
+            </div>
         </div>
     </div>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="game.js"></script>
 </body>
 </html>
