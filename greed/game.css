@@ -66,7 +66,7 @@ body {
 }
 
 .intro-content button:disabled {
-    opacity: 0.7;
+    opacity: 0.72;
     cursor: wait;
 }
 
@@ -198,18 +198,49 @@ body {
     }
 }
 
-/* 5.25 Multiplier Ladder */
-#multiplier-ladder-wrap {
+/* 5.1 Jackpot */
+#jackpot-wrap {
     position: absolute;
-    top: 17.2%;
+    top: 17%;
     left: 50%;
     transform: translateX(-50%);
+    z-index: 530;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    pointer-events: none;
+}
+
+#jackpot-label {
+    font-size: clamp(12px, 1vw, 15px);
+    font-weight: 900;
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+    letter-spacing: 0.3px;
+}
+
+#jackpot-amount {
+    font-size: clamp(18px, 1.6vw, 24px);
+    font-weight: 900;
+    color: #FFD700;
+    text-shadow:
+        0 2px 10px rgba(0,0,0,0.95),
+        0 0 14px rgba(255, 215, 0, 0.18);
+    letter-spacing: 0.4px;
+}
+
+/* 5.25 Vertical Multiplier Ladder */
+#multiplier-ladder-wrap {
+    position: absolute;
+    top: 27%;
+    left: 3.8%;
     z-index: 520;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    width: min(92vw, 760px);
+    width: 82px;
     pointer-events: none;
 }
 
@@ -220,26 +251,29 @@ body {
     text-align: center;
     letter-spacing: 0.3px;
     text-shadow: 0 2px 10px rgba(0,0,0,0.95);
+    width: 100%;
 }
 
 #ladder-step-label {
-    font-size: clamp(15px, 1.4vw, 20px);
+    font-size: 12px;
+    line-height: 1.1;
 }
 
 #ladder-next-label {
-    font-size: clamp(14px, 1.2vw, 18px);
+    font-size: 11px;
+    line-height: 1.15;
     opacity: 0.98;
 }
 
 #multiplier-ladder {
-    display: grid;
-    grid-template-columns: repeat(10, minmax(0, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 6px;
     width: 100%;
 }
 
 .ladder-step {
-    min-height: 42px;
+    min-height: 38px;
     border-radius: 12px;
     border: 1px solid rgba(255, 215, 0, 0.18);
     background: rgba(28, 12, 38, 0.72);
@@ -247,9 +281,9 @@ body {
     align-items: center;
     justify-content: center;
     color: rgba(255,255,255,0.88);
-    font-size: clamp(12px, 1vw, 15px);
+    font-size: 13px;
     font-weight: 900;
-    letter-spacing: 0.15px;
+    letter-spacing: 0.12px;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
     transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
 }
@@ -291,8 +325,8 @@ body {
 .ladder-step.final-step::after {
     content: "★";
     position: absolute;
-    top: -8px;
-    right: 6px;
+    top: -7px;
+    right: 5px;
     font-size: 11px;
     color: #FFD700;
     text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
@@ -432,8 +466,14 @@ body {
     text-shadow: 0 2px 10px rgba(0,0,0,0.9);
 }
 
-.overlay-content button,
-.overlay-link-btn {
+.overlay-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.overlay-content button {
     appearance: none;
     border: none;
     border-radius: 12px;
@@ -444,7 +484,6 @@ body {
     background: #FFD700;
     color: #111;
     box-shadow: 0 4px 14px rgba(0,0,0,0.35);
-    text-decoration: none;
 }
 
 /* Mobile tuning */
@@ -454,28 +493,37 @@ body {
         font-size: clamp(58px, 9vw, 76px);
     }
 
+    #jackpot-wrap {
+        top: 17.3%;
+    }
+
+    #jackpot-label {
+        font-size: 11px;
+    }
+
+    #jackpot-amount {
+        font-size: 16px;
+    }
+
     #multiplier-ladder-wrap {
-        top: 15.2%;
-        width: min(94vw, 560px);
+        top: 25.4%;
+        left: 2.4%;
+        width: 62px;
         gap: 6px;
     }
 
-    #multiplier-ladder {
-        gap: 4px;
-    }
-
     .ladder-step {
-        min-height: 36px;
+        min-height: 34px;
         border-radius: 10px;
-        font-size: clamp(10px, 2.4vw, 12px);
+        font-size: 11px;
     }
 
     #ladder-step-label {
-        font-size: 14px;
+        font-size: 10px;
     }
 
     #ladder-next-label {
-        font-size: 13px;
+        font-size: 10px;
     }
 
     #status {
@@ -511,7 +559,6 @@ body {
     }
 
     .overlay-content button,
-    .overlay-link-btn,
     .intro-content button {
         font-size: 16px;
         padding: 12px 20px;
