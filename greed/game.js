@@ -10,15 +10,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const multiplierLadder = document.getElementById("multiplier-ladder");
     const ladderStepLabel = document.getElementById("ladder-step-label");
     const ladderNextLabel = document.getElementById("ladder-next-label");
+    const jackpotAmount = document.getElementById("jackpot-amount");
 
     const poisonOverlay = document.getElementById("poison-overlay");
     const poisonVideo = document.getElementById("poison-video");
+    const poisonNewRoundBtn = document.getElementById("poison-new-round-btn");
+    const poisonBackChatBtn = document.getElementById("poison-back-chat-btn");
 
     const winOverlay = document.getElementById("win-overlay");
     const winVideo = document.getElementById("win-video");
     const winTitle = document.getElementById("win-title");
     const winSubtitle = document.getElementById("win-subtitle");
     const winMultiplier = document.getElementById("win-multiplier");
+    const winNewRoundBtn = document.getElementById("win-new-round-btn");
+    const winBackChatBtn = document.getElementById("win-back-chat-btn");
 
     const introOverlay = document.getElementById("intro-overlay");
     const introVideo = document.getElementById("intro-video");
@@ -27,6 +32,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const cashoutButton = document.getElementById("cashout-button");
 
     if (!container) return;
+
+    const nomSound = new Audio("/assets/greed/nom.mp3");
+    nomSound.preload = "auto";
+    nomSound.volume = 0.65;
 
     if (poisonVideo) poisonVideo.load();
     if (introVideo) introVideo.load();
@@ -38,6 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let poisonIndices = [];
     let isGameOver = false;
     let hasStartedRound = false;
+    let roundStarting = false;
 
     let usingBackend = true;
     let usingLocalFallback = false;
@@ -124,6 +134,10 @@ document.addEventListener("DOMContentLoaded", function () {
         return str.length > 12 ? `${str.slice(0, 10)}…` : str;
     }
 
+    function formatNumber(n) {
+        return Number(n || 0).toLocaleString("en-US");
+    }
+
     function getRandomHypeLine() {
         return hypeLines[Math.floor(Math.random() * hypeLines.length)];
     }
@@ -202,6 +216,25 @@ document.addEventListener("DOMContentLoaded", function () {
         return data;
     }
 
+    async function refreshJackpot() {
+        try {
+            const data = await apiFetch("/greed/jackpot", { method: "GET" });
+            const currentAmount =
+                Number(data?.jackpot?.currentAmount) ||
+                Number(data?.jackpot?.current_amount) ||
+                Number(data?.jackpot?.current_amount || 0);
+
+            if (jackpotAmount) {
+                jackpotAmount.textContent = `${formatNumber(currentAmount || 5000)} PHAT`;
+            }
+        } catch (err) {
+            console.warn("Jackpot fetch failed:", err);
+            if (jackpotAmount && !jackpotAmount.textContent.trim()) {
+                jackpotAmount.textContent = "5,000 PHAT";
+            }
+        }
+    }
+
     async function startBackendRound() {
         const token = authToken || getAuthToken();
         if (!token) {
@@ -222,6 +255,15 @@ document.addEventListener("DOMContentLoaded", function () {
             roundId = data.roundId;
             commitHash = data?.provablyFair?.commitHash || "";
             setFairnessBadge(`Provably Fair • ${shortHash(commitHash)}`);
+
+            const jackpotCurrent =
+                Number(data?.jackpot?.currentAmount) ||
+                Number(data?.jackpot?.current_amount) ||
+                0;
+
+            if (jackpotAmount && jackpotCurrent > 0) {
+                jackpotAmount.textContent = `${formatNumber(jackpotCurrent)} PHAT`;
+            }
 
             return true;
         } catch (err) {
@@ -262,24 +304,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
         multiplierLadder.innerHTML = "";
 
-        multipliers.forEach((value, idx) => {
+        const verticalSteps = [...multipliers].reverse();
+
+        verticalSteps.forEach((value) => {
+            const originalIndex = multipliers.indexOf(value);
             const step = document.createElement("div");
             step.className = "ladder-step";
             step.textContent = `x${value.toFixed(2)}`;
 
-            if (idx === multipliers.length - 1) {
+            if (originalIndex === multipliers.length - 1) {
                 step.classList.add("final-step");
             }
 
             if (safeFoundCount >= 10) {
                 step.classList.add("done");
-                if (idx === multipliers.length - 1) step.classList.add("current");
+                if (originalIndex === multipliers.length - 1) step.classList.add("current");
             } else if (safeFoundCount === 0) {
-                if (idx === 0) step.classList.add("next");
+                if (originalIndex === 0) step.classList.add("next");
             } else {
-                if (idx < safeFoundCount - 1) step.classList.add("done");
-                if (idx === safeFoundCount - 1) step.classList.add("current");
-                if (idx === safeFoundCount) step.classList.add("next");
+                if (originalIndex < safeFoundCount - 1) step.classList.add("done");
+                if (originalIndex === safeFoundCount - 1) step.classList.add("current");
+                if (originalIndex === safeFoundCount) step.classList.add("next");
             }
 
             multiplierLadder.appendChild(step);
@@ -290,13 +335,25 @@ document.addEventListener("DOMContentLoaded", function () {
             ladderNextLabel.textContent = "Jackpot cleared";
         } else if (safeFoundCount === 9) {
             ladderStepLabel.textContent = "Step 9 of 10";
-            ladderNextLabel.textContent = "Final donut live • Next: x3.50";
+            ladderNextLabel.textContent = "Top step live";
         } else if (safeFoundCount > 0) {
             ladderStepLabel.textContent = `Step ${safeFoundCount} of 10`;
-            ladderNextLabel.textContent = `Next: x${multipliers[safeFoundCount].toFixed(2)}`;
+            ladderNextLabel.textContent = `Next x${multipliers[safeFoundCount].toFixed(2)}`;
         } else {
             ladderStepLabel.textContent = "Step 0 of 10";
-            ladderNextLabel.textContent = `Next: x${multipliers[0].toFixed(2)}`;
+            ladderNextLabel.textContent = `Next x${multipliers[0].toFixed(2)}`;
+        }
+    }
+
+    function playNomSound() {
+        try {
+            nomSound.pause();
+            nomSound.currentTime = 0;
+            nomSound.play().catch((err) => {
+                console.warn("Nom sound blocked:", err);
+            });
+        } catch (err) {
+            console.warn("Nom sound failed:", err);
         }
     }
 
@@ -332,7 +389,6 @@ document.addEventListener("DOMContentLoaded", function () {
             try {
                 poisonVideo.pause();
                 poisonVideo.currentTime = 0;
-
                 const playPromise = poisonVideo.play();
                 if (playPromise !== undefined) {
                     playPromise.catch((err) => {
@@ -367,7 +423,6 @@ document.addEventListener("DOMContentLoaded", function () {
             try {
                 winVideo.pause();
                 winVideo.currentTime = 0;
-
                 const playPromise = winVideo.play();
                 if (playPromise !== undefined) {
                     playPromise.catch((err) => {
@@ -378,6 +433,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.warn("Win video error:", err);
             }
         }
+    }
+
+    function hideOverlays() {
+        if (poisonOverlay) poisonOverlay.style.display = "none";
+        if (winOverlay) winOverlay.style.display = "none";
     }
 
     function applyRevealData(provablyFair) {
@@ -419,8 +479,35 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function resetRoundStateForFreshStart() {
+        multiplier = 1.0;
+        safeFoundCount = 0;
+        poisonIndices = [];
+        isGameOver = false;
+        hasStartedRound = false;
+        roundStarting = false;
+        roundId = null;
+        commitHash = "";
+        revealedServerSeed = "";
+        revealedPoisonIndices = [];
+
+        multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+        updateLadder();
+        updateCashoutButton();
+
+        const hitboxes = container.querySelectorAll(".donut-hitbox");
+        hitboxes.forEach((hitbox) => {
+            hitbox.dataset.clicked = "false";
+            hitbox.classList.remove("selected", "revealed");
+            hitbox.style.backgroundColor = "transparent";
+            hitbox.style.pointerEvents = "none";
+        });
+    }
+
     async function beginRoundFromIntro() {
-        if (hasStartedRound || isGameOver) return;
+        if (hasStartedRound || isGameOver || roundStarting) return;
+
+        roundStarting = true;
 
         if (startGameBtn) {
             startGameBtn.disabled = true;
@@ -435,6 +522,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!started && !usingLocalFallback) {
                 status.innerText = "Could not lock round.";
+                roundStarting = false;
                 if (startGameBtn) {
                     startGameBtn.disabled = false;
                     startGameBtn.textContent = "Lock Wager & Start Round";
@@ -448,6 +536,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         hasStartedRound = true;
+        roundStarting = false;
         unlockBoard();
         hideIntroOverlay();
         updateLadder();
@@ -457,6 +546,43 @@ document.addEventListener("DOMContentLoaded", function () {
             status.innerText = "Demo mode live. Pick a donut.";
         } else {
             status.innerText = "Round live. Pick a donut.";
+        }
+    }
+
+    async function startFreshRoundFromOverlay() {
+        hideOverlays();
+        resetRoundStateForFreshStart();
+
+        if (introOverlay) {
+            introOverlay.classList.remove("hidden");
+        }
+
+        if (startGameBtn) {
+            startGameBtn.disabled = false;
+            startGameBtn.textContent = "Lock Wager & Start Round";
+        }
+
+        status.innerText = usingLocalFallback
+            ? "Demo mode ready. Lock round to begin."
+            : "Lock your round to begin.";
+
+        await beginRoundFromIntro();
+    }
+
+    function backToChat() {
+        try {
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.close();
+                return;
+            }
+        } catch (err) {
+            console.warn("Telegram close failed:", err);
+        }
+
+        if (document.referrer && document.referrer.length > 0) {
+            window.history.back();
+        } else {
+            window.location.href = "/";
         }
     }
 
@@ -476,6 +602,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 safeFoundCount = Number(data.safeClicks || safeFoundCount);
                 applyRevealData(data.provablyFair);
                 updateLadder();
+                await refreshJackpot();
 
                 lockBoard();
                 status.innerText = "Greed fed. Cash locked in.";
@@ -524,6 +651,22 @@ document.addEventListener("DOMContentLoaded", function () {
         cashoutButton.addEventListener("click", cashOutNow);
     }
 
+    if (poisonNewRoundBtn) {
+        poisonNewRoundBtn.addEventListener("click", startFreshRoundFromOverlay);
+    }
+
+    if (winNewRoundBtn) {
+        winNewRoundBtn.addEventListener("click", startFreshRoundFromOverlay);
+    }
+
+    if (poisonBackChatBtn) {
+        poisonBackChatBtn.addEventListener("click", backToChat);
+    }
+
+    if (winBackChatBtn) {
+        winBackChatBtn.addEventListener("click", backToChat);
+    }
+
     authToken = getAuthToken();
     if (authToken) {
         setFairnessBadge("Provably Fair • Ready to lock round");
@@ -534,6 +677,8 @@ document.addEventListener("DOMContentLoaded", function () {
     multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
     updateCashoutButton();
     updateLadder();
+    refreshJackpot();
+
     status.innerText = usingLocalFallback
         ? "Demo mode ready. Lock round to begin."
         : "Lock your round to begin.";
@@ -585,15 +730,18 @@ document.addEventListener("DOMContentLoaded", function () {
                         this.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
                         status.innerText = "POISON! Game Over.";
                         lockBoard();
+                        await refreshJackpot();
                         showPoisonOverlay();
                         return;
                     }
 
+                    playNomSound();
                     updateCashoutButton();
 
                     if (data.result === "perfect" || safeFoundCount >= 10) {
                         lockBoard();
                         status.innerText = "PERFECT RUN!";
+                        await refreshJackpot();
                         showWinOverlay();
                         return;
                     }
@@ -624,6 +772,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 safeFoundCount++;
                 multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
                 popMultiplier();
+                playNomSound();
                 updateLadder();
                 updateCashoutButton();
 
