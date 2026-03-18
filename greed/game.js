@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const startSound = new Audio("/assets/greed/start.mp3");
     startSound.preload = "auto";
-    startSound.volume = 0.7;
+    startSound.volume = 0.85;
 
     const poisonSound = new Audio("/assets/greed/poison.mp3");
     poisonSound.preload = "auto";
@@ -257,6 +257,30 @@ document.addEventListener("DOMContentLoaded", function () {
             playJackpotCashoutSound();
         } else {
             playBaseCashoutSound();
+        }
+    }
+
+    function playIntroSequence() {
+        if (!introVideo) return;
+
+        try {
+            introVideo.pause();
+            introVideo.currentTime = 0;
+        } catch (err) {
+            console.warn("Intro reset error:", err);
+        }
+
+        playStartSound();
+
+        try {
+            const playPromise = introVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.catch((err) => {
+                    console.warn("Intro autoplay failed:", err);
+                });
+            }
+        } catch (err) {
+            console.warn("Intro video error:", err);
         }
     }
 
@@ -615,7 +639,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (hasStartedRound || isGameOver || roundStarting) return;
 
         roundStarting = true;
-        playStartSound();
 
         if (startGameBtn) {
             startGameBtn.disabled = true;
@@ -670,11 +693,11 @@ document.addEventListener("DOMContentLoaded", function () {
             startGameBtn.textContent = "Lock Wager & Start Round";
         }
 
+        playIntroSequence();
+
         status.innerText = usingLocalFallback
             ? "Demo mode ready. Lock round to begin."
             : "Lock your round to begin.";
-
-        await beginRoundFromIntro();
     }
 
     function backToChat() {
@@ -728,29 +751,6 @@ document.addEventListener("DOMContentLoaded", function () {
         playCashoutTierSound();
         status.innerText = "Greed fed. Cash locked in.";
         showWinOverlay();
-    }
-
-    if (introVideo) {
-        const playIntro = () => {
-            try {
-                introVideo.pause();
-                introVideo.currentTime = 0;
-                const playPromise = introVideo.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch((err) => {
-                        console.warn("Intro autoplay failed:", err);
-                    });
-                }
-            } catch (err) {
-                console.warn("Intro video error:", err);
-            }
-        };
-
-        playIntro();
-
-        introVideo.addEventListener("ended", function () {
-            /* keep overlay visible until round is explicitly locked */
-        });
     }
 
     if (startGameBtn) {
@@ -911,4 +911,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         container.appendChild(hitbox);
     });
+
+    playIntroSequence();
 });
