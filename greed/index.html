@@ -7,18 +7,28 @@
     <link rel="stylesheet" href="game.css">
 </head>
 <body>
+
+    <!-- Intro / Lock Round -->
     <div id="intro-overlay">
         <video id="intro-video" muted playsinline preload="auto" class="intro-video">
             <source src="/assets/greed/intro-open.mp4" type="video/mp4">
         </video>
 
         <div class="intro-content">
-            <button id="start-game-btn" type="button">Lock Wager & Start Round</button>
+            <button id="start-game-btn" type="button">
+                Lock Wager & Start Round
+            </button>
         </div>
     </div>
 
+    <!-- Top UI -->
     <div id="top-ui">
         <div id="multiplier-display">x1.00</div>
+
+        <!-- NEW: Clean Rules Line -->
+        <div id="rules-brief">
+            12 donuts • 2 poison • cash out after 1 safe pick
+        </div>
 
         <div id="jackpot-wrap">
             <div id="jackpot-label">Progressive Jackpot</div>
@@ -26,20 +36,27 @@
         </div>
     </div>
 
+    <!-- Vertical Ladder -->
     <div id="multiplier-ladder-wrap">
         <div id="ladder-step-label">Step 0 of 10</div>
         <div id="multiplier-ladder"></div>
         <div id="ladder-next-label">Next x1.02</div>
     </div>
 
+    <!-- Game Board -->
     <div id="game-container"></div>
 
+    <!-- Cashout -->
     <div id="cashout-wrap">
-        <button id="cashout-button" type="button" disabled>Cash Out</button>
+        <button id="cashout-button" type="button" disabled>
+            Cash Out
+        </button>
     </div>
 
+    <!-- Status -->
     <div id="status">Lock your round to begin.</div>
 
+    <!-- Poison Overlay -->
     <div id="poison-overlay">
         <video id="poison-video" muted playsinline preload="auto" class="overlay-video">
             <source src="/assets/greed/phil-poison.mp4" type="video/mp4">
@@ -47,13 +64,19 @@
 
         <div class="overlay-content">
             <h1>POISON! Game Over.</h1>
+
             <div class="overlay-actions">
-                <button id="poison-new-round-btn" type="button">New Round</button>
-                <button id="poison-back-chat-btn" type="button">Back to Chat</button>
+                <button id="poison-new-round-btn" type="button">
+                    New Round
+                </button>
+                <button id="poison-back-chat-btn" type="button">
+                    Back to Chat
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- Win Overlay -->
     <div id="win-overlay">
         <video id="win-video" muted playsinline preload="auto" class="overlay-video">
             <source src="/assets/greed/phil-win.mp4" type="video/mp4">
@@ -63,14 +86,23 @@
             <h1 id="win-title">YOU FED THE GREED</h1>
             <p id="win-subtitle">Cashed Out</p>
             <p id="win-multiplier">x1.00</p>
+
             <div class="overlay-actions">
-                <button id="win-new-round-btn" type="button">New Round</button>
-                <button id="win-back-chat-btn" type="button">Back to Chat</button>
+                <button id="win-new-round-btn" type="button">
+                    New Round
+                </button>
+                <button id="win-back-chat-btn" type="button">
+                    Back to Chat
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- Telegram SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Game Logic -->
     <script src="game.js"></script>
+
 </body>
 </html>
