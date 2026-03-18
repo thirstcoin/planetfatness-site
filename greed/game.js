@@ -33,9 +33,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!container) return;
 
+    // Audio
     const nomSound = new Audio("/assets/greed/nom.mp3");
     nomSound.preload = "auto";
     nomSound.volume = 0.65;
+
+    const startSound = new Audio("/assets/greed/start.mp3");
+    startSound.preload = "auto";
+    startSound.volume = 0.7;
+
+    const poisonSound = new Audio("/assets/greed/poison.mp3");
+    poisonSound.preload = "auto";
+    poisonSound.volume = 0.8;
+
+    const cashoutSound = new Audio("/assets/greed/cashout.mp3");
+    cashoutSound.preload = "auto";
+    cashoutSound.volume = 0.75;
+
+    const jackpotSound = new Audio("/assets/greed/jackpot.mp3");
+    jackpotSound.preload = "auto";
+    jackpotSound.volume = 0.8;
+
+    const wowSound = new Audio("/assets/greed/wow.mp3");
+    wowSound.preload = "auto";
+    wowSound.volume = 0.65;
 
     if (poisonVideo) poisonVideo.load();
     if (introVideo) introVideo.load();
@@ -185,6 +206,58 @@ document.addEventListener("DOMContentLoaded", function () {
         container.classList.remove("poison-shake");
         void container.offsetWidth;
         container.classList.add("poison-shake");
+    }
+
+    function safePlaySound(audio, reset = true) {
+        try {
+            audio.pause();
+            if (reset) audio.currentTime = 0;
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch((err) => {
+                    console.warn("Audio play blocked:", err);
+                });
+            }
+        } catch (err) {
+            console.warn("Audio play failed:", err);
+        }
+    }
+
+    function playNomSound() {
+        safePlaySound(nomSound);
+    }
+
+    function playStartSound() {
+        safePlaySound(startSound);
+    }
+
+    function playPoisonSound() {
+        safePlaySound(poisonSound);
+    }
+
+    function playBaseCashoutSound() {
+        safePlaySound(cashoutSound);
+    }
+
+    function playJackpotCashoutSound() {
+        safePlaySound(jackpotSound);
+    }
+
+    function playWowSound() {
+        safePlaySound(wowSound);
+    }
+
+    function playCashoutTierSound() {
+        if (safeFoundCount >= 10) {
+            playJackpotCashoutSound();
+            setTimeout(() => {
+                playWowSound();
+            }, 250);
+        } else if (multiplier >= 2.0) {
+            playJackpotCashoutSound();
+        } else {
+            playBaseCashoutSound();
+        }
     }
 
     function getAuthToken() {
@@ -388,18 +461,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function playNomSound() {
-        try {
-            nomSound.pause();
-            nomSound.currentTime = 0;
-            nomSound.play().catch((err) => {
-                console.warn("Nom sound blocked:", err);
-            });
-        } catch (err) {
-            console.warn("Nom sound failed:", err);
-        }
-    }
-
     function revealFinalPushHint() {
         if (safeFoundCount === 9) {
             status.innerText = "FINAL DONUT • 33% shot at x3.50";
@@ -554,6 +615,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (hasStartedRound || isGameOver || roundStarting) return;
 
         roundStarting = true;
+        playStartSound();
 
         if (startGameBtn) {
             startGameBtn.disabled = true;
@@ -651,6 +713,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 await refreshJackpot();
 
                 lockBoard();
+                playCashoutTierSound();
                 status.innerText = "Greed fed. Cash locked in.";
                 showWinOverlay();
                 return;
@@ -662,6 +725,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         lockBoard();
+        playCashoutTierSound();
         status.innerText = "Greed fed. Cash locked in.";
         showWinOverlay();
     }
@@ -774,6 +838,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
 
                     if (data.result === "poison") {
+                        playPoisonSound();
                         this.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
                         status.innerText = "POISON! Game Over.";
                         shakeGameContainer();
@@ -790,6 +855,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     if (data.result === "perfect" || safeFoundCount >= 10) {
                         lockBoard();
+                        playCashoutTierSound();
                         status.innerText = "PERFECT RUN!";
                         await refreshJackpot();
                         showWinOverlay();
@@ -814,6 +880,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (poisonIndices.includes(index)) {
+                playPoisonSound();
                 this.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
                 status.innerText = "POISON! Game Over.";
                 shakeGameContainer();
@@ -832,6 +899,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (safeFoundCount >= 10) {
                     lockBoard();
+                    playCashoutTierSound();
                     status.innerText = "PERFECT RUN!";
                     showWinOverlay();
                     return;
