@@ -69,6 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let isGameOver = false;
     let hasStartedRound = false;
     let roundStarting = false;
+    let pickInFlight = false;
 
     let usingBackend = true;
     let usingLocalFallback = false;
@@ -416,7 +417,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateCashoutButton() {
         if (!cashoutButton) return;
 
-        if (safeFoundCount > 0 && !isGameOver) {
+        if (safeFoundCount > 0 && !isGameOver && !pickInFlight) {
             cashoutButton.disabled = false;
             cashoutButton.classList.add("active");
             cashoutButton.textContent = `Cash Out x${multiplier.toFixed(2)}`;
@@ -429,7 +430,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             cashoutButton.disabled = true;
             cashoutButton.classList.remove("active", "final-push");
-            cashoutButton.textContent = "Cash Out";
+            cashoutButton.textContent = safeFoundCount > 0 ? `Cash Out x${multiplier.toFixed(2)}` : "Cash Out";
         }
     }
 
@@ -504,10 +505,34 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function unlockBoard() {
+        if (isGameOver || !hasStartedRound || pickInFlight) return;
         const hitboxes = container.querySelectorAll(".donut-hitbox");
         hitboxes.forEach((hitbox) => {
-            hitbox.style.pointerEvents = "auto";
+            if (hitbox.dataset.clicked !== "true") {
+                hitbox.style.pointerEvents = "auto";
+            } else {
+                hitbox.style.pointerEvents = "none";
+            }
         });
+    }
+
+    function disableBoardForPick() {
+        const hitboxes = container.querySelectorAll(".donut-hitbox");
+        hitboxes.forEach((hitbox) => {
+            hitbox.style.pointerEvents = "none";
+        });
+    }
+
+    function beginPickLock() {
+        pickInFlight = true;
+        disableBoardForPick();
+        updateCashoutButton();
+    }
+
+    function endPickLock() {
+        pickInFlight = false;
+        updateCashoutButton();
+        unlockBoard();
     }
 
     function showPoisonOverlay() {
@@ -620,6 +645,7 @@ document.addEventListener("DOMContentLoaded", function () {
         commitHash = "";
         revealedServerSeed = "";
         revealedPoisonIndices = [];
+        pickInFlight = false;
 
         multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
         updateLadder();
@@ -668,6 +694,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         hasStartedRound = true;
         roundStarting = false;
+        pickInFlight = false;
         unlockBoard();
         hideIntroOverlay();
         updateLadder();
@@ -718,7 +745,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function cashOutNow() {
-        if (isGameOver || safeFoundCount < 1 || !hasStartedRound) return;
+        if (isGameOver || safeFoundCount < 1 || !hasStartedRound || pickInFlight) return;
+
+        beginPickLock();
 
         if (usingBackend && !usingLocalFallback && roundId) {
             try {
@@ -739,10 +768,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 playCashoutTierSound();
                 status.innerText = "Greed fed. Cash locked in.";
                 showWinOverlay();
+                pickInFlight = false;
+                updateCashoutButton();
                 return;
             } catch (err) {
                 console.warn("Backend cashout failed:", err);
                 status.innerText = "Cashout failed. Try again.";
+                endPickLock();
                 return;
             }
         }
@@ -751,6 +783,8 @@ document.addEventListener("DOMContentLoaded", function () {
         playCashoutTierSound();
         status.innerText = "Greed fed. Cash locked in.";
         showWinOverlay();
+        pickInFlight = false;
+        updateCashoutButton();
     }
 
     if (startGameBtn) {
@@ -804,14 +838,17 @@ document.addEventListener("DOMContentLoaded", function () {
         hitbox.style.top = pos.y + "%";
         hitbox.style.transform = "translate(-50%, -50%)";
         hitbox.style.pointerEvents = "none";
+        hitbox.dataset.clicked = "false";
 
         hitbox.onclick = async function () {
-            if (isGameOver || this.dataset.clicked === "true") return;
+            if (isGameOver || pickInFlight || this.dataset.clicked === "true") return;
 
             if (!hasStartedRound) {
                 status.innerText = "Lock a round first.";
                 return;
             }
+
+            beginPickLock();
 
             this.dataset.clicked = "true";
             this.classList.add("selected", "revealed");
@@ -843,6 +880,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         status.innerText = "POISON! Game Over.";
                         shakeGameContainer();
                         lockBoard();
+                        pickInFlight = false;
+                        updateCashoutButton();
                         await refreshJackpot();
                         setTimeout(() => {
                             showPoisonOverlay();
@@ -857,6 +896,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         lockBoard();
                         playCashoutTierSound();
                         status.innerText = "PERFECT RUN!";
+                        pickInFlight = false;
+                        updateCashoutButton();
                         await refreshJackpot();
                         showWinOverlay();
                         return;
@@ -868,6 +909,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         status.innerText = getRandomHypeLine();
                     }
 
+                    endPickLock();
                     return;
                 } catch (err) {
                     console.warn("Backend pick failed:", err);
@@ -875,37 +917,52 @@ document.addEventListener("DOMContentLoaded", function () {
                     this.dataset.clicked = "false";
                     this.classList.remove("selected", "revealed");
                     this.style.opacity = "1";
+                    endPickLock();
                     return;
                 }
             }
 
-            if (poisonIndices.includes(index)) {
-                playPoisonSound();
-                this.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
-                status.innerText = "POISON! Game Over.";
-                shakeGameContainer();
-                lockBoard();
-                setTimeout(() => {
-                    showPoisonOverlay();
-                }, 220);
-            } else {
-                multiplier = multipliers[safeFoundCount] || 3.50;
-                safeFoundCount++;
-                multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
-                popMultiplier();
-                playNomSound();
-                updateLadder();
-                updateCashoutButton();
-
-                if (safeFoundCount >= 10) {
+            try {
+                if (poisonIndices.includes(index)) {
+                    playPoisonSound();
+                    this.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
+                    status.innerText = "POISON! Game Over.";
+                    shakeGameContainer();
                     lockBoard();
-                    playCashoutTierSound();
-                    status.innerText = "PERFECT RUN!";
-                    showWinOverlay();
-                    return;
-                }
+                    pickInFlight = false;
+                    updateCashoutButton();
+                    setTimeout(() => {
+                        showPoisonOverlay();
+                    }, 220);
+                } else {
+                    multiplier = multipliers[safeFoundCount] || 3.50;
+                    safeFoundCount++;
+                    multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+                    popMultiplier();
+                    playNomSound();
+                    updateLadder();
+                    updateCashoutButton();
 
-                revealFinalPushHint();
+                    if (safeFoundCount >= 10) {
+                        lockBoard();
+                        playCashoutTierSound();
+                        status.innerText = "PERFECT RUN!";
+                        pickInFlight = false;
+                        updateCashoutButton();
+                        showWinOverlay();
+                        return;
+                    }
+
+                    revealFinalPushHint();
+                    endPickLock();
+                }
+            } catch (err) {
+                console.warn("Local pick failed:", err);
+                this.dataset.clicked = "false";
+                this.classList.remove("selected", "revealed");
+                this.style.opacity = "1";
+                status.innerText = "Pick failed. Try again.";
+                endPickLock();
             }
         };
 
