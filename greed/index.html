@@ -8,7 +8,7 @@
 </head>
 <body>
 
-    <!-- Intro / Lock Round -->
+    <!-- Intro / Funding / Lock Round -->
     <div id="intro-overlay">
         <video id="intro-video" muted playsinline preload="auto" class="intro-video">
             <source src="/assets/greed/intro-open.mp4" type="video/mp4">
@@ -19,8 +19,89 @@
                 12 donuts • 2 poison • cash out after 1 safe pick
             </div>
 
-            <button id="start-game-btn" type="button">
-                Lock Wager & Start Round
+            <!-- Funding Panel -->
+            <div id="funding-panel">
+                <div id="funding-title">Choose Your Wager</div>
+
+                <div id="quick-wager-grid">
+                    <button class="quick-wager-btn" type="button" data-wager="1000">1K</button>
+                    <button class="quick-wager-btn" type="button" data-wager="5000">5K</button>
+                    <button class="quick-wager-btn" type="button" data-wager="10000">10K</button>
+                    <button class="quick-wager-btn" type="button" data-wager="25000">25K</button>
+                    <button class="quick-wager-btn" type="button" data-wager="50000">50K</button>
+                </div>
+
+                <div id="custom-wager-wrap">
+                    <label for="custom-wager-input">Custom Wager</label>
+                    <input
+                        id="custom-wager-input"
+                        type="number"
+                        inputmode="numeric"
+                        min="1000"
+                        max="50000"
+                        step="1"
+                        placeholder="Enter PHAT amount"
+                    />
+                    <button id="apply-custom-wager-btn" type="button">Set Wager</button>
+                </div>
+
+                <div id="selected-wager-wrap">
+                    <span class="funding-label">Selected Wager</span>
+                    <span id="selected-wager-value">None selected</span>
+                </div>
+
+                <div id="intent-actions">
+                    <button id="create-intent-btn" type="button">
+                        Create Deposit Intent
+                    </button>
+                    <button id="cancel-intent-btn" type="button" disabled>
+                        Cancel Intent
+                    </button>
+                </div>
+
+                <div id="funding-card">
+                    <div class="funding-row">
+                        <span class="funding-label">Status</span>
+                        <span id="intent-status">No intent yet</span>
+                    </div>
+
+                    <div class="funding-row">
+                        <span class="funding-label">Exact Amount</span>
+                        <span id="intent-amount">—</span>
+                    </div>
+
+                    <div class="funding-row wallet-row">
+                        <span class="funding-label">Deposit Wallet</span>
+                        <span id="intent-wallet">—</span>
+                    </div>
+
+                    <div class="funding-row">
+                        <span class="funding-label">Token</span>
+                        <span id="intent-token">PHAT</span>
+                    </div>
+
+                    <div class="funding-row">
+                        <span class="funding-label">Expires</span>
+                        <span id="intent-expiry">—</span>
+                    </div>
+
+                    <div class="funding-row">
+                        <span class="funding-label">Tx</span>
+                        <span id="intent-tx">—</span>
+                    </div>
+                </div>
+
+                <div id="funding-help">
+                    Deposit the exact amount shown below to unlock your round.
+                </div>
+
+                <div id="funding-polling-note">
+                    Waiting for funding…
+                </div>
+            </div>
+
+            <button id="start-game-btn" type="button" disabled>
+                Deposit PHAT to Unlock Round
             </button>
         </div>
     </div>
@@ -53,7 +134,7 @@
     </div>
 
     <!-- Status -->
-    <div id="status">Lock your round to begin.</div>
+    <div id="status">Create and fund an intent to begin.</div>
 
     <!-- Poison Overlay -->
     <div id="poison-overlay">
