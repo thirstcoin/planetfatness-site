@@ -63,11 +63,14 @@ body {
     background: #FFD700;
     color: #111;
     box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    transition: opacity 0.16s ease, filter 0.16s ease, transform 0.16s ease;
 }
 
 .intro-content button:disabled {
     opacity: 0.72;
     cursor: wait;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    filter: saturate(0.9);
 }
 
 /* Intro-only rules line */
@@ -94,6 +97,29 @@ body {
     align-items: center;
     gap: 4px;
     pointer-events: none;
+}
+
+/* Fairness Badge */
+#fairness-badge {
+    position: absolute;
+    top: 18.9%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 540;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.22);
+    color: rgba(255,255,255,0.93);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15px;
+    text-shadow: 0 1px 5px rgba(0,0,0,0.75);
+    pointer-events: none;
+    max-width: 58vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.88;
 }
 
 /* 2. Game Container - The Board */
@@ -161,7 +187,7 @@ body {
 }
 
 .donut-hitbox:active {
-    transform: translate(-50%, -50%) scale(0.96) !important;
+    opacity: 0.88;
 }
 
 .donut-hitbox.selected::after {
@@ -578,6 +604,13 @@ body {
     #top-ui {
         top: 8%;
         gap: 4px;
+    }
+
+    #fairness-badge {
+        top: 19.4%;
+        max-width: 72vw;
+        font-size: 9px;
+        padding: 4px 8px;
     }
 
     #multiplier-display {
