@@ -10,6 +10,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const HUB_FALLBACK_URL = "https://planetfatness.fit/";
     const GREED_FALLBACK_URL = "https://planetfatness.fit/greed";
 
+    const TOKEN_KEY = "pf_token";
+    const ADDR_KEY = "pf_address";
+    const TG_KEY = "pf_tg";
+    const ID_KIND = "pf_identity_kind";
+
     const container = document.getElementById("game-container");
     const status = document.getElementById("status");
     const multiplierDisplay = document.getElementById("multiplier-display");
@@ -69,7 +74,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Audio
     const nomSound = new Audio("/assets/greed/nom.mp3");
     nomSound.preload = "auto";
     nomSound.volume = 0.65;
@@ -115,6 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let authToken = "";
     let lockingStatusInterval = null;
     let authReady = false;
+    let authBootstrapPromise = null;
 
     const hypeLines = [
         "Phil says: take another bite.",
@@ -338,36 +343,72 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function getAuthToken() {
-        const url = new URL(window.location.href);
-        const tokenFromQuery = url.searchParams.get("t");
-
-        if (tokenFromQuery) {
-            try {
-                localStorage.setItem("pf_token", tokenFromQuery);
-            } catch (e) {
-                console.warn("Could not persist token:", e);
-            }
-            return tokenFromQuery;
-        }
-
+    function getUrlToken() {
         try {
-            return (
-                localStorage.getItem("pf_token") ||
-                localStorage.getItem("authToken") ||
-                ""
-            );
+            const url = new URL(window.location.href);
+            return url.searchParams.get("t") || "";
         } catch {
             return "";
         }
     }
 
+    function getStoredToken() {
+        try {
+            return (
+                localStorage.getItem(TOKEN_KEY) ||
+                localStorage.getItem("authToken") ||
+                ""
+            ).trim();
+        } catch {
+            return "";
+        }
+    }
+
+    function getAuthToken() {
+        const tokenFromQuery = getUrlToken();
+        if (tokenFromQuery) {
+            try {
+                localStorage.setItem(TOKEN_KEY, tokenFromQuery);
+            } catch (e) {
+                console.warn("Could not persist token:", e);
+            }
+            return tokenFromQuery;
+        }
+        return getStoredToken();
+    }
+
     function clearStoredTokens() {
         try {
-            localStorage.removeItem("pf_token");
+            localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem("authToken");
         } catch {}
         authToken = "";
+    }
+
+    function getStoredTelegramUser() {
+        try {
+            return JSON.parse(localStorage.getItem(TG_KEY) || "null");
+        } catch {
+            return null;
+        }
+    }
+        function saveTelegramUser(user) {
+        if (!user || !user.id) return;
+        try {
+            localStorage.setItem(TG_KEY, JSON.stringify(user));
+            localStorage.setItem(ID_KIND, "tg");
+            localStorage.setItem(ADDR_KEY, `tg:${user.id}`);
+        } catch {}
+    }
+
+    function getTelegramUserFromWebApp() {
+        const raw = tgWebApp?.initDataUnsafe?.user || null;
+        if (!raw || !raw.id) return null;
+        return {
+            id: raw.id,
+            username: (raw.username || "").trim(),
+            name: [raw.first_name || "", raw.last_name || ""].join(" ").trim()
+        };
     }
 
     async function bootstrapTelegramAuth() {
@@ -375,6 +416,11 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!tgWebApp) return false;
 
             const initData = String(tgWebApp.initData || "").trim();
+            const tgUser = getTelegramUserFromWebApp();
+            if (tgUser) {
+                saveTelegramUser(tgUser);
+            }
+
             if (!initData || initData.length < 10) {
                 console.warn("Missing Telegram initData");
                 return false;
@@ -398,9 +444,21 @@ document.addEventListener("DOMContentLoaded", function () {
             authToken = String(data.token);
 
             try {
-                localStorage.setItem("pf_token", authToken);
+                localStorage.setItem(TOKEN_KEY, authToken);
             } catch (e) {
                 console.warn("Could not persist Telegram token:", e);
+            }
+
+            const returnedTgUser = data?.telegram
+                ? {
+                    id: data.telegram.id,
+                    username: (data.telegram.username || "").trim(),
+                    name: [data.telegram.first_name || "", data.telegram.last_name || ""].join(" ").trim()
+                }
+                : null;
+
+            if (returnedTgUser && returnedTgUser.id) {
+                saveTelegramUser(returnedTgUser);
             }
 
             return true;
@@ -410,41 +468,63 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function ensureAuthReady() {
-        authToken = getAuthToken();
-
-        if (authToken) {
-            authReady = true;
-            setFairnessBadge("Provably Fair • Ready to lock round");
-            startGameBtn.disabled = false;
-            status.innerText = "Lock your round to begin.";
-            return true;
+    async function ensureAuthReady(forceRefresh = false) {
+        if (authBootstrapPromise && !forceRefresh) {
+            return authBootstrapPromise;
         }
 
-        setFairnessBadge("Authenticating...");
-        status.innerText = "Verifying Telegram session...";
+        authBootstrapPromise = (async () => {
+            if (forceRefresh) {
+                clearStoredTokens();
+            }
 
-        const tgAuthed = await bootstrapTelegramAuth();
-        authToken = getAuthToken();
+            authToken = getAuthToken();
 
-        if (tgAuthed && authToken) {
-            authReady = true;
-            setFairnessBadge("Provably Fair • Ready to lock round");
-            startGameBtn.disabled = false;
-            status.innerText = "Lock your round to begin.";
-            return true;
+            if (authToken) {
+                authReady = true;
+                setFairnessBadge("Provably Fair • Ready to lock round");
+                startGameBtn.disabled = false;
+                status.innerText = "Lock your round to begin.";
+                return true;
+            }
+
+            const savedTgUser = getStoredTelegramUser();
+            if (savedTgUser?.id) {
+                setFairnessBadge("Authenticating...");
+                status.innerText = "Refreshing Telegram session...";
+            } else {
+                setFairnessBadge("Authenticating...");
+                status.innerText = "Verifying Telegram session...";
+            }
+
+            const tgAuthed = await bootstrapTelegramAuth();
+            authToken = getAuthToken();
+
+            if (tgAuthed && authToken) {
+                authReady = true;
+                setFairnessBadge("Provably Fair • Ready to lock round");
+                startGameBtn.disabled = false;
+                status.innerText = "Lock your round to begin.";
+                return true;
+            }
+
+            authReady = false;
+            setFairnessBadge("Auth required");
+            startGameBtn.disabled = true;
+            status.innerText = tgWebApp
+                ? "Telegram auth failed. Reopen from the bot."
+                : "Launch from Telegram to play.";
+            return false;
+        })();
+
+        try {
+            return await authBootstrapPromise;
+        } finally {
+            authBootstrapPromise = null;
         }
-
-        authReady = false;
-        setFairnessBadge("Auth required");
-        startGameBtn.disabled = true;
-        status.innerText = tgWebApp
-            ? "Telegram auth failed. Reopen from the bot."
-            : "Launch from Telegram to play.";
-        return false;
     }
 
-    async function apiFetch(path, options = {}) {
+    async function apiFetch(path, options = {}, retrying = false) {
         const token = authToken || getAuthToken();
         const headers = {
             "Content-Type": "application/json",
@@ -463,8 +543,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-            if (res.status === 401) {
+            if (res.status === 401 && !retrying) {
                 clearStoredTokens();
+                authReady = false;
+                const reAuthed = await ensureAuthReady(true);
+                if (reAuthed) {
+                    return apiFetch(path, options, true);
+                }
             }
             throw new Error(data?.error || `Request failed: ${res.status}`);
         }
@@ -598,14 +683,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function revealFinalPushHint() {
-        if (safeFoundCount === 9) {
-            status.innerText = "FINAL DONUT • 33% shot at x3.50";
-        } else {
-            status.innerText = getRandomHypeLine();
-        }
-    }
-
     function setBoardPointerState(mode) {
         const hitboxes = container.querySelectorAll(".donut-hitbox");
         hitboxes.forEach((hitbox) => {
@@ -725,8 +802,7 @@ document.addEventListener("DOMContentLoaded", function () {
             setFairnessBadge(`Provably Fair • ${shortHash(commitHash)}`);
         }
     }
-
-    function hideIntroOverlay() {
+        function hideIntroOverlay() {
         if (introVideo) {
             try {
                 introVideo.pause();
@@ -855,6 +931,8 @@ document.addEventListener("DOMContentLoaded", function () {
         resetRoundStateForFreshStart();
         showIntroOverlay();
 
+        await ensureAuthReady(false);
+
         startGameBtn.disabled = !authReady;
         startGameBtn.textContent = "Lock Wager & Start Round";
 
@@ -887,12 +965,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         } catch {}
 
-        if (window.location.pathname.includes("/greed")) {
-            window.location.href = HUB_FALLBACK_URL;
-            return;
-        }
-
-        window.location.href = GREED_FALLBACK_URL;
+        window.location.href = HUB_FALLBACK_URL;
     }
 
     async function cashOutNow() {
@@ -936,7 +1009,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 setFairnessBadge("Session expired");
                 stopLockingStatus("Session expired. Reopen from Telegram.");
             } else {
-                stopLockingStatus("Cashout failed. Try again.");
+                stopLockingStatus(msg);
             }
             endPickLock();
         }
@@ -1072,14 +1145,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 this.style.opacity = "1";
                 this.style.backgroundColor = "transparent";
 
-                if (msg.toLowerCase().includes("invalid token")) {
+                if (msg.toLowerCase().includes("invalid token") || msg.toLowerCase().includes("missing auth token")) {
                     clearStoredTokens();
                     authReady = false;
                     startGameBtn.disabled = true;
                     setFairnessBadge("Session expired");
                     stopLockingStatus("Session expired. Reopen from Telegram.");
                 } else {
-                    stopLockingStatus(msg.includes("Donut already picked") ? "Donut already picked." : "Pick failed. Try again.");
+                    stopLockingStatus(msg.includes("Donut already picked") ? "Donut already picked." : msg);
                 }
 
                 endPickLock();
@@ -1094,6 +1167,6 @@ document.addEventListener("DOMContentLoaded", function () {
     (async function init() {
         startGameBtn.disabled = true;
         status.innerText = "Checking session...";
-        await ensureAuthReady();
+        await ensureAuthReady(false);
     })();
 });
