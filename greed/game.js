@@ -839,7 +839,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function createDepositIntent() {
+     async function createDepositIntent() {
         if (!authReady || intentBusy || hasStartedRound || roundStarting) return;
         if (currentIntent && (currentIntent.status === "pending" || currentIntent.status === "funded")) {
             return;
@@ -869,7 +869,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 status.innerText = "Intent created.";
             }
-             } catch (err) {
+        } catch (err) {
             console.warn("Create intent failed:", err);
             const msg = String(err?.message || "Create intent failed");
 
@@ -888,6 +888,7 @@ document.addEventListener("DOMContentLoaded", function () {
             syncFundingButtons();
             syncStartButtonState();
         }
+    }
 
     async function cancelDepositIntent() {
         if (!authReady || intentBusy || !currentIntent?.id) return;
