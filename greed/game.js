@@ -1630,8 +1630,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (createIntentBtn) {
-        createIntentBtn.addEventListener("click", createDepositIntent);
-    }
+    createIntentBtn.addEventListener("click", () => {
+        status.innerText = "Create Intent button clicked";
+        alert("create intent click fired");
+        createDepositIntent();
+    });
+}
 
     if (cancelIntentBtn) {
         cancelIntentBtn.addEventListener("click", cancelDepositIntent);
