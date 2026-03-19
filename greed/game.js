@@ -42,6 +42,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const cashoutButton = document.getElementById("cashout-button");
 
+    // Funding UI
+    const quickWagerButtons = Array.from(document.querySelectorAll(".quick-wager-btn"));
+    const customWagerInput = document.getElementById("custom-wager-input");
+    const applyCustomWagerBtn = document.getElementById("apply-custom-wager-btn");
+    const selectedWagerValue = document.getElementById("selected-wager-value");
+    const createIntentBtn = document.getElementById("create-intent-btn");
+    const cancelIntentBtn = document.getElementById("cancel-intent-btn");
+    const intentStatusEl = document.getElementById("intent-status");
+    const intentAmountEl = document.getElementById("intent-amount");
+    const intentWalletEl = document.getElementById("intent-wallet");
+    const intentTokenEl = document.getElementById("intent-token");
+    const intentExpiryEl = document.getElementById("intent-expiry");
+    const intentTxEl = document.getElementById("intent-tx");
+    const fundingHelpEl = document.getElementById("funding-help");
+    const fundingPollingNoteEl = document.getElementById("funding-polling-note");
+
     if (
         !container ||
         !status ||
@@ -103,6 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (winVideo) winVideo.load();
 
     const multipliers = [1.02, 1.07, 1.15, 1.30, 1.48, 1.70, 1.98, 2.28, 2.70, 3.50];
+    const quickWagers = [1000, 5000, 10000, 25000, 50000];
 
     let multiplier = 1.0;
     let safeFoundCount = 0;
@@ -120,6 +137,11 @@ document.addEventListener("DOMContentLoaded", function () {
     let lockingStatusInterval = null;
     let authReady = false;
     let authBootstrapPromise = null;
+
+    let selectedWager = DEFAULT_WAGER;
+    let currentIntent = null;
+    let intentPollInterval = null;
+    let intentBusy = false;
 
     const hypeLines = [
         "Phil says: take another bite.",
@@ -392,7 +414,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return null;
         }
     }
-        function saveTelegramUser(user) {
+
+    function saveTelegramUser(user) {
         if (!user || !user.id) return;
         try {
             localStorage.setItem(TG_KEY, JSON.stringify(user));
@@ -482,9 +505,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (authToken) {
                 authReady = true;
-                setFairnessBadge("Provably Fair • Ready to lock round");
-                startGameBtn.disabled = false;
-                status.innerText = "Lock your round to begin.";
+                setFairnessBadge("Provably Fair • Ready to fund");
+                syncFundingButtons();
+                syncStartButtonState();
                 return true;
             }
 
@@ -502,15 +525,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (tgAuthed && authToken) {
                 authReady = true;
-                setFairnessBadge("Provably Fair • Ready to lock round");
-                startGameBtn.disabled = false;
-                status.innerText = "Lock your round to begin.";
+                setFairnessBadge("Provably Fair • Ready to fund");
+                syncFundingButtons();
+                syncStartButtonState();
                 return true;
             }
 
             authReady = false;
             setFairnessBadge("Auth required");
-            startGameBtn.disabled = true;
+            syncFundingButtons();
+            syncStartButtonState();
             status.innerText = tgWebApp
                 ? "Telegram auth failed. Reopen from the bot."
                 : "Launch from Telegram to play.";
@@ -557,6 +581,203 @@ document.addEventListener("DOMContentLoaded", function () {
         return data;
     }
 
+    function formatExpiry(expiresAt) {
+        if (!expiresAt) return "—";
+
+        const d = new Date(expiresAt);
+        if (Number.isNaN(d.getTime())) return "—";
+
+        const diffMs = d.getTime() - Date.now();
+        if (diffMs <= 0) return "Expired";
+
+        const totalSec = Math.floor(diffMs / 1000);
+        const min = Math.floor(totalSec / 60);
+        const sec = totalSec % 60;
+
+        if (min <= 0) return `${sec}s`;
+        return `${min}m ${sec}s`;
+    }
+
+    function highlightSelectedWagerButtons() {
+        quickWagerButtons.forEach((btn) => {
+            const amt = Number(btn.dataset.wager || 0);
+            if (amt === Number(selectedWager || 0)) {
+                btn.classList.add("selected");
+            } else {
+                btn.classList.remove("selected");
+            }
+        });
+    }
+
+    function setSelectedWager(amount) {
+        const next = Math.max(1000, Math.min(50000, Math.floor(Number(amount || DEFAULT_WAGER))));
+        selectedWager = next;
+
+        if (selectedWagerValue) {
+            selectedWagerValue.textContent = `${formatNumber(next)} PHAT`;
+        }
+
+        if (customWagerInput && String(customWagerInput.value || "").trim() !== String(next)) {
+            customWagerInput.value = String(next);
+        }
+
+        highlightSelectedWagerButtons();
+        syncStartButtonState();
+        syncFundingButtons();
+    }
+
+    function renderIntent(intent) {
+        currentIntent = intent || null;
+
+        if (intentStatusEl) {
+            intentStatusEl.textContent = currentIntent ? String(currentIntent.status || "pending").toUpperCase() : "No intent yet";
+        }
+
+        if (intentAmountEl) {
+            intentAmountEl.textContent = currentIntent?.exactAmount ? `${formatNumber(currentIntent.exactAmount)} PHAT` : "—";
+        }
+
+        if (intentWalletEl) {
+            intentWalletEl.textContent = currentIntent?.depositWallet || "—";
+        }
+
+        if (intentTokenEl) {
+            intentTokenEl.textContent = currentIntent?.tokenMint || "PHAT";
+        }
+
+        if (intentExpiryEl) {
+            intentExpiryEl.textContent = currentIntent ? formatExpiry(currentIntent.expiresAt) : "—";
+        }
+
+        if (intentTxEl) {
+            intentTxEl.textContent = currentIntent?.txSignature ? shortHash(currentIntent.txSignature) : "—";
+        }
+
+        if (fundingHelpEl) {
+            if (!currentIntent) {
+                fundingHelpEl.textContent = "Create an intent to get the exact PHAT amount and deposit wallet.";
+            } else if (currentIntent.status === "funded") {
+                fundingHelpEl.textContent = "Funding confirmed. Your round is unlocked.";
+            } else if (currentIntent.status === "pending") {
+                fundingHelpEl.textContent = "Deposit the exact amount shown below to unlock your round.";
+            } else if (currentIntent.status === "expired") {
+                fundingHelpEl.textContent = "This intent expired. Create a fresh one.";
+            } else if (currentIntent.status === "cancelled") {
+                fundingHelpEl.textContent = "Intent cancelled. Create a new one when ready.";
+            } else {
+                fundingHelpEl.textContent = "Intent updated.";
+            }
+        }
+
+        if (fundingPollingNoteEl) {
+            if (!currentIntent) {
+                fundingPollingNoteEl.textContent = "Waiting for intent…";
+            } else if (currentIntent.status === "funded") {
+                fundingPollingNoteEl.textContent = "Funding detected.";
+            } else if (currentIntent.status === "pending") {
+                fundingPollingNoteEl.textContent = "Waiting for funding…";
+            } else if (currentIntent.status === "expired") {
+                fundingPollingNoteEl.textContent = "Intent expired.";
+            } else if (currentIntent.status === "cancelled") {
+                fundingPollingNoteEl.textContent = "Intent cancelled.";
+            } else if (currentIntent.status === "consumed") {
+                fundingPollingNoteEl.textContent = "Intent consumed.";
+            } else {
+                fundingPollingNoteEl.textContent = "Intent updated.";
+            }
+        }
+
+        if (currentIntent?.requestedWager) {
+            setSelectedWager(Number(currentIntent.requestedWager));
+        }
+
+        if (currentIntent?.status === "funded") {
+            setFairnessBadge("Provably Fair • Funding verified");
+        } else if (currentIntent?.status === "pending") {
+            setFairnessBadge("Provably Fair • Awaiting funding");
+        } else if (authReady) {
+            setFairnessBadge("Provably Fair • Ready to fund");
+        } else {
+            setFairnessBadge("Auth required");
+        }
+
+        syncFundingButtons();
+        syncStartButtonState();
+    }
+
+    function stopIntentPolling() {
+        if (intentPollInterval) {
+            clearInterval(intentPollInterval);
+            intentPollInterval = null;
+        }
+    }
+
+    function syncFundingButtons() {
+        const hasIntent = !!currentIntent;
+        const intentStatus = String(currentIntent?.status || "");
+        const pendingOrFunded = intentStatus === "pending" || intentStatus === "funded";
+
+        if (createIntentBtn) {
+            createIntentBtn.disabled = !authReady || intentBusy || pendingOrFunded || hasStartedRound || roundStarting;
+        }
+
+        if (cancelIntentBtn) {
+            cancelIntentBtn.disabled = !authReady || intentBusy || !hasIntent || !(intentStatus === "pending" || intentStatus === "funded");
+        }
+
+        if (applyCustomWagerBtn) {
+            applyCustomWagerBtn.disabled = !authReady || intentBusy || pendingOrFunded || hasStartedRound || roundStarting;
+        }
+
+        if (customWagerInput) {
+            customWagerInput.disabled = !authReady || intentBusy || pendingOrFunded || hasStartedRound || roundStarting;
+        }
+
+        quickWagerButtons.forEach((btn) => {
+            btn.disabled = !authReady || intentBusy || pendingOrFunded || hasStartedRound || roundStarting;
+        });
+    }
+
+    function syncStartButtonState() {
+        if (!startGameBtn) return;
+
+        if (!authReady) {
+            startGameBtn.disabled = true;
+            startGameBtn.textContent = "Launch from Telegram to Play";
+            return;
+        }
+
+        if (roundStarting) {
+            startGameBtn.disabled = true;
+            startGameBtn.textContent = "Verifying Wager...";
+            return;
+        }
+
+        if (hasStartedRound) {
+            startGameBtn.disabled = true;
+            startGameBtn.textContent = "Round Active";
+            return;
+        }
+
+        if (!currentIntent) {
+            startGameBtn.disabled = true;
+            startGameBtn.textContent = "Create Intent to Unlock Round";
+            return;
+        }
+
+        const intentStatus = String(currentIntent.status || "");
+        if (intentStatus !== "funded") {
+            startGameBtn.disabled = true;
+            startGameBtn.textContent = intentStatus === "pending"
+                ? "Deposit PHAT to Unlock Round"
+                : "Create Fresh Intent";
+            return;
+        }
+
+        startGameBtn.disabled = false;
+        startGameBtn.textContent = "Lock Wager & Start Round";
+    }
+
     async function refreshJackpot() {
         try {
             const data = await fetch(`${BACKEND_URL}/greed/jackpot`, { method: "GET" }).then(async (res) => {
@@ -580,18 +801,191 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    async function loadOpenIntent(showStatus = false) {
+        if (!authReady) return null;
+
+        try {
+            const data = await apiFetch("/greed/deposit-intent", { method: "GET" });
+            const intent = data?.intent || null;
+            renderIntent(intent);
+
+            if (showStatus) {
+                if (!intent) {
+                    status.innerText = "Create a deposit intent to begin.";
+                } else if (intent.status === "pending") {
+                    status.innerText = "Deposit the exact PHAT amount to unlock your round.";
+                } else if (intent.status === "funded") {
+                    status.innerText = "Funding confirmed. Lock your round when ready.";
+                } else {
+                    status.innerText = "Create a fresh intent to begin.";
+                }
+            }
+
+            if (intent && (intent.status === "pending" || intent.status === "funded")) {
+                startIntentPolling();
+            } else {
+                stopIntentPolling();
+            }
+
+            return intent;
+        } catch (err) {
+            console.warn("Open intent fetch failed:", err);
+            renderIntent(null);
+            stopIntentPolling();
+            if (showStatus) {
+                status.innerText = "Unable to load funding state.";
+            }
+            return null;
+        }
+    }
+
+    async function createDepositIntent() {
+        if (!authReady || intentBusy || hasStartedRound || roundStarting) return;
+        if (currentIntent && (currentIntent.status === "pending" || currentIntent.status === "funded")) {
+            return;
+        }
+
+        intentBusy = true;
+        syncFundingButtons();
+        syncStartButtonState();
+        status.innerText = "Creating deposit intent...";
+        setFairnessBadge("Preparing funding");
+
+        try {
+            const data = await apiFetch("/greed/deposit-intent", {
+                method: "POST",
+                body: JSON.stringify({
+                    wager: selectedWager
+                })
+            });
+
+            renderIntent(data?.intent || null);
+            if (currentIntent?.status === "pending") {
+                status.innerText = "Intent created. Deposit the exact PHAT amount shown.";
+                startIntentPolling();
+            } else if (currentIntent?.status === "funded") {
+                status.innerText = "Funding already confirmed. Lock your round when ready.";
+                startIntentPolling();
+            } else {
+                status.innerText = "Intent created.";
+            }
+        } catch (err) {
+            console.warn("Create intent failed:", err);
+            const msg = String(err?.message || "Create intent failed");
+            if (msg.toLowerCase().includes("invalid token") || msg.toLowerCase().includes("missing auth token")) {
+                clearStoredTokens();
+                authReady = false;
+                renderIntent(null);
+                status.innerText = "Session expired. Reopen from Telegram.";
+            } else {
+                status.innerText = msg;
+            }
+        } finally {
+            intentBusy = false;
+            syncFundingButtons();
+            syncStartButtonState();
+        }
+    }
+
+    async function cancelDepositIntent() {
+        if (!authReady || intentBusy || !currentIntent?.id) return;
+
+        intentBusy = true;
+        syncFundingButtons();
+        syncStartButtonState();
+        status.innerText = "Cancelling intent...";
+
+        try {
+            const data = await apiFetch(`/greed/deposit-intent/${currentIntent.id}/cancel`, {
+                method: "POST",
+                body: JSON.stringify({})
+            });
+
+            renderIntent(data?.intent || null);
+            stopIntentPolling();
+            status.innerText = "Intent cancelled. Choose a wager to create a fresh one.";
+        } catch (err) {
+            console.warn("Cancel intent failed:", err);
+            const msg = String(err?.message || "Cancel intent failed");
+            status.innerText = msg;
+        } finally {
+            intentBusy = false;
+            syncFundingButtons();
+            syncStartButtonState();
+        }
+    }
+
+    async function refreshIntentById(intentId, quiet = false) {
+        if (!authReady || !intentId) return null;
+
+        try {
+            const data = await apiFetch(`/greed/deposit-intent/${intentId}`, { method: "GET" });
+            const nextIntent = data?.intent || null;
+            renderIntent(nextIntent);
+
+            if (!quiet) {
+                if (nextIntent?.status === "funded") {
+                    status.innerText = "Funding confirmed. Lock your round when ready.";
+                } else if (nextIntent?.status === "pending") {
+                    status.innerText = "Waiting for your funding deposit...";
+                } else if (nextIntent?.status === "expired") {
+                    status.innerText = "Intent expired. Create a new one.";
+                } else if (nextIntent?.status === "cancelled") {
+                    status.innerText = "Intent cancelled.";
+                }
+            }
+
+            if (!nextIntent || !["pending", "funded"].includes(String(nextIntent.status || ""))) {
+                stopIntentPolling();
+            }
+
+            return nextIntent;
+        } catch (err) {
+            console.warn("Intent status poll failed:", err);
+            return null;
+        }
+    }
+
+    function startIntentPolling() {
+        stopIntentPolling();
+
+        if (!currentIntent?.id) return;
+        if (!["pending", "funded"].includes(String(currentIntent.status || ""))) return;
+
+        intentPollInterval = setInterval(async () => {
+            if (!currentIntent?.id || hasStartedRound || roundStarting) return;
+            await refreshIntentById(currentIntent.id, true);
+
+            if (currentIntent?.status === "funded" && fundingPollingNoteEl) {
+                fundingPollingNoteEl.textContent = "Funding detected.";
+            } else if (currentIntent?.status === "pending" && fundingPollingNoteEl) {
+                fundingPollingNoteEl.textContent = "Waiting for funding…";
+            }
+
+            if (intentExpiryEl && currentIntent?.expiresAt) {
+                intentExpiryEl.textContent = formatExpiry(currentIntent.expiresAt);
+            }
+        }, 2500);
+    }
+
     async function startBackendRound() {
         const token = authToken || getAuthToken();
         if (!token) {
             throw new Error("Missing auth token");
         }
 
+        if (!currentIntent || currentIntent.status !== "funded") {
+            throw new Error("Deposit intent not funded yet");
+        }
+
         authToken = token;
+
+        const wagerToUse = Number(currentIntent.requestedWager || selectedWager || DEFAULT_WAGER);
 
         const data = await apiFetch("/greed/start", {
             method: "POST",
             body: JSON.stringify({
-                wager: DEFAULT_WAGER
+                wager: wagerToUse
             })
         });
 
@@ -599,6 +993,9 @@ document.addEventListener("DOMContentLoaded", function () {
         commitHash = data?.provablyFair?.commitHash || "";
         revealedServerSeed = "";
         revealedPoisonIndices = [];
+
+        stopIntentPolling();
+        renderIntent(null);
 
         setFairnessBadge(commitHash ? `Provably Fair • ${shortHash(commitHash)}` : "Provably Fair • Round locked");
 
@@ -802,7 +1199,8 @@ document.addEventListener("DOMContentLoaded", function () {
             setFairnessBadge(`Provably Fair • ${shortHash(commitHash)}`);
         }
     }
-        function hideIntroOverlay() {
+
+    function hideIntroOverlay() {
         if (introVideo) {
             try {
                 introVideo.pause();
@@ -817,6 +1215,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function showIntroOverlay() {
         introOverlay.classList.remove("hidden");
+    }
+
+    function resetBoardVisuals() {
+        const hitboxes = container.querySelectorAll(".donut-hitbox");
+        hitboxes.forEach((hitbox) => {
+            hitbox.dataset.clicked = "false";
+            hitbox.classList.remove("selected", "revealed");
+            hitbox.style.backgroundColor = "transparent";
+            hitbox.style.pointerEvents = "none";
+            hitbox.style.opacity = "1";
+        });
     }
 
     function resetRoundStateForFreshStart() {
@@ -837,21 +1246,27 @@ document.addEventListener("DOMContentLoaded", function () {
         multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
         updateLadder();
         updateCashoutButton();
-        setFairnessBadge(authReady ? "Provably Fair • Ready to lock round" : "Auth required");
+        resetBoardVisuals();
 
-        const hitboxes = container.querySelectorAll(".donut-hitbox");
-        hitboxes.forEach((hitbox) => {
-            hitbox.dataset.clicked = "false";
-            hitbox.classList.remove("selected", "revealed");
-            hitbox.style.backgroundColor = "transparent";
-            hitbox.style.pointerEvents = "none";
-            hitbox.style.opacity = "1";
-        });
+        if (authReady) {
+            setFairnessBadge(currentIntent?.status === "funded" ? "Provably Fair • Funding verified" : "Provably Fair • Ready to fund");
+        } else {
+            setFairnessBadge("Auth required");
+        }
+
+        syncFundingButtons();
+        syncStartButtonState();
     }
 
     async function beginRoundFromIntro() {
         if (!authReady) {
             status.innerText = "Auth required. Reopen from Telegram.";
+            return;
+        }
+
+        if (!currentIntent || currentIntent.status !== "funded") {
+            status.innerText = "Deposit PHAT and wait for funding confirmation first.";
+            syncStartButtonState();
             return;
         }
 
@@ -892,6 +1307,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             stopLockingStatus("Choose wisely...");
             unlockBoard();
+            syncFundingButtons();
+            syncStartButtonState();
         } catch (err) {
             console.warn("Backend round start failed:", err);
 
@@ -908,18 +1325,27 @@ document.addEventListener("DOMContentLoaded", function () {
             stopLockingStatus(msg);
             setFairnessBadge("Round not locked");
 
-            startGameBtn.disabled = !authReady;
-            startGameBtn.textContent = "Lock Wager & Start Round";
-
             if (msg.toLowerCase().includes("invalid token") || msg.toLowerCase().includes("missing auth token")) {
                 clearStoredTokens();
                 authReady = false;
+                renderIntent(null);
                 setFairnessBadge("Session expired");
                 status.innerText = "Session expired. Reopen from Telegram.";
-                startGameBtn.disabled = true;
+                syncFundingButtons();
+                syncStartButtonState();
                 return;
             }
 
+            if (
+                msg.toLowerCase().includes("funding_required") ||
+                msg.toLowerCase().includes("intent") ||
+                msg.toLowerCase().includes("funded")
+            ) {
+                await loadOpenIntent(false);
+            }
+
+            syncFundingButtons();
+            syncStartButtonState();
             status.innerText = msg.includes("Insufficient")
                 ? "Deposit PHAT and try again."
                 : msg;
@@ -932,12 +1358,16 @@ document.addEventListener("DOMContentLoaded", function () {
         showIntroOverlay();
 
         await ensureAuthReady(false);
-
-        startGameBtn.disabled = !authReady;
-        startGameBtn.textContent = "Lock Wager & Start Round";
+        await loadOpenIntent(false);
 
         playIntroSequence();
-        status.innerText = authReady ? "Lock your round to begin." : "Launch from Telegram to play.";
+        if (currentIntent?.status === "funded") {
+            status.innerText = "Funding confirmed. Lock your round when ready.";
+        } else if (currentIntent?.status === "pending") {
+            status.innerText = "Deposit the exact PHAT amount to unlock your round.";
+        } else {
+            status.innerText = authReady ? "Create a deposit intent to begin." : "Launch from Telegram to play.";
+        }
     }
 
     function backToChat() {
@@ -1005,7 +1435,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (msg.toLowerCase().includes("invalid token")) {
                 clearStoredTokens();
                 authReady = false;
-                startGameBtn.disabled = true;
+                renderIntent(null);
                 setFairnessBadge("Session expired");
                 stopLockingStatus("Session expired. Reopen from Telegram.");
             } else {
@@ -1013,6 +1443,231 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             endPickLock();
         }
+    }
+
+    function buildBoard() {
+        container.innerHTML = "";
+
+        positions.forEach((pos, index) => {
+            const hitbox = document.createElement("div");
+            hitbox.className = "donut-hitbox";
+
+            hitbox.style.position = "absolute";
+            hitbox.style.left = pos.x + "%";
+            hitbox.style.top = pos.y + "%";
+            hitbox.style.transform = "translate(-50%, -50%)";
+            hitbox.style.pointerEvents = "none";
+            hitbox.dataset.clicked = "false";
+
+            hitbox.onclick = async function () {
+                if (
+                    isGameOver ||
+                    pickInFlight ||
+                    interactionCooldownActive() ||
+                    this.dataset.clicked === "true"
+                ) {
+                    return;
+                }
+
+                if (!hasStartedRound) {
+                    status.innerText = "Lock a round first.";
+                    return;
+                }
+
+                if (!roundId) {
+                    status.innerText = "Round not found. Start again.";
+                    return;
+                }
+
+                beginPickLock();
+                startLockingStatus("Submitting pick");
+
+                this.dataset.clicked = "true";
+                this.classList.add("selected", "revealed");
+                markClickedDonut(this);
+
+                try {
+                    const data = await apiFetch("/greed/pick", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            roundId,
+                            pickedIndex: index
+                        })
+                    });
+
+                    multiplier = Number(data.currentMultiplier || multiplier);
+                    safeFoundCount = Number(data.safeClicks || safeFoundCount);
+                    multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+                    popMultiplier();
+                    updateLadder();
+
+                    if (data.provablyFair) {
+                        applyRevealData(data.provablyFair);
+                    }
+
+                    if (data.result === "poison") {
+                        playPoisonSound();
+                        this.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
+                        stopLockingStatus("POISON! Game Over.");
+                        shakeGameContainer();
+                        lockBoard();
+                        pickInFlight = false;
+                        updateCashoutButton();
+                        await refreshJackpot();
+                        setTimeout(() => {
+                            showPoisonOverlay();
+                        }, OVERLAY_DELAY_MS);
+                        return;
+                    }
+
+                    playNomSound();
+                    updateCashoutButton();
+
+                    if (data.result === "perfect" || safeFoundCount >= 10) {
+                        lockBoard();
+                        playCashoutTierSound();
+                        stopLockingStatus("PERFECT RUN!");
+                        pickInFlight = false;
+                        updateCashoutButton();
+                        await refreshJackpot();
+                        showWinOverlay();
+                        return;
+                    }
+
+                    if (data.finalDonutLive || safeFoundCount === 9) {
+                        stopLockingStatus("FINAL DONUT • 33% shot at x3.50");
+                    } else {
+                        stopLockingStatus(getRandomHypeLine());
+                    }
+
+                    setInteractionCooldown(PICK_COOLDOWN_MS);
+                    await waitForCooldownIfNeeded();
+                    endPickLock();
+                } catch (err) {
+                    console.warn("Backend pick failed:", err);
+                    const msg = String(err?.message || "Pick failed. Try again.");
+
+                    this.dataset.clicked = "false";
+                    this.classList.remove("selected", "revealed");
+                    this.style.opacity = "1";
+                    this.style.backgroundColor = "transparent";
+
+                    if (msg.toLowerCase().includes("invalid token") || msg.toLowerCase().includes("missing auth token")) {
+                        clearStoredTokens();
+                        authReady = false;
+                        renderIntent(null);
+                        setFairnessBadge("Session expired");
+                        stopLockingStatus("Session expired. Reopen from Telegram.");
+                    } else {
+                        stopLockingStatus(msg.includes("Donut already picked") ? "Donut already picked." : msg);
+                    }
+
+                    endPickLock();
+                }
+            };
+
+            container.appendChild(hitbox);
+        });
+    }
+
+    function applyPickedIndicesToBoard(pickedIndices) {
+        const pickedSet = new Set((pickedIndices || []).map((n) => Number(n)));
+        const hitboxes = container.querySelectorAll(".donut-hitbox");
+
+        hitboxes.forEach((hitbox, idx) => {
+            if (pickedSet.has(idx)) {
+                hitbox.dataset.clicked = "true";
+                hitbox.classList.add("selected", "revealed");
+                hitbox.style.opacity = "0.72";
+                hitbox.style.pointerEvents = "none";
+            } else {
+                hitbox.dataset.clicked = "false";
+                hitbox.classList.remove("selected", "revealed");
+                hitbox.style.opacity = "1";
+                hitbox.style.backgroundColor = "transparent";
+            }
+        });
+    }
+
+    async function restoreActiveRoundIfAny() {
+        if (!authReady) return false;
+
+        try {
+            const data = await apiFetch("/greed/active", { method: "GET" });
+            if (!data?.active || !data?.round) {
+                return false;
+            }
+
+            const round = data.round;
+            roundId = Number(round.id);
+            hasStartedRound = true;
+            roundStarting = false;
+            isGameOver = false;
+            pickInFlight = false;
+            multiplier = Number(round.currentMultiplier || 1.0);
+            safeFoundCount = Number(round.safeClicks || 0);
+            commitHash = round?.provablyFair?.commitHash || "";
+            revealedServerSeed = "";
+            revealedPoisonIndices = [];
+
+            applyPickedIndicesToBoard(Array.isArray(round.pickedIndices) ? round.pickedIndices : []);
+            multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+            updateLadder();
+            updateCashoutButton();
+            hideIntroOverlay();
+            unlockBoard();
+
+            setFairnessBadge(commitHash ? `Provably Fair • ${shortHash(commitHash)}` : "Provably Fair • Round active");
+            status.innerText = safeFoundCount > 0 ? "Round restored." : "Choose wisely...";
+
+            stopIntentPolling();
+            renderIntent(null);
+            return true;
+        } catch (err) {
+            console.warn("Restore active round failed:", err);
+            return false;
+        }
+    }
+
+    if (createIntentBtn) {
+        createIntentBtn.addEventListener("click", createDepositIntent);
+    }
+
+    if (cancelIntentBtn) {
+        cancelIntentBtn.addEventListener("click", cancelDepositIntent);
+    }
+
+    quickWagerButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            if (btn.disabled) return;
+            const amount = Number(btn.dataset.wager || 0);
+            if (amount > 0) {
+                setSelectedWager(amount);
+                status.innerText = `Selected ${formatNumber(amount)} PHAT. Create an intent when ready.`;
+            }
+        });
+    });
+
+    if (applyCustomWagerBtn) {
+        applyCustomWagerBtn.addEventListener("click", () => {
+            if (applyCustomWagerBtn.disabled) return;
+            const raw = Number(customWagerInput?.value || 0);
+            if (!Number.isFinite(raw) || raw < 1000 || raw > 50000) {
+                status.innerText = "Custom wager must be between 1,000 and 50,000 PHAT.";
+                return;
+            }
+            setSelectedWager(raw);
+            status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Create an intent when ready.`;
+        });
+    }
+
+    if (customWagerInput) {
+        customWagerInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                applyCustomWagerBtn?.click();
+            }
+        });
     }
 
     startGameBtn.addEventListener("click", beginRoundFromIntro);
@@ -1034,139 +1689,32 @@ document.addEventListener("DOMContentLoaded", function () {
         winBackChatBtn.addEventListener("click", backToChat);
     }
 
+    setSelectedWager(DEFAULT_WAGER);
     multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
     updateCashoutButton();
     updateLadder();
     refreshJackpot();
-
-    container.innerHTML = "";
-
-    positions.forEach((pos, index) => {
-        const hitbox = document.createElement("div");
-        hitbox.className = "donut-hitbox";
-
-        hitbox.style.position = "absolute";
-        hitbox.style.left = pos.x + "%";
-        hitbox.style.top = pos.y + "%";
-        hitbox.style.transform = "translate(-50%, -50%)";
-        hitbox.style.pointerEvents = "none";
-        hitbox.dataset.clicked = "false";
-
-        hitbox.onclick = async function () {
-            if (
-                isGameOver ||
-                pickInFlight ||
-                interactionCooldownActive() ||
-                this.dataset.clicked === "true"
-            ) {
-                return;
-            }
-
-            if (!hasStartedRound) {
-                status.innerText = "Lock a round first.";
-                return;
-            }
-
-            if (!roundId) {
-                status.innerText = "Round not found. Start again.";
-                return;
-            }
-
-            beginPickLock();
-            startLockingStatus("Submitting pick");
-
-            this.dataset.clicked = "true";
-            this.classList.add("selected", "revealed");
-            markClickedDonut(this);
-
-            try {
-                const data = await apiFetch("/greed/pick", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        roundId,
-                        pickedIndex: index
-                    })
-                });
-
-                multiplier = Number(data.currentMultiplier || multiplier);
-                safeFoundCount = Number(data.safeClicks || safeFoundCount);
-                multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
-                popMultiplier();
-                updateLadder();
-
-                if (data.provablyFair) {
-                    applyRevealData(data.provablyFair);
-                }
-
-                if (data.result === "poison") {
-                    playPoisonSound();
-                    this.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
-                    stopLockingStatus("POISON! Game Over.");
-                    shakeGameContainer();
-                    lockBoard();
-                    pickInFlight = false;
-                    updateCashoutButton();
-                    await refreshJackpot();
-                    setTimeout(() => {
-                        showPoisonOverlay();
-                    }, OVERLAY_DELAY_MS);
-                    return;
-                }
-
-                playNomSound();
-                updateCashoutButton();
-
-                if (data.result === "perfect" || safeFoundCount >= 10) {
-                    lockBoard();
-                    playCashoutTierSound();
-                    stopLockingStatus("PERFECT RUN!");
-                    pickInFlight = false;
-                    updateCashoutButton();
-                    await refreshJackpot();
-                    showWinOverlay();
-                    return;
-                }
-
-                if (data.finalDonutLive || safeFoundCount === 9) {
-                    stopLockingStatus("FINAL DONUT • 33% shot at x3.50");
-                } else {
-                    stopLockingStatus(getRandomHypeLine());
-                }
-
-                setInteractionCooldown(PICK_COOLDOWN_MS);
-                await waitForCooldownIfNeeded();
-                endPickLock();
-            } catch (err) {
-                console.warn("Backend pick failed:", err);
-                const msg = String(err?.message || "Pick failed. Try again.");
-
-                this.dataset.clicked = "false";
-                this.classList.remove("selected", "revealed");
-                this.style.opacity = "1";
-                this.style.backgroundColor = "transparent";
-
-                if (msg.toLowerCase().includes("invalid token") || msg.toLowerCase().includes("missing auth token")) {
-                    clearStoredTokens();
-                    authReady = false;
-                    startGameBtn.disabled = true;
-                    setFairnessBadge("Session expired");
-                    stopLockingStatus("Session expired. Reopen from Telegram.");
-                } else {
-                    stopLockingStatus(msg.includes("Donut already picked") ? "Donut already picked." : msg);
-                }
-
-                endPickLock();
-            }
-        };
-
-        container.appendChild(hitbox);
-    });
-
+    buildBoard();
     playIntroSequence();
 
     (async function init() {
-        startGameBtn.disabled = true;
+        syncFundingButtons();
+        syncStartButtonState();
         status.innerText = "Checking session...";
+
         await ensureAuthReady(false);
+        if (!authReady) return;
+
+        const restored = await restoreActiveRoundIfAny();
+        if (restored) return;
+
+        await loadOpenIntent(true);
+
+        if (!currentIntent) {
+            status.innerText = "Create a deposit intent to begin.";
+        }
+
+        syncFundingButtons();
+        syncStartButtonState();
     })();
 });
