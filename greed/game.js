@@ -2,7 +2,13 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("Game Loaded");
 
     const BACKEND_URL = "https://planetfatness-backend.onrender.com";
-    const DEFAULT_TEST_WAGER = 1000;
+    const DEFAULT_WAGER = 1000;
+
+    const START_LOCK_MIN_MS = 1400;
+    const PICK_COOLDOWN_MS = 450;
+    const OVERLAY_DELAY_MS = 220;
+    const HUB_FALLBACK_URL = "https://planetfatness.fit/";
+    const GREED_FALLBACK_URL = "https://planetfatness.fit/greed";
 
     const container = document.getElementById("game-container");
     const status = document.getElementById("status");
@@ -31,7 +37,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const cashoutButton = document.getElementById("cashout-button");
 
-    if (!container) return;
+    if (
+        !container ||
+        !status ||
+        !multiplierDisplay ||
+        !multiplierLadder ||
+        !ladderStepLabel ||
+        !ladderNextLabel ||
+        !jackpotAmount ||
+        !introOverlay ||
+        !startGameBtn ||
+        !cashoutButton ||
+        !poisonOverlay ||
+        !winOverlay ||
+        !winTitle ||
+        !winSubtitle ||
+        !winMultiplier
+    ) {
+        console.error("Missing required game elements.");
+        return;
+    }
+
+    const tgWebApp = window.Telegram?.WebApp || null;
+
+    if (tgWebApp) {
+        try {
+            tgWebApp.ready();
+            tgWebApp.expand();
+        } catch (err) {
+            console.warn("Telegram WebApp init failed:", err);
+        }
+    }
 
     // Audio
     const nomSound = new Audio("/assets/greed/nom.mp3");
@@ -62,17 +98,16 @@ document.addEventListener("DOMContentLoaded", function () {
     if (introVideo) introVideo.load();
     if (winVideo) winVideo.load();
 
-    let multiplier = 1.0;
     const multipliers = [1.02, 1.07, 1.15, 1.30, 1.48, 1.70, 1.98, 2.28, 2.70, 3.50];
+
+    let multiplier = 1.0;
     let safeFoundCount = 0;
-    let poisonIndices = [];
     let isGameOver = false;
     let hasStartedRound = false;
     let roundStarting = false;
     let pickInFlight = false;
+    let interactionLockedUntil = 0;
 
-    let usingBackend = true;
-    let usingLocalFallback = false;
     let roundId = null;
     let commitHash = "";
     let revealedServerSeed = "";
@@ -150,7 +185,7 @@ document.addEventListener("DOMContentLoaded", function () {
     fairnessBadge.style.overflow = "hidden";
     fairnessBadge.style.textOverflow = "ellipsis";
     fairnessBadge.style.opacity = "0.88";
-    fairnessBadge.innerText = "Waiting to lock round...";
+    fairnessBadge.innerText = "Ready to verify wager";
     document.body.appendChild(fairnessBadge);
 
     function shortHash(str) {
@@ -170,7 +205,7 @@ document.addEventListener("DOMContentLoaded", function () {
         fairnessBadge.innerText = text;
     }
 
-    function startLockingStatus(message = "Locking in your donuts") {
+    function startLockingStatus(message = "Locking round") {
         stopLockingStatus();
         let dots = 0;
         status.innerText = message;
@@ -190,8 +225,26 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function setInteractionCooldown(ms) {
+        interactionLockedUntil = Date.now() + Math.max(0, ms);
+    }
+
+    function interactionCooldownActive() {
+        return Date.now() < interactionLockedUntil;
+    }
+
+    async function waitForCooldownIfNeeded() {
+        const remaining = interactionLockedUntil - Date.now();
+        if (remaining > 0) {
+            await sleep(remaining);
+        }
+    }
+
     function animateJackpotPop() {
-        if (!jackpotAmount) return;
         jackpotAmount.classList.remove("jackpot-pop");
         void jackpotAmount.offsetWidth;
         jackpotAmount.classList.add("jackpot-pop");
@@ -203,7 +256,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function shakeGameContainer() {
-        if (!container) return;
         container.classList.remove("poison-shake");
         void container.offsetWidth;
         container.classList.add("poison-shake");
@@ -309,27 +361,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function seedLocalFallbackPoisons() {
-        poisonIndices = [];
-        while (poisonIndices.length < 2) {
-            let rand = Math.floor(Math.random() * 12);
-            if (!poisonIndices.includes(rand)) poisonIndices.push(rand);
-        }
-    }
-
-    function switchToLocalFallback(reason = "") {
-        if (usingLocalFallback) return;
-        usingBackend = false;
-        usingLocalFallback = true;
-        roundId = null;
-        commitHash = "";
-        revealedServerSeed = "";
-        revealedPoisonIndices = [];
-        seedLocalFallbackPoisons();
-        setFairnessBadge(reason ? `Demo Mode • ${reason}` : "Demo Mode • Local logic");
-        console.warn("Switched to local fallback mode.", reason);
-    }
-
     async function apiFetch(path, options = {}) {
         const token = authToken || getAuthToken();
         const headers = {
@@ -361,15 +392,13 @@ document.addEventListener("DOMContentLoaded", function () {
             const currentAmount =
                 Number(data?.jackpot?.currentAmount) ||
                 Number(data?.jackpot?.current_amount) ||
-                Number(data?.jackpot?.current_amount || 0);
+                0;
 
-            if (jackpotAmount) {
-                jackpotAmount.textContent = `${formatNumber(currentAmount || 5000)} PHAT`;
-                animateJackpotPop();
-            }
+            jackpotAmount.textContent = `${formatNumber(currentAmount || 5000)} PHAT`;
+            animateJackpotPop();
         } catch (err) {
             console.warn("Jackpot fetch failed:", err);
-            if (jackpotAmount && !jackpotAmount.textContent.trim()) {
+            if (!jackpotAmount.textContent.trim()) {
                 jackpotAmount.textContent = "5,000 PHAT";
             }
         }
@@ -378,46 +407,40 @@ document.addEventListener("DOMContentLoaded", function () {
     async function startBackendRound() {
         const token = authToken || getAuthToken();
         if (!token) {
-            switchToLocalFallback("No auth token");
-            return false;
+            throw new Error("Missing auth token");
         }
 
-        try {
-            authToken = token;
+        authToken = token;
 
-            const data = await apiFetch("/greed/start", {
-                method: "POST",
-                body: JSON.stringify({
-                    wager: DEFAULT_TEST_WAGER
-                })
-            });
+        const data = await apiFetch("/greed/start", {
+            method: "POST",
+            body: JSON.stringify({
+                wager: DEFAULT_WAGER
+            })
+        });
 
-            roundId = data.roundId;
-            commitHash = data?.provablyFair?.commitHash || "";
-            setFairnessBadge(`Provably Fair • ${shortHash(commitHash)}`);
+        roundId = data.roundId;
+        commitHash = data?.provablyFair?.commitHash || "";
+        revealedServerSeed = "";
+        revealedPoisonIndices = [];
 
-            const jackpotCurrent =
-                Number(data?.jackpot?.currentAmount) ||
-                Number(data?.jackpot?.current_amount) ||
-                0;
+        setFairnessBadge(commitHash ? `Provably Fair • ${shortHash(commitHash)}` : "Provably Fair • Round locked");
 
-            if (jackpotAmount && jackpotCurrent > 0) {
-                jackpotAmount.textContent = `${formatNumber(jackpotCurrent)} PHAT`;
-                animateJackpotPop();
-            }
+        const jackpotCurrent =
+            Number(data?.jackpot?.currentAmount) ||
+            Number(data?.jackpot?.current_amount) ||
+            0;
 
-            return true;
-        } catch (err) {
-            console.warn("Backend round start failed:", err);
-            switchToLocalFallback("Backend unavailable");
-            return false;
+        if (jackpotCurrent > 0) {
+            jackpotAmount.textContent = `${formatNumber(jackpotCurrent)} PHAT`;
+            animateJackpotPop();
         }
+
+        return data;
     }
 
     function updateCashoutButton() {
-        if (!cashoutButton) return;
-
-        if (safeFoundCount > 0 && !isGameOver && !pickInFlight) {
+        if (safeFoundCount > 0 && !isGameOver && !pickInFlight && !interactionCooldownActive()) {
             cashoutButton.disabled = false;
             cashoutButton.classList.add("active");
             cashoutButton.textContent = `Cash Out x${multiplier.toFixed(2)}`;
@@ -441,8 +464,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function updateLadder() {
-        if (!multiplierLadder || !ladderStepLabel || !ladderNextLabel) return;
-
         multiplierLadder.innerHTML = "";
 
         const verticalSteps = [...multipliers].reverse();
@@ -494,38 +515,39 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function lockBoard() {
-        isGameOver = true;
+    function setBoardPointerState(mode) {
         const hitboxes = container.querySelectorAll(".donut-hitbox");
         hitboxes.forEach((hitbox) => {
-            hitbox.style.pointerEvents = "none";
+            if (mode === "none") {
+                hitbox.style.pointerEvents = "none";
+                return;
+            }
+
+            if (mode === "active") {
+                if (!isGameOver && hasStartedRound && !pickInFlight && !interactionCooldownActive() && hitbox.dataset.clicked !== "true") {
+                    hitbox.style.pointerEvents = "auto";
+                } else {
+                    hitbox.style.pointerEvents = "none";
+                }
+            }
         });
+    }
+
+    function lockBoard() {
+        isGameOver = true;
+        setBoardPointerState("none");
         updateCashoutButton();
         updateLadder();
     }
 
     function unlockBoard() {
-        if (isGameOver || !hasStartedRound || pickInFlight) return;
-        const hitboxes = container.querySelectorAll(".donut-hitbox");
-        hitboxes.forEach((hitbox) => {
-            if (hitbox.dataset.clicked !== "true") {
-                hitbox.style.pointerEvents = "auto";
-            } else {
-                hitbox.style.pointerEvents = "none";
-            }
-        });
-    }
-
-    function disableBoardForPick() {
-        const hitboxes = container.querySelectorAll(".donut-hitbox");
-        hitboxes.forEach((hitbox) => {
-            hitbox.style.pointerEvents = "none";
-        });
+        if (isGameOver || !hasStartedRound || pickInFlight || interactionCooldownActive()) return;
+        setBoardPointerState("active");
     }
 
     function beginPickLock() {
         pickInFlight = true;
-        disableBoardForPick();
+        setBoardPointerState("none");
         updateCashoutButton();
     }
 
@@ -555,15 +577,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function showWinOverlay() {
-        if (!winOverlay) return;
-
         const isPerfect = safeFoundCount >= 10;
         winTitle.innerText = isPerfect ? "PERFECT RUN" : "YOU FED THE GREED";
 
-        if (usingBackend && commitHash) {
+        if (commitHash && revealedServerSeed) {
             winSubtitle.innerText = isPerfect ? "Legendary Cash Out • Hash Revealed" : "Cashed Out • Hash Revealed";
-        } else if (usingLocalFallback) {
-            winSubtitle.innerText = isPerfect ? "Legendary Cash Out • Demo Mode" : "Cashed Out • Demo Mode";
+        } else if (commitHash) {
+            winSubtitle.innerText = isPerfect ? "Legendary Cash Out • Locked" : "Cashed Out • Locked";
         } else {
             winSubtitle.innerText = isPerfect ? "Legendary Cash Out" : "Cashed Out";
         }
@@ -589,8 +609,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function hideOverlays() {
-        if (poisonOverlay) poisonOverlay.style.display = "none";
-        if (winOverlay) winOverlay.style.display = "none";
+        poisonOverlay.style.display = "none";
+        winOverlay.style.display = "none";
     }
 
     function applyRevealData(provablyFair) {
@@ -609,9 +629,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (revealedServerSeed && commitHash) {
-            setFairnessBadge(
-                `Revealed • ${shortHash(commitHash)} • Seed ${shortHash(revealedServerSeed)}`
-            );
+            setFairnessBadge(`Revealed • ${shortHash(commitHash)} • Seed ${shortHash(revealedServerSeed)}`);
         } else if (commitHash) {
             setFairnessBadge(`Provably Fair • ${shortHash(commitHash)}`);
         }
@@ -627,9 +645,11 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        if (introOverlay) {
-            introOverlay.classList.add("hidden");
-        }
+        introOverlay.classList.add("hidden");
+    }
+
+    function showIntroOverlay() {
+        introOverlay.classList.remove("hidden");
     }
 
     function resetRoundStateForFreshStart() {
@@ -637,7 +657,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         multiplier = 1.0;
         safeFoundCount = 0;
-        poisonIndices = [];
         isGameOver = false;
         hasStartedRound = false;
         roundStarting = false;
@@ -646,10 +665,12 @@ document.addEventListener("DOMContentLoaded", function () {
         revealedServerSeed = "";
         revealedPoisonIndices = [];
         pickInFlight = false;
+        interactionLockedUntil = 0;
 
         multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
         updateLadder();
         updateCashoutButton();
+        setFairnessBadge("Provably Fair • Ready to lock round");
 
         const hitboxes = container.querySelectorAll(".donut-hitbox");
         hitboxes.forEach((hitbox) => {
@@ -665,135 +686,152 @@ document.addEventListener("DOMContentLoaded", function () {
         if (hasStartedRound || isGameOver || roundStarting) return;
 
         roundStarting = true;
-
-        if (startGameBtn) {
-            startGameBtn.disabled = true;
-            startGameBtn.textContent = "Starting Round...";
-        }
-
-        startLockingStatus("Locking in your donuts");
-        setFairnessBadge("Locking new round...");
-
-        if (usingBackend && !usingLocalFallback) {
-            const started = await startBackendRound();
-
-            if (!started && !usingLocalFallback) {
-                stopLockingStatus("Could not lock round.");
-                roundStarting = false;
-                if (startGameBtn) {
-                    startGameBtn.disabled = false;
-                    startGameBtn.textContent = "Lock Wager & Start Round";
-                }
-                return;
-            }
-        }
-
-        if (usingLocalFallback) {
-            seedLocalFallbackPoisons();
-        }
-
-        hasStartedRound = true;
-        roundStarting = false;
-        pickInFlight = false;
-        unlockBoard();
-        hideIntroOverlay();
-        updateLadder();
+        pickInFlight = true;
+        setInteractionCooldown(START_LOCK_MIN_MS);
+        setBoardPointerState("none");
         updateCashoutButton();
 
-        if (usingLocalFallback) {
-            stopLockingStatus("Demo mode live. Pick a donut.");
-        } else {
+        startGameBtn.disabled = true;
+        startGameBtn.textContent = "Verifying Wager...";
+
+        playIntroSequence();
+        startLockingStatus("Verifying wager");
+        setFairnessBadge("Locking new round...");
+
+        const startTs = Date.now();
+
+        try {
+            await startBackendRound();
+
+            const elapsed = Date.now() - startTs;
+            const remaining = Math.max(0, START_LOCK_MIN_MS - elapsed);
+            if (remaining > 0) {
+                await sleep(remaining);
+            }
+
+            hasStartedRound = true;
+            roundStarting = false;
+            pickInFlight = false;
+
+            hideIntroOverlay();
+            multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+            updateLadder();
+            updateCashoutButton();
+
             stopLockingStatus("Choose wisely...");
+            unlockBoard();
+        } catch (err) {
+            console.warn("Backend round start failed:", err);
+
+            roundStarting = false;
+            pickInFlight = false;
+            hasStartedRound = false;
+            roundId = null;
+            commitHash = "";
+            revealedServerSeed = "";
+            revealedPoisonIndices = [];
+            interactionLockedUntil = 0;
+
+            const msg = String(err?.message || "Round failed to lock");
+            stopLockingStatus(msg);
+            setFairnessBadge("Round not locked");
+
+            startGameBtn.disabled = false;
+            startGameBtn.textContent = "Lock Wager & Start Round";
+
+            status.innerText = msg.includes("Insufficient")
+                ? "Deposit PHAT and try again."
+                : msg.includes("Missing auth token")
+                    ? "Launch from Telegram or reconnect."
+                    : msg;
         }
     }
 
     async function startFreshRoundFromOverlay() {
         hideOverlays();
         resetRoundStateForFreshStart();
+        showIntroOverlay();
 
-        if (introOverlay) {
-            introOverlay.classList.remove("hidden");
-        }
-
-        if (startGameBtn) {
-            startGameBtn.disabled = false;
-            startGameBtn.textContent = "Lock Wager & Start Round";
-        }
+        startGameBtn.disabled = false;
+        startGameBtn.textContent = "Lock Wager & Start Round";
 
         playIntroSequence();
-
-        status.innerText = usingLocalFallback
-            ? "Demo mode ready. Lock round to begin."
-            : "Lock your round to begin.";
+        status.innerText = "Lock your round to begin.";
     }
 
     function backToChat() {
         try {
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.close();
-                return;
+            if (tgWebApp) {
+                try {
+                    tgWebApp.HapticFeedback?.impactOccurred?.("light");
+                } catch {}
+
+                try {
+                    tgWebApp.close();
+                    return;
+                } catch (err) {
+                    console.warn("Telegram close failed:", err);
+                }
             }
         } catch (err) {
-            console.warn("Telegram close failed:", err);
+            console.warn("Telegram close wrapper failed:", err);
         }
 
-        if (document.referrer && document.referrer.length > 0) {
-            window.history.back();
-        } else {
-            window.location.href = "/";
+        try {
+            if (document.referrer && document.referrer.length > 0 && document.referrer !== window.location.href) {
+                window.location.href = document.referrer;
+                return;
+            }
+        } catch {}
+
+        if (window.location.pathname.includes("/greed")) {
+            window.location.href = HUB_FALLBACK_URL;
+            return;
         }
+
+        window.location.href = GREED_FALLBACK_URL;
     }
 
     async function cashOutNow() {
-        if (isGameOver || safeFoundCount < 1 || !hasStartedRound || pickInFlight) return;
-
-        beginPickLock();
-
-        if (usingBackend && !usingLocalFallback && roundId) {
-            try {
-                const data = await apiFetch("/greed/cashout", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        roundId
-                    })
-                });
-
-                multiplier = Number(data.currentMultiplier || multiplier);
-                safeFoundCount = Number(data.safeClicks || safeFoundCount);
-                applyRevealData(data.provablyFair);
-                updateLadder();
-                await refreshJackpot();
-
-                lockBoard();
-                playCashoutTierSound();
-                status.innerText = "Greed fed. Cash locked in.";
-                showWinOverlay();
-                pickInFlight = false;
-                updateCashoutButton();
-                return;
-            } catch (err) {
-                console.warn("Backend cashout failed:", err);
-                status.innerText = "Cashout failed. Try again.";
-                endPickLock();
-                return;
-            }
+        if (isGameOver || safeFoundCount < 1 || !hasStartedRound || pickInFlight || interactionCooldownActive()) return;
+        if (!roundId) {
+            status.innerText = "No active round found.";
+            return;
         }
 
-        lockBoard();
-        playCashoutTierSound();
-        status.innerText = "Greed fed. Cash locked in.";
-        showWinOverlay();
-        pickInFlight = false;
-        updateCashoutButton();
+        beginPickLock();
+        startLockingStatus("Securing cashout");
+
+        try {
+            const data = await apiFetch("/greed/cashout", {
+                method: "POST",
+                body: JSON.stringify({
+                    roundId
+                })
+            });
+
+            multiplier = Number(data.currentMultiplier || multiplier);
+            safeFoundCount = Number(data.safeClicks || safeFoundCount);
+            multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+            applyRevealData(data.provablyFair);
+            updateLadder();
+            await refreshJackpot();
+
+            lockBoard();
+            playCashoutTierSound();
+            stopLockingStatus("Greed fed. Cash locked in.");
+            showWinOverlay();
+            pickInFlight = false;
+            updateCashoutButton();
+        } catch (err) {
+            console.warn("Backend cashout failed:", err);
+            stopLockingStatus("Cashout failed. Try again.");
+            endPickLock();
+        }
     }
 
-    if (startGameBtn) {
-        startGameBtn.addEventListener("click", beginRoundFromIntro);
-    }
-
-    if (cashoutButton) {
-        cashoutButton.addEventListener("click", cashOutNow);
-    }
+    startGameBtn.addEventListener("click", beginRoundFromIntro);
+    cashoutButton.addEventListener("click", cashOutNow);
 
     if (poisonNewRoundBtn) {
         poisonNewRoundBtn.addEventListener("click", startFreshRoundFromOverlay);
@@ -815,7 +853,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (authToken) {
         setFairnessBadge("Provably Fair • Ready to lock round");
     } else {
-        switchToLocalFallback("No token");
+        setFairnessBadge("Auth required");
+        startGameBtn.disabled = true;
+        status.innerText = "Launch from Telegram to play.";
     }
 
     multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
@@ -823,9 +863,9 @@ document.addEventListener("DOMContentLoaded", function () {
     updateLadder();
     refreshJackpot();
 
-    status.innerText = usingLocalFallback
-        ? "Demo mode ready. Lock round to begin."
-        : "Lock your round to begin.";
+    if (authToken) {
+        status.innerText = "Lock your round to begin.";
+    }
 
     container.innerHTML = "";
 
@@ -841,127 +881,95 @@ document.addEventListener("DOMContentLoaded", function () {
         hitbox.dataset.clicked = "false";
 
         hitbox.onclick = async function () {
-            if (isGameOver || pickInFlight || this.dataset.clicked === "true") return;
+            if (
+                isGameOver ||
+                pickInFlight ||
+                interactionCooldownActive() ||
+                this.dataset.clicked === "true"
+            ) {
+                return;
+            }
 
             if (!hasStartedRound) {
                 status.innerText = "Lock a round first.";
                 return;
             }
 
+            if (!roundId) {
+                status.innerText = "Round not found. Start again.";
+                return;
+            }
+
             beginPickLock();
+            startLockingStatus("Submitting pick");
 
             this.dataset.clicked = "true";
             this.classList.add("selected", "revealed");
             markClickedDonut(this);
 
-            if (usingBackend && !usingLocalFallback && roundId) {
-                try {
-                    const data = await apiFetch("/greed/pick", {
-                        method: "POST",
-                        body: JSON.stringify({
-                            roundId,
-                            pickedIndex: index
-                        })
-                    });
-
-                    multiplier = Number(data.currentMultiplier || multiplier);
-                    safeFoundCount = Number(data.safeClicks || safeFoundCount);
-                    multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
-                    popMultiplier();
-                    updateLadder();
-
-                    if (data.provablyFair) {
-                        applyRevealData(data.provablyFair);
-                    }
-
-                    if (data.result === "poison") {
-                        playPoisonSound();
-                        this.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
-                        status.innerText = "POISON! Game Over.";
-                        shakeGameContainer();
-                        lockBoard();
-                        pickInFlight = false;
-                        updateCashoutButton();
-                        await refreshJackpot();
-                        setTimeout(() => {
-                            showPoisonOverlay();
-                        }, 220);
-                        return;
-                    }
-
-                    playNomSound();
-                    updateCashoutButton();
-
-                    if (data.result === "perfect" || safeFoundCount >= 10) {
-                        lockBoard();
-                        playCashoutTierSound();
-                        status.innerText = "PERFECT RUN!";
-                        pickInFlight = false;
-                        updateCashoutButton();
-                        await refreshJackpot();
-                        showWinOverlay();
-                        return;
-                    }
-
-                    if (data.finalDonutLive || safeFoundCount === 9) {
-                        status.innerText = "FINAL DONUT • 33% shot at x3.50";
-                    } else {
-                        status.innerText = getRandomHypeLine();
-                    }
-
-                    endPickLock();
-                    return;
-                } catch (err) {
-                    console.warn("Backend pick failed:", err);
-                    status.innerText = "Pick failed. Try again.";
-                    this.dataset.clicked = "false";
-                    this.classList.remove("selected", "revealed");
-                    this.style.opacity = "1";
-                    endPickLock();
-                    return;
-                }
-            }
-
             try {
-                if (poisonIndices.includes(index)) {
+                const data = await apiFetch("/greed/pick", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        roundId,
+                        pickedIndex: index
+                    })
+                });
+
+                multiplier = Number(data.currentMultiplier || multiplier);
+                safeFoundCount = Number(data.safeClicks || safeFoundCount);
+                multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+                popMultiplier();
+                updateLadder();
+
+                if (data.provablyFair) {
+                    applyRevealData(data.provablyFair);
+                }
+
+                if (data.result === "poison") {
                     playPoisonSound();
                     this.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
-                    status.innerText = "POISON! Game Over.";
+                    stopLockingStatus("POISON! Game Over.");
                     shakeGameContainer();
                     lockBoard();
                     pickInFlight = false;
                     updateCashoutButton();
+                    await refreshJackpot();
                     setTimeout(() => {
                         showPoisonOverlay();
-                    }, 220);
-                } else {
-                    multiplier = multipliers[safeFoundCount] || 3.50;
-                    safeFoundCount++;
-                    multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
-                    popMultiplier();
-                    playNomSound();
-                    updateLadder();
-                    updateCashoutButton();
-
-                    if (safeFoundCount >= 10) {
-                        lockBoard();
-                        playCashoutTierSound();
-                        status.innerText = "PERFECT RUN!";
-                        pickInFlight = false;
-                        updateCashoutButton();
-                        showWinOverlay();
-                        return;
-                    }
-
-                    revealFinalPushHint();
-                    endPickLock();
+                    }, OVERLAY_DELAY_MS);
+                    return;
                 }
+
+                playNomSound();
+                updateCashoutButton();
+
+                if (data.result === "perfect" || safeFoundCount >= 10) {
+                    lockBoard();
+                    playCashoutTierSound();
+                    stopLockingStatus("PERFECT RUN!");
+                    pickInFlight = false;
+                    updateCashoutButton();
+                    await refreshJackpot();
+                    showWinOverlay();
+                    return;
+                }
+
+                if (data.finalDonutLive || safeFoundCount === 9) {
+                    stopLockingStatus("FINAL DONUT • 33% shot at x3.50");
+                } else {
+                    stopLockingStatus(getRandomHypeLine());
+                }
+
+                setInteractionCooldown(PICK_COOLDOWN_MS);
+                await waitForCooldownIfNeeded();
+                endPickLock();
             } catch (err) {
-                console.warn("Local pick failed:", err);
+                console.warn("Backend pick failed:", err);
                 this.dataset.clicked = "false";
                 this.classList.remove("selected", "revealed");
                 this.style.opacity = "1";
-                status.innerText = "Pick failed. Try again.";
+                stopLockingStatus("Pick failed. Try again.");
                 endPickLock();
             }
         };
