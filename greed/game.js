@@ -869,9 +869,12 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 status.innerText = "Intent created.";
             }
-        } catch (err) {
+             } catch (err) {
             console.warn("Create intent failed:", err);
             const msg = String(err?.message || "Create intent failed");
+
+            alert("ERROR: " + msg);
+
             if (msg.toLowerCase().includes("invalid token") || msg.toLowerCase().includes("missing auth token")) {
                 clearStoredTokens();
                 authReady = false;
@@ -885,7 +888,6 @@ document.addEventListener("DOMContentLoaded", function () {
             syncFundingButtons();
             syncStartButtonState();
         }
-    }
 
     async function cancelDepositIntent() {
         if (!authReady || intentBusy || !currentIntent?.id) return;
