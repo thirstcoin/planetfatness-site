@@ -1629,10 +1629,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    if (createIntentBtn) {
+if (createIntentBtn) {
     createIntentBtn.addEventListener("click", () => {
         status.innerText = "Create Intent button clicked";
-        alert("create intent click fired");
+        alert(`click fired | authReady=${authReady} | token=${(authToken || getAuthToken() || "").slice(0,12)} | initDataLen=${(window.Telegram?.WebApp?.initData || "").length}`);
         createDepositIntent();
     });
 }
