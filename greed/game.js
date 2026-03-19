@@ -846,11 +846,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         intentBusy = true;
-        syncFundingButtons();
-        syncStartButtonState();
-        status.innerText = "Creating deposit intent...";
-        setFairnessBadge("Preparing funding");
+syncFundingButtons();
+syncStartButtonState();
+status.innerText = "Creating deposit intent...";
 
+alert("entered createDepositIntent before fetch"); // 👈 ADD THIS
+
+setFairnessBadge("Preparing funding");
         try {
             const data = await apiFetch("/greed/deposit-intent", {
                 method: "POST",
