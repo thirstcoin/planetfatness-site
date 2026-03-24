@@ -119,7 +119,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (winVideo) winVideo.load();
 
     const multipliers = [1.02, 1.07, 1.15, 1.30, 1.48, 1.70, 1.98, 2.28, 2.70, 3.50];
-    const quickWagers = [1000, 5000, 10000, 25000, 50000];
 
     let multiplier = 1.0;
     let safeFoundCount = 0;
@@ -505,7 +504,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (authToken) {
                 authReady = true;
-                setFairnessBadge("Provably Fair • Ready to fund");
+                setFairnessBadge("Provably Fair • Ready");
                 syncFundingButtons();
                 syncStartButtonState();
                 return true;
@@ -514,10 +513,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const savedTgUser = getStoredTelegramUser();
             if (savedTgUser?.id) {
                 setFairnessBadge("Authenticating...");
-                status.innerText = "Refreshing Telegram session...";
+                status.innerText = "Refreshing session...";
             } else {
                 setFairnessBadge("Authenticating...");
-                status.innerText = "Verifying Telegram session...";
+                status.innerText = "Verifying session...";
             }
 
             const tgAuthed = await bootstrapTelegramAuth();
@@ -525,7 +524,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (tgAuthed && authToken) {
                 authReady = true;
-                setFairnessBadge("Provably Fair • Ready to fund");
+                setFairnessBadge("Provably Fair • Ready");
                 syncFundingButtons();
                 syncStartButtonState();
                 return true;
@@ -536,7 +535,7 @@ document.addEventListener("DOMContentLoaded", function () {
             syncFundingButtons();
             syncStartButtonState();
             status.innerText = tgWebApp
-                ? "Telegram auth failed. Reopen from the bot."
+                ? "Session failed. Reopen from the bot."
                 : "Launch from Telegram to play.";
             return false;
         })();
@@ -630,7 +629,19 @@ document.addEventListener("DOMContentLoaded", function () {
         currentIntent = intent || null;
 
         if (intentStatusEl) {
-            intentStatusEl.textContent = currentIntent ? String(currentIntent.status || "pending").toUpperCase() : "No intent yet";
+            if (!currentIntent) {
+                intentStatusEl.textContent = "NOT FUNDED";
+            } else if (currentIntent.status === "pending") {
+                intentStatusEl.textContent = "WAITING FOR DEPOSIT";
+            } else if (currentIntent.status === "funded") {
+                intentStatusEl.textContent = "DEPOSIT DETECTED";
+            } else if (currentIntent.status === "expired") {
+                intentStatusEl.textContent = "EXPIRED";
+            } else if (currentIntent.status === "cancelled") {
+                intentStatusEl.textContent = "CANCELLED";
+            } else {
+                intentStatusEl.textContent = String(currentIntent.status || "").toUpperCase();
+            }
         }
 
         if (intentAmountEl) {
@@ -655,35 +666,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (fundingHelpEl) {
             if (!currentIntent) {
-                fundingHelpEl.textContent = "Create an intent to get the exact PHAT amount and deposit wallet.";
+                fundingHelpEl.textContent = "Choose a wager, then fund your round.";
             } else if (currentIntent.status === "funded") {
-                fundingHelpEl.textContent = "Funding confirmed. Your round is unlocked.";
+                fundingHelpEl.textContent = "Deposit received. Your round is ready.";
             } else if (currentIntent.status === "pending") {
-                fundingHelpEl.textContent = "Deposit the exact amount shown below to unlock your round.";
+                fundingHelpEl.textContent = "Send the exact PHAT amount below to fund this round.";
             } else if (currentIntent.status === "expired") {
-                fundingHelpEl.textContent = "This intent expired. Create a fresh one.";
+                fundingHelpEl.textContent = "Funding expired. Start a fresh round when ready.";
             } else if (currentIntent.status === "cancelled") {
-                fundingHelpEl.textContent = "Intent cancelled. Create a new one when ready.";
+                fundingHelpEl.textContent = "Funding cancelled.";
             } else {
-                fundingHelpEl.textContent = "Intent updated.";
+                fundingHelpEl.textContent = "Round funding updated.";
             }
         }
 
         if (fundingPollingNoteEl) {
             if (!currentIntent) {
-                fundingPollingNoteEl.textContent = "Waiting for intent…";
+                fundingPollingNoteEl.textContent = "Select a wager to begin.";
             } else if (currentIntent.status === "funded") {
-                fundingPollingNoteEl.textContent = "Funding detected.";
+                fundingPollingNoteEl.textContent = "Deposit confirmed.";
             } else if (currentIntent.status === "pending") {
-                fundingPollingNoteEl.textContent = "Waiting for funding…";
+                fundingPollingNoteEl.textContent = "Waiting for deposit…";
             } else if (currentIntent.status === "expired") {
-                fundingPollingNoteEl.textContent = "Intent expired.";
+                fundingPollingNoteEl.textContent = "Funding expired.";
             } else if (currentIntent.status === "cancelled") {
-                fundingPollingNoteEl.textContent = "Intent cancelled.";
+                fundingPollingNoteEl.textContent = "Funding cancelled.";
             } else if (currentIntent.status === "consumed") {
-                fundingPollingNoteEl.textContent = "Intent consumed.";
+                fundingPollingNoteEl.textContent = "Round funded.";
             } else {
-                fundingPollingNoteEl.textContent = "Intent updated.";
+                fundingPollingNoteEl.textContent = "Funding updated.";
             }
         }
 
@@ -692,11 +703,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (currentIntent?.status === "funded") {
-            setFairnessBadge("Provably Fair • Funding verified");
+            setFairnessBadge("Provably Fair • Funded");
         } else if (currentIntent?.status === "pending") {
-            setFairnessBadge("Provably Fair • Awaiting funding");
+            setFairnessBadge("Provably Fair • Waiting for deposit");
         } else if (authReady) {
-            setFairnessBadge("Provably Fair • Ready to fund");
+            setFairnessBadge("Provably Fair • Ready");
         } else {
             setFairnessBadge("Auth required");
         }
@@ -743,13 +754,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!authReady) {
             startGameBtn.disabled = true;
-            startGameBtn.textContent = "Launch from Telegram to Play";
+            startGameBtn.textContent = "Open in Telegram";
             return;
         }
 
         if (roundStarting) {
             startGameBtn.disabled = true;
-            startGameBtn.textContent = "Verifying Wager...";
+            startGameBtn.textContent = "Starting Round...";
             return;
         }
 
@@ -761,7 +772,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!currentIntent) {
             startGameBtn.disabled = true;
-            startGameBtn.textContent = "Create Intent to Unlock Round";
+            startGameBtn.textContent = "Start Round";
             return;
         }
 
@@ -769,13 +780,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (intentStatus !== "funded") {
             startGameBtn.disabled = true;
             startGameBtn.textContent = intentStatus === "pending"
-                ? "Deposit PHAT to Unlock Round"
-                : "Create Fresh Intent";
+                ? "Waiting for Deposit"
+                : "Start Round";
             return;
         }
 
         startGameBtn.disabled = false;
-        startGameBtn.textContent = "Lock Wager & Start Round";
+        startGameBtn.textContent = "Start Round";
     }
 
     async function refreshJackpot() {
@@ -800,8 +811,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     }
-
-    async function loadOpenIntent(showStatus = false) {
+        async function loadOpenIntent(showStatus = false) {
         if (!authReady) return null;
 
         try {
@@ -811,13 +821,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (showStatus) {
                 if (!intent) {
-                    status.innerText = "Create a deposit intent to begin.";
+                    status.innerText = "Choose a wager to begin.";
                 } else if (intent.status === "pending") {
-                    status.innerText = "Deposit the exact PHAT amount to unlock your round.";
+                    status.innerText = "Waiting for your deposit.";
                 } else if (intent.status === "funded") {
-                    status.innerText = "Funding confirmed. Lock your round when ready.";
+                    status.innerText = "Deposit received. Start your round.";
                 } else {
-                    status.innerText = "Create a fresh intent to begin.";
+                    status.innerText = "Choose a wager to begin.";
                 }
             }
 
@@ -839,20 +849,18 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-     async function createDepositIntent() {
+    async function createDepositIntent() {
         if (!authReady || intentBusy || hasStartedRound || roundStarting) return;
         if (currentIntent && (currentIntent.status === "pending" || currentIntent.status === "funded")) {
             return;
         }
 
         intentBusy = true;
-syncFundingButtons();
-syncStartButtonState();
-status.innerText = "Creating deposit intent...";
+        syncFundingButtons();
+        syncStartButtonState();
+        status.innerText = "Preparing your round...";
+        setFairnessBadge("Preparing funding");
 
-alert("entered createDepositIntent before fetch"); // 👈 ADD THIS
-
-setFairnessBadge("Preparing funding");
         try {
             const data = await apiFetch("/greed/deposit-intent", {
                 method: "POST",
@@ -862,20 +870,19 @@ setFairnessBadge("Preparing funding");
             });
 
             renderIntent(data?.intent || null);
+
             if (currentIntent?.status === "pending") {
-                status.innerText = "Intent created. Deposit the exact PHAT amount shown.";
+                status.innerText = "Waiting for your deposit...";
                 startIntentPolling();
             } else if (currentIntent?.status === "funded") {
-                status.innerText = "Funding already confirmed. Lock your round when ready.";
+                status.innerText = "Deposit received. Start your round.";
                 startIntentPolling();
             } else {
-                status.innerText = "Intent created.";
+                status.innerText = "Round funding ready.";
             }
         } catch (err) {
-            console.warn("Create intent failed:", err);
-            const msg = String(err?.message || "Create intent failed");
-
-            alert("ERROR: " + msg);
+            console.warn("Create funding failed:", err);
+            const msg = String(err?.message || "Funding failed");
 
             if (msg.toLowerCase().includes("invalid token") || msg.toLowerCase().includes("missing auth token")) {
                 clearStoredTokens();
@@ -898,7 +905,7 @@ setFairnessBadge("Preparing funding");
         intentBusy = true;
         syncFundingButtons();
         syncStartButtonState();
-        status.innerText = "Cancelling intent...";
+        status.innerText = "Cancelling funding...";
 
         try {
             const data = await apiFetch(`/greed/deposit-intent/${currentIntent.id}/cancel`, {
@@ -908,10 +915,10 @@ setFairnessBadge("Preparing funding");
 
             renderIntent(data?.intent || null);
             stopIntentPolling();
-            status.innerText = "Intent cancelled. Choose a wager to create a fresh one.";
+            status.innerText = "Funding cancelled.";
         } catch (err) {
-            console.warn("Cancel intent failed:", err);
-            const msg = String(err?.message || "Cancel intent failed");
+            console.warn("Cancel funding failed:", err);
+            const msg = String(err?.message || "Cancel funding failed");
             status.innerText = msg;
         } finally {
             intentBusy = false;
@@ -926,18 +933,24 @@ setFairnessBadge("Preparing funding");
         try {
             const data = await apiFetch(`/greed/deposit-intent/${intentId}`, { method: "GET" });
             const nextIntent = data?.intent || null;
+            const previousStatus = String(currentIntent?.status || "");
+
             renderIntent(nextIntent);
 
             if (!quiet) {
                 if (nextIntent?.status === "funded") {
-                    status.innerText = "Funding confirmed. Lock your round when ready.";
+                    status.innerText = "Deposit received. Start your round.";
                 } else if (nextIntent?.status === "pending") {
-                    status.innerText = "Waiting for your funding deposit...";
+                    status.innerText = "Waiting for your deposit...";
                 } else if (nextIntent?.status === "expired") {
-                    status.innerText = "Intent expired. Create a new one.";
+                    status.innerText = "Funding expired. Choose a wager to begin again.";
                 } else if (nextIntent?.status === "cancelled") {
-                    status.innerText = "Intent cancelled.";
+                    status.innerText = "Funding cancelled.";
                 }
+            }
+
+            if (previousStatus !== "funded" && nextIntent?.status === "funded") {
+                playStartSound();
             }
 
             if (!nextIntent || !["pending", "funded"].includes(String(nextIntent.status || ""))) {
@@ -946,7 +959,7 @@ setFairnessBadge("Preparing funding");
 
             return nextIntent;
         } catch (err) {
-            console.warn("Intent status poll failed:", err);
+            console.warn("Funding poll failed:", err);
             return null;
         }
     }
@@ -962,9 +975,9 @@ setFairnessBadge("Preparing funding");
             await refreshIntentById(currentIntent.id, true);
 
             if (currentIntent?.status === "funded" && fundingPollingNoteEl) {
-                fundingPollingNoteEl.textContent = "Funding detected.";
+                fundingPollingNoteEl.textContent = "Deposit confirmed.";
             } else if (currentIntent?.status === "pending" && fundingPollingNoteEl) {
-                fundingPollingNoteEl.textContent = "Waiting for funding…";
+                fundingPollingNoteEl.textContent = "Waiting for deposit…";
             }
 
             if (intentExpiryEl && currentIntent?.expiresAt) {
@@ -980,7 +993,7 @@ setFairnessBadge("Preparing funding");
         }
 
         if (!currentIntent || currentIntent.status !== "funded") {
-            throw new Error("Deposit intent not funded yet");
+            throw new Error("Round not funded yet");
         }
 
         authToken = token;
@@ -1204,8 +1217,7 @@ setFairnessBadge("Preparing funding");
             setFairnessBadge(`Provably Fair • ${shortHash(commitHash)}`);
         }
     }
-
-    function hideIntroOverlay() {
+        function hideIntroOverlay() {
         if (introVideo) {
             try {
                 introVideo.pause();
@@ -1254,7 +1266,7 @@ setFairnessBadge("Preparing funding");
         resetBoardVisuals();
 
         if (authReady) {
-            setFairnessBadge(currentIntent?.status === "funded" ? "Provably Fair • Funding verified" : "Provably Fair • Ready to fund");
+            setFairnessBadge(currentIntent?.status === "funded" ? "Provably Fair • Funded" : "Provably Fair • Ready");
         } else {
             setFairnessBadge("Auth required");
         }
@@ -1265,12 +1277,12 @@ setFairnessBadge("Preparing funding");
 
     async function beginRoundFromIntro() {
         if (!authReady) {
-            status.innerText = "Auth required. Reopen from Telegram.";
+            status.innerText = "Session required. Reopen from Telegram.";
             return;
         }
 
         if (!currentIntent || currentIntent.status !== "funded") {
-            status.innerText = "Deposit PHAT and wait for funding confirmation first.";
+            status.innerText = "Fund your round first.";
             syncStartButtonState();
             return;
         }
@@ -1284,10 +1296,10 @@ setFairnessBadge("Preparing funding");
         updateCashoutButton();
 
         startGameBtn.disabled = true;
-        startGameBtn.textContent = "Verifying Wager...";
+        startGameBtn.textContent = "Starting Round...";
 
         playIntroSequence();
-        startLockingStatus("Verifying wager");
+        startLockingStatus("Locking wager");
         setFairnessBadge("Locking new round...");
 
         const startTs = Date.now();
@@ -1326,7 +1338,7 @@ setFairnessBadge("Preparing funding");
             revealedPoisonIndices = [];
             interactionLockedUntil = 0;
 
-            const msg = String(err?.message || "Round failed to lock");
+            const msg = String(err?.message || "Round failed to start");
             stopLockingStatus(msg);
             setFairnessBadge("Round not locked");
 
@@ -1366,12 +1378,13 @@ setFairnessBadge("Preparing funding");
         await loadOpenIntent(false);
 
         playIntroSequence();
+
         if (currentIntent?.status === "funded") {
-            status.innerText = "Funding confirmed. Lock your round when ready.";
+            status.innerText = "Deposit received. Start your round.";
         } else if (currentIntent?.status === "pending") {
-            status.innerText = "Deposit the exact PHAT amount to unlock your round.";
+            status.innerText = "Waiting for your deposit.";
         } else {
-            status.innerText = authReady ? "Create a deposit intent to begin." : "Launch from Telegram to play.";
+            status.innerText = authReady ? "Choose a wager to begin." : "Launch from Telegram to play.";
         }
     }
 
@@ -1437,6 +1450,7 @@ setFairnessBadge("Preparing funding");
         } catch (err) {
             console.warn("Backend cashout failed:", err);
             const msg = String(err?.message || "Cashout failed. Try again.");
+
             if (msg.toLowerCase().includes("invalid token")) {
                 clearStoredTokens();
                 authReady = false;
@@ -1446,6 +1460,7 @@ setFairnessBadge("Preparing funding");
             } else {
                 stopLockingStatus(msg);
             }
+
             endPickLock();
         }
     }
@@ -1475,7 +1490,7 @@ setFairnessBadge("Preparing funding");
                 }
 
                 if (!hasStartedRound) {
-                    status.innerText = "Lock a round first.";
+                    status.innerText = "Start a round first.";
                     return;
                 }
 
@@ -1634,13 +1649,20 @@ setFairnessBadge("Preparing funding");
         }
     }
 
-if (createIntentBtn) {
-    createIntentBtn.addEventListener("click", () => {
-        status.innerText = "Create Intent button clicked";
-        alert(`authReady=${authReady} | intentBusy=${intentBusy} | started=${hasStartedRound} | starting=${roundStarting}`);
-        createDepositIntent();
-    });
-}
+    if (createIntentBtn) {
+        createIntentBtn.addEventListener("click", async () => {
+            if (!authReady) {
+                status.innerText = "Open from Telegram.";
+                return;
+            }
+
+            if (intentBusy || hasStartedRound || roundStarting) return;
+
+            status.innerText = "Preparing your round...";
+            setFairnessBadge("Waiting for deposit...");
+            await createDepositIntent();
+        });
+    }
 
     if (cancelIntentBtn) {
         cancelIntentBtn.addEventListener("click", cancelDepositIntent);
@@ -1652,7 +1674,7 @@ if (createIntentBtn) {
             const amount = Number(btn.dataset.wager || 0);
             if (amount > 0) {
                 setSelectedWager(amount);
-                status.innerText = `Selected ${formatNumber(amount)} PHAT. Create an intent when ready.`;
+                status.innerText = `Selected ${formatNumber(amount)} PHAT. Fund this round to play.`;
             }
         });
     });
@@ -1666,7 +1688,7 @@ if (createIntentBtn) {
                 return;
             }
             setSelectedWager(raw);
-            status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Create an intent when ready.`;
+            status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Fund this round to play.`;
         });
     }
 
@@ -1720,7 +1742,7 @@ if (createIntentBtn) {
         await loadOpenIntent(true);
 
         if (!currentIntent) {
-            status.innerText = "Create a deposit intent to begin.";
+            status.innerText = "Choose a wager to begin.";
         }
 
         syncFundingButtons();
