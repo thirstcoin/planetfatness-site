@@ -265,6 +265,10 @@ body {
     align-items: start;
 }
 
+.copy-row {
+    align-items: center;
+}
+
 .funding-label {
     font-size: 13px;
     font-weight: 900;
@@ -299,13 +303,8 @@ body {
     border: 1px solid rgba(255,255,255,0.08);
     padding: 10px 12px;
     border-radius: 10px;
-    cursor: pointer;
+    cursor: default;
     transition: transform 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
-}
-
-#intent-amount:active {
-    transform: scale(0.99);
-    background: rgba(0,0,0,0.62);
 }
 
 .wallet-row {
@@ -323,18 +322,42 @@ body {
     border: 1px solid rgba(255,255,255,0.08);
     padding: 10px 12px;
     border-radius: 10px;
-    cursor: pointer;
+    cursor: default;
     transition: transform 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
-}
-
-#intent-wallet:active {
-    transform: scale(0.99);
-    background: rgba(0,0,0,0.62);
 }
 
 #intent-wallet.copied {
     background: rgba(0, 255, 120, 0.18);
     box-shadow: 0 0 0 1px rgba(0,255,120,0.18) inset;
+}
+
+.mini-copy-btn {
+    appearance: none;
+    border: none;
+    border-radius: 12px;
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    background: linear-gradient(180deg, #FFD700 0%, #E2AA00 100%);
+    color: #111;
+    box-shadow:
+        0 4px 12px rgba(0,0,0,0.28),
+        inset 0 1px 0 rgba(255,255,255,0.18);
+    transition: transform 0.14s ease, opacity 0.14s ease, filter 0.14s ease;
+    justify-self: start;
+}
+
+.mini-copy-btn:active {
+    transform: scale(0.97);
+}
+
+.mini-copy-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    filter: saturate(0.9);
 }
 
 #funding-help,
@@ -982,6 +1005,12 @@ body {
     #intent-wallet {
         font-size: 11px;
         padding: 8px 10px;
+    }
+
+    .mini-copy-btn {
+        min-height: 36px;
+        font-size: 12px;
+        padding: 0 12px;
     }
 
     #funding-help {
