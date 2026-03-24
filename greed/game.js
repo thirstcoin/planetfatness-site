@@ -625,6 +625,26 @@ document.addEventListener("DOMContentLoaded", function () {
         syncFundingButtons();
     }
 
+    async function copyWalletAddress() {
+        if (!intentWalletEl) return;
+
+        const wallet = String(intentWalletEl.textContent || "").trim();
+        if (!wallet || wallet === "—") return;
+
+        try {
+            await navigator.clipboard.writeText(wallet);
+            status.innerText = "Wallet copied. Send the exact PHAT amount shown.";
+            intentWalletEl.classList.add("copied");
+
+            setTimeout(() => {
+                intentWalletEl.classList.remove("copied");
+            }, 1200);
+        } catch (err) {
+            console.warn("Clipboard copy failed:", err);
+            status.innerText = "Copy failed. Tap and hold the wallet address to copy.";
+        }
+    }
+
     function renderIntent(intent) {
         currentIntent = intent || null;
 
@@ -645,11 +665,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (intentAmountEl) {
-            intentAmountEl.textContent = currentIntent?.exactAmount ? `${formatNumber(currentIntent.exactAmount)} PHAT` : "—";
+            intentAmountEl.textContent = currentIntent?.exactAmount
+                ? `${formatNumber(currentIntent.exactAmount)} PHAT`
+                : "—";
         }
 
         if (intentWalletEl) {
-            intentWalletEl.textContent = currentIntent?.depositWallet || "—";
+            const walletText = currentIntent?.depositWallet || "—";
+            intentWalletEl.textContent = walletText;
+            intentWalletEl.title = walletText !== "—" ? "Tap to copy wallet address" : "";
+            intentWalletEl.style.cursor = walletText !== "—" ? "pointer" : "default";
         }
 
         if (intentTokenEl) {
@@ -662,6 +687,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (intentTxEl) {
             intentTxEl.textContent = currentIntent?.txSignature ? shortHash(currentIntent.txSignature) : "—";
+            intentTxEl.title = currentIntent?.txSignature || "";
         }
 
         if (fundingHelpEl) {
@@ -670,7 +696,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else if (currentIntent.status === "funded") {
                 fundingHelpEl.textContent = "Deposit received. Your round is ready.";
             } else if (currentIntent.status === "pending") {
-                fundingHelpEl.textContent = "Send the exact PHAT amount below to fund this round.";
+                fundingHelpEl.textContent = "Tap the wallet address to copy it, then send the exact PHAT amount.";
             } else if (currentIntent.status === "expired") {
                 fundingHelpEl.textContent = "Funding expired. Start a fresh round when ready.";
             } else if (currentIntent.status === "cancelled") {
@@ -748,8 +774,7 @@ document.addEventListener("DOMContentLoaded", function () {
             btn.disabled = !authReady || intentBusy || pendingOrFunded || hasStartedRound || roundStarting;
         });
     }
-
-    function syncStartButtonState() {
+        function syncStartButtonState() {
         if (!startGameBtn) return;
 
         if (!authReady) {
@@ -811,7 +836,8 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     }
-        async function loadOpenIntent(showStatus = false) {
+
+    async function loadOpenIntent(showStatus = false) {
         if (!authReady) return null;
 
         try {
@@ -858,8 +884,8 @@ document.addEventListener("DOMContentLoaded", function () {
         intentBusy = true;
         syncFundingButtons();
         syncStartButtonState();
-        status.innerText = "Preparing your round...";
-        setFairnessBadge("Preparing funding");
+        status.innerText = "Creating deposit request...";
+        setFairnessBadge("Creating deposit request...");
 
         try {
             const data = await apiFetch("/greed/deposit-intent", {
@@ -1217,7 +1243,8 @@ document.addEventListener("DOMContentLoaded", function () {
             setFairnessBadge(`Provably Fair • ${shortHash(commitHash)}`);
         }
     }
-        function hideIntroOverlay() {
+
+    function hideIntroOverlay() {
         if (introVideo) {
             try {
                 introVideo.pause();
@@ -1244,8 +1271,7 @@ document.addEventListener("DOMContentLoaded", function () {
             hitbox.style.opacity = "1";
         });
     }
-
-    function resetRoundStateForFreshStart() {
+        function resetRoundStateForFreshStart() {
         stopLockingStatus();
 
         multiplier = 1.0;
@@ -1658,14 +1684,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (intentBusy || hasStartedRound || roundStarting) return;
 
-            status.innerText = "Preparing your round...";
-            setFairnessBadge("Waiting for deposit...");
+            status.innerText = "Creating deposit request...";
+            setFairnessBadge("Creating deposit request...");
             await createDepositIntent();
         });
     }
 
     if (cancelIntentBtn) {
         cancelIntentBtn.addEventListener("click", cancelDepositIntent);
+    }
+
+    if (intentWalletEl) {
+        intentWalletEl.addEventListener("click", copyWalletAddress);
     }
 
     quickWagerButtons.forEach((btn) => {
