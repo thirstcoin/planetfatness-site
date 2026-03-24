@@ -8,11 +8,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const PICK_COOLDOWN_MS = 450;
     const OVERLAY_DELAY_MS = 220;
     const HUB_FALLBACK_URL = "https://planetfatness.fit/";
-    const GREED_FALLBACK_URL = "https://planetfatness.fit/greed";
 
     const TOKEN_KEY = "pf_token";
-    const ADDR_KEY = "pf_address";
     const TG_KEY = "pf_tg";
+    const ADDR_KEY = "pf_address";
     const ID_KIND = "pf_identity_kind";
 
     const container = document.getElementById("game-container");
@@ -39,15 +38,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const introOverlay = document.getElementById("intro-overlay");
     const introVideo = document.getElementById("intro-video");
     const startGameBtn = document.getElementById("start-game-btn");
-
     const cashoutButton = document.getElementById("cashout-button");
 
     // Funding UI
     const quickWagerButtons = Array.from(document.querySelectorAll(".quick-wager-btn"));
     const customWagerInput = document.getElementById("custom-wager-input");
-    const applyCustomWagerBtn = document.getElementById("apply-custom-wager-btn");
     const selectedWagerValue = document.getElementById("selected-wager-value");
-    const createIntentBtn = document.getElementById("create-intent-btn");
     const cancelIntentBtn = document.getElementById("cancel-intent-btn");
     const intentStatusEl = document.getElementById("intent-status");
     const intentAmountEl = document.getElementById("intent-amount");
@@ -222,6 +218,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function formatNumber(n) {
         return Number(n || 0).toLocaleString("en-US");
+    }
+
+    function formatIntentAmount(n) {
+        const num = Number(n || 0);
+        if (!Number.isFinite(num) || num <= 0) return "—";
+        return num.toLocaleString("en-US", {
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3
+        });
     }
 
     function getRandomHypeLine() {
@@ -489,8 +494,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return false;
         }
     }
-
-    async function ensureAuthReady(forceRefresh = false) {
+        async function ensureAuthReady(forceRefresh = false) {
         if (authBootstrapPromise && !forceRefresh) {
             return authBootstrapPromise;
         }
@@ -625,24 +629,42 @@ document.addEventListener("DOMContentLoaded", function () {
         syncFundingButtons();
     }
 
-    async function copyWalletAddress() {
-        if (!intentWalletEl) return;
-
-        const wallet = String(intentWalletEl.textContent || "").trim();
-        if (!wallet || wallet === "—") return;
+    async function copyTextToClipboard(text, successMessage, failMessage) {
+        const value = String(text || "").trim();
+        if (!value || value === "—") return false;
 
         try {
-            await navigator.clipboard.writeText(wallet);
-            status.innerText = "Wallet copied. Send the exact PHAT amount shown.";
-            intentWalletEl.classList.add("copied");
-
-            setTimeout(() => {
-                intentWalletEl.classList.remove("copied");
-            }, 1200);
+            await navigator.clipboard.writeText(value);
+            status.innerText = successMessage;
+            return true;
         } catch (err) {
             console.warn("Clipboard copy failed:", err);
-            status.innerText = "Copy failed. Tap and hold the wallet address to copy.";
+            status.innerText = failMessage;
+            return false;
         }
+    }
+
+    async function copyWalletAddress() {
+        if (!intentWalletEl) return;
+        const ok = await copyTextToClipboard(
+            intentWalletEl.textContent || "",
+            "Wallet copied. Send the exact PHAT amount shown.",
+            "Copy failed. Tap and hold the wallet address to copy."
+        );
+
+        if (ok) {
+            intentWalletEl.classList.add("copied");
+            setTimeout(() => intentWalletEl.classList.remove("copied"), 1200);
+        }
+    }
+
+    async function copyIntentAmount() {
+        if (!currentIntent?.exactAmount) return;
+        await copyTextToClipboard(
+            String(currentIntent.exactAmount),
+            "Amount copied. Send that exact PHAT amount.",
+            "Copy failed. Copy the amount manually."
+        );
     }
 
     function renderIntent(intent) {
@@ -666,14 +688,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (intentAmountEl) {
             intentAmountEl.textContent = currentIntent?.exactAmount
-                ? `${formatNumber(currentIntent.exactAmount)} PHAT`
+                ? `${formatIntentAmount(currentIntent.exactAmount)} PHAT`
                 : "—";
+            intentAmountEl.title = currentIntent?.exactAmount ? "Tap to copy exact amount" : "";
+            intentAmountEl.style.cursor = currentIntent?.exactAmount ? "pointer" : "default";
         }
 
         if (intentWalletEl) {
             const walletText = currentIntent?.depositWallet || "—";
             intentWalletEl.textContent = walletText;
-            intentWalletEl.title = walletText !== "—" ? "Tap to copy wallet address" : "";
+            intentWalletEl.title = walletText !== "—" ? "Tap to copy full wallet address" : "";
             intentWalletEl.style.cursor = walletText !== "—" ? "pointer" : "default";
         }
 
@@ -692,13 +716,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (fundingHelpEl) {
             if (!currentIntent) {
-                fundingHelpEl.textContent = "Choose a wager, then fund your round.";
+                fundingHelpEl.textContent = "Choose a wager to generate a funding amount.";
             } else if (currentIntent.status === "funded") {
                 fundingHelpEl.textContent = "Deposit received. Your round is ready.";
             } else if (currentIntent.status === "pending") {
-                fundingHelpEl.textContent = "Tap the wallet address to copy it, then send the exact PHAT amount.";
+                fundingHelpEl.textContent = "Tap the wallet to copy it, then send the exact PHAT amount shown.";
             } else if (currentIntent.status === "expired") {
-                fundingHelpEl.textContent = "Funding expired. Start a fresh round when ready.";
+                fundingHelpEl.textContent = "Funding expired. Pick a wager again.";
             } else if (currentIntent.status === "cancelled") {
                 fundingHelpEl.textContent = "Funding cancelled.";
             } else {
@@ -754,27 +778,28 @@ document.addEventListener("DOMContentLoaded", function () {
         const intentStatus = String(currentIntent?.status || "");
         const pendingOrFunded = intentStatus === "pending" || intentStatus === "funded";
 
-        if (createIntentBtn) {
-            createIntentBtn.disabled = !authReady || intentBusy || pendingOrFunded || hasStartedRound || roundStarting;
-        }
-
         if (cancelIntentBtn) {
             cancelIntentBtn.disabled = !authReady || intentBusy || !hasIntent || !(intentStatus === "pending" || intentStatus === "funded");
         }
 
-        if (applyCustomWagerBtn) {
-            applyCustomWagerBtn.disabled = !authReady || intentBusy || pendingOrFunded || hasStartedRound || roundStarting;
-        }
-
         if (customWagerInput) {
-            customWagerInput.disabled = !authReady || intentBusy || pendingOrFunded || hasStartedRound || roundStarting;
+            customWagerInput.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
         }
 
         quickWagerButtons.forEach((btn) => {
-            btn.disabled = !authReady || intentBusy || pendingOrFunded || hasStartedRound || roundStarting;
+            btn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
         });
+
+        if (intentWalletEl) {
+            intentWalletEl.style.pointerEvents = pendingOrFunded ? "auto" : "none";
+        }
+
+        if (intentAmountEl) {
+            intentAmountEl.style.pointerEvents = pendingOrFunded ? "auto" : "none";
+        }
     }
-        function syncStartButtonState() {
+
+    function syncStartButtonState() {
         if (!startGameBtn) return;
 
         if (!authReady) {
@@ -876,9 +901,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function createDepositIntent() {
-        if (!authReady || intentBusy || hasStartedRound || roundStarting) return;
+        if (!authReady || intentBusy || hasStartedRound || roundStarting) return null;
         if (currentIntent && (currentIntent.status === "pending" || currentIntent.status === "funded")) {
-            return;
+            return currentIntent;
         }
 
         intentBusy = true;
@@ -906,6 +931,8 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 status.innerText = "Round funding ready.";
             }
+
+            return currentIntent;
         } catch (err) {
             console.warn("Create funding failed:", err);
             const msg = String(err?.message || "Funding failed");
@@ -918,6 +945,8 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 status.innerText = msg;
             }
+
+            return null;
         } finally {
             intentBusy = false;
             syncFundingButtons();
@@ -925,13 +954,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function cancelDepositIntent() {
-        if (!authReady || intentBusy || !currentIntent?.id) return;
+    async function cancelDepositIntent(silent = false) {
+        if (!authReady || intentBusy || !currentIntent?.id) return null;
 
         intentBusy = true;
         syncFundingButtons();
         syncStartButtonState();
-        status.innerText = "Cancelling funding...";
+        if (!silent) {
+            status.innerText = "Cancelling funding...";
+        }
 
         try {
             const data = await apiFetch(`/greed/deposit-intent/${currentIntent.id}/cancel`, {
@@ -941,16 +972,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
             renderIntent(data?.intent || null);
             stopIntentPolling();
-            status.innerText = "Funding cancelled.";
+
+            if (!silent) {
+                status.innerText = "Funding cancelled.";
+            }
+
+            return currentIntent;
         } catch (err) {
             console.warn("Cancel funding failed:", err);
             const msg = String(err?.message || "Cancel funding failed");
-            status.innerText = msg;
+            if (!silent) {
+                status.innerText = msg;
+            }
+            return null;
         } finally {
             intentBusy = false;
             syncFundingButtons();
             syncStartButtonState();
         }
+    }
+        async function replaceIntentForSelectedWager() {
+        if (!authReady || intentBusy || hasStartedRound || roundStarting) return;
+
+        const existingStatus = String(currentIntent?.status || "");
+        const existingWager = Number(currentIntent?.requestedWager || 0);
+
+        if (currentIntent && (existingStatus === "pending" || existingStatus === "funded")) {
+            if (existingWager === Number(selectedWager)) {
+                if (existingStatus === "funded") {
+                    status.innerText = "Deposit received. Start your round.";
+                } else {
+                    status.innerText = "Waiting for your deposit...";
+                }
+                return;
+            }
+
+            await cancelDepositIntent(true);
+        }
+
+        await createDepositIntent();
     }
 
     async function refreshIntentById(intentId, quiet = false) {
@@ -1271,7 +1331,8 @@ document.addEventListener("DOMContentLoaded", function () {
             hitbox.style.opacity = "1";
         });
     }
-        function resetRoundStateForFreshStart() {
+
+    function resetRoundStateForFreshStart() {
         stopLockingStatus();
 
         multiplier = 1.0;
@@ -1675,60 +1736,49 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    if (createIntentBtn) {
-        createIntentBtn.addEventListener("click", async () => {
-            if (!authReady) {
-                status.innerText = "Open from Telegram.";
+    quickWagerButtons.forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            if (btn.disabled) return;
+            const amount = Number(btn.dataset.wager || 0);
+            if (amount > 0) {
+                setSelectedWager(amount);
+                status.innerText = `Selected ${formatNumber(amount)} PHAT. Creating deposit request...`;
+                await replaceIntentForSelectedWager();
+            }
+        });
+    });
+
+    if (customWagerInput) {
+        customWagerInput.addEventListener("change", async () => {
+            if (customWagerInput.disabled) return;
+            const raw = Number(customWagerInput.value || 0);
+            if (!Number.isFinite(raw) || raw < 1000 || raw > 50000) {
+                status.innerText = "Custom wager must be between 1,000 and 50,000 PHAT.";
                 return;
             }
+            setSelectedWager(raw);
+            status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Creating deposit request...`;
+            await replaceIntentForSelectedWager();
+        });
 
-            if (intentBusy || hasStartedRound || roundStarting) return;
-
-            status.innerText = "Creating deposit request...";
-            setFairnessBadge("Creating deposit request...");
-            await createDepositIntent();
+        customWagerInput.addEventListener("keydown", async (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                customWagerInput.blur();
+            }
         });
     }
 
     if (cancelIntentBtn) {
-        cancelIntentBtn.addEventListener("click", cancelDepositIntent);
+        cancelIntentBtn.addEventListener("click", () => cancelDepositIntent(false));
     }
 
     if (intentWalletEl) {
         intentWalletEl.addEventListener("click", copyWalletAddress);
     }
 
-    quickWagerButtons.forEach((btn) => {
-        btn.addEventListener("click", () => {
-            if (btn.disabled) return;
-            const amount = Number(btn.dataset.wager || 0);
-            if (amount > 0) {
-                setSelectedWager(amount);
-                status.innerText = `Selected ${formatNumber(amount)} PHAT. Fund this round to play.`;
-            }
-        });
-    });
-
-    if (applyCustomWagerBtn) {
-        applyCustomWagerBtn.addEventListener("click", () => {
-            if (applyCustomWagerBtn.disabled) return;
-            const raw = Number(customWagerInput?.value || 0);
-            if (!Number.isFinite(raw) || raw < 1000 || raw > 50000) {
-                status.innerText = "Custom wager must be between 1,000 and 50,000 PHAT.";
-                return;
-            }
-            setSelectedWager(raw);
-            status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Fund this round to play.`;
-        });
-    }
-
-    if (customWagerInput) {
-        customWagerInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                applyCustomWagerBtn?.click();
-            }
-        });
+    if (intentAmountEl) {
+        intentAmountEl.addEventListener("click", copyIntentAmount);
     }
 
     startGameBtn.addEventListener("click", beginRoundFromIntro);
