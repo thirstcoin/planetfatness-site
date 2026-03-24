@@ -45,6 +45,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const customWagerInput = document.getElementById("custom-wager-input");
     const selectedWagerValue = document.getElementById("selected-wager-value");
     const cancelIntentBtn = document.getElementById("cancel-intent-btn");
+    const copyAmountBtn = document.getElementById("copy-amount-btn");
+    const copyWalletBtn = document.getElementById("copy-wallet-btn");
+
     const intentStatusEl = document.getElementById("intent-status");
     const intentAmountEl = document.getElementById("intent-amount");
     const intentWalletEl = document.getElementById("intent-wallet");
@@ -494,7 +497,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return false;
         }
     }
-        async function ensureAuthReady(forceRefresh = false) {
+
+    async function ensureAuthReady(forceRefresh = false) {
         if (authBootstrapPromise && !forceRefresh) {
             return authBootstrapPromise;
         }
@@ -646,28 +650,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function copyWalletAddress() {
         if (!intentWalletEl) return;
+
         const ok = await copyTextToClipboard(
             intentWalletEl.textContent || "",
             "Wallet copied. Send the exact PHAT amount shown.",
             "Copy failed. Tap and hold the wallet address to copy."
         );
 
-        if (ok) {
+        if (ok && intentWalletEl) {
             intentWalletEl.classList.add("copied");
-            setTimeout(() => intentWalletEl.classList.remove("copied"), 1200);
+            setTimeout(() => {
+                intentWalletEl.classList.remove("copied");
+            }, 1200);
         }
     }
 
     async function copyIntentAmount() {
         if (!currentIntent?.exactAmount) return;
+
         await copyTextToClipboard(
-            String(currentIntent.exactAmount),
+            formatIntentAmount(currentIntent.exactAmount),
             "Amount copied. Send that exact PHAT amount.",
             "Copy failed. Copy the amount manually."
         );
     }
-
-    function renderIntent(intent) {
+        function renderIntent(intent) {
         currentIntent = intent || null;
 
         if (intentStatusEl) {
@@ -690,15 +697,10 @@ document.addEventListener("DOMContentLoaded", function () {
             intentAmountEl.textContent = currentIntent?.exactAmount
                 ? `${formatIntentAmount(currentIntent.exactAmount)} PHAT`
                 : "—";
-            intentAmountEl.title = currentIntent?.exactAmount ? "Tap to copy exact amount" : "";
-            intentAmountEl.style.cursor = currentIntent?.exactAmount ? "pointer" : "default";
         }
 
         if (intentWalletEl) {
-            const walletText = currentIntent?.depositWallet || "—";
-            intentWalletEl.textContent = walletText;
-            intentWalletEl.title = walletText !== "—" ? "Tap to copy full wallet address" : "";
-            intentWalletEl.style.cursor = walletText !== "—" ? "pointer" : "default";
+            intentWalletEl.textContent = currentIntent?.depositWallet || "—";
         }
 
         if (intentTokenEl) {
@@ -720,7 +722,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else if (currentIntent.status === "funded") {
                 fundingHelpEl.textContent = "Deposit received. Your round is ready.";
             } else if (currentIntent.status === "pending") {
-                fundingHelpEl.textContent = "Tap the wallet to copy it, then send the exact PHAT amount shown.";
+                fundingHelpEl.textContent = "Use Copy Amount and Copy Wallet, then send the exact PHAT amount shown.";
             } else if (currentIntent.status === "expired") {
                 fundingHelpEl.textContent = "Funding expired. Pick a wager again.";
             } else if (currentIntent.status === "cancelled") {
@@ -732,7 +734,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (fundingPollingNoteEl) {
             if (!currentIntent) {
-                fundingPollingNoteEl.textContent = "Select a wager to begin.";
+                fundingPollingNoteEl.textContent = "Waiting for selection.";
             } else if (currentIntent.status === "funded") {
                 fundingPollingNoteEl.textContent = "Deposit confirmed.";
             } else if (currentIntent.status === "pending") {
@@ -750,6 +752,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (currentIntent?.requestedWager) {
             setSelectedWager(Number(currentIntent.requestedWager));
+        }
+
+        if (copyAmountBtn) {
+            copyAmountBtn.disabled = !currentIntent?.exactAmount;
+        }
+
+        if (copyWalletBtn) {
+            copyWalletBtn.disabled = !currentIntent?.depositWallet;
         }
 
         if (currentIntent?.status === "funded") {
@@ -779,7 +789,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const pendingOrFunded = intentStatus === "pending" || intentStatus === "funded";
 
         if (cancelIntentBtn) {
-            cancelIntentBtn.disabled = !authReady || intentBusy || !hasIntent || !(intentStatus === "pending" || intentStatus === "funded");
+            cancelIntentBtn.disabled =
+                !authReady ||
+                intentBusy ||
+                !hasIntent ||
+                !(intentStatus === "pending" || intentStatus === "funded");
         }
 
         if (customWagerInput) {
@@ -790,12 +804,12 @@ document.addEventListener("DOMContentLoaded", function () {
             btn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
         });
 
-        if (intentWalletEl) {
-            intentWalletEl.style.pointerEvents = pendingOrFunded ? "auto" : "none";
+        if (copyWalletBtn) {
+            copyWalletBtn.disabled = !pendingOrFunded || !currentIntent?.depositWallet;
         }
 
-        if (intentAmountEl) {
-            intentAmountEl.style.pointerEvents = pendingOrFunded ? "auto" : "none";
+        if (copyAmountBtn) {
+            copyAmountBtn.disabled = !pendingOrFunded || !currentIntent?.exactAmount;
         }
     }
 
@@ -960,6 +974,7 @@ document.addEventListener("DOMContentLoaded", function () {
         intentBusy = true;
         syncFundingButtons();
         syncStartButtonState();
+
         if (!silent) {
             status.innerText = "Cancelling funding...";
         }
@@ -981,9 +996,11 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (err) {
             console.warn("Cancel funding failed:", err);
             const msg = String(err?.message || "Cancel funding failed");
+
             if (!silent) {
                 status.innerText = msg;
             }
+
             return null;
         } finally {
             intentBusy = false;
@@ -991,7 +1008,8 @@ document.addEventListener("DOMContentLoaded", function () {
             syncStartButtonState();
         }
     }
-        async function replaceIntentForSelectedWager() {
+
+    async function replaceIntentForSelectedWager() {
         if (!authReady || intentBusy || hasStartedRound || roundStarting) return;
 
         const existingStatus = String(currentIntent?.status || "");
@@ -1058,6 +1076,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         intentPollInterval = setInterval(async () => {
             if (!currentIntent?.id || hasStartedRound || roundStarting) return;
+
             await refreshIntentById(currentIntent.id, true);
 
             if (currentIntent?.status === "funded" && fundingPollingNoteEl) {
@@ -1183,8 +1202,7 @@ document.addEventListener("DOMContentLoaded", function () {
             ladderNextLabel.textContent = `Next x${multipliers[0].toFixed(2)}`;
         }
     }
-
-    function setBoardPointerState(mode) {
+        function setBoardPointerState(mode) {
         const hitboxes = container.querySelectorAll(".donut-hitbox");
         hitboxes.forEach((hitbox) => {
             if (mode === "none") {
@@ -1258,7 +1276,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         winMultiplier.innerText = `x${multiplier.toFixed(2)}`;
-
         winOverlay.style.display = "flex";
 
         if (winVideo) {
@@ -1751,17 +1768,19 @@ document.addEventListener("DOMContentLoaded", function () {
     if (customWagerInput) {
         customWagerInput.addEventListener("change", async () => {
             if (customWagerInput.disabled) return;
+
             const raw = Number(customWagerInput.value || 0);
             if (!Number.isFinite(raw) || raw < 1000 || raw > 50000) {
                 status.innerText = "Custom wager must be between 1,000 and 50,000 PHAT.";
                 return;
             }
+
             setSelectedWager(raw);
             status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Creating deposit request...`;
             await replaceIntentForSelectedWager();
         });
 
-        customWagerInput.addEventListener("keydown", async (e) => {
+        customWagerInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
                 customWagerInput.blur();
@@ -1773,12 +1792,12 @@ document.addEventListener("DOMContentLoaded", function () {
         cancelIntentBtn.addEventListener("click", () => cancelDepositIntent(false));
     }
 
-    if (intentWalletEl) {
-        intentWalletEl.addEventListener("click", copyWalletAddress);
+    if (copyWalletBtn) {
+        copyWalletBtn.addEventListener("click", copyWalletAddress);
     }
 
-    if (intentAmountEl) {
-        intentAmountEl.addEventListener("click", copyIntentAmount);
+    if (copyAmountBtn) {
+        copyAmountBtn.addEventListener("click", copyIntentAmount);
     }
 
     startGameBtn.addEventListener("click", beginRoundFromIntro);
