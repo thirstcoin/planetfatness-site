@@ -42,18 +42,14 @@
                         step="1"
                         placeholder="Enter PHAT amount"
                     />
-                    <button id="apply-custom-wager-btn" type="button">Set Wager</button>
                 </div>
 
                 <div id="selected-wager-wrap">
                     <span class="funding-label">Selected Wager</span>
-                    <span id="selected-wager-value">None selected</span>
+                    <span id="selected-wager-value">1,000 PHAT</span>
                 </div>
 
                 <div id="intent-actions">
-                    <button id="create-intent-btn" type="button">
-                        Fund Round
-                    </button>
                     <button id="cancel-intent-btn" type="button" disabled>
                         Cancel Funding
                     </button>
@@ -66,13 +62,23 @@
                     </div>
 
                     <div class="funding-row">
-                        <span class="funding-label">Amount</span>
+                        <span class="funding-label">Exact Amount</span>
                         <span id="intent-amount">—</span>
+                    </div>
+
+                    <div class="funding-row copy-row">
+                        <span class="funding-label">Amount Copy</span>
+                        <button id="copy-amount-btn" type="button" class="mini-copy-btn" disabled>Copy Amount</button>
                     </div>
 
                     <div class="funding-row wallet-row">
                         <span class="funding-label">Deposit Wallet</span>
                         <span id="intent-wallet">—</span>
+                    </div>
+
+                    <div class="funding-row copy-row">
+                        <span class="funding-label">Wallet Copy</span>
+                        <button id="copy-wallet-btn" type="button" class="mini-copy-btn" disabled>Copy Wallet</button>
                     </div>
 
                     <div class="funding-row">
@@ -92,11 +98,11 @@
                 </div>
 
                 <div id="funding-help">
-                    Choose a wager, then fund your round.
+                    Tap a wager button to generate a funding amount.
                 </div>
 
                 <div id="funding-polling-note">
-                    Select a wager to begin.
+                    Waiting for selection.
                 </div>
             </div>
 
@@ -182,7 +188,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <!-- Game Logic -->
-    <script src="game.js?v=16"></script>
+    <script src="game.js?v=17"></script>
 
 </body>
 </html>
