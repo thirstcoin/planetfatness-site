@@ -37,10 +37,14 @@ body {
 
 #intro-overlay video {
     display: block;
-    width: auto;
-    max-width: 90%;
-    max-height: 68%;
+    width: 100%;
+    max-width: 720px;
+
+    height: auto;
+    max-height: 60vh;
+
     object-fit: contain;
+
     margin: 0 auto 18px auto;
     border-radius: 16px;
     box-shadow: 0 8px 30px rgba(0,0,0,0.45);
