@@ -40,7 +40,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const startGameBtn = document.getElementById("start-game-btn");
     const cashoutButton = document.getElementById("cashout-button");
 
+    const balancePanel = document.getElementById("balance-panel");
+    const availableBalanceValue = document.getElementById("available-balance-value");
+    const selectedWagerBalanceView = document.getElementById("selected-wager-balance-view");
+    const balanceModeNote = document.getElementById("balance-mode-note");
+
+    const fairnessCommitEl = document.getElementById("fairness-commit");
+    const fairnessSeedEl = document.getElementById("fairness-seed");
+    const fairnessNonceEl = document.getElementById("fairness-nonce");
+    const fairnessPoisonEl = document.getElementById("fairness-poison");
+
     // Funding UI
+    const fundingPanel = document.getElementById("funding-panel");
     const quickWagerButtons = Array.from(document.querySelectorAll(".quick-wager-btn"));
     const customWagerInput = document.getElementById("custom-wager-input");
     const selectedWagerValue = document.getElementById("selected-wager-value");
@@ -129,6 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let roundId = null;
     let commitHash = "";
+    let fairnessNonce = "";
     let revealedServerSeed = "";
     let revealedPoisonIndices = [];
     let authToken = "";
@@ -140,6 +152,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let currentIntent = null;
     let intentPollInterval = null;
     let intentBusy = false;
+    let availableBalance = 0;
+    let balanceCoversWager = false;
 
     const hypeLines = [
         "Phil says: take another bite.",
@@ -161,27 +175,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "Glaze gods are watching.",
         "The kitchen is open.",
         "Greed rewards the bold.",
-        "Phil says keep stacking.",
-        "Calories printing today.",
-        "Donut destiny activated.",
-        "That glaze looks lucky.",
-        "Bulk mode engaged.",
-        "The box respects confidence.",
-        "Phil is feeling generous.",
-        "Donuts don't lie.",
-        "That's a juicy one.",
-        "Greed never tasted so good.",
-        "Phil says send it.",
-        "That donut had aura.",
-        "The glaze is blessing this run.",
-        "You're heating up now.",
-        "Phil would go one more.",
-        "That next donut looks friendly.",
-        "The box likes you today.",
-        "Donut power increasing.",
-        "Phil says keep cooking.",
-        "That's some premium glaze.",
-        "The greed is building."
+        "Phil says keep stacking."
     ];
 
     const positions = [
@@ -190,33 +184,9 @@ document.addEventListener("DOMContentLoaded", function () {
         { x: 35, y: 65 }, { x: 49, y: 65 }, { x: 63, y: 65 }, { x: 77, y: 64 }
     ];
 
-    const fairnessBadge = document.createElement("div");
-    fairnessBadge.id = "fairness-badge";
-    fairnessBadge.style.position = "absolute";
-    fairnessBadge.style.top = "18.9%";
-    fairnessBadge.style.left = "50%";
-    fairnessBadge.style.transform = "translateX(-50%)";
-    fairnessBadge.style.zIndex = "540";
-    fairnessBadge.style.padding = "4px 9px";
-    fairnessBadge.style.borderRadius = "999px";
-    fairnessBadge.style.background = "rgba(0,0,0,0.22)";
-    fairnessBadge.style.color = "rgba(255,255,255,0.93)";
-    fairnessBadge.style.fontSize = "10px";
-    fairnessBadge.style.fontWeight = "700";
-    fairnessBadge.style.letterSpacing = "0.15px";
-    fairnessBadge.style.textShadow = "0 1px 5px rgba(0,0,0,0.75)";
-    fairnessBadge.style.pointerEvents = "none";
-    fairnessBadge.style.maxWidth = "58vw";
-    fairnessBadge.style.whiteSpace = "nowrap";
-    fairnessBadge.style.overflow = "hidden";
-    fairnessBadge.style.textOverflow = "ellipsis";
-    fairnessBadge.style.opacity = "0.88";
-    fairnessBadge.innerText = "Ready to verify wager";
-    document.body.appendChild(fairnessBadge);
-
     function shortHash(str) {
         if (!str) return "";
-        return str.length > 12 ? `${str.slice(0, 10)}…` : str;
+        return str.length > 16 ? `${str.slice(0, 16)}…` : str;
     }
 
     function formatNumber(n) {
@@ -232,12 +202,29 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function formatBalance(n) {
+        const num = Number(n || 0);
+        if (!Number.isFinite(num)) return "0 PHAT";
+        return `${num.toLocaleString("en-US", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 3
+        })} PHAT`;
+    }
+
     function getRandomHypeLine() {
         return hypeLines[Math.floor(Math.random() * hypeLines.length)];
     }
 
-    function setFairnessBadge(text) {
-        fairnessBadge.innerText = text;
+    function setFairnessPanel() {
+        if (fairnessCommitEl) fairnessCommitEl.textContent = commitHash || "—";
+        if (fairnessSeedEl) fairnessSeedEl.textContent = revealedServerSeed || "—";
+        if (fairnessNonceEl) fairnessNonceEl.textContent = fairnessNonce || "—";
+        if (fairnessPoisonEl) {
+            fairnessPoisonEl.textContent =
+                Array.isArray(revealedPoisonIndices) && revealedPoisonIndices.length
+                    ? revealedPoisonIndices.map((n) => Number(n) + 1).join(", ")
+                    : "—";
+        }
     }
 
     function startLockingStatus(message = "Locking round") {
@@ -311,36 +298,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function playNomSound() {
-        safePlaySound(nomSound);
-    }
-
-    function playStartSound() {
-        safePlaySound(startSound);
-    }
-
-    function playPoisonSound() {
-        safePlaySound(poisonSound);
-    }
-
-    function playBaseCashoutSound() {
-        safePlaySound(cashoutSound);
-    }
-
-    function playJackpotCashoutSound() {
-        safePlaySound(jackpotSound);
-    }
-
-    function playWowSound() {
-        safePlaySound(wowSound);
-    }
+    function playNomSound() { safePlaySound(nomSound); }
+    function playStartSound() { safePlaySound(startSound); }
+    function playPoisonSound() { safePlaySound(poisonSound); }
+    function playBaseCashoutSound() { safePlaySound(cashoutSound); }
+    function playJackpotCashoutSound() { safePlaySound(jackpotSound); }
+    function playWowSound() { safePlaySound(wowSound); }
 
     function playCashoutTierSound() {
         if (safeFoundCount >= 10) {
             playJackpotCashoutSound();
-            setTimeout(() => {
-                playWowSound();
-            }, 250);
+            setTimeout(() => playWowSound(), 250);
         } else if (multiplier >= 2.0) {
             playJackpotCashoutSound();
         } else {
@@ -458,9 +426,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const res = await fetch(`${BACKEND_URL}/auth/telegram`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ initData })
             });
 
@@ -512,34 +478,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (authToken) {
                 authReady = true;
-                setFairnessBadge("Provably Fair • Ready");
                 syncFundingButtons();
                 syncStartButtonState();
                 return true;
             }
 
-            const savedTgUser = getStoredTelegramUser();
-            if (savedTgUser?.id) {
-                setFairnessBadge("Authenticating...");
-                status.innerText = "Refreshing session...";
-            } else {
-                setFairnessBadge("Authenticating...");
-                status.innerText = "Verifying session...";
-            }
-
+            status.innerText = "Verifying session...";
             const tgAuthed = await bootstrapTelegramAuth();
             authToken = getAuthToken();
 
             if (tgAuthed && authToken) {
                 authReady = true;
-                setFairnessBadge("Provably Fair • Ready");
                 syncFundingButtons();
                 syncStartButtonState();
                 return true;
             }
 
             authReady = false;
-            setFairnessBadge("Auth required");
             syncFundingButtons();
             syncStartButtonState();
             status.innerText = tgWebApp
@@ -624,11 +579,16 @@ document.addEventListener("DOMContentLoaded", function () {
             selectedWagerValue.textContent = `${formatNumber(next)} PHAT`;
         }
 
+        if (selectedWagerBalanceView) {
+            selectedWagerBalanceView.textContent = `${formatNumber(next)} PHAT`;
+        }
+
         if (customWagerInput && String(customWagerInput.value || "").trim() !== String(next)) {
             customWagerInput.value = String(next);
         }
 
         highlightSelectedWagerButtons();
+        updateBalanceMode();
         syncStartButtonState();
         syncFundingButtons();
     }
@@ -674,7 +634,57 @@ document.addEventListener("DOMContentLoaded", function () {
             "Copy failed. Copy the amount manually."
         );
     }
-        function renderIntent(intent) {
+
+    function updateBalanceMode() {
+        balanceCoversWager = Number(availableBalance || 0) >= Number(selectedWager || 0);
+
+        if (availableBalanceValue) {
+            availableBalanceValue.textContent = formatBalance(availableBalance);
+        }
+
+        if (selectedWagerBalanceView) {
+            selectedWagerBalanceView.textContent = `${formatNumber(selectedWager)} PHAT`;
+        }
+
+        if (balanceModeNote) {
+            if (!authReady) {
+                balanceModeNote.textContent = "Authenticating...";
+            } else if (balanceCoversWager) {
+                balanceModeNote.textContent = "Balance covers this wager. You can start instantly.";
+            } else {
+                balanceModeNote.textContent = "Balance is below this wager. Funding intent will be used.";
+            }
+        }
+
+        if (fundingPanel) {
+            if (balanceCoversWager) {
+                fundingPanel.classList.add("balance-covered");
+            } else {
+                fundingPanel.classList.remove("balance-covered");
+            }
+        }
+    }
+
+    async function refreshBalance(quiet = false) {
+        if (!authReady) return 0;
+
+        try {
+            const data = await apiFetch("/wallet/balance", { method: "GET" });
+            availableBalance = Number(data?.balance?.available_balance || 0);
+            updateBalanceMode();
+            return availableBalance;
+        } catch (err) {
+            console.warn("Balance fetch failed:", err);
+            if (!quiet) {
+                status.innerText = "Unable to load balance.";
+            }
+            availableBalance = 0;
+            updateBalanceMode();
+            return 0;
+        }
+    }
+
+    function renderIntent(intent) {
         currentIntent = intent || null;
 
         if (intentStatusEl) {
@@ -717,7 +727,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (fundingHelpEl) {
-            if (!currentIntent) {
+            if (balanceCoversWager) {
+                fundingHelpEl.textContent = "Your internal balance covers this wager. Funding is not required.";
+            } else if (!currentIntent) {
                 fundingHelpEl.textContent = "Choose a wager to generate a funding amount.";
             } else if (currentIntent.status === "funded") {
                 fundingHelpEl.textContent = "Deposit received. Your round is ready.";
@@ -733,7 +745,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (fundingPollingNoteEl) {
-            if (!currentIntent) {
+            if (balanceCoversWager) {
+                fundingPollingNoteEl.textContent = "Using internal balance.";
+            } else if (!currentIntent) {
                 fundingPollingNoteEl.textContent = "Waiting for selection.";
             } else if (currentIntent.status === "funded") {
                 fundingPollingNoteEl.textContent = "Deposit confirmed.";
@@ -755,21 +769,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (copyAmountBtn) {
-            copyAmountBtn.disabled = !currentIntent?.exactAmount;
+            copyAmountBtn.disabled = !currentIntent?.exactAmount || balanceCoversWager;
         }
 
         if (copyWalletBtn) {
-            copyWalletBtn.disabled = !currentIntent?.depositWallet;
-        }
-
-        if (currentIntent?.status === "funded") {
-            setFairnessBadge("Provably Fair • Funded");
-        } else if (currentIntent?.status === "pending") {
-            setFairnessBadge("Provably Fair • Waiting for deposit");
-        } else if (authReady) {
-            setFairnessBadge("Provably Fair • Ready");
-        } else {
-            setFairnessBadge("Auth required");
+            copyWalletBtn.disabled = !currentIntent?.depositWallet || balanceCoversWager;
         }
 
         syncFundingButtons();
@@ -787,11 +791,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const hasIntent = !!currentIntent;
         const intentStatus = String(currentIntent?.status || "");
         const pendingOrFunded = intentStatus === "pending" || intentStatus === "funded";
+        const shouldDisableFunding = balanceCoversWager;
 
         if (cancelIntentBtn) {
             cancelIntentBtn.disabled =
                 !authReady ||
                 intentBusy ||
+                shouldDisableFunding ||
                 !hasIntent ||
                 !(intentStatus === "pending" || intentStatus === "funded");
         }
@@ -805,11 +811,11 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         if (copyWalletBtn) {
-            copyWalletBtn.disabled = !pendingOrFunded || !currentIntent?.depositWallet;
+            copyWalletBtn.disabled = shouldDisableFunding || !pendingOrFunded || !currentIntent?.depositWallet;
         }
 
         if (copyAmountBtn) {
-            copyAmountBtn.disabled = !pendingOrFunded || !currentIntent?.exactAmount;
+            copyAmountBtn.disabled = shouldDisableFunding || !pendingOrFunded || !currentIntent?.exactAmount;
         }
     }
 
@@ -834,9 +840,15 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        if (balanceCoversWager) {
+            startGameBtn.disabled = false;
+            startGameBtn.textContent = "Play From Balance";
+            return;
+        }
+
         if (!currentIntent) {
             startGameBtn.disabled = true;
-            startGameBtn.textContent = "Start Round";
+            startGameBtn.textContent = "Fund Wager First";
             return;
         }
 
@@ -845,7 +857,7 @@ document.addEventListener("DOMContentLoaded", function () {
             startGameBtn.disabled = true;
             startGameBtn.textContent = intentStatus === "pending"
                 ? "Waiting for Deposit"
-                : "Start Round";
+                : "Fund Wager First";
             return;
         }
 
@@ -885,7 +897,9 @@ document.addEventListener("DOMContentLoaded", function () {
             renderIntent(intent);
 
             if (showStatus) {
-                if (!intent) {
+                if (balanceCoversWager) {
+                    status.innerText = "Balance covers this wager. Start when ready.";
+                } else if (!intent) {
                     status.innerText = "Choose a wager to begin.";
                 } else if (intent.status === "pending") {
                     status.innerText = "Waiting for your deposit.";
@@ -896,7 +910,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
 
-            if (intent && (intent.status === "pending" || intent.status === "funded")) {
+            if (!balanceCoversWager && intent && (intent.status === "pending" || intent.status === "funded")) {
                 startIntentPolling();
             } else {
                 stopIntentPolling();
@@ -915,7 +929,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function createDepositIntent() {
-        if (!authReady || intentBusy || hasStartedRound || roundStarting) return null;
+        if (!authReady || intentBusy || hasStartedRound || roundStarting || balanceCoversWager) return null;
         if (currentIntent && (currentIntent.status === "pending" || currentIntent.status === "funded")) {
             return currentIntent;
         }
@@ -924,14 +938,11 @@ document.addEventListener("DOMContentLoaded", function () {
         syncFundingButtons();
         syncStartButtonState();
         status.innerText = "Creating deposit request...";
-        setFairnessBadge("Creating deposit request...");
 
         try {
             const data = await apiFetch("/greed/deposit-intent", {
                 method: "POST",
-                body: JSON.stringify({
-                    wager: selectedWager
-                })
+                body: JSON.stringify({ wager: selectedWager })
             });
 
             renderIntent(data?.intent || null);
@@ -1012,6 +1023,15 @@ document.addEventListener("DOMContentLoaded", function () {
     async function replaceIntentForSelectedWager() {
         if (!authReady || intentBusy || hasStartedRound || roundStarting) return;
 
+        await refreshBalance(true);
+
+        if (balanceCoversWager) {
+            stopIntentPolling();
+            status.innerText = "Balance covers this wager. No funding needed.";
+            renderIntent(null);
+            return;
+        }
+
         const existingStatus = String(currentIntent?.status || "");
         const existingWager = Number(currentIntent?.requestedWager || 0);
 
@@ -1075,7 +1095,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!["pending", "funded"].includes(String(currentIntent.status || ""))) return;
 
         intentPollInterval = setInterval(async () => {
-            if (!currentIntent?.id || hasStartedRound || roundStarting) return;
+            if (!currentIntent?.id || hasStartedRound || roundStarting || balanceCoversWager) return;
 
             await refreshIntentById(currentIntent.id, true);
 
@@ -1097,30 +1117,29 @@ document.addEventListener("DOMContentLoaded", function () {
             throw new Error("Missing auth token");
         }
 
-        if (!currentIntent || currentIntent.status !== "funded") {
-            throw new Error("Round not funded yet");
-        }
-
         authToken = token;
 
-        const wagerToUse = Number(currentIntent.requestedWager || selectedWager || DEFAULT_WAGER);
+        const wagerToUse = Number(selectedWager || DEFAULT_WAGER);
 
         const data = await apiFetch("/greed/start", {
             method: "POST",
-            body: JSON.stringify({
-                wager: wagerToUse
-            })
+            body: JSON.stringify({ wager: wagerToUse })
         });
 
         roundId = data.roundId;
         commitHash = data?.provablyFair?.commitHash || "";
+        fairnessNonce = String(data?.provablyFair?.nonce || "");
         revealedServerSeed = "";
         revealedPoisonIndices = [];
+        setFairnessPanel();
 
         stopIntentPolling();
-        renderIntent(null);
 
-        setFairnessBadge(commitHash ? `Provably Fair • ${shortHash(commitHash)}` : "Provably Fair • Round locked");
+        if (data?.fundingSource === "intent") {
+            renderIntent(null);
+        } else {
+            renderIntent(null);
+        }
 
         const jackpotCurrent =
             Number(data?.jackpot?.currentAmount) ||
@@ -1202,7 +1221,8 @@ document.addEventListener("DOMContentLoaded", function () {
             ladderNextLabel.textContent = `Next x${multipliers[0].toFixed(2)}`;
         }
     }
-        function setBoardPointerState(mode) {
+
+    function setBoardPointerState(mode) {
         const hitboxes = container.querySelectorAll(".donut-hitbox");
         hitboxes.forEach((hitbox) => {
             if (mode === "none") {
@@ -1302,23 +1322,14 @@ document.addEventListener("DOMContentLoaded", function () {
     function applyRevealData(provablyFair) {
         if (!provablyFair) return;
 
-        if (provablyFair.commitHash) {
-            commitHash = provablyFair.commitHash;
-        }
-
-        if (provablyFair.serverSeed) {
-            revealedServerSeed = provablyFair.serverSeed;
-        }
-
+        if (provablyFair.commitHash) commitHash = provablyFair.commitHash;
+        if (provablyFair.serverSeed) revealedServerSeed = provablyFair.serverSeed;
+        if (provablyFair.nonce != null) fairnessNonce = String(provablyFair.nonce);
         if (Array.isArray(provablyFair.poisonIndices)) {
             revealedPoisonIndices = provablyFair.poisonIndices;
         }
 
-        if (revealedServerSeed && commitHash) {
-            setFairnessBadge(`Revealed • ${shortHash(commitHash)} • Seed ${shortHash(revealedServerSeed)}`);
-        } else if (commitHash) {
-            setFairnessBadge(`Provably Fair • ${shortHash(commitHash)}`);
-        }
+        setFairnessPanel();
     }
 
     function hideIntroOverlay() {
@@ -1359,6 +1370,7 @@ document.addEventListener("DOMContentLoaded", function () {
         roundStarting = false;
         roundId = null;
         commitHash = "";
+        fairnessNonce = "";
         revealedServerSeed = "";
         revealedPoisonIndices = [];
         pickInFlight = false;
@@ -1368,12 +1380,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateLadder();
         updateCashoutButton();
         resetBoardVisuals();
-
-        if (authReady) {
-            setFairnessBadge(currentIntent?.status === "funded" ? "Provably Fair • Funded" : "Provably Fair • Ready");
-        } else {
-            setFairnessBadge("Auth required");
-        }
+        setFairnessPanel();
 
         syncFundingButtons();
         syncStartButtonState();
@@ -1385,7 +1392,9 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        if (!currentIntent || currentIntent.status !== "funded") {
+        await refreshBalance(true);
+
+        if (!balanceCoversWager && (!currentIntent || currentIntent.status !== "funded")) {
             status.innerText = "Fund your round first.";
             syncStartButtonState();
             return;
@@ -1404,12 +1413,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         playIntroSequence();
         startLockingStatus("Locking wager");
-        setFairnessBadge("Locking new round...");
 
         const startTs = Date.now();
 
         try {
             await startBackendRound();
+            await refreshBalance(true);
 
             const elapsed = Date.now() - startTs;
             const remaining = Math.max(0, START_LOCK_MIN_MS - elapsed);
@@ -1438,19 +1447,19 @@ document.addEventListener("DOMContentLoaded", function () {
             hasStartedRound = false;
             roundId = null;
             commitHash = "";
+            fairnessNonce = "";
             revealedServerSeed = "";
             revealedPoisonIndices = [];
             interactionLockedUntil = 0;
+            setFairnessPanel();
 
             const msg = String(err?.message || "Round failed to start");
             stopLockingStatus(msg);
-            setFairnessBadge("Round not locked");
 
             if (msg.toLowerCase().includes("invalid token") || msg.toLowerCase().includes("missing auth token")) {
                 clearStoredTokens();
                 authReady = false;
                 renderIntent(null);
-                setFairnessBadge("Session expired");
                 status.innerText = "Session expired. Reopen from Telegram.";
                 syncFundingButtons();
                 syncStartButtonState();
@@ -1465,6 +1474,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 await loadOpenIntent(false);
             }
 
+            await refreshBalance(true);
             syncFundingButtons();
             syncStartButtonState();
             status.innerText = msg.includes("Insufficient")
@@ -1479,11 +1489,14 @@ document.addEventListener("DOMContentLoaded", function () {
         showIntroOverlay();
 
         await ensureAuthReady(false);
+        await refreshBalance(true);
         await loadOpenIntent(false);
 
         playIntroSequence();
 
-        if (currentIntent?.status === "funded") {
+        if (balanceCoversWager) {
+            status.innerText = "Balance covers this wager. Start your round.";
+        } else if (currentIntent?.status === "funded") {
             status.innerText = "Deposit received. Start your round.";
         } else if (currentIntent?.status === "pending") {
             status.innerText = "Waiting for your deposit.";
@@ -1533,9 +1546,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const data = await apiFetch("/greed/cashout", {
                 method: "POST",
-                body: JSON.stringify({
-                    roundId
-                })
+                body: JSON.stringify({ roundId })
             });
 
             multiplier = Number(data.currentMultiplier || multiplier);
@@ -1544,6 +1555,7 @@ document.addEventListener("DOMContentLoaded", function () {
             applyRevealData(data.provablyFair);
             updateLadder();
             await refreshJackpot();
+            await refreshBalance(true);
 
             lockBoard();
             playCashoutTierSound();
@@ -1559,7 +1571,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 clearStoredTokens();
                 authReady = false;
                 renderIntent(null);
-                setFairnessBadge("Session expired");
                 stopLockingStatus("Session expired. Reopen from Telegram.");
             } else {
                 stopLockingStatus(msg);
@@ -1638,6 +1649,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         pickInFlight = false;
                         updateCashoutButton();
                         await refreshJackpot();
+                        await refreshBalance(true);
                         setTimeout(() => {
                             showPoisonOverlay();
                         }, OVERLAY_DELAY_MS);
@@ -1654,6 +1666,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         pickInFlight = false;
                         updateCashoutButton();
                         await refreshJackpot();
+                        await refreshBalance(true);
                         showWinOverlay();
                         return;
                     }
@@ -1680,7 +1693,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         clearStoredTokens();
                         authReady = false;
                         renderIntent(null);
-                        setFairnessBadge("Session expired");
                         stopLockingStatus("Session expired. Reopen from Telegram.");
                     } else {
                         stopLockingStatus(msg.includes("Donut already picked") ? "Donut already picked." : msg);
@@ -1731,8 +1743,10 @@ document.addEventListener("DOMContentLoaded", function () {
             multiplier = Number(round.currentMultiplier || 1.0);
             safeFoundCount = Number(round.safeClicks || 0);
             commitHash = round?.provablyFair?.commitHash || "";
+            fairnessNonce = String(round?.provablyFair?.nonce || "");
             revealedServerSeed = "";
             revealedPoisonIndices = [];
+            setFairnessPanel();
 
             applyPickedIndicesToBoard(Array.isArray(round.pickedIndices) ? round.pickedIndices : []);
             multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
@@ -1741,7 +1755,6 @@ document.addEventListener("DOMContentLoaded", function () {
             hideIntroOverlay();
             unlockBoard();
 
-            setFairnessBadge(commitHash ? `Provably Fair • ${shortHash(commitHash)}` : "Provably Fair • Round active");
             status.innerText = safeFoundCount > 0 ? "Round restored." : "Choose wisely...";
 
             stopIntentPolling();
@@ -1759,8 +1772,16 @@ document.addEventListener("DOMContentLoaded", function () {
             const amount = Number(btn.dataset.wager || 0);
             if (amount > 0) {
                 setSelectedWager(amount);
-                status.innerText = `Selected ${formatNumber(amount)} PHAT. Creating deposit request...`;
-                await replaceIntentForSelectedWager();
+                await refreshBalance(true);
+
+                if (balanceCoversWager) {
+                    status.innerText = `Selected ${formatNumber(amount)} PHAT. Balance covers this wager.`;
+                    renderIntent(null);
+                    stopIntentPolling();
+                } else {
+                    status.innerText = `Selected ${formatNumber(amount)} PHAT. Creating deposit request...`;
+                    await replaceIntentForSelectedWager();
+                }
             }
         });
     });
@@ -1776,8 +1797,16 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             setSelectedWager(raw);
-            status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Creating deposit request...`;
-            await replaceIntentForSelectedWager();
+            await refreshBalance(true);
+
+            if (balanceCoversWager) {
+                status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Balance covers this wager.`;
+                renderIntent(null);
+                stopIntentPolling();
+            } else {
+                status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Creating deposit request...`;
+                await replaceIntentForSelectedWager();
+            }
         });
 
         customWagerInput.addEventListener("keydown", (e) => {
@@ -1823,6 +1852,7 @@ document.addEventListener("DOMContentLoaded", function () {
     multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
     updateCashoutButton();
     updateLadder();
+    setFairnessPanel();
     refreshJackpot();
     buildBoard();
     playIntroSequence();
@@ -1835,13 +1865,21 @@ document.addEventListener("DOMContentLoaded", function () {
         await ensureAuthReady(false);
         if (!authReady) return;
 
+        await refreshBalance(true);
+
         const restored = await restoreActiveRoundIfAny();
         if (restored) return;
 
-        await loadOpenIntent(true);
+        if (balanceCoversWager) {
+            renderIntent(null);
+            stopIntentPolling();
+            status.innerText = "Balance covers this wager. Start when ready.";
+        } else {
+            await loadOpenIntent(true);
 
-        if (!currentIntent) {
-            status.innerText = "Choose a wager to begin.";
+            if (!currentIntent) {
+                status.innerText = "Choose a wager to begin.";
+            }
         }
 
         syncFundingButtons();
