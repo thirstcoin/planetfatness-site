@@ -71,6 +71,52 @@ body {
     max-width: 90vw;
 }
 
+/* Balance Panel */
+#balance-panel {
+    width: min(92vw, 620px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(56, 22, 10, 0.88) 0%, rgba(26, 10, 6, 0.92) 100%);
+    border: 1px solid rgba(255, 215, 0, 0.18);
+    box-shadow:
+        0 12px 30px rgba(0,0,0,0.34),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    box-sizing: border-box;
+}
+
+.balance-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+}
+
+.balance-label {
+    font-size: 13px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.75);
+    text-transform: uppercase;
+}
+
+#available-balance-value,
+#selected-wager-balance-view {
+    font-size: 20px;
+    font-weight: 900;
+    color: #FFD700;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+
+#balance-mode-note {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.92);
+    margin-top: 4px;
+}
+
 /* Funding Panel */
 #funding-panel {
     width: min(92vw, 620px);
@@ -87,6 +133,10 @@ body {
     box-sizing: border-box;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
+}
+
+#funding-panel.balance-covered {
+    opacity: 0.72;
 }
 
 #funding-title {
@@ -181,11 +231,6 @@ body {
     opacity: 0.72;
 }
 
-/* Hide old set button if it still exists in markup */
-#apply-custom-wager-btn {
-    display: none !important;
-}
-
 /* Selected wager */
 #selected-wager-wrap {
     display: flex;
@@ -204,11 +249,6 @@ body {
     color: #FFD700;
     text-shadow: 0 2px 8px rgba(0,0,0,0.8);
     text-align: right;
-}
-
-/* Hide old fund button if it still exists in markup */
-#create-intent-btn {
-    display: none !important;
 }
 
 /* Intent actions */
@@ -307,8 +347,6 @@ body {
     border: 1px solid rgba(255,255,255,0.08);
     padding: 10px 12px;
     border-radius: 10px;
-    cursor: default;
-    transition: transform 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
 }
 
 .wallet-row {
@@ -326,8 +364,6 @@ body {
     border: 1px solid rgba(255,255,255,0.08);
     padding: 10px 12px;
     border-radius: 10px;
-    cursor: default;
-    transition: transform 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
 }
 
 #intent-wallet.copied {
@@ -402,27 +438,56 @@ body {
     pointer-events: none;
 }
 
-/* Fairness Badge */
-#fairness-badge {
+/* Fairness Panel */
+#fairness-panel {
     position: absolute;
-    top: 18.9%;
+    top: 18.3%;
     left: 50%;
     transform: translateX(-50%);
     z-index: 540;
-    padding: 4px 9px;
-    border-radius: 999px;
-    background: rgba(0,0,0,0.22);
-    color: rgba(255,255,255,0.93);
-    font-size: 10px;
+    width: min(78vw, 620px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(8, 8, 12, 0.84);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.42);
+}
+
+.fairness-title {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 900;
+    color: #FFD700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.fairness-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 8px;
+    align-items: start;
+}
+
+.fairness-label {
+    font-size: 11px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.72);
+    text-transform: uppercase;
+}
+
+#fairness-commit,
+#fairness-seed,
+#fairness-nonce,
+#fairness-poison {
+    font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.15px;
-    text-shadow: 0 1px 5px rgba(0,0,0,0.75);
-    pointer-events: none;
-    max-width: 58vw;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    opacity: 0.88;
+    color: rgba(255,255,255,0.96);
+    word-break: break-all;
+    line-height: 1.35;
 }
 
 /* 2. Game Container - The Board */
@@ -538,15 +603,9 @@ body {
 }
 
 @keyframes multiplierPop {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.08);
-    }
-    100% {
-        transform: scale(1);
-    }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
 }
 
 /* 5.1 Jackpot */
@@ -583,15 +642,9 @@ body {
 }
 
 @keyframes jackpotPop {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.12);
-    }
-    100% {
-        transform: scale(1);
-    }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+    100% { transform: scale(1); }
 }
 
 /* 5.25 Vertical Multiplier Ladder */
@@ -772,27 +825,15 @@ body {
 }
 
 @keyframes cashoutPulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.06);
-    }
-    100% {
-        transform: scale(1);
-    }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
 }
 
 @keyframes cashoutPulseFast {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.075);
-    }
-    100% {
-        transform: scale(1);
-    }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.075); }
+    100% { transform: scale(1); }
 }
 
 /* 6. Overlays */
@@ -882,24 +923,12 @@ body {
 }
 
 @keyframes poisonShake {
-    0% {
-        transform: translate(-50%, -50%) scale(1.15);
-    }
-    20% {
-        transform: translate(calc(-50% - 4px), -50%) scale(1.15);
-    }
-    40% {
-        transform: translate(calc(-50% + 4px), -50%) scale(1.15);
-    }
-    60% {
-        transform: translate(calc(-50% - 3px), -50%) scale(1.15);
-    }
-    80% {
-        transform: translate(calc(-50% + 3px), -50%) scale(1.15);
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(1.15);
-    }
+    0% { transform: translate(-50%, -50%) scale(1.15); }
+    20% { transform: translate(calc(-50% - 4px), -50%) scale(1.15); }
+    40% { transform: translate(calc(-50% + 4px), -50%) scale(1.15); }
+    60% { transform: translate(calc(-50% - 3px), -50%) scale(1.15); }
+    80% { transform: translate(calc(-50% + 3px), -50%) scale(1.15); }
+    100% { transform: translate(-50%, -50%) scale(1.15); }
 }
 
 /* Mobile tuning */
@@ -923,11 +952,18 @@ body {
         font-size: 9px;
     }
 
+    #balance-panel,
     #funding-panel {
         width: 100%;
         padding: 12px 12px 14px 12px;
         gap: 10px;
         border-radius: 18px;
+    }
+
+    #available-balance-value,
+    #selected-wager-balance-view,
+    #selected-wager-value {
+        font-size: 18px;
     }
 
     #funding-title {
@@ -962,10 +998,6 @@ body {
     #selected-wager-wrap {
         padding: 10px 12px;
         gap: 10px;
-    }
-
-    #selected-wager-value {
-        font-size: 18px;
     }
 
     #intent-actions {
@@ -1021,7 +1053,8 @@ body {
         font-size: 12px;
     }
 
-    #funding-polling-note {
+    #funding-polling-note,
+    #balance-mode-note {
         font-size: 11px;
     }
 
@@ -1030,11 +1063,26 @@ body {
         gap: 4px;
     }
 
-    #fairness-badge {
-        top: 19.4%;
-        max-width: 72vw;
-        font-size: 9px;
-        padding: 4px 8px;
+    #fairness-panel {
+        top: 19.2%;
+        width: min(86vw, 560px);
+        padding: 9px 10px;
+    }
+
+    .fairness-row {
+        grid-template-columns: 88px 1fr;
+    }
+
+    .fairness-title {
+        font-size: 11px;
+    }
+
+    .fairness-label,
+    #fairness-commit,
+    #fairness-seed,
+    #fairness-nonce,
+    #fairness-poison {
+        font-size: 10px;
     }
 
     #multiplier-display {
