@@ -141,6 +141,16 @@
         </div>
     </div>
 
+    <!-- Vertical Ladder -->
+    <div id="multiplier-ladder-wrap">
+        <div id="ladder-step-label">Step 0 of 10</div>
+        <div id="multiplier-ladder"></div>
+        <div id="ladder-next-label">Next x1.02</div>
+    </div>
+
+    <!-- Game Board -->
+    <div id="game-container"></div>
+
     <!-- Fairness Panel -->
     <div id="fairness-panel">
         <div class="fairness-title">Provably Fair</div>
@@ -162,16 +172,6 @@
         </div>
     </div>
 
-    <!-- Vertical Ladder -->
-    <div id="multiplier-ladder-wrap">
-        <div id="ladder-step-label">Step 0 of 10</div>
-        <div id="multiplier-ladder"></div>
-        <div id="ladder-next-label">Next x1.02</div>
-    </div>
-
-    <!-- Game Board -->
-    <div id="game-container"></div>
-
     <!-- Cashout -->
     <div id="cashout-wrap">
         <button id="cashout-button" type="button" disabled>
@@ -190,6 +190,26 @@
 
         <div class="overlay-content">
             <h1>POISON! Game Over.</h1>
+
+            <div class="overlay-fairness">
+                <div class="overlay-fairness-title">Provably Fair Reveal</div>
+                <div class="overlay-fairness-row">
+                    <span class="overlay-fairness-label">Commit Hash</span>
+                    <span id="poison-fairness-commit">—</span>
+                </div>
+                <div class="overlay-fairness-row">
+                    <span class="overlay-fairness-label">Server Seed</span>
+                    <span id="poison-fairness-seed">—</span>
+                </div>
+                <div class="overlay-fairness-row">
+                    <span class="overlay-fairness-label">Nonce</span>
+                    <span id="poison-fairness-nonce">—</span>
+                </div>
+                <div class="overlay-fairness-row">
+                    <span class="overlay-fairness-label">Poison Indices</span>
+                    <span id="poison-fairness-poison">—</span>
+                </div>
+            </div>
 
             <div class="overlay-actions">
                 <button id="poison-new-round-btn" type="button">
@@ -213,6 +233,26 @@
             <p id="win-subtitle">Cashed Out</p>
             <p id="win-multiplier">x1.00</p>
 
+            <div class="overlay-fairness">
+                <div class="overlay-fairness-title">Provably Fair Reveal</div>
+                <div class="overlay-fairness-row">
+                    <span class="overlay-fairness-label">Commit Hash</span>
+                    <span id="win-fairness-commit">—</span>
+                </div>
+                <div class="overlay-fairness-row">
+                    <span class="overlay-fairness-label">Server Seed</span>
+                    <span id="win-fairness-seed">—</span>
+                </div>
+                <div class="overlay-fairness-row">
+                    <span class="overlay-fairness-label">Nonce</span>
+                    <span id="win-fairness-nonce">—</span>
+                </div>
+                <div class="overlay-fairness-row">
+                    <span class="overlay-fairness-label">Poison Indices</span>
+                    <span id="win-fairness-poison">—</span>
+                </div>
+            </div>
+
             <div class="overlay-actions">
                 <button id="win-new-round-btn" type="button">
                     New Round
@@ -228,7 +268,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <!-- Game Logic -->
-    <script src="game.js?v=19"></script>
+    <script src="game.js?v=20"></script>
 
 </body>
 </html>
