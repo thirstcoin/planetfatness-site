@@ -50,6 +50,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const fairnessNonceEl = document.getElementById("fairness-nonce");
     const fairnessPoisonEl = document.getElementById("fairness-poison");
 
+    const poisonFairnessCommitEl = document.getElementById("poison-fairness-commit");
+    const poisonFairnessSeedEl = document.getElementById("poison-fairness-seed");
+    const poisonFairnessNonceEl = document.getElementById("poison-fairness-nonce");
+    const poisonFairnessPoisonEl = document.getElementById("poison-fairness-poison");
+
+    const winFairnessCommitEl = document.getElementById("win-fairness-commit");
+    const winFairnessSeedEl = document.getElementById("win-fairness-seed");
+    const winFairnessNonceEl = document.getElementById("win-fairness-nonce");
+    const winFairnessPoisonEl = document.getElementById("win-fairness-poison");
+
     // Funding UI
     const fundingPanel = document.getElementById("funding-panel");
     const quickWagerButtons = Array.from(document.querySelectorAll(".quick-wager-btn"));
@@ -211,20 +221,33 @@ document.addEventListener("DOMContentLoaded", function () {
         })} PHAT`;
     }
 
+    function formatPoisonIndices(indices) {
+        return Array.isArray(indices) && indices.length
+            ? indices.map((n) => Number(n) + 1).join(", ")
+            : "—";
+    }
+
     function getRandomHypeLine() {
         return hypeLines[Math.floor(Math.random() * hypeLines.length)];
     }
 
     function setFairnessPanel() {
+        const poisonText = formatPoisonIndices(revealedPoisonIndices);
+
         if (fairnessCommitEl) fairnessCommitEl.textContent = commitHash || "—";
         if (fairnessSeedEl) fairnessSeedEl.textContent = revealedServerSeed || "—";
         if (fairnessNonceEl) fairnessNonceEl.textContent = fairnessNonce || "—";
-        if (fairnessPoisonEl) {
-            fairnessPoisonEl.textContent =
-                Array.isArray(revealedPoisonIndices) && revealedPoisonIndices.length
-                    ? revealedPoisonIndices.map((n) => Number(n) + 1).join(", ")
-                    : "—";
-        }
+        if (fairnessPoisonEl) fairnessPoisonEl.textContent = poisonText;
+
+        if (poisonFairnessCommitEl) poisonFairnessCommitEl.textContent = commitHash || "—";
+        if (poisonFairnessSeedEl) poisonFairnessSeedEl.textContent = revealedServerSeed || "—";
+        if (poisonFairnessNonceEl) poisonFairnessNonceEl.textContent = fairnessNonce || "—";
+        if (poisonFairnessPoisonEl) poisonFairnessPoisonEl.textContent = poisonText;
+
+        if (winFairnessCommitEl) winFairnessCommitEl.textContent = commitHash || "—";
+        if (winFairnessSeedEl) winFairnessSeedEl.textContent = revealedServerSeed || "—";
+        if (winFairnessNonceEl) winFairnessNonceEl.textContent = fairnessNonce || "—";
+        if (winFairnessPoisonEl) winFairnessPoisonEl.textContent = poisonText;
     }
 
     function startLockingStatus(message = "Locking round") {
@@ -1134,12 +1157,7 @@ document.addEventListener("DOMContentLoaded", function () {
         setFairnessPanel();
 
         stopIntentPolling();
-
-        if (data?.fundingSource === "intent") {
-            renderIntent(null);
-        } else {
-            renderIntent(null);
-        }
+        renderIntent(null);
 
         const jackpotCurrent =
             Number(data?.jackpot?.currentAmount) ||
