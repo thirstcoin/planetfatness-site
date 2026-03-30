@@ -60,6 +60,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const winFairnessNonceEl = document.getElementById("win-fairness-nonce");
     const winFairnessPoisonEl = document.getElementById("win-fairness-poison");
 
+    // Withdraw UI
+    const openWithdrawBtn = document.getElementById("open-withdraw-btn");
+    const withdrawModal = document.getElementById("withdraw-modal");
+    const withdrawBackdrop = document.getElementById("withdraw-backdrop");
+    const withdrawCancelBtn = document.getElementById("withdraw-cancel-btn");
+    const withdrawSubmitBtn = document.getElementById("withdraw-submit-btn");
+    const withdrawMaxBtn = document.getElementById("withdraw-max-btn");
+    const withdrawAmountInput = document.getElementById("withdraw-amount-input");
+    const withdrawWalletInput = document.getElementById("withdraw-wallet-input");
+    const withdrawAvailable = document.getElementById("withdraw-available");
+    const withdrawStatus = document.getElementById("withdraw-status");
+
     // Funding UI
     const fundingPanel = document.getElementById("funding-panel");
     const quickWagerButtons = Array.from(document.querySelectorAll(".quick-wager-btn"));
@@ -164,6 +176,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let intentBusy = false;
     let availableBalance = 0;
     let balanceCoversWager = false;
+
+    let withdrawBusy = false;
 
     const hypeLines = [
         "Phil says: take another bite.",
@@ -665,6 +679,10 @@ document.addEventListener("DOMContentLoaded", function () {
             availableBalanceValue.textContent = formatBalance(availableBalance);
         }
 
+        if (withdrawAvailable) {
+            withdrawAvailable.textContent = formatBalance(availableBalance);
+        }
+
         if (selectedWagerBalanceView) {
             selectedWagerBalanceView.textContent = `${formatNumber(selectedWager)} PHAT`;
         }
@@ -839,6 +857,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (copyAmountBtn) {
             copyAmountBtn.disabled = shouldDisableFunding || !pendingOrFunded || !currentIntent?.exactAmount;
+        }
+
+        if (openWithdrawBtn) {
+            openWithdrawBtn.disabled = !authReady || hasStartedRound || roundStarting || withdrawBusy;
+        }
+
+        if (withdrawSubmitBtn) {
+            withdrawSubmitBtn.disabled = withdrawBusy || !authReady;
+        }
+
+        if (withdrawMaxBtn) {
+            withdrawMaxBtn.disabled = withdrawBusy || !authReady;
+        }
+
+        if (withdrawCancelBtn) {
+            withdrawCancelBtn.disabled = withdrawBusy;
         }
     }
 
@@ -1404,6 +1438,85 @@ document.addEventListener("DOMContentLoaded", function () {
         syncStartButtonState();
     }
 
+    function openWithdrawModal() {
+        if (!authReady || !withdrawModal) return;
+        withdrawModal.classList.remove("hidden");
+        if (withdrawAvailable) {
+            withdrawAvailable.textContent = formatBalance(availableBalance);
+        }
+        if (withdrawStatus) {
+            withdrawStatus.textContent = "Ready.";
+        }
+        if (withdrawAmountInput) {
+            withdrawAmountInput.value = "";
+        }
+        if (withdrawWalletInput) {
+            withdrawWalletInput.value = "";
+        }
+        syncFundingButtons();
+    }
+
+    function closeWithdrawModal() {
+        if (!withdrawModal) return;
+        withdrawModal.classList.add("hidden");
+        if (withdrawStatus) {
+            withdrawStatus.textContent = "Ready.";
+        }
+        syncFundingButtons();
+    }
+
+    async function submitWithdraw() {
+        if (withdrawBusy || !authReady) return;
+
+        const amount = Number(withdrawAmountInput?.value || 0);
+        const destinationWallet = String(withdrawWalletInput?.value || "").trim();
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+            if (withdrawStatus) withdrawStatus.textContent = "Enter a valid amount.";
+            return;
+        }
+
+        if (amount > availableBalance) {
+            if (withdrawStatus) withdrawStatus.textContent = "Amount exceeds available balance.";
+            return;
+        }
+
+        withdrawBusy = true;
+        syncFundingButtons();
+
+        if (withdrawStatus) {
+            withdrawStatus.textContent = "Submitting withdrawal...";
+        }
+
+        try {
+            await apiFetch("/wallet/withdraw", {
+                method: "POST",
+                body: JSON.stringify({
+                    amount,
+                    destinationWallet: destinationWallet || undefined
+                })
+            });
+
+            await refreshBalance(true);
+
+            if (withdrawStatus) {
+                withdrawStatus.textContent = "Withdrawal request submitted.";
+            }
+
+            setTimeout(() => {
+                closeWithdrawModal();
+            }, 900);
+        } catch (err) {
+            console.warn("Withdraw failed:", err);
+            if (withdrawStatus) {
+                withdrawStatus.textContent = String(err?.message || "Withdrawal failed.");
+            }
+        } finally {
+            withdrawBusy = false;
+            syncFundingButtons();
+        }
+    }
+
     async function beginRoundFromIntro() {
         if (!authReady) {
             status.innerText = "Session required. Reopen from Telegram.";
@@ -1845,6 +1958,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (copyAmountBtn) {
         copyAmountBtn.addEventListener("click", copyIntentAmount);
+    }
+
+    if (openWithdrawBtn) {
+        openWithdrawBtn.addEventListener("click", openWithdrawModal);
+    }
+
+    if (withdrawCancelBtn) {
+        withdrawCancelBtn.addEventListener("click", closeWithdrawModal);
+    }
+
+    if (withdrawBackdrop) {
+        withdrawBackdrop.addEventListener("click", closeWithdrawModal);
+    }
+
+    if (withdrawMaxBtn) {
+        withdrawMaxBtn.addEventListener("click", () => {
+            if (withdrawAmountInput) {
+                withdrawAmountInput.value = String(availableBalance || 0);
+            }
+        });
+    }
+
+    if (withdrawSubmitBtn) {
+        withdrawSubmitBtn.addEventListener("click", submitWithdraw);
     }
 
     startGameBtn.addEventListener("click", beginRoundFromIntro);
