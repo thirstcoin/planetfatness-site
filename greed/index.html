@@ -32,6 +32,10 @@
                 <div id="balance-mode-note">
                     Checking balance...
                 </div>
+
+                <div id="balance-actions">
+                    <button id="open-withdraw-btn" type="button">Withdraw PHAT</button>
+                </div>
             </div>
 
             <!-- Funding Panel -->
@@ -264,11 +268,60 @@
         </div>
     </div>
 
+    <!-- Withdraw Modal -->
+    <div id="withdraw-modal" class="withdraw-modal hidden">
+        <div id="withdraw-backdrop" class="withdraw-backdrop"></div>
+        <div class="withdraw-card">
+            <div class="withdraw-title">Withdraw PHAT</div>
+
+            <div class="withdraw-row">
+                <span class="withdraw-label">Available</span>
+                <span id="withdraw-available">0 PHAT</span>
+            </div>
+
+            <div class="withdraw-form">
+                <label for="withdraw-amount-input">Amount</label>
+                <input
+                    id="withdraw-amount-input"
+                    type="number"
+                    inputmode="decimal"
+                    min="0"
+                    step="0.001"
+                    placeholder="Enter PHAT amount"
+                />
+
+                <label for="withdraw-wallet-input">Destination Wallet</label>
+                <input
+                    id="withdraw-wallet-input"
+                    type="text"
+                    placeholder="Leave blank to use your linked address"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                />
+            </div>
+
+            <div id="withdraw-note">
+                Withdraw requests use your internal balance.
+            </div>
+
+            <div id="withdraw-status">
+                Ready.
+            </div>
+
+            <div class="withdraw-actions">
+                <button id="withdraw-max-btn" type="button">Max</button>
+                <button id="withdraw-cancel-btn" type="button">Cancel</button>
+                <button id="withdraw-submit-btn" type="button">Request Withdraw</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Telegram SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <!-- Game Logic -->
-    <script src="game.js?v=20"></script>
+    <script src="game.js?v=21"></script>
 
 </body>
 </html>
