@@ -26,14 +26,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const poisonVideo = document.getElementById("poison-video");
     const poisonNewRoundBtn = document.getElementById("poison-new-round-btn");
     const poisonBackChatBtn = document.getElementById("poison-back-chat-btn");
+    const poisonViewCardBtn = document.getElementById("poison-view-card-btn");
+    const poisonResultLabel = document.getElementById("poison-result-label");
+    const poisonResultMultiplier = document.getElementById("poison-result-multiplier");
+    const poisonResultLoss = document.getElementById("poison-result-loss");
 
     const winOverlay = document.getElementById("win-overlay");
     const winVideo = document.getElementById("win-video");
     const winTitle = document.getElementById("win-title");
     const winSubtitle = document.getElementById("win-subtitle");
     const winMultiplier = document.getElementById("win-multiplier");
+    const winPayout = document.getElementById("win-payout");
     const winNewRoundBtn = document.getElementById("win-new-round-btn");
     const winBackChatBtn = document.getElementById("win-back-chat-btn");
+    const winViewCardBtn = document.getElementById("win-view-card-btn");
 
     const introOverlay = document.getElementById("intro-overlay");
     const introVideo = document.getElementById("intro-video");
@@ -89,6 +95,80 @@ document.addEventListener("DOMContentLoaded", function () {
     const intentTxEl = document.getElementById("intent-tx");
     const fundingHelpEl = document.getElementById("funding-help");
     const fundingPollingNoteEl = document.getElementById("funding-polling-note");
+
+    // Top buttons
+    const openGreedCardBtn = document.getElementById("open-greed-card-btn");
+    const openGlobalStatsBtn = document.getElementById("open-global-stats-btn");
+    const openLeaderboardsBtn = document.getElementById("open-leaderboards-btn");
+
+    // Global strip
+    const gsWagered = document.getElementById("gs-wagered");
+    const gsRounds = document.getElementById("gs-rounds");
+    const gsPerfect = document.getElementById("gs-perfect");
+    const gsSince = document.getElementById("gs-since");
+    const gsBust = document.getElementById("gs-bust");
+    const gsCashout = document.getElementById("gs-cashout");
+
+    // Right leaderboard rail
+    const leaderboardPanel = document.getElementById("leaderboard-panel");
+    const lbMostWagered = document.getElementById("lb-most-wagered");
+    const lbMostWon = document.getElementById("lb-most-won");
+    const lbPerfectRuns = document.getElementById("lb-perfect-runs");
+    const lbBiggestCashout = document.getElementById("lb-biggest-cashout");
+    const lbGreedGods = document.getElementById("lb-greed-gods");
+
+    // Greed card modal
+    const greedCardModal = document.getElementById("greed-card-modal");
+    const greedCardBackdrop = document.getElementById("greed-card-backdrop");
+    const greedCardCloseBtn = document.getElementById("greed-card-close-btn");
+    const greedCardRefreshBtn = document.getElementById("greed-card-refresh-btn");
+    const greedCardPlayBtn = document.getElementById("greed-card-play-btn");
+
+    const gcDisplayName = document.getElementById("gc-display-name");
+    const gcRank = document.getElementById("gc-rank");
+    const gcTier = document.getElementById("gc-tier");
+    const gcTotalWagered = document.getElementById("gc-total-wagered");
+    const gcTotalRounds = document.getElementById("gc-total-rounds");
+    const gcNetProfit = document.getElementById("gc-net-profit");
+    const gcCashoutRate = document.getElementById("gc-cashout-rate");
+    const gcPerfectRuns = document.getElementById("gc-perfect-runs");
+    const gcTotalLost = document.getElementById("gc-total-lost");
+    const gcBusts = document.getElementById("gc-busts");
+    const gcBiggestCashout = document.getElementById("gc-biggest-cashout");
+    const gcBestRunDepth = document.getElementById("gc-best-run-depth");
+    const gcGreedScore = document.getElementById("gc-greed-score");
+    const gcHighMultiplierCashouts = document.getElementById("gc-high-multiplier-cashouts");
+
+    // Global stats modal
+    const globalStatsModal = document.getElementById("global-stats-modal");
+    const globalStatsBackdrop = document.getElementById("global-stats-backdrop");
+    const globalStatsCloseBtn = document.getElementById("global-stats-close-btn");
+    const globalStatsRefreshBtn = document.getElementById("global-stats-refresh-btn");
+
+    const gsmTotalWagered = document.getElementById("gsm-total-wagered");
+    const gsmTotalRounds = document.getElementById("gsm-total-rounds");
+    const gsmTotalBusts = document.getElementById("gsm-total-busts");
+    const gsmTotalCashouts = document.getElementById("gsm-total-cashouts");
+    const gsmPerfectRuns = document.getElementById("gsm-perfect-runs");
+    const gsmCurrentJackpot = document.getElementById("gsm-current-jackpot");
+    const gsmRoundsSinceJackpot = document.getElementById("gsm-rounds-since-jackpot");
+    const gsmBiggestCashout = document.getElementById("gsm-biggest-cashout");
+    const gsmBustRate = document.getElementById("gsm-bust-rate");
+    const gsmCashoutRate = document.getElementById("gsm-cashout-rate");
+
+    // Leaderboards modal
+    const leaderboardsModal = document.getElementById("leaderboards-modal");
+    const leaderboardsBackdrop = document.getElementById("leaderboards-backdrop");
+    const leaderboardsCloseBtn = document.getElementById("leaderboards-close-btn");
+    const leaderboardsRefreshBtn = document.getElementById("leaderboards-refresh-btn");
+    const leaderboardsWindowSelect = document.getElementById("leaderboards-window-select");
+
+    const lbmMostWagered = document.getElementById("lbm-most-wagered");
+    const lbmMostWon = document.getElementById("lbm-most-won");
+    const lbmTopLosses = document.getElementById("lbm-top-losses");
+    const lbmPerfectRuns = document.getElementById("lbm-perfect-runs");
+    const lbmBiggestCashout = document.getElementById("lbm-biggest-cashout");
+    const lbmGreedGods = document.getElementById("lbm-greed-gods");
 
     if (
         !container ||
@@ -178,6 +258,9 @@ document.addEventListener("DOMContentLoaded", function () {
     let balanceCoversWager = false;
 
     let withdrawBusy = false;
+    let greedCardBusy = false;
+    let globalStatsBusy = false;
+    let leaderboardsBusy = false;
 
     const hypeLines = [
         "Phil says: take another bite.",
@@ -217,6 +300,23 @@ document.addEventListener("DOMContentLoaded", function () {
         return Number(n || 0).toLocaleString("en-US");
     }
 
+    function formatSignedPhat(n) {
+        const num = Number(n || 0);
+        const sign = num > 0 ? "+" : "";
+        return `${sign}${num.toLocaleString("en-US", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 3
+        })} PHAT`;
+    }
+
+    function formatPhat(n) {
+        const num = Number(n || 0);
+        return `${num.toLocaleString("en-US", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 3
+        })} PHAT`;
+    }
+
     function formatIntentAmount(n) {
         const num = Number(n || 0);
         if (!Number.isFinite(num) || num <= 0) return "—";
@@ -233,6 +333,12 @@ document.addEventListener("DOMContentLoaded", function () {
             minimumFractionDigits: 0,
             maximumFractionDigits: 3
         })} PHAT`;
+    }
+
+    function formatPct(n) {
+        const num = Number(n || 0);
+        if (!Number.isFinite(num)) return "0.0%";
+        return `${num.toFixed(1)}%`;
     }
 
     function formatPoisonIndices(indices) {
@@ -874,6 +980,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (withdrawCancelBtn) {
             withdrawCancelBtn.disabled = withdrawBusy;
         }
+
+        if (openGreedCardBtn) openGreedCardBtn.disabled = !authReady || greedCardBusy;
+        if (openGlobalStatsBtn) openGlobalStatsBtn.disabled = globalStatsBusy;
+        if (openLeaderboardsBtn) openLeaderboardsBtn.disabled = leaderboardsBusy;
+        if (greedCardRefreshBtn) greedCardRefreshBtn.disabled = greedCardBusy;
+        if (globalStatsRefreshBtn) globalStatsRefreshBtn.disabled = globalStatsBusy;
+        if (leaderboardsRefreshBtn) leaderboardsRefreshBtn.disabled = leaderboardsBusy;
     }
 
     function syncStartButtonState() {
@@ -1465,6 +1578,73 @@ document.addEventListener("DOMContentLoaded", function () {
         syncFundingButtons();
     }
 
+    function openModal(modal) {
+        if (!modal) return;
+        modal.classList.remove("hidden");
+    }
+
+    function closeModal(modal) {
+        if (!modal) return;
+        modal.classList.add("hidden");
+    }
+
+    function renderBoardList(targetEl, rows, type = "phat") {
+        if (!targetEl) return;
+        const list = Array.isArray(rows) ? rows : [];
+
+        if (!list.length) {
+            targetEl.innerHTML = `<div class="leaderboard-empty">No entries yet.</div>`;
+            return;
+        }
+
+        targetEl.innerHTML = list.map((row, idx) => {
+            const rank = Number(row.rank || idx + 1);
+            const displayName = row.displayName || row.display_name || row.address || "Unknown";
+            let rawValue =
+                row.value ??
+                row.greedScore ??
+                row.greed_score ??
+                row.totalWagered ??
+                row.total_wagered ??
+                row.netProfit ??
+                row.net_profit ??
+                row.perfectRuns ??
+                row.perfect_runs ??
+                row.biggestCashout ??
+                row.biggest_cashout ??
+                0;
+
+            let formattedValue = "";
+
+            if (type === "count") {
+                formattedValue = formatNumber(rawValue);
+            } else if (type === "pct") {
+                formattedValue = formatPct(rawValue);
+            } else if (type === "score") {
+                formattedValue = formatNumber(rawValue);
+            } else {
+                formattedValue = formatPhat(rawValue);
+            }
+
+            return `
+                <div class="leaderboard-item">
+                    <div class="leaderboard-rank">#${rank}</div>
+                    <div class="leaderboard-name">${displayName}</div>
+                    <div class="leaderboard-value">${formattedValue}</div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    function fillText(el, value, formatter = null, fallback = "—") {
+        if (!el) return;
+        if (value == null || value === "") {
+            el.textContent = fallback;
+            return;
+        }
+        el.textContent = formatter ? formatter(value) : String(value);
+    }
+
     async function submitWithdraw() {
         if (withdrawBusy || !authReady) return;
 
@@ -1517,7 +1697,151 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function beginRoundFromIntro() {
+    async function refreshGreedGlobalStats() {
+        if (globalStatsBusy) return null;
+        globalStatsBusy = true;
+        syncFundingButtons();
+
+        try {
+            const data = await apiFetch("/greed/global-stats", { method: "GET" });
+            const stats = data?.stats || data || {};
+
+            fillText(gsWagered, stats.total_wagered, formatPhat);
+            fillText(gsRounds, stats.total_rounds, formatNumber);
+            fillText(gsPerfect, stats.perfect_runs, formatNumber);
+            fillText(gsSince, stats.rounds_since_jackpot, formatNumber);
+            fillText(gsBust, stats.bust_rate, formatPct);
+            fillText(gsCashout, stats.cashout_rate, formatPct);
+
+            fillText(gsmTotalWagered, stats.total_wagered, formatPhat);
+            fillText(gsmTotalRounds, stats.total_rounds, formatNumber);
+            fillText(gsmTotalBusts, stats.total_busts, formatNumber);
+            fillText(gsmTotalCashouts, stats.total_cashouts, formatNumber);
+            fillText(gsmPerfectRuns, stats.perfect_runs, formatNumber);
+            fillText(gsmCurrentJackpot, stats.current_jackpot, formatPhat);
+            fillText(gsmRoundsSinceJackpot, stats.rounds_since_jackpot, formatNumber);
+            fillText(gsmBiggestCashout, stats.biggest_cashout, formatPhat);
+            fillText(gsmBustRate, stats.bust_rate, formatPct);
+            fillText(gsmCashoutRate, stats.cashout_rate, formatPct);
+
+            return stats;
+        } catch (err) {
+            console.warn("Global stats fetch failed:", err);
+
+            fillText(gsWagered, null);
+            fillText(gsRounds, null);
+            fillText(gsPerfect, null);
+            fillText(gsSince, null);
+            fillText(gsBust, null);
+            fillText(gsCashout, null);
+
+            return null;
+        } finally {
+            globalStatsBusy = false;
+            syncFundingButtons();
+        }
+    }
+
+    async function refreshGreedCard() {
+        if (!authReady || greedCardBusy) return null;
+
+        greedCardBusy = true;
+        syncFundingButtons();
+
+        try {
+            const data = await apiFetch("/greed/card", { method: "GET" });
+            const card = data?.card || data || {};
+
+            fillText(gcDisplayName, card.displayName || card.display_name || "Unknown");
+            fillText(gcRank, card.greed_gods_rank != null ? `#${card.greed_gods_rank}` : "Unranked");
+            fillText(gcTier, card.tier);
+            fillText(gcTotalWagered, card.total_wagered, formatPhat);
+            fillText(gcTotalRounds, card.total_rounds, formatNumber);
+            fillText(gcNetProfit, card.net_profit, formatSignedPhat);
+            fillText(gcCashoutRate, card.cashout_rate, formatPct);
+            fillText(gcPerfectRuns, card.perfect_runs, formatNumber);
+            fillText(gcTotalLost, card.total_lost, formatPhat);
+            fillText(gcBusts, card.busts, formatNumber);
+            fillText(gcBiggestCashout, card.biggest_cashout, formatPhat);
+            fillText(gcBestRunDepth, card.best_run_depth, (v) => `${formatNumber(v)} / 10`);
+            fillText(gcGreedScore, card.greed_score, formatNumber);
+            fillText(gcHighMultiplierCashouts, card.high_multiplier_cashouts, formatNumber);
+
+            return card;
+        } catch (err) {
+            console.warn("Greed card fetch failed:", err);
+            status.innerText = String(err?.message || "Failed to load Greed Card.");
+            return null;
+        } finally {
+            greedCardBusy = false;
+            syncFundingButtons();
+        }
+    }
+
+    async function refreshLeaderboards(windowValue = null) {
+        if (leaderboardsBusy) return null;
+
+        leaderboardsBusy = true;
+        syncFundingButtons();
+
+        try {
+            const selectedWindow = String(
+                windowValue ||
+                leaderboardsWindowSelect?.value ||
+                "lifetime"
+            ).trim();
+
+            const data = await apiFetch(`/greed/leaderboards?window=${encodeURIComponent(selectedWindow)}&limit=10`, {
+                method: "GET"
+            });
+
+            const boards = data?.boards || {};
+
+            renderBoardList(lbMostWagered, boards.mostWagered || boards.most_wagered || [], "phat");
+            renderBoardList(lbMostWon, boards.mostWon || boards.most_won || [], "phat");
+            renderBoardList(lbPerfectRuns, boards.perfectRuns || boards.perfect_runs || [], "count");
+            renderBoardList(lbBiggestCashout, boards.biggestCashout || boards.biggest_cashout || [], "phat");
+            renderBoardList(lbmMostWagered, boards.mostWagered || boards.most_wagered || [], "phat");
+            renderBoardList(lbmMostWon, boards.mostWon || boards.most_won || [], "phat");
+            renderBoardList(lbmTopLosses, boards.topGlazeSacrifices || boards.top_glaze_sacrifices || [], "phat");
+            renderBoardList(lbmPerfectRuns, boards.perfectRuns || boards.perfect_runs || [], "count");
+            renderBoardList(lbmBiggestCashout, boards.biggestCashout || boards.biggest_cashout || [], "phat");
+
+            try {
+                const greedGodsData = await apiFetch(`/greed/greed-gods?limit=10`, { method: "GET" });
+                const greedGodsRows = greedGodsData?.rows || greedGodsData?.leaderboard || greedGodsData || [];
+                renderBoardList(lbGreedGods, greedGodsRows, "score");
+                renderBoardList(lbmGreedGods, greedGodsRows, "score");
+            } catch (innerErr) {
+                console.warn("Greed Gods fetch failed:", innerErr);
+                renderBoardList(lbGreedGods, [], "score");
+                renderBoardList(lbmGreedGods, [], "score");
+            }
+
+            return boards;
+        } catch (err) {
+            console.warn("Leaderboards fetch failed:", err);
+
+            renderBoardList(lbMostWagered, [], "phat");
+            renderBoardList(lbMostWon, [], "phat");
+            renderBoardList(lbPerfectRuns, [], "count");
+            renderBoardList(lbBiggestCashout, [], "phat");
+            renderBoardList(lbGreedGods, [], "score");
+
+            renderBoardList(lbmMostWagered, [], "phat");
+            renderBoardList(lbmMostWon, [], "phat");
+            renderBoardList(lbmTopLosses, [], "phat");
+            renderBoardList(lbmPerfectRuns, [], "count");
+            renderBoardList(lbmBiggestCashout, [], "phat");
+            renderBoardList(lbmGreedGods, [], "score");
+
+            return null;
+        } finally {
+            leaderboardsBusy = false;
+            syncFundingButtons();
+        }
+    }
+        async function beginRoundFromIntro() {
         if (!authReady) {
             status.innerText = "Session required. Reopen from Telegram.";
             return;
@@ -1550,6 +1874,8 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             await startBackendRound();
             await refreshBalance(true);
+            await refreshGreedGlobalStats();
+            await refreshLeaderboards();
 
             const elapsed = Date.now() - startTs;
             const remaining = Math.max(0, START_LOCK_MIN_MS - elapsed);
@@ -1622,6 +1948,8 @@ document.addEventListener("DOMContentLoaded", function () {
         await ensureAuthReady(false);
         await refreshBalance(true);
         await loadOpenIntent(false);
+        await refreshGreedGlobalStats();
+        await refreshLeaderboards();
 
         playIntroSequence();
 
@@ -1687,6 +2015,12 @@ document.addEventListener("DOMContentLoaded", function () {
             updateLadder();
             await refreshJackpot();
             await refreshBalance(true);
+            await refreshGreedGlobalStats();
+            await refreshLeaderboards();
+
+            if (winPayout) {
+                winPayout.textContent = formatPhat(data.payout || 0);
+            }
 
             lockBoard();
             playCashoutTierSound();
@@ -1781,6 +2115,13 @@ document.addEventListener("DOMContentLoaded", function () {
                         updateCashoutButton();
                         await refreshJackpot();
                         await refreshBalance(true);
+                        await refreshGreedGlobalStats();
+                        await refreshLeaderboards();
+
+                        if (poisonResultLabel) poisonResultLabel.textContent = "Bust";
+                        if (poisonResultMultiplier) poisonResultMultiplier.textContent = `x${Number(data.currentMultiplier || 1).toFixed(2)}`;
+                        if (poisonResultLoss) poisonResultLoss.textContent = formatPhat(selectedWager || 0);
+
                         setTimeout(() => {
                             showPoisonOverlay();
                         }, OVERLAY_DELAY_MS);
@@ -1798,6 +2139,13 @@ document.addEventListener("DOMContentLoaded", function () {
                         updateCashoutButton();
                         await refreshJackpot();
                         await refreshBalance(true);
+                        await refreshGreedGlobalStats();
+                        await refreshLeaderboards();
+
+                        if (winPayout) {
+                            winPayout.textContent = formatPhat(data.payout || 0);
+                        }
+
                         showWinOverlay();
                         return;
                     }
@@ -1897,6 +2245,25 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    async function openGreedCardModal() {
+        if (!authReady) {
+            status.innerText = "Open from Telegram to view your Greed Card.";
+            return;
+        }
+        openModal(greedCardModal);
+        await refreshGreedCard();
+    }
+
+    async function openGlobalStatsModal() {
+        openModal(globalStatsModal);
+        await refreshGreedGlobalStats();
+    }
+
+    async function openLeaderboardsModal() {
+        openModal(leaderboardsModal);
+        await refreshLeaderboards(leaderboardsWindowSelect?.value || "lifetime");
+    }
+
     quickWagerButtons.forEach((btn) => {
         btn.addEventListener("click", async () => {
             if (btn.disabled) return;
@@ -1984,6 +2351,43 @@ document.addEventListener("DOMContentLoaded", function () {
         withdrawSubmitBtn.addEventListener("click", submitWithdraw);
     }
 
+    if (openGreedCardBtn) {
+        openGreedCardBtn.addEventListener("click", openGreedCardModal);
+    }
+
+    if (openGlobalStatsBtn) {
+        openGlobalStatsBtn.addEventListener("click", openGlobalStatsModal);
+    }
+
+    if (openLeaderboardsBtn) {
+        openLeaderboardsBtn.addEventListener("click", openLeaderboardsModal);
+    }
+
+    if (greedCardCloseBtn) greedCardCloseBtn.addEventListener("click", () => closeModal(greedCardModal));
+    if (greedCardBackdrop) greedCardBackdrop.addEventListener("click", () => closeModal(greedCardModal));
+    if (greedCardRefreshBtn) greedCardRefreshBtn.addEventListener("click", refreshGreedCard);
+    if (greedCardPlayBtn) {
+        greedCardPlayBtn.addEventListener("click", () => {
+            closeModal(greedCardModal);
+            if (!hasStartedRound) {
+                showIntroOverlay();
+            }
+        });
+    }
+
+    if (globalStatsCloseBtn) globalStatsCloseBtn.addEventListener("click", () => closeModal(globalStatsModal));
+    if (globalStatsBackdrop) globalStatsBackdrop.addEventListener("click", () => closeModal(globalStatsModal));
+    if (globalStatsRefreshBtn) globalStatsRefreshBtn.addEventListener("click", refreshGreedGlobalStats);
+
+    if (leaderboardsCloseBtn) leaderboardsCloseBtn.addEventListener("click", () => closeModal(leaderboardsModal));
+    if (leaderboardsBackdrop) leaderboardsBackdrop.addEventListener("click", () => closeModal(leaderboardsModal));
+    if (leaderboardsRefreshBtn) {
+        leaderboardsRefreshBtn.addEventListener("click", () => refreshLeaderboards(leaderboardsWindowSelect?.value || "lifetime"));
+    }
+    if (leaderboardsWindowSelect) {
+        leaderboardsWindowSelect.addEventListener("change", () => refreshLeaderboards(leaderboardsWindowSelect.value));
+    }
+
     startGameBtn.addEventListener("click", beginRoundFromIntro);
     cashoutButton.addEventListener("click", cashOutNow);
 
@@ -2003,6 +2407,23 @@ document.addEventListener("DOMContentLoaded", function () {
         winBackChatBtn.addEventListener("click", backToChat);
     }
 
+    if (poisonViewCardBtn) {
+        poisonViewCardBtn.addEventListener("click", openGreedCardModal);
+    }
+
+    if (winViewCardBtn) {
+        winViewCardBtn.addEventListener("click", openGreedCardModal);
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            closeWithdrawModal();
+            closeModal(greedCardModal);
+            closeModal(globalStatsModal);
+            closeModal(leaderboardsModal);
+        }
+    });
+
     setSelectedWager(DEFAULT_WAGER);
     multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
     updateCashoutButton();
@@ -2021,6 +2442,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!authReady) return;
 
         await refreshBalance(true);
+        await refreshGreedGlobalStats();
+        await refreshLeaderboards();
 
         const restored = await restoreActiveRoundIfAny();
         if (restored) return;
