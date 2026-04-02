@@ -1,4 +1,9 @@
 /* 1. Full Page Setup - The Table Background */
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
 body { 
     margin: 0;
     padding: 0;
@@ -15,6 +20,7 @@ body {
     overflow: hidden;
     font-family: Arial, Helvetica, sans-serif;
     -webkit-tap-highlight-color: transparent;
+    color: white;
 }
 
 /* 1.5 Intro Overlay */
@@ -141,6 +147,12 @@ body {
 
 #open-withdraw-btn:active {
     transform: scale(0.97);
+}
+
+#open-withdraw-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* Funding Panel */
@@ -496,6 +508,12 @@ body {
 
 .top-action-btn:active {
     transform: scale(0.97);
+}
+
+.top-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* NEW: compact global stats strip */
@@ -1025,6 +1043,10 @@ body {
     transform: scale(0.97);
 }
 
+#cashout-button:disabled {
+    cursor: not-allowed;
+}
+
 #cashout-button.final-push {
     box-shadow:
         0 8px 20px rgba(0,0,0,0.35),
@@ -1342,6 +1364,16 @@ body {
     color: #111;
 }
 
+.withdraw-actions button:active {
+    transform: scale(0.98);
+}
+
+.withdraw-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* NEW: generic modals */
 .greed-modal {
     position: fixed;
@@ -1510,6 +1542,16 @@ body {
     font-size: 14px;
     font-weight: 900;
     cursor: pointer;
+}
+
+.greed-card-actions button:active {
+    transform: scale(0.98);
+}
+
+.greed-card-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* Global stats modal */
