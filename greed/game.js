@@ -232,6 +232,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let interactionLockedUntil = 0;
 
     let roundId = null;
+    let currentRoundWager = 0;
     let commitHash = "";
     let fairnessNonce = "";
     let revealedServerSeed = "";
@@ -293,8 +294,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function formatSignedPhat(n) {
         const num = Number(n || 0);
-        const sign = num > 0 ? "+" : "";
-        return `${sign}${num.toLocaleString("en-US", {
+        const sign = num > 0 ? "+" : num < 0 ? "-" : "";
+        const abs = Math.abs(num);
+        return `${sign}${abs.toLocaleString("en-US", {
             minimumFractionDigits: 0,
             maximumFractionDigits: 3
         })} PHAT`;
@@ -1263,6 +1265,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         roundId = data.roundId;
+        currentRoundWager = Number(data.fundedExactAmount || data.wager || wagerToUse || 0);
         commitHash = data?.provablyFair?.commitHash || "";
         fairnessNonce = String(data?.provablyFair?.nonce || "");
         revealedServerSeed = "";
@@ -1502,6 +1505,7 @@ document.addEventListener("DOMContentLoaded", function () {
         hasStartedRound = false;
         roundStarting = false;
         roundId = null;
+        currentRoundWager = 0;
         commitHash = "";
         fairnessNonce = "";
         revealedServerSeed = "";
@@ -1727,15 +1731,21 @@ document.addEventListener("DOMContentLoaded", function () {
             renderBoardList(lbmPerfectRuns, boards.perfectRuns || boards.perfect_runs || [], "count");
             renderBoardList(lbmJackpotButchers, boards.biggestCashout || boards.biggest_cashout || [], "phat");
 
-            try {
-                const greedGodsData = await apiFetch(`/greed/greed-gods?limit=10`, { method: "GET" });
-                const greedGodsRows = greedGodsData?.rows || greedGodsData?.leaderboard || greedGodsData || [];
-                renderBoardList(lbGreedGods, greedGodsRows, "score");
-                renderBoardList(lbmGreedGods, greedGodsRows, "score");
-            } catch (innerErr) {
-                console.warn("Greed Gods fetch failed:", innerErr);
-                renderBoardList(lbGreedGods, [], "score");
-                renderBoardList(lbmGreedGods, [], "score");
+            const greedGodsFromBoards = boards.greedGods || boards.greed_gods || null;
+            if (greedGodsFromBoards) {
+                renderBoardList(lbGreedGods, greedGodsFromBoards, "score");
+                renderBoardList(lbmGreedGods, greedGodsFromBoards, "score");
+            } else {
+                try {
+                    const greedGodsData = await apiFetch(`/greed/gods?limit=10`, { method: "GET" });
+                    const greedGodsRows = greedGodsData?.rows || greedGodsData?.leaderboard || greedGodsData || [];
+                    renderBoardList(lbGreedGods, greedGodsRows, "score");
+                    renderBoardList(lbmGreedGods, greedGodsRows, "score");
+                } catch (innerErr) {
+                    console.warn("Greed Gods fetch failed:", innerErr);
+                    renderBoardList(lbGreedGods, [], "score");
+                    renderBoardList(lbmGreedGods, [], "score");
+                }
             }
 
             return boards;
@@ -1810,6 +1820,7 @@ document.addEventListener("DOMContentLoaded", function () {
             pickInFlight = false;
             hasStartedRound = false;
             roundId = null;
+            currentRoundWager = 0;
             commitHash = "";
             fairnessNonce = "";
             revealedServerSeed = "";
@@ -2025,7 +2036,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         fillText(poisonResultLabel, "Bust");
                         fillText(poisonResultMultiplier, `x${Number(data.currentMultiplier || 1).toFixed(2)}`);
-                        fillText(poisonResultLoss, formatPhat(selectedWager || 0));
+                        fillText(poisonResultLoss, formatPhat(currentRoundWager || selectedWager || 0));
 
                         setTimeout(() => {
                             showPoisonOverlay();
@@ -2117,6 +2128,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const round = data.round;
             roundId = Number(round.id);
+            currentRoundWager = Number(round.wager || 0);
             hasStartedRound = true;
             roundStarting = false;
             isGameOver = false;
