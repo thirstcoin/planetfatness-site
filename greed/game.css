@@ -464,6 +464,88 @@ body {
     pointer-events: none;
 }
 
+/* NEW: top action buttons */
+#top-action-buttons {
+    position: absolute;
+    top: 15.3%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 531;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.top-action-btn {
+    appearance: none;
+    border: 1px solid rgba(255,215,0,0.18);
+    background: linear-gradient(180deg, rgba(34, 10, 48, 0.92) 0%, rgba(18, 6, 28, 0.94) 100%);
+    color: #FFD700;
+    min-height: 38px;
+    padding: 0 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.2px;
+    box-shadow:
+        0 6px 16px rgba(0,0,0,0.32),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    cursor: pointer;
+}
+
+.top-action-btn:active {
+    transform: scale(0.97);
+}
+
+/* NEW: compact global stats strip */
+#global-stats {
+    position: absolute;
+    top: 21.8%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 532;
+    width: min(82vw, 620px);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px;
+    border-radius: 14px;
+    background: rgba(8, 8, 12, 0.78);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.42);
+}
+
+.gs-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 6px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    min-height: 50px;
+}
+
+.gs-row span:first-child {
+    font-size: 10px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.72);
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    text-align: center;
+    line-height: 1.05;
+}
+
+.gs-row span:last-child {
+    font-size: 13px;
+    font-weight: 900;
+    color: #FFD700;
+    text-align: center;
+    line-height: 1.05;
+}
+
 /* 2. Game Container - The Board */
 #game-container {
     position: absolute;
@@ -478,6 +560,106 @@ body {
     background-repeat: no-repeat;
     z-index: 10;
     will-change: transform;
+}
+
+/* NEW: right side leaderboard rail */
+#leaderboard-panel {
+    position: absolute;
+    right: 1.8%;
+    top: 28.2%;
+    z-index: 525;
+    width: min(21vw, 290px);
+    max-height: 54vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 16px;
+    background: rgba(8, 8, 12, 0.82);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.42);
+    scrollbar-width: thin;
+}
+
+#leaderboard-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+#leaderboard-panel::-webkit-scrollbar-thumb {
+    background: rgba(255,215,0,0.25);
+    border-radius: 999px;
+}
+
+.panel-title {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 900;
+    color: #FFD700;
+    text-transform: uppercase;
+    letter-spacing: 0.28px;
+}
+
+.leaderboard-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.04);
+}
+
+.leaderboard-block-title,
+.leaderboard-modal-title {
+    font-size: 11px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.22px;
+}
+
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.leaderboard-empty {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.62);
+}
+
+.leaderboard-item {
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    font-size: 11px;
+    color: white;
+    line-height: 1.2;
+}
+
+.leaderboard-rank {
+    font-weight: 900;
+    color: #FFD700;
+    text-align: center;
+}
+
+.leaderboard-name {
+    font-weight: 800;
+    color: rgba(255,255,255,0.96);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.leaderboard-value {
+    font-weight: 900;
+    color: #FFD700;
+    text-align: right;
+    white-space: nowrap;
 }
 
 /* Fairness Panel */
@@ -927,6 +1109,46 @@ body {
     text-shadow: 0 2px 10px rgba(0,0,0,0.9);
 }
 
+.overlay-result-summary {
+    width: min(92vw, 520px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(0,0,0,0.34);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-sizing: border-box;
+}
+
+.overlay-summary-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 10px;
+    align-items: center;
+}
+
+.overlay-summary-label {
+    font-size: 12px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.76);
+    text-transform: uppercase;
+    text-align: left;
+}
+
+#poison-result-label,
+#poison-result-multiplier,
+#poison-result-loss {
+    font-size: 16px;
+    font-weight: 900;
+    color: #FFD700;
+    text-align: left;
+}
+
+#win-payout {
+    color: #FFD700;
+}
+
 .overlay-fairness {
     width: min(92vw, 700px);
     display: flex;
@@ -998,6 +1220,10 @@ body {
     background: #FFD700;
     color: #111;
     box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
+
+.overlay-content button:active {
+    transform: scale(0.98);
 }
 
 /* Withdraw Modal */
@@ -1116,6 +1342,236 @@ body {
     color: #111;
 }
 
+/* NEW: generic modals */
+.greed-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 11500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.greed-modal.hidden {
+    display: none;
+}
+
+.greed-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.76);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.greed-modal-card {
+    position: relative;
+    z-index: 2;
+    width: min(94vw, 760px);
+    max-height: 88vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, rgba(34, 10, 48, 0.97) 0%, rgba(18, 6, 28, 0.98) 100%);
+    border-radius: 20px;
+    padding: 18px;
+    box-sizing: border-box;
+    border: 1px solid rgba(255,215,0,0.14);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.62);
+    scrollbar-width: thin;
+}
+
+.greed-modal-card::-webkit-scrollbar {
+    width: 8px;
+}
+
+.greed-modal-card::-webkit-scrollbar-thumb {
+    background: rgba(255,215,0,0.22);
+    border-radius: 999px;
+}
+
+.greed-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.greed-modal-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: #FFD700;
+    letter-spacing: 0.2px;
+}
+
+.greed-modal-subtitle {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.76);
+    margin-top: 3px;
+}
+
+.greed-close-btn {
+    appearance: none;
+    border: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #FFD700 0%, #E2AA00 100%);
+    color: #111;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.greed-close-btn:active {
+    transform: scale(0.97);
+}
+
+/* Greed card modal */
+.greed-card-shell {
+    width: min(94vw, 620px);
+}
+
+.greed-rank-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(255,215,0,0.08);
+    border: 1px solid rgba(255,215,0,0.18);
+    margin-bottom: 12px;
+}
+
+.greed-rank-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 900;
+    color: white;
+}
+
+.greed-card-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 10px;
+}
+
+.greed-card-section-title {
+    font-size: 12px;
+    font-weight: 900;
+    color: #FFD700;
+    text-transform: uppercase;
+    letter-spacing: 0.24px;
+}
+
+.greed-card-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: white;
+}
+
+.greed-card-row span:last-child {
+    color: #FFD700;
+    text-align: right;
+    font-weight: 900;
+}
+
+.greed-card-row-featured {
+    font-size: 17px;
+}
+
+.greed-card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.greed-card-actions button {
+    flex: 1;
+    min-height: 44px;
+    appearance: none;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #FFD700 0%, #E2AA00 100%);
+    color: #111;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+/* Global stats modal */
+.global-stats-shell {
+    width: min(94vw, 760px);
+}
+
+.global-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.global-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    min-height: 84px;
+    justify-content: center;
+}
+
+.global-stat-label {
+    font-size: 12px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.76);
+    text-transform: uppercase;
+    letter-spacing: 0.22px;
+}
+
+.global-stat-value {
+    font-size: 20px;
+    font-weight: 900;
+    color: #FFD700;
+    line-height: 1.05;
+}
+
+/* Leaderboards modal */
+.leaderboards-shell {
+    width: min(96vw, 980px);
+}
+
+.leaderboard-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.leaderboard-modal-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    min-height: 180px;
+}
+
 /* Poison board shake */
 #game-container.poison-shake {
     animation: poisonShake 0.28s ease;
@@ -1132,6 +1588,10 @@ body {
 
 /* Mobile tuning */
 @media (max-width: 768px) {
+    body {
+        overflow-x: hidden;
+    }
+
     #intro-overlay {
         padding: 14px;
     }
@@ -1262,6 +1722,40 @@ body {
         gap: 4px;
     }
 
+    #top-action-buttons {
+        top: 17%;
+        width: min(94vw, 520px);
+        gap: 6px;
+    }
+
+    .top-action-btn {
+        flex: 1;
+        min-width: 0;
+        font-size: 11px;
+        min-height: 34px;
+        padding: 0 8px;
+    }
+
+    #global-stats {
+        top: 22.8%;
+        width: min(92vw, 620px);
+        gap: 6px;
+        padding: 8px;
+    }
+
+    .gs-row {
+        min-height: 44px;
+        padding: 6px 4px;
+    }
+
+    .gs-row span:first-child {
+        font-size: 9px;
+    }
+
+    .gs-row span:last-child {
+        font-size: 11px;
+    }
+
     #multiplier-display {
         font-size: clamp(54px, 8.7vw, 72px);
     }
@@ -1293,6 +1787,10 @@ body {
 
     #ladder-next-label {
         font-size: 9px;
+    }
+
+    #leaderboard-panel {
+        display: none;
     }
 
     #fairness-panel {
@@ -1347,6 +1845,23 @@ body {
         font-size: 30px;
     }
 
+    .overlay-result-summary {
+        width: 100%;
+        padding: 10px 12px;
+    }
+
+    .overlay-summary-row {
+        grid-template-columns: 96px 1fr;
+        gap: 8px;
+    }
+
+    .overlay-summary-label,
+    #poison-result-label,
+    #poison-result-multiplier,
+    #poison-result-loss {
+        font-size: 11px;
+    }
+
     .overlay-fairness {
         width: 100%;
         padding: 10px 12px;
@@ -1398,6 +1913,52 @@ body {
 
     .withdraw-actions button {
         min-height: 40px;
+        font-size: 14px;
+    }
+
+    .greed-modal-card {
+        width: min(96vw, 760px);
+        max-height: 90vh;
+        padding: 14px;
+        border-radius: 16px;
+    }
+
+    .greed-modal-title {
+        font-size: 18px;
+    }
+
+    .greed-modal-subtitle {
+        font-size: 12px;
+    }
+
+    .greed-rank-line,
+    .greed-card-row {
+        font-size: 13px;
+    }
+
+    .greed-card-row-featured {
+        font-size: 15px;
+    }
+
+    .global-stats-grid,
+    .leaderboard-modal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .global-stat-card {
+        min-height: 72px;
+    }
+
+    .global-stat-value {
+        font-size: 18px;
+    }
+
+    .greed-card-actions {
+        flex-direction: column;
+    }
+
+    .greed-card-actions button {
+        min-height: 42px;
         font-size: 14px;
     }
 }
