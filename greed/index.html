@@ -145,9 +145,22 @@
         </div>
     </div>
 
-    <!-- ✅ GLOBAL STATS (SAFE ADD — DOES NOT TOUCH ANYTHING ELSE) -->
+    <!-- Top Action Buttons -->
+    <div id="top-action-buttons">
+        <button id="open-global-stats-btn" type="button" class="top-action-btn">
+            Global Stats
+        </button>
+        <button id="open-greed-card-btn" type="button" class="top-action-btn">
+            Greed Card
+        </button>
+        <button id="open-leaderboards-btn" type="button" class="top-action-btn">
+            Leaders
+        </button>
+    </div>
+
+    <!-- Small Global Stats Strip -->
     <div id="global-stats">
-        <div class="gs-row"><span>Total Wagered</span><span id="gs-wagered">—</span></div>
+        <div class="gs-row"><span>Total Fed</span><span id="gs-wagered">—</span></div>
         <div class="gs-row"><span>Total Rounds</span><span id="gs-rounds">—</span></div>
         <div class="gs-row"><span>Perfect Runs</span><span id="gs-perfect">—</span></div>
         <div class="gs-row"><span>Since Jackpot</span><span id="gs-since">—</span></div>
@@ -162,6 +175,39 @@
 
     <!-- Game Board -->
     <div id="game-container"></div>
+
+    <!-- Right Rail / Mini Leaderboards -->
+    <div id="leaderboard-panel">
+        <div class="panel-title">Greed Leaders</div>
+
+        <div class="leaderboard-block">
+            <div class="leaderboard-block-title">Big Appetites</div>
+            <div id="lb-big-appetites" class="leaderboard-list">
+                <div class="leaderboard-empty">Loading…</div>
+            </div>
+        </div>
+
+        <div class="leaderboard-block">
+            <div class="leaderboard-block-title">Phat Stacks</div>
+            <div id="lb-phat-stacks" class="leaderboard-list">
+                <div class="leaderboard-empty">Loading…</div>
+            </div>
+        </div>
+
+        <div class="leaderboard-block">
+            <div class="leaderboard-block-title">10/10 Boxes</div>
+            <div id="lb-perfect-runs" class="leaderboard-list">
+                <div class="leaderboard-empty">Loading…</div>
+            </div>
+        </div>
+
+        <div class="leaderboard-block">
+            <div class="leaderboard-block-title">Greed Gods</div>
+            <div id="lb-greed-gods" class="leaderboard-list">
+                <div class="leaderboard-empty">Loading…</div>
+            </div>
+        </div>
+    </div>
 
     <!-- Fairness Panel -->
     <div id="fairness-panel">
@@ -203,6 +249,21 @@
         <div class="overlay-content">
             <h1>POISON! Game Over.</h1>
 
+            <div class="overlay-result-summary">
+                <div class="overlay-summary-row">
+                    <span class="overlay-summary-label">Result</span>
+                    <span id="poison-result-label">Bust</span>
+                </div>
+                <div class="overlay-summary-row">
+                    <span class="overlay-summary-label">Multiplier</span>
+                    <span id="poison-result-multiplier">x1.00</span>
+                </div>
+                <div class="overlay-summary-row">
+                    <span class="overlay-summary-label">Loss</span>
+                    <span id="poison-result-loss">0 PHAT</span>
+                </div>
+            </div>
+
             <div class="overlay-fairness">
                 <div class="overlay-fairness-title">Provably Fair Reveal</div>
                 <div class="overlay-fairness-row">
@@ -224,6 +285,7 @@
             </div>
 
             <div class="overlay-actions">
+                <button id="poison-view-card-btn" type="button">View Greed Card</button>
                 <button id="poison-new-round-btn" type="button">New Round</button>
                 <button id="poison-back-chat-btn" type="button">Back to Chat</button>
             </div>
@@ -240,6 +302,7 @@
             <h1 id="win-title">YOU FED THE GREED</h1>
             <p id="win-subtitle">Cashed Out</p>
             <p id="win-multiplier">x1.00</p>
+            <p id="win-payout">0 PHAT</p>
 
             <div class="overlay-fairness">
                 <div class="overlay-fairness-title">Provably Fair Reveal</div>
@@ -262,7 +325,8 @@
             </div>
 
             <div class="overlay-actions">
-                <button id="win-new-round-btn" type="button">New Round</button>
+                <button id="win-view-card-btn" type="button">View Greed Card</button>
+                <button id="win-new-round-btn" type="button">Run It Back</button>
                 <button id="win-back-chat-btn" type="button">Back to Chat</button>
             </div>
         </div>
@@ -297,8 +361,193 @@
         </div>
     </div>
 
+    <!-- Greed Card Modal -->
+    <div id="greed-card-modal" class="greed-modal hidden">
+        <div id="greed-card-backdrop" class="greed-modal-backdrop"></div>
+        <div class="greed-modal-card greed-card-shell">
+            <div class="greed-modal-header">
+                <div>
+                    <div class="greed-modal-title">GREED CARD</div>
+                    <div class="greed-modal-subtitle" id="greed-card-username">@loading</div>
+                </div>
+                <button id="close-greed-card-btn" type="button" class="greed-close-btn">✕</button>
+            </div>
+
+            <div class="greed-rank-hero">
+                <div class="greed-rank-line">
+                    <span>Greed Gods Rank</span>
+                    <span id="gc-rank">#—</span>
+                </div>
+                <div class="greed-rank-line">
+                    <span>Tier</span>
+                    <span id="gc-tier">—</span>
+                </div>
+            </div>
+
+            <div class="greed-card-section">
+                <div class="greed-card-section-title">Action</div>
+                <div class="greed-card-row"><span>Big Appetites</span><span id="gc-total-wagered">—</span></div>
+                <div class="greed-card-row"><span>Total Rounds</span><span id="gc-total-rounds">—</span></div>
+            </div>
+
+            <div class="greed-card-section">
+                <div class="greed-card-section-title">Performance</div>
+                <div class="greed-card-row"><span>Phat Stacks</span><span id="gc-net-profit">—</span></div>
+                <div class="greed-card-row"><span>Cashout Rate</span><span id="gc-cashout-rate">—</span></div>
+                <div class="greed-card-row"><span>10/10 Boxes</span><span id="gc-perfect-runs">—</span></div>
+            </div>
+
+            <div class="greed-card-section">
+                <div class="greed-card-section-title">Damage</div>
+                <div class="greed-card-row"><span>Glaze Donors</span><span id="gc-total-lost">—</span></div>
+                <div class="greed-card-row"><span>Busts</span><span id="gc-busts">—</span></div>
+            </div>
+
+            <div class="greed-card-section">
+                <div class="greed-card-section-title">Highlights</div>
+                <div class="greed-card-row"><span>Biggest Cashout</span><span id="gc-biggest-cashout">—</span></div>
+                <div class="greed-card-row"><span>Best Run Depth</span><span id="gc-best-run-depth">—</span></div>
+                <div class="greed-card-row"><span>Biggest Jackpot</span><span id="gc-biggest-jackpot">—</span></div>
+            </div>
+
+            <div class="greed-card-section">
+                <div class="greed-card-section-title">Prestige</div>
+                <div class="greed-card-row greed-card-row-featured"><span>Greed Score</span><span id="gc-greed-score">—</span></div>
+            </div>
+
+            <div class="greed-card-actions">
+                <button id="gc-refresh-btn" type="button">Refresh</button>
+                <button id="gc-close-btn" type="button">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Stats Modal -->
+    <div id="global-stats-modal" class="greed-modal hidden">
+        <div id="global-stats-backdrop" class="greed-modal-backdrop"></div>
+        <div class="greed-modal-card global-stats-shell">
+            <div class="greed-modal-header">
+                <div>
+                    <div class="greed-modal-title">GLOBAL STATS</div>
+                    <div class="greed-modal-subtitle">Live casino-wide activity</div>
+                </div>
+                <button id="close-global-stats-btn" type="button" class="greed-close-btn">✕</button>
+            </div>
+
+            <div class="global-stats-grid">
+                <div class="global-stat-card">
+                    <div class="global-stat-label">Total Fed</div>
+                    <div class="global-stat-value" id="gsm-total-wagered">—</div>
+                </div>
+
+                <div class="global-stat-card">
+                    <div class="global-stat-label">Total Rounds</div>
+                    <div class="global-stat-value" id="gsm-total-rounds">—</div>
+                </div>
+
+                <div class="global-stat-card">
+                    <div class="global-stat-label">Bust Rate</div>
+                    <div class="global-stat-value" id="gsm-bust-rate">—</div>
+                </div>
+
+                <div class="global-stat-card">
+                    <div class="global-stat-label">Cashout Rate</div>
+                    <div class="global-stat-value" id="gsm-cashout-rate">—</div>
+                </div>
+
+                <div class="global-stat-card">
+                    <div class="global-stat-label">Perfect Runs</div>
+                    <div class="global-stat-value" id="gsm-perfect-runs">—</div>
+                </div>
+
+                <div class="global-stat-card">
+                    <div class="global-stat-label">Current Jackpot</div>
+                    <div class="global-stat-value" id="gsm-current-jackpot">—</div>
+                </div>
+
+                <div class="global-stat-card">
+                    <div class="global-stat-label">Rounds Since Jackpot</div>
+                    <div class="global-stat-value" id="gsm-rounds-since-jackpot">—</div>
+                </div>
+
+                <div class="global-stat-card">
+                    <div class="global-stat-label">Biggest Cashout</div>
+                    <div class="global-stat-value" id="gsm-biggest-cashout">—</div>
+                </div>
+            </div>
+
+            <div class="greed-card-actions">
+                <button id="gsm-refresh-btn" type="button">Refresh</button>
+                <button id="gsm-close-btn" type="button">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboards Modal -->
+    <div id="leaderboards-modal" class="greed-modal hidden">
+        <div id="leaderboards-backdrop" class="greed-modal-backdrop"></div>
+        <div class="greed-modal-card leaderboards-shell">
+            <div class="greed-modal-header">
+                <div>
+                    <div class="greed-modal-title">GREED LEADERBOARDS</div>
+                    <div class="greed-modal-subtitle">Status, grind, and domination</div>
+                </div>
+                <button id="close-leaderboards-btn" type="button" class="greed-close-btn">✕</button>
+            </div>
+
+            <div class="leaderboard-modal-grid">
+                <div class="leaderboard-modal-block">
+                    <div class="leaderboard-modal-title">Big Appetites</div>
+                    <div id="lbm-big-appetites" class="leaderboard-list">
+                        <div class="leaderboard-empty">Loading…</div>
+                    </div>
+                </div>
+
+                <div class="leaderboard-modal-block">
+                    <div class="leaderboard-modal-title">Phat Stacks</div>
+                    <div id="lbm-phat-stacks" class="leaderboard-list">
+                        <div class="leaderboard-empty">Loading…</div>
+                    </div>
+                </div>
+
+                <div class="leaderboard-modal-block">
+                    <div class="leaderboard-modal-title">Glaze Donors</div>
+                    <div id="lbm-glaze-donors" class="leaderboard-list">
+                        <div class="leaderboard-empty">Loading…</div>
+                    </div>
+                </div>
+
+                <div class="leaderboard-modal-block">
+                    <div class="leaderboard-modal-title">10/10 Boxes</div>
+                    <div id="lbm-perfect-runs" class="leaderboard-list">
+                        <div class="leaderboard-empty">Loading…</div>
+                    </div>
+                </div>
+
+                <div class="leaderboard-modal-block">
+                    <div class="leaderboard-modal-title">Jackpot Butchers</div>
+                    <div id="lbm-jackpot-butchers" class="leaderboard-list">
+                        <div class="leaderboard-empty">Loading…</div>
+                    </div>
+                </div>
+
+                <div class="leaderboard-modal-block">
+                    <div class="leaderboard-modal-title">Greed Gods</div>
+                    <div id="lbm-greed-gods" class="leaderboard-list">
+                        <div class="leaderboard-empty">Loading…</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="greed-card-actions">
+                <button id="lbm-refresh-btn" type="button">Refresh</button>
+                <button id="lbm-close-btn" type="button">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="game.js?v=22"></script>
+    <script src="game.js?v=23"></script>
 
 </body>
 </html>
