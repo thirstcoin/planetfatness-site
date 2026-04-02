@@ -46,7 +46,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const startGameBtn = document.getElementById("start-game-btn");
     const cashoutButton = document.getElementById("cashout-button");
 
-    const balancePanel = document.getElementById("balance-panel");
     const availableBalanceValue = document.getElementById("available-balance-value");
     const selectedWagerBalanceView = document.getElementById("selected-wager-balance-view");
     const balanceModeNote = document.getElementById("balance-mode-note");
@@ -97,34 +96,30 @@ document.addEventListener("DOMContentLoaded", function () {
     const fundingPollingNoteEl = document.getElementById("funding-polling-note");
 
     // Top buttons
-    const openGreedCardBtn = document.getElementById("open-greed-card-btn");
     const openGlobalStatsBtn = document.getElementById("open-global-stats-btn");
+    const openGreedCardBtn = document.getElementById("open-greed-card-btn");
     const openLeaderboardsBtn = document.getElementById("open-leaderboards-btn");
 
-    // Global strip
+    // Global stats strip
     const gsWagered = document.getElementById("gs-wagered");
     const gsRounds = document.getElementById("gs-rounds");
     const gsPerfect = document.getElementById("gs-perfect");
     const gsSince = document.getElementById("gs-since");
-    const gsBust = document.getElementById("gs-bust");
-    const gsCashout = document.getElementById("gs-cashout");
 
-    // Right leaderboard rail
-    const leaderboardPanel = document.getElementById("leaderboard-panel");
-    const lbMostWagered = document.getElementById("lb-most-wagered");
-    const lbMostWon = document.getElementById("lb-most-won");
+    // Right rail
+    const lbBigAppetites = document.getElementById("lb-big-appetites");
+    const lbPhatStacks = document.getElementById("lb-phat-stacks");
     const lbPerfectRuns = document.getElementById("lb-perfect-runs");
-    const lbBiggestCashout = document.getElementById("lb-biggest-cashout");
     const lbGreedGods = document.getElementById("lb-greed-gods");
 
-    // Greed card modal
+    // Greed Card modal
     const greedCardModal = document.getElementById("greed-card-modal");
     const greedCardBackdrop = document.getElementById("greed-card-backdrop");
-    const greedCardCloseBtn = document.getElementById("greed-card-close-btn");
-    const greedCardRefreshBtn = document.getElementById("greed-card-refresh-btn");
-    const greedCardPlayBtn = document.getElementById("greed-card-play-btn");
+    const closeGreedCardBtn = document.getElementById("close-greed-card-btn");
+    const gcRefreshBtn = document.getElementById("gc-refresh-btn");
+    const gcCloseBtn = document.getElementById("gc-close-btn");
+    const greedCardUsername = document.getElementById("greed-card-username");
 
-    const gcDisplayName = document.getElementById("gc-display-name");
     const gcRank = document.getElementById("gc-rank");
     const gcTier = document.getElementById("gc-tier");
     const gcTotalWagered = document.getElementById("gc-total-wagered");
@@ -136,38 +131,37 @@ document.addEventListener("DOMContentLoaded", function () {
     const gcBusts = document.getElementById("gc-busts");
     const gcBiggestCashout = document.getElementById("gc-biggest-cashout");
     const gcBestRunDepth = document.getElementById("gc-best-run-depth");
+    const gcBiggestJackpot = document.getElementById("gc-biggest-jackpot");
     const gcGreedScore = document.getElementById("gc-greed-score");
-    const gcHighMultiplierCashouts = document.getElementById("gc-high-multiplier-cashouts");
 
     // Global stats modal
     const globalStatsModal = document.getElementById("global-stats-modal");
     const globalStatsBackdrop = document.getElementById("global-stats-backdrop");
-    const globalStatsCloseBtn = document.getElementById("global-stats-close-btn");
-    const globalStatsRefreshBtn = document.getElementById("global-stats-refresh-btn");
+    const closeGlobalStatsBtn = document.getElementById("close-global-stats-btn");
+    const gsmRefreshBtn = document.getElementById("gsm-refresh-btn");
+    const gsmCloseBtn = document.getElementById("gsm-close-btn");
 
     const gsmTotalWagered = document.getElementById("gsm-total-wagered");
     const gsmTotalRounds = document.getElementById("gsm-total-rounds");
-    const gsmTotalBusts = document.getElementById("gsm-total-busts");
-    const gsmTotalCashouts = document.getElementById("gsm-total-cashouts");
+    const gsmBustRate = document.getElementById("gsm-bust-rate");
+    const gsmCashoutRate = document.getElementById("gsm-cashout-rate");
     const gsmPerfectRuns = document.getElementById("gsm-perfect-runs");
     const gsmCurrentJackpot = document.getElementById("gsm-current-jackpot");
     const gsmRoundsSinceJackpot = document.getElementById("gsm-rounds-since-jackpot");
     const gsmBiggestCashout = document.getElementById("gsm-biggest-cashout");
-    const gsmBustRate = document.getElementById("gsm-bust-rate");
-    const gsmCashoutRate = document.getElementById("gsm-cashout-rate");
 
     // Leaderboards modal
     const leaderboardsModal = document.getElementById("leaderboards-modal");
     const leaderboardsBackdrop = document.getElementById("leaderboards-backdrop");
-    const leaderboardsCloseBtn = document.getElementById("leaderboards-close-btn");
-    const leaderboardsRefreshBtn = document.getElementById("leaderboards-refresh-btn");
-    const leaderboardsWindowSelect = document.getElementById("leaderboards-window-select");
+    const closeLeaderboardsBtn = document.getElementById("close-leaderboards-btn");
+    const lbmRefreshBtn = document.getElementById("lbm-refresh-btn");
+    const lbmCloseBtn = document.getElementById("lbm-close-btn");
 
-    const lbmMostWagered = document.getElementById("lbm-most-wagered");
-    const lbmMostWon = document.getElementById("lbm-most-won");
-    const lbmTopLosses = document.getElementById("lbm-top-losses");
+    const lbmBigAppetites = document.getElementById("lbm-big-appetites");
+    const lbmPhatStacks = document.getElementById("lbm-phat-stacks");
+    const lbmGlazeDonors = document.getElementById("lbm-glaze-donors");
     const lbmPerfectRuns = document.getElementById("lbm-perfect-runs");
-    const lbmBiggestCashout = document.getElementById("lbm-biggest-cashout");
+    const lbmJackpotButchers = document.getElementById("lbm-jackpot-butchers");
     const lbmGreedGods = document.getElementById("lbm-greed-gods");
 
     if (
@@ -182,10 +176,7 @@ document.addEventListener("DOMContentLoaded", function () {
         !startGameBtn ||
         !cashoutButton ||
         !poisonOverlay ||
-        !winOverlay ||
-        !winTitle ||
-        !winSubtitle ||
-        !winMultiplier
+        !winOverlay
     ) {
         console.error("Missing required game elements.");
         return;
@@ -351,23 +342,32 @@ document.addEventListener("DOMContentLoaded", function () {
         return hypeLines[Math.floor(Math.random() * hypeLines.length)];
     }
 
+    function fillText(el, value, formatter = null, fallback = "—") {
+        if (!el) return;
+        if (value == null || value === "") {
+            el.textContent = fallback;
+            return;
+        }
+        el.textContent = formatter ? formatter(value) : String(value);
+    }
+
     function setFairnessPanel() {
         const poisonText = formatPoisonIndices(revealedPoisonIndices);
 
-        if (fairnessCommitEl) fairnessCommitEl.textContent = commitHash || "—";
-        if (fairnessSeedEl) fairnessSeedEl.textContent = revealedServerSeed || "—";
-        if (fairnessNonceEl) fairnessNonceEl.textContent = fairnessNonce || "—";
-        if (fairnessPoisonEl) fairnessPoisonEl.textContent = poisonText;
+        fillText(fairnessCommitEl, commitHash || "—");
+        fillText(fairnessSeedEl, revealedServerSeed || "—");
+        fillText(fairnessNonceEl, fairnessNonce || "—");
+        fillText(fairnessPoisonEl, poisonText);
 
-        if (poisonFairnessCommitEl) poisonFairnessCommitEl.textContent = commitHash || "—";
-        if (poisonFairnessSeedEl) poisonFairnessSeedEl.textContent = revealedServerSeed || "—";
-        if (poisonFairnessNonceEl) poisonFairnessNonceEl.textContent = fairnessNonce || "—";
-        if (poisonFairnessPoisonEl) poisonFairnessPoisonEl.textContent = poisonText;
+        fillText(poisonFairnessCommitEl, commitHash || "—");
+        fillText(poisonFairnessSeedEl, revealedServerSeed || "—");
+        fillText(poisonFairnessNonceEl, fairnessNonce || "—");
+        fillText(poisonFairnessPoisonEl, poisonText);
 
-        if (winFairnessCommitEl) winFairnessCommitEl.textContent = commitHash || "—";
-        if (winFairnessSeedEl) winFairnessSeedEl.textContent = revealedServerSeed || "—";
-        if (winFairnessNonceEl) winFairnessNonceEl.textContent = fairnessNonce || "—";
-        if (winFairnessPoisonEl) winFairnessPoisonEl.textContent = poisonText;
+        fillText(winFairnessCommitEl, commitHash || "—");
+        fillText(winFairnessSeedEl, revealedServerSeed || "—");
+        fillText(winFairnessNonceEl, fairnessNonce || "—");
+        fillText(winFairnessPoisonEl, poisonText);
     }
 
     function startLockingStatus(message = "Locking round") {
@@ -523,14 +523,6 @@ document.addEventListener("DOMContentLoaded", function () {
             localStorage.removeItem("authToken");
         } catch {}
         authToken = "";
-    }
-
-    function getStoredTelegramUser() {
-        try {
-            return JSON.parse(localStorage.getItem(TG_KEY) || "null");
-        } catch {
-            return null;
-        }
     }
 
     function saveTelegramUser(user) {
@@ -718,13 +710,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const next = Math.max(1000, Math.min(50000, Math.floor(Number(amount || DEFAULT_WAGER))));
         selectedWager = next;
 
-        if (selectedWagerValue) {
-            selectedWagerValue.textContent = `${formatNumber(next)} PHAT`;
-        }
-
-        if (selectedWagerBalanceView) {
-            selectedWagerBalanceView.textContent = `${formatNumber(next)} PHAT`;
-        }
+        fillText(selectedWagerValue, `${formatNumber(next)} PHAT`);
+        fillText(selectedWagerBalanceView, `${formatNumber(next)} PHAT`);
 
         if (customWagerInput && String(customWagerInput.value || "").trim() !== String(next)) {
             customWagerInput.value = String(next);
@@ -781,17 +768,9 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateBalanceMode() {
         balanceCoversWager = Number(availableBalance || 0) >= Number(selectedWager || 0);
 
-        if (availableBalanceValue) {
-            availableBalanceValue.textContent = formatBalance(availableBalance);
-        }
-
-        if (withdrawAvailable) {
-            withdrawAvailable.textContent = formatBalance(availableBalance);
-        }
-
-        if (selectedWagerBalanceView) {
-            selectedWagerBalanceView.textContent = `${formatNumber(selectedWager)} PHAT`;
-        }
+        fillText(availableBalanceValue, formatBalance(availableBalance));
+        fillText(withdrawAvailable, formatBalance(availableBalance));
+        fillText(selectedWagerBalanceView, `${formatNumber(selectedWager)} PHAT`);
 
         if (balanceModeNote) {
             if (!authReady) {
@@ -850,23 +829,10 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        if (intentAmountEl) {
-            intentAmountEl.textContent = currentIntent?.exactAmount
-                ? `${formatIntentAmount(currentIntent.exactAmount)} PHAT`
-                : "—";
-        }
-
-        if (intentWalletEl) {
-            intentWalletEl.textContent = currentIntent?.depositWallet || "—";
-        }
-
-        if (intentTokenEl) {
-            intentTokenEl.textContent = currentIntent?.tokenMint || "PHAT";
-        }
-
-        if (intentExpiryEl) {
-            intentExpiryEl.textContent = currentIntent ? formatExpiry(currentIntent.expiresAt) : "—";
-        }
+        fillText(intentAmountEl, currentIntent?.exactAmount ? `${formatIntentAmount(currentIntent.exactAmount)} PHAT` : "—");
+        fillText(intentWalletEl, currentIntent?.depositWallet || "—");
+        fillText(intentTokenEl, currentIntent?.tokenMint || "PHAT");
+        fillText(intentExpiryEl, currentIntent ? formatExpiry(currentIntent.expiresAt) : "—");
 
         if (intentTxEl) {
             intentTxEl.textContent = currentIntent?.txSignature ? shortHash(currentIntent.txSignature) : "—";
@@ -984,9 +950,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (openGreedCardBtn) openGreedCardBtn.disabled = !authReady || greedCardBusy;
         if (openGlobalStatsBtn) openGlobalStatsBtn.disabled = globalStatsBusy;
         if (openLeaderboardsBtn) openLeaderboardsBtn.disabled = leaderboardsBusy;
-        if (greedCardRefreshBtn) greedCardRefreshBtn.disabled = greedCardBusy;
-        if (globalStatsRefreshBtn) globalStatsRefreshBtn.disabled = globalStatsBusy;
-        if (leaderboardsRefreshBtn) leaderboardsRefreshBtn.disabled = leaderboardsBusy;
+        if (gcRefreshBtn) gcRefreshBtn.disabled = greedCardBusy;
+        if (gsmRefreshBtn) gsmRefreshBtn.disabled = globalStatsBusy;
+        if (lbmRefreshBtn) lbmRefreshBtn.disabled = leaderboardsBusy;
     }
 
     function syncStartButtonState() {
@@ -1450,17 +1416,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function showWinOverlay() {
         const isPerfect = safeFoundCount >= 10;
-        winTitle.innerText = isPerfect ? "PERFECT RUN" : "YOU FED THE GREED";
+        if (winTitle) winTitle.innerText = isPerfect ? "PERFECT RUN" : "YOU FED THE GREED";
 
-        if (commitHash && revealedServerSeed) {
-            winSubtitle.innerText = isPerfect ? "Legendary Cash Out • Hash Revealed" : "Cashed Out • Hash Revealed";
-        } else if (commitHash) {
-            winSubtitle.innerText = isPerfect ? "Legendary Cash Out • Locked" : "Cashed Out • Locked";
-        } else {
-            winSubtitle.innerText = isPerfect ? "Legendary Cash Out" : "Cashed Out";
+        if (winSubtitle) {
+            if (commitHash && revealedServerSeed) {
+                winSubtitle.innerText = isPerfect ? "Legendary Cash Out • Hash Revealed" : "Cashed Out • Hash Revealed";
+            } else if (commitHash) {
+                winSubtitle.innerText = isPerfect ? "Legendary Cash Out • Locked" : "Cashed Out • Locked";
+            } else {
+                winSubtitle.innerText = isPerfect ? "Legendary Cash Out" : "Cashed Out";
+            }
         }
 
-        winMultiplier.innerText = `x${multiplier.toFixed(2)}`;
+        if (winMultiplier) winMultiplier.innerText = `x${multiplier.toFixed(2)}`;
         winOverlay.style.display = "flex";
 
         if (winVideo) {
@@ -1554,27 +1522,17 @@ document.addEventListener("DOMContentLoaded", function () {
     function openWithdrawModal() {
         if (!authReady || !withdrawModal) return;
         withdrawModal.classList.remove("hidden");
-        if (withdrawAvailable) {
-            withdrawAvailable.textContent = formatBalance(availableBalance);
-        }
-        if (withdrawStatus) {
-            withdrawStatus.textContent = "Ready.";
-        }
-        if (withdrawAmountInput) {
-            withdrawAmountInput.value = "";
-        }
-        if (withdrawWalletInput) {
-            withdrawWalletInput.value = "";
-        }
+        fillText(withdrawAvailable, formatBalance(availableBalance));
+        fillText(withdrawStatus, "Ready.");
+        if (withdrawAmountInput) withdrawAmountInput.value = "";
+        if (withdrawWalletInput) withdrawWalletInput.value = "";
         syncFundingButtons();
     }
 
     function closeWithdrawModal() {
         if (!withdrawModal) return;
         withdrawModal.classList.add("hidden");
-        if (withdrawStatus) {
-            withdrawStatus.textContent = "Ready.";
-        }
+        fillText(withdrawStatus, "Ready.");
         syncFundingButtons();
     }
 
@@ -1600,7 +1558,7 @@ document.addEventListener("DOMContentLoaded", function () {
         targetEl.innerHTML = list.map((row, idx) => {
             const rank = Number(row.rank || idx + 1);
             const displayName = row.displayName || row.display_name || row.address || "Unknown";
-            let rawValue =
+            const rawValue =
                 row.value ??
                 row.greedScore ??
                 row.greed_score ??
@@ -1615,11 +1573,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 0;
 
             let formattedValue = "";
-
             if (type === "count") {
                 formattedValue = formatNumber(rawValue);
-            } else if (type === "pct") {
-                formattedValue = formatPct(rawValue);
             } else if (type === "score") {
                 formattedValue = formatNumber(rawValue);
             } else {
@@ -1636,15 +1591,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }).join("");
     }
 
-    function fillText(el, value, formatter = null, fallback = "—") {
-        if (!el) return;
-        if (value == null || value === "") {
-            el.textContent = fallback;
-            return;
-        }
-        el.textContent = formatter ? formatter(value) : String(value);
-    }
-
     async function submitWithdraw() {
         if (withdrawBusy || !authReady) return;
 
@@ -1652,21 +1598,18 @@ document.addEventListener("DOMContentLoaded", function () {
         const destinationWallet = String(withdrawWalletInput?.value || "").trim();
 
         if (!Number.isFinite(amount) || amount <= 0) {
-            if (withdrawStatus) withdrawStatus.textContent = "Enter a valid amount.";
+            fillText(withdrawStatus, "Enter a valid amount.");
             return;
         }
 
         if (amount > availableBalance) {
-            if (withdrawStatus) withdrawStatus.textContent = "Amount exceeds available balance.";
+            fillText(withdrawStatus, "Amount exceeds available balance.");
             return;
         }
 
         withdrawBusy = true;
         syncFundingButtons();
-
-        if (withdrawStatus) {
-            withdrawStatus.textContent = "Submitting withdrawal...";
-        }
+        fillText(withdrawStatus, "Submitting withdrawal...");
 
         try {
             await apiFetch("/wallet/withdraw", {
@@ -1678,19 +1621,14 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             await refreshBalance(true);
-
-            if (withdrawStatus) {
-                withdrawStatus.textContent = "Withdrawal request submitted.";
-            }
+            fillText(withdrawStatus, "Withdrawal request submitted.");
 
             setTimeout(() => {
                 closeWithdrawModal();
             }, 900);
         } catch (err) {
             console.warn("Withdraw failed:", err);
-            if (withdrawStatus) {
-                withdrawStatus.textContent = String(err?.message || "Withdrawal failed.");
-            }
+            fillText(withdrawStatus, String(err?.message || "Withdrawal failed."));
         } finally {
             withdrawBusy = false;
             syncFundingButtons();
@@ -1710,31 +1648,19 @@ document.addEventListener("DOMContentLoaded", function () {
             fillText(gsRounds, stats.total_rounds, formatNumber);
             fillText(gsPerfect, stats.perfect_runs, formatNumber);
             fillText(gsSince, stats.rounds_since_jackpot, formatNumber);
-            fillText(gsBust, stats.bust_rate, formatPct);
-            fillText(gsCashout, stats.cashout_rate, formatPct);
 
             fillText(gsmTotalWagered, stats.total_wagered, formatPhat);
             fillText(gsmTotalRounds, stats.total_rounds, formatNumber);
-            fillText(gsmTotalBusts, stats.total_busts, formatNumber);
-            fillText(gsmTotalCashouts, stats.total_cashouts, formatNumber);
+            fillText(gsmBustRate, stats.bust_rate, formatPct);
+            fillText(gsmCashoutRate, stats.cashout_rate, formatPct);
             fillText(gsmPerfectRuns, stats.perfect_runs, formatNumber);
             fillText(gsmCurrentJackpot, stats.current_jackpot, formatPhat);
             fillText(gsmRoundsSinceJackpot, stats.rounds_since_jackpot, formatNumber);
             fillText(gsmBiggestCashout, stats.biggest_cashout, formatPhat);
-            fillText(gsmBustRate, stats.bust_rate, formatPct);
-            fillText(gsmCashoutRate, stats.cashout_rate, formatPct);
 
             return stats;
         } catch (err) {
             console.warn("Global stats fetch failed:", err);
-
-            fillText(gsWagered, null);
-            fillText(gsRounds, null);
-            fillText(gsPerfect, null);
-            fillText(gsSince, null);
-            fillText(gsBust, null);
-            fillText(gsCashout, null);
-
             return null;
         } finally {
             globalStatsBusy = false;
@@ -1752,7 +1678,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await apiFetch("/greed/card", { method: "GET" });
             const card = data?.card || data || {};
 
-            fillText(gcDisplayName, card.displayName || card.display_name || "Unknown");
+            fillText(greedCardUsername, card.displayName || card.display_name || "@unknown");
             fillText(gcRank, card.greed_gods_rank != null ? `#${card.greed_gods_rank}` : "Unranked");
             fillText(gcTier, card.tier);
             fillText(gcTotalWagered, card.total_wagered, formatPhat);
@@ -1764,8 +1690,8 @@ document.addEventListener("DOMContentLoaded", function () {
             fillText(gcBusts, card.busts, formatNumber);
             fillText(gcBiggestCashout, card.biggest_cashout, formatPhat);
             fillText(gcBestRunDepth, card.best_run_depth, (v) => `${formatNumber(v)} / 10`);
+            fillText(gcBiggestJackpot, card.biggest_jackpot, formatPhat);
             fillText(gcGreedScore, card.greed_score, formatNumber);
-            fillText(gcHighMultiplierCashouts, card.high_multiplier_cashouts, formatNumber);
 
             return card;
         } catch (err) {
@@ -1778,34 +1704,28 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function refreshLeaderboards(windowValue = null) {
+    async function refreshLeaderboards() {
         if (leaderboardsBusy) return null;
 
         leaderboardsBusy = true;
         syncFundingButtons();
 
         try {
-            const selectedWindow = String(
-                windowValue ||
-                leaderboardsWindowSelect?.value ||
-                "lifetime"
-            ).trim();
-
-            const data = await apiFetch(`/greed/leaderboards?window=${encodeURIComponent(selectedWindow)}&limit=10`, {
+            const data = await apiFetch(`/greed/leaderboards?window=lifetime&limit=10`, {
                 method: "GET"
             });
 
             const boards = data?.boards || {};
 
-            renderBoardList(lbMostWagered, boards.mostWagered || boards.most_wagered || [], "phat");
-            renderBoardList(lbMostWon, boards.mostWon || boards.most_won || [], "phat");
+            renderBoardList(lbBigAppetites, boards.mostWagered || boards.most_wagered || [], "phat");
+            renderBoardList(lbPhatStacks, boards.mostWon || boards.most_won || [], "phat");
             renderBoardList(lbPerfectRuns, boards.perfectRuns || boards.perfect_runs || [], "count");
-            renderBoardList(lbBiggestCashout, boards.biggestCashout || boards.biggest_cashout || [], "phat");
-            renderBoardList(lbmMostWagered, boards.mostWagered || boards.most_wagered || [], "phat");
-            renderBoardList(lbmMostWon, boards.mostWon || boards.most_won || [], "phat");
-            renderBoardList(lbmTopLosses, boards.topGlazeSacrifices || boards.top_glaze_sacrifices || [], "phat");
+
+            renderBoardList(lbmBigAppetites, boards.mostWagered || boards.most_wagered || [], "phat");
+            renderBoardList(lbmPhatStacks, boards.mostWon || boards.most_won || [], "phat");
+            renderBoardList(lbmGlazeDonors, boards.topGlazeSacrifices || boards.top_glaze_sacrifices || [], "phat");
             renderBoardList(lbmPerfectRuns, boards.perfectRuns || boards.perfect_runs || [], "count");
-            renderBoardList(lbmBiggestCashout, boards.biggestCashout || boards.biggest_cashout || [], "phat");
+            renderBoardList(lbmJackpotButchers, boards.biggestCashout || boards.biggest_cashout || [], "phat");
 
             try {
                 const greedGodsData = await apiFetch(`/greed/greed-gods?limit=10`, { method: "GET" });
@@ -1821,20 +1741,6 @@ document.addEventListener("DOMContentLoaded", function () {
             return boards;
         } catch (err) {
             console.warn("Leaderboards fetch failed:", err);
-
-            renderBoardList(lbMostWagered, [], "phat");
-            renderBoardList(lbMostWon, [], "phat");
-            renderBoardList(lbPerfectRuns, [], "count");
-            renderBoardList(lbBiggestCashout, [], "phat");
-            renderBoardList(lbGreedGods, [], "score");
-
-            renderBoardList(lbmMostWagered, [], "phat");
-            renderBoardList(lbmMostWon, [], "phat");
-            renderBoardList(lbmTopLosses, [], "phat");
-            renderBoardList(lbmPerfectRuns, [], "count");
-            renderBoardList(lbmBiggestCashout, [], "phat");
-            renderBoardList(lbmGreedGods, [], "score");
-
             return null;
         } finally {
             leaderboardsBusy = false;
@@ -2018,9 +1924,7 @@ document.addEventListener("DOMContentLoaded", function () {
             await refreshGreedGlobalStats();
             await refreshLeaderboards();
 
-            if (winPayout) {
-                winPayout.textContent = formatPhat(data.payout || 0);
-            }
+            fillText(winPayout, formatPhat(data.payout || 0));
 
             lockBoard();
             playCashoutTierSound();
@@ -2118,9 +2022,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         await refreshGreedGlobalStats();
                         await refreshLeaderboards();
 
-                        if (poisonResultLabel) poisonResultLabel.textContent = "Bust";
-                        if (poisonResultMultiplier) poisonResultMultiplier.textContent = `x${Number(data.currentMultiplier || 1).toFixed(2)}`;
-                        if (poisonResultLoss) poisonResultLoss.textContent = formatPhat(selectedWager || 0);
+                        fillText(poisonResultLabel, "Bust");
+                        fillText(poisonResultMultiplier, `x${Number(data.currentMultiplier || 1).toFixed(2)}`);
+                        fillText(poisonResultLoss, formatPhat(selectedWager || 0));
 
                         setTimeout(() => {
                             showPoisonOverlay();
@@ -2142,10 +2046,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         await refreshGreedGlobalStats();
                         await refreshLeaderboards();
 
-                        if (winPayout) {
-                            winPayout.textContent = formatPhat(data.payout || 0);
-                        }
-
+                        fillText(winPayout, formatPhat(data.payout || 0));
                         showWinOverlay();
                         return;
                     }
@@ -2261,7 +2162,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function openLeaderboardsModal() {
         openModal(leaderboardsModal);
-        await refreshLeaderboards(leaderboardsWindowSelect?.value || "lifetime");
+        await refreshLeaderboards();
     }
 
     quickWagerButtons.forEach((btn) => {
@@ -2363,30 +2264,20 @@ document.addEventListener("DOMContentLoaded", function () {
         openLeaderboardsBtn.addEventListener("click", openLeaderboardsModal);
     }
 
-    if (greedCardCloseBtn) greedCardCloseBtn.addEventListener("click", () => closeModal(greedCardModal));
+    if (closeGreedCardBtn) closeGreedCardBtn.addEventListener("click", () => closeModal(greedCardModal));
     if (greedCardBackdrop) greedCardBackdrop.addEventListener("click", () => closeModal(greedCardModal));
-    if (greedCardRefreshBtn) greedCardRefreshBtn.addEventListener("click", refreshGreedCard);
-    if (greedCardPlayBtn) {
-        greedCardPlayBtn.addEventListener("click", () => {
-            closeModal(greedCardModal);
-            if (!hasStartedRound) {
-                showIntroOverlay();
-            }
-        });
-    }
+    if (gcRefreshBtn) gcRefreshBtn.addEventListener("click", refreshGreedCard);
+    if (gcCloseBtn) gcCloseBtn.addEventListener("click", () => closeModal(greedCardModal));
 
-    if (globalStatsCloseBtn) globalStatsCloseBtn.addEventListener("click", () => closeModal(globalStatsModal));
+    if (closeGlobalStatsBtn) closeGlobalStatsBtn.addEventListener("click", () => closeModal(globalStatsModal));
     if (globalStatsBackdrop) globalStatsBackdrop.addEventListener("click", () => closeModal(globalStatsModal));
-    if (globalStatsRefreshBtn) globalStatsRefreshBtn.addEventListener("click", refreshGreedGlobalStats);
+    if (gsmRefreshBtn) gsmRefreshBtn.addEventListener("click", refreshGreedGlobalStats);
+    if (gsmCloseBtn) gsmCloseBtn.addEventListener("click", () => closeModal(globalStatsModal));
 
-    if (leaderboardsCloseBtn) leaderboardsCloseBtn.addEventListener("click", () => closeModal(leaderboardsModal));
+    if (closeLeaderboardsBtn) closeLeaderboardsBtn.addEventListener("click", () => closeModal(leaderboardsModal));
     if (leaderboardsBackdrop) leaderboardsBackdrop.addEventListener("click", () => closeModal(leaderboardsModal));
-    if (leaderboardsRefreshBtn) {
-        leaderboardsRefreshBtn.addEventListener("click", () => refreshLeaderboards(leaderboardsWindowSelect?.value || "lifetime"));
-    }
-    if (leaderboardsWindowSelect) {
-        leaderboardsWindowSelect.addEventListener("change", () => refreshLeaderboards(leaderboardsWindowSelect.value));
-    }
+    if (lbmRefreshBtn) lbmRefreshBtn.addEventListener("click", refreshLeaderboards);
+    if (lbmCloseBtn) lbmCloseBtn.addEventListener("click", () => closeModal(leaderboardsModal));
 
     startGameBtn.addEventListener("click", beginRoundFromIntro);
     cashoutButton.addEventListener("click", cashOutNow);
