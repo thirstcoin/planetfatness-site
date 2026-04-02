@@ -145,6 +145,14 @@
         </div>
     </div>
 
+    <!-- ✅ GLOBAL STATS (SAFE ADD — DOES NOT TOUCH ANYTHING ELSE) -->
+    <div id="global-stats">
+        <div class="gs-row"><span>Total Wagered</span><span id="gs-wagered">—</span></div>
+        <div class="gs-row"><span>Total Rounds</span><span id="gs-rounds">—</span></div>
+        <div class="gs-row"><span>Perfect Runs</span><span id="gs-perfect">—</span></div>
+        <div class="gs-row"><span>Since Jackpot</span><span id="gs-since">—</span></div>
+    </div>
+
     <!-- Vertical Ladder -->
     <div id="multiplier-ladder-wrap">
         <div id="ladder-step-label">Step 0 of 10</div>
@@ -216,12 +224,8 @@
             </div>
 
             <div class="overlay-actions">
-                <button id="poison-new-round-btn" type="button">
-                    New Round
-                </button>
-                <button id="poison-back-chat-btn" type="button">
-                    Back to Chat
-                </button>
+                <button id="poison-new-round-btn" type="button">New Round</button>
+                <button id="poison-back-chat-btn" type="button">Back to Chat</button>
             </div>
         </div>
     </div>
@@ -258,12 +262,8 @@
             </div>
 
             <div class="overlay-actions">
-                <button id="win-new-round-btn" type="button">
-                    New Round
-                </button>
-                <button id="win-back-chat-btn" type="button">
-                    Back to Chat
-                </button>
+                <button id="win-new-round-btn" type="button">New Round</button>
+                <button id="win-back-chat-btn" type="button">Back to Chat</button>
             </div>
         </div>
     </div>
@@ -281,33 +281,13 @@
 
             <div class="withdraw-form">
                 <label for="withdraw-amount-input">Amount</label>
-                <input
-                    id="withdraw-amount-input"
-                    type="number"
-                    inputmode="decimal"
-                    min="0"
-                    step="0.001"
-                    placeholder="Enter PHAT amount"
-                />
-
+                <input id="withdraw-amount-input" type="number" inputmode="decimal" min="0" step="0.001" placeholder="Enter PHAT amount"/>
                 <label for="withdraw-wallet-input">Destination Wallet</label>
-                <input
-                    id="withdraw-wallet-input"
-                    type="text"
-                    placeholder="Leave blank to use your linked address"
-                    autocomplete="off"
-                    autocapitalize="off"
-                    spellcheck="false"
-                />
+                <input id="withdraw-wallet-input" type="text" placeholder="Leave blank to use your linked address"/>
             </div>
 
-            <div id="withdraw-note">
-                Withdraw requests use your internal balance.
-            </div>
-
-            <div id="withdraw-status">
-                Ready.
-            </div>
+            <div id="withdraw-note">Withdraw requests use your internal balance.</div>
+            <div id="withdraw-status">Ready.</div>
 
             <div class="withdraw-actions">
                 <button id="withdraw-max-btn" type="button">Max</button>
@@ -317,11 +297,8 @@
         </div>
     </div>
 
-    <!-- Telegram SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-    <!-- Game Logic -->
-    <script src="game.js?v=21"></script>
+    <script src="game.js?v=22"></script>
 
 </body>
 </html>
