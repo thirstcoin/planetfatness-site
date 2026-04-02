@@ -1747,7 +1747,8 @@ document.addEventListener("DOMContentLoaded", function () {
             syncFundingButtons();
         }
     }
-        async function beginRoundFromIntro() {
+
+    async function beginRoundFromIntro() {
         if (!authReady) {
             status.innerText = "Session required. Reopen from Telegram.";
             return;
