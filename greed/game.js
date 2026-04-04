@@ -353,6 +353,50 @@ document.addEventListener("DOMContentLoaded", function () {
         el.textContent = formatter ? formatter(value) : String(value);
     }
 
+    function getBalanceValue(balanceObj) {
+        if (!balanceObj) return 0;
+        return Number(
+            balanceObj.availableBalance ??
+            balanceObj.available_balance ??
+            0
+        );
+    }
+
+    function getLockedBalanceValue(balanceObj) {
+        if (!balanceObj) return 0;
+        return Number(
+            balanceObj.lockedBalance ??
+            balanceObj.locked_balance ??
+            0
+        );
+    }
+
+    function normalizeIntent(intent) {
+        if (!intent) return null;
+
+        return {
+            id: Number(intent.id),
+            address: intent.address || null,
+            intentType: intent.intentType || intent.intent_type || "single_round",
+            status: String(intent.status || "pending"),
+            fundingMatchStatus: intent.fundingMatchStatus || intent.funding_match_status || "unmatched",
+            requestedWager: Number(intent.requestedWager ?? intent.requested_wager ?? 0),
+            exactAmount: Number(intent.exactAmount ?? intent.exact_amount ?? 0),
+            fundedAmount: intent.fundedAmount == null && intent.funded_amount == null
+                ? null
+                : Number(intent.fundedAmount ?? intent.funded_amount ?? 0),
+            depositWallet: intent.depositWallet || intent.deposit_wallet || null,
+            senderWallet: intent.senderWallet || intent.sender_wallet || null,
+            tokenMint: intent.tokenMint || intent.token_mint || "PHAT",
+            txSignature: intent.txSignature || intent.tx_signature || null,
+            expiresAt: intent.expiresAt || intent.expires_at || null,
+            fundedAt: intent.fundedAt || intent.funded_at || null,
+            startedAt: intent.startedAt || intent.started_at || null,
+            createdAt: intent.createdAt || intent.created_at || null,
+            updatedAt: intent.updatedAt || intent.updated_at || null
+        };
+    }
+
     function setFairnessPanel() {
         const poisonText = formatPoisonIndices(revealedPoisonIndices);
 
@@ -798,7 +842,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             const data = await apiFetch("/wallet/balance", { method: "GET" });
-            availableBalance = Number(data?.balance?.available_balance || 0);
+            availableBalance = getBalanceValue(data?.balance);
             updateBalanceMode();
             return availableBalance;
         } catch (err) {
@@ -813,7 +857,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function renderIntent(intent) {
-        currentIntent = intent || null;
+        currentIntent = normalizeIntent(intent);
 
         if (intentStatusEl) {
             if (!currentIntent) {
@@ -826,6 +870,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 intentStatusEl.textContent = "EXPIRED";
             } else if (currentIntent.status === "cancelled") {
                 intentStatusEl.textContent = "CANCELLED";
+            } else if (currentIntent.status === "consumed") {
+                intentStatusEl.textContent = "USED";
             } else {
                 intentStatusEl.textContent = String(currentIntent.status || "").toUpperCase();
             }
@@ -1002,8 +1048,7 @@ document.addEventListener("DOMContentLoaded", function () {
         startGameBtn.disabled = false;
         startGameBtn.textContent = "Start Round";
     }
-
-    async function refreshJackpot() {
+        async function refreshJackpot() {
         try {
             const data = await fetch(`${BACKEND_URL}/greed/jackpot`, { method: "GET" }).then(async (res) => {
                 const json = await res.json().catch(() => ({}));
@@ -1031,7 +1076,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             const data = await apiFetch("/greed/deposit-intent", { method: "GET" });
-            const intent = data?.intent || null;
+            const intent = normalizeIntent(data?.intent || null);
             renderIntent(intent);
 
             if (showStatus) {
@@ -1083,7 +1128,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 body: JSON.stringify({ wager: selectedWager })
             });
 
-            renderIntent(data?.intent || null);
+            const nextIntent = normalizeIntent(data?.intent || null);
+            renderIntent(nextIntent);
 
             if (currentIntent?.status === "pending") {
                 status.innerText = "Waiting for your deposit...";
@@ -1134,7 +1180,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 body: JSON.stringify({})
             });
 
-            renderIntent(data?.intent || null);
+            const nextIntent = normalizeIntent(data?.intent || null);
+            renderIntent(nextIntent);
             stopIntentPolling();
 
             if (!silent) {
@@ -1194,7 +1241,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             const data = await apiFetch(`/greed/deposit-intent/${intentId}`, { method: "GET" });
-            const nextIntent = data?.intent || null;
+            const nextIntent = normalizeIntent(data?.intent || null);
             const previousStatus = String(currentIntent?.status || "");
 
             renderIntent(nextIntent);
@@ -1273,7 +1320,14 @@ document.addEventListener("DOMContentLoaded", function () {
         setFairnessPanel();
 
         stopIntentPolling();
-        renderIntent(null);
+
+        const refreshedBalance = data?.wallet?.remainingEstimated;
+        if (refreshedBalance != null && balanceCoversWager) {
+            availableBalance = Number(refreshedBalance || 0);
+            updateBalanceMode();
+        } else {
+            renderIntent(null);
+        }
 
         const jackpotCurrent =
             Number(data?.jackpot?.currentAmount) ||
@@ -1562,8 +1616,11 @@ document.addEventListener("DOMContentLoaded", function () {
         targetEl.innerHTML = list.map((row, idx) => {
             const rank = Number(row.rank || idx + 1);
             const displayName = row.displayName || row.display_name || row.address || "Unknown";
+
             const rawValue =
                 row.value ??
+                row.totalWon ??
+                row.total_won ??
                 row.greedScore ??
                 row.greed_score ??
                 row.totalWagered ??
@@ -1687,7 +1744,10 @@ document.addEventListener("DOMContentLoaded", function () {
             fillText(gcTier, card.tier);
             fillText(gcTotalWagered, card.total_wagered, formatPhat);
             fillText(gcTotalRounds, card.total_rounds, formatNumber);
-            fillText(gcNetProfit, card.net_profit, formatSignedPhat);
+
+            // PHAT STACKS should be total won, not net profit
+            fillText(gcNetProfit, card.total_won, formatPhat);
+
             fillText(gcCashoutRate, card.cashout_rate, formatPct);
             fillText(gcPerfectRuns, card.perfect_runs, formatNumber);
             fillText(gcTotalLost, card.total_lost, formatPhat);
@@ -1842,6 +1902,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (
+                msg.toLowerCase().includes("funding required") ||
                 msg.toLowerCase().includes("funding_required") ||
                 msg.toLowerCase().includes("intent") ||
                 msg.toLowerCase().includes("funded")
@@ -1857,8 +1918,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 : msg;
         }
     }
-
-    async function startFreshRoundFromOverlay() {
+        async function startFreshRoundFromOverlay() {
         hideOverlays();
         resetRoundStateForFreshStart();
         showIntroOverlay();
@@ -2147,6 +2207,11 @@ document.addEventListener("DOMContentLoaded", function () {
             updateCashoutButton();
             hideIntroOverlay();
             unlockBoard();
+
+            if (data?.wallet?.balance) {
+                availableBalance = getBalanceValue(data.wallet.balance);
+                updateBalanceMode();
+            }
 
             status.innerText = safeFoundCount > 0 ? "Round restored." : "Choose wisely...";
 
