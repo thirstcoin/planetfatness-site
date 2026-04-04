@@ -930,22 +930,25 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (intentStatusEl) {
-            if (!currentIntent) {
-                intentStatusEl.textContent = "NOT FUNDED";
-            } else if (currentIntent.status === "pending") {
-                intentStatusEl.textContent = "WAITING FOR DEPOSIT";
-            } else if (currentIntent.status === "funded") {
-                intentStatusEl.textContent = "DEPOSIT DETECTED";
-            } else if (currentIntent.status === "expired") {
-                intentStatusEl.textContent = "EXPIRED";
-            } else if (currentIntent.status === "cancelled") {
-                intentStatusEl.textContent = "CANCELLED";
-            } else if (currentIntent.status === "consumed") {
-                intentStatusEl.textContent = "USED";
-            } else {
-                intentStatusEl.textContent = String(currentIntent.status || "").toUpperCase();
-            }
-        }
+    if (!currentIntent) {
+        intentStatusEl.textContent =
+            fundingMode === "deposit_balance"
+                ? "READY TO FUND"
+                : "NOT FUNDED";
+    } else if (currentIntent.status === "pending") {
+        intentStatusEl.textContent = "WAITING FOR DEPOSIT";
+    } else if (currentIntent.status === "funded") {
+        intentStatusEl.textContent = "DEPOSIT DETECTED";
+    } else if (currentIntent.status === "expired") {
+        intentStatusEl.textContent = "EXPIRED";
+    } else if (currentIntent.status === "cancelled") {
+        intentStatusEl.textContent = "CANCELLED";
+    } else if (currentIntent.status === "consumed") {
+        intentStatusEl.textContent = "USED";
+    } else {
+        intentStatusEl.textContent = String(currentIntent.status || "").toUpperCase();
+    }
+}
 
         fillText(intentAmountEl, currentIntent?.exactAmount ? `${formatIntentAmount(currentIntent.exactAmount)} PHAT` : "—");
         fillText(intentWalletEl, currentIntent?.depositWallet || "—");
