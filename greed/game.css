@@ -186,6 +186,84 @@ body {
     letter-spacing: 0.2px;
 }
 
+/* Dual funding mode switch */
+#funding-mode-switch {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+.funding-mode-btn {
+    appearance: none;
+    border: 1px solid rgba(255, 215, 0, 0.18);
+    border-radius: 16px;
+    min-height: 58px;
+    padding: 10px 14px;
+    cursor: pointer;
+    background: linear-gradient(180deg, rgba(34, 10, 48, 0.94) 0%, rgba(18, 6, 28, 0.96) 100%);
+    color: rgba(255,255,255,0.92);
+    box-shadow:
+        0 8px 18px rgba(0,0,0,0.28),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    transition: transform 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease, border-color 0.14s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    text-align: center;
+}
+
+.funding-mode-btn:hover {
+    border-color: rgba(255,215,0,0.30);
+}
+
+.funding-mode-btn:active {
+    transform: scale(0.98);
+}
+
+.funding-mode-btn.active {
+    color: #111;
+    background: linear-gradient(180deg, #FFD700 0%, #E2AA00 100%);
+    border-color: rgba(255,215,0,0.80);
+    box-shadow:
+        0 0 0 2px rgba(255,255,255,0.12) inset,
+        0 0 18px rgba(255, 215, 0, 0.18),
+        0 8px 18px rgba(0,0,0,0.34);
+}
+
+.funding-mode-btn:disabled {
+    opacity: 0.58;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.funding-mode-title {
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.15px;
+}
+
+.funding-mode-subtitle {
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.15;
+    opacity: 0.9;
+}
+
+/* Funding mode sections */
+.funding-mode-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.funding-mode-section.hidden {
+    display: none;
+}
+
 /* Quick wagers */
 #quick-wager-grid {
     display: grid;
@@ -232,6 +310,52 @@ body {
     filter: saturate(0.9);
 }
 
+/* Balance funding quick amounts */
+#balance-fund-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+.balance-fund-btn {
+    appearance: none;
+    border: none;
+    border-radius: 14px;
+    min-height: 56px;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+    background: linear-gradient(180deg, #FFD700 0%, #E2AA00 100%);
+    color: #111;
+    box-shadow:
+        0 6px 16px rgba(0,0,0,0.32),
+        inset 0 1px 0 rgba(255,255,255,0.18);
+    transition: transform 0.14s ease, opacity 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
+}
+
+.balance-fund-btn:hover {
+    filter: brightness(1.02);
+}
+
+.balance-fund-btn:active {
+    transform: scale(0.97);
+}
+
+.balance-fund-btn.selected {
+    box-shadow:
+        0 0 0 2px rgba(255,255,255,0.18) inset,
+        0 0 18px rgba(255, 215, 0, 0.22),
+        0 8px 18px rgba(0,0,0,0.34);
+}
+
+.balance-fund-btn:disabled {
+    opacity: 0.62;
+    cursor: not-allowed;
+    transform: none;
+    filter: saturate(0.9);
+}
+
 /* Custom wager */
 #custom-wager-wrap {
     display: grid;
@@ -269,6 +393,43 @@ body {
     opacity: 0.72;
 }
 
+/* Custom balance fund */
+#balance-fund-custom-wrap {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+}
+
+#balance-fund-custom-wrap label {
+    font-size: 16px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.75);
+}
+
+#balance-fund-custom-input {
+    width: 100%;
+    min-width: 0;
+    height: 52px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.96);
+    color: #111;
+    font-size: 18px;
+    font-weight: 800;
+    text-align: center;
+    outline: none;
+    box-sizing: border-box;
+    padding: 0 10px;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.16);
+}
+
+#balance-fund-custom-input:disabled {
+    opacity: 0.72;
+}
+
 /* Selected wager */
 #selected-wager-wrap {
     display: flex;
@@ -289,6 +450,26 @@ body {
     text-align: right;
 }
 
+/* Selected balance funding amount */
+#selected-balance-fund-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(0,0,0,0.28);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+#selected-balance-fund-value {
+    font-size: 22px;
+    font-weight: 900;
+    color: #FFD700;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+    text-align: right;
+}
+
 /* Intent actions */
 #intent-actions {
     display: grid;
@@ -298,7 +479,8 @@ body {
 }
 
 #cancel-intent-btn,
-#start-game-btn {
+#start-game-btn,
+#create-balance-intent-btn {
     appearance: none;
     border: none;
     border-radius: 16px;
@@ -316,12 +498,14 @@ body {
 }
 
 #cancel-intent-btn:active,
-#start-game-btn:active {
+#start-game-btn:active,
+#create-balance-intent-btn:active {
     transform: scale(0.98);
 }
 
 #cancel-intent-btn:disabled,
-#start-game-btn:disabled {
+#start-game-btn:disabled,
+#create-balance-intent-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
@@ -439,26 +623,31 @@ body {
 }
 
 #funding-help,
-#funding-polling-note {
+#funding-polling-note,
+#balance-fund-help,
+#balance-fund-limit-note {
     text-align: center;
     font-weight: 800;
     line-height: 1.3;
 }
 
-#funding-help {
+#funding-help,
+#balance-fund-help {
     color: rgba(255,255,255,0.90);
     font-size: 14px;
     text-shadow: 0 2px 8px rgba(0,0,0,0.75);
 }
 
-#funding-polling-note {
+#funding-polling-note,
+#balance-fund-limit-note {
     color: #FFD700;
     font-size: 13px;
     text-shadow: 0 2px 8px rgba(0,0,0,0.75);
 }
 
-/* Start button below funding panel */
-#start-game-btn {
+/* Main action buttons */
+#start-game-btn,
+#create-balance-intent-btn {
     width: min(92vw, 420px);
 }
 
@@ -476,7 +665,7 @@ body {
     pointer-events: none;
 }
 
-/* NEW: top action buttons */
+/* Top action buttons */
 #top-action-buttons {
     position: absolute;
     top: 15.3%;
@@ -516,7 +705,7 @@ body {
     transform: none;
 }
 
-/* NEW: compact global stats strip */
+/* Compact global stats strip */
 #global-stats {
     position: absolute;
     top: 21.8%;
@@ -580,7 +769,7 @@ body {
     will-change: transform;
 }
 
-/* NEW: right side leaderboard rail */
+/* Right side leaderboard rail */
 #leaderboard-panel {
     position: absolute;
     right: 1.8%;
@@ -1374,7 +1563,7 @@ body {
     transform: none;
 }
 
-/* NEW: generic modals */
+/* Generic modals */
 .greed-modal {
     position: fixed;
     inset: 0;
@@ -1663,7 +1852,8 @@ body {
 
     #available-balance-value,
     #selected-wager-balance-view,
-    #selected-wager-value {
+    #selected-wager-value,
+    #selected-balance-fund-value {
         font-size: 18px;
     }
 
@@ -1671,32 +1861,56 @@ body {
         font-size: 16px;
     }
 
-    #quick-wager-grid {
+    #funding-mode-switch {
         gap: 8px;
     }
 
-    .quick-wager-btn {
+    .funding-mode-btn {
+        min-height: 50px;
+        padding: 8px 10px;
+        border-radius: 12px;
+    }
+
+    .funding-mode-title {
+        font-size: 13px;
+    }
+
+    .funding-mode-subtitle {
+        font-size: 10px;
+    }
+
+    #quick-wager-grid,
+    #balance-fund-grid {
+        gap: 8px;
+    }
+
+    .quick-wager-btn,
+    .balance-fund-btn {
         min-height: 50px;
         font-size: 16px;
         border-radius: 12px;
     }
 
-    #custom-wager-wrap {
+    #custom-wager-wrap,
+    #balance-fund-custom-wrap {
         grid-template-columns: 86px 1fr;
         gap: 8px;
     }
 
-    #custom-wager-wrap label {
+    #custom-wager-wrap label,
+    #balance-fund-custom-wrap label {
         font-size: 13px;
     }
 
-    #custom-wager-input {
+    #custom-wager-input,
+    #balance-fund-custom-input {
         height: 46px;
         font-size: 16px;
         border-radius: 10px;
     }
 
-    #selected-wager-wrap {
+    #selected-wager-wrap,
+    #selected-balance-fund-wrap {
         padding: 10px 12px;
         gap: 10px;
     }
@@ -1706,7 +1920,8 @@ body {
     }
 
     #cancel-intent-btn,
-    #start-game-btn {
+    #start-game-btn,
+    #create-balance-intent-btn {
         min-height: 54px;
         font-size: 16px;
         border-radius: 14px;
@@ -1750,12 +1965,14 @@ body {
         padding: 0 12px;
     }
 
-    #funding-help {
+    #funding-help,
+    #balance-fund-help {
         font-size: 12px;
     }
 
     #funding-polling-note,
-    #balance-mode-note {
+    #balance-mode-note,
+    #balance-fund-limit-note {
         font-size: 11px;
     }
 
