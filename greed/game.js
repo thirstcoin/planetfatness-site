@@ -3,6 +3,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const BACKEND_URL = "https://planetfatness-backend.onrender.com";
     const DEFAULT_WAGER = 1000;
+    const DEFAULT_BALANCE_FUND = 10000;
+    const MAX_BALANCE_FUND = 250000;
+    const MIN_BALANCE_FUND = 1000;
 
     const START_LOCK_MIN_MS = 1400;
     const PICK_COOLDOWN_MS = 450;
@@ -65,7 +68,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const winFairnessNonceEl = document.getElementById("win-fairness-nonce");
     const winFairnessPoisonEl = document.getElementById("win-fairness-poison");
 
-    // Withdraw UI
     const openWithdrawBtn = document.getElementById("open-withdraw-btn");
     const withdrawModal = document.getElementById("withdraw-modal");
     const withdrawBackdrop = document.getElementById("withdraw-backdrop");
@@ -77,7 +79,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const withdrawAvailable = document.getElementById("withdraw-available");
     const withdrawStatus = document.getElementById("withdraw-status");
 
-    // Funding UI
     const fundingPanel = document.getElementById("funding-panel");
     const quickWagerButtons = Array.from(document.querySelectorAll(".quick-wager-btn"));
     const customWagerInput = document.getElementById("custom-wager-input");
@@ -95,24 +96,32 @@ document.addEventListener("DOMContentLoaded", function () {
     const fundingHelpEl = document.getElementById("funding-help");
     const fundingPollingNoteEl = document.getElementById("funding-polling-note");
 
-    // Top buttons
+    const singleRoundModeBtn = document.getElementById("single-round-mode-btn");
+    const depositBalanceModeBtn = document.getElementById("deposit-balance-mode-btn");
+    const singleRoundSection = document.getElementById("single-round-section");
+    const balanceFundSection = document.getElementById("balance-fund-section");
+
+    const balanceFundButtons = Array.from(document.querySelectorAll(".balance-fund-btn"));
+    const balanceFundCustomInput = document.getElementById("balance-fund-custom-input");
+    const selectedBalanceFundValue = document.getElementById("selected-balance-fund-value");
+    const createBalanceIntentBtn = document.getElementById("create-balance-intent-btn");
+    const balanceFundHelpEl = document.getElementById("balance-fund-help");
+    const balanceFundLimitNoteEl = document.getElementById("balance-fund-limit-note");
+
     const openGlobalStatsBtn = document.getElementById("open-global-stats-btn");
     const openGreedCardBtn = document.getElementById("open-greed-card-btn");
     const openLeaderboardsBtn = document.getElementById("open-leaderboards-btn");
 
-    // Global stats strip
     const gsWagered = document.getElementById("gs-wagered");
     const gsRounds = document.getElementById("gs-rounds");
     const gsPerfect = document.getElementById("gs-perfect");
     const gsSince = document.getElementById("gs-since");
 
-    // Right rail
     const lbBigAppetites = document.getElementById("lb-big-appetites");
     const lbPhatStacks = document.getElementById("lb-phat-stacks");
     const lbPerfectRuns = document.getElementById("lb-perfect-runs");
     const lbGreedGods = document.getElementById("lb-greed-gods");
 
-    // Greed Card modal
     const greedCardModal = document.getElementById("greed-card-modal");
     const greedCardBackdrop = document.getElementById("greed-card-backdrop");
     const closeGreedCardBtn = document.getElementById("close-greed-card-btn");
@@ -134,7 +143,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const gcBiggestJackpot = document.getElementById("gc-biggest-jackpot");
     const gcGreedScore = document.getElementById("gc-greed-score");
 
-    // Global stats modal
     const globalStatsModal = document.getElementById("global-stats-modal");
     const globalStatsBackdrop = document.getElementById("global-stats-backdrop");
     const closeGlobalStatsBtn = document.getElementById("close-global-stats-btn");
@@ -150,7 +158,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const gsmRoundsSinceJackpot = document.getElementById("gsm-rounds-since-jackpot");
     const gsmBiggestCashout = document.getElementById("gsm-biggest-cashout");
 
-    // Leaderboards modal
     const leaderboardsModal = document.getElementById("leaderboards-modal");
     const leaderboardsBackdrop = document.getElementById("leaderboards-backdrop");
     const closeLeaderboardsBtn = document.getElementById("close-leaderboards-btn");
@@ -243,6 +250,9 @@ document.addEventListener("DOMContentLoaded", function () {
     let authBootstrapPromise = null;
 
     let selectedWager = DEFAULT_WAGER;
+    let selectedBalanceFundAmount = DEFAULT_BALANCE_FUND;
+    let fundingMode = "single_round";
+
     let currentIntent = null;
     let intentPollInterval = null;
     let intentBusy = false;
@@ -381,6 +391,7 @@ document.addEventListener("DOMContentLoaded", function () {
             status: String(intent.status || "pending"),
             fundingMatchStatus: intent.fundingMatchStatus || intent.funding_match_status || "unmatched",
             requestedWager: Number(intent.requestedWager ?? intent.requested_wager ?? 0),
+            requestedAmount: Number(intent.requestedAmount ?? intent.requested_amount ?? 0),
             exactAmount: Number(intent.exactAmount ?? intent.exact_amount ?? 0),
             fundedAmount: intent.fundedAmount == null && intent.funded_amount == null
                 ? null
@@ -395,6 +406,19 @@ document.addEventListener("DOMContentLoaded", function () {
             createdAt: intent.createdAt || intent.created_at || null,
             updatedAt: intent.updatedAt || intent.updated_at || null
         };
+    }
+
+    function isBalanceDepositIntent(intent) {
+        const t = String(intent?.intentType || "").toLowerCase();
+        return t === "balance_deposit" || t === "deposit_balance";
+    }
+
+    function getActiveIntentDisplayBaseAmount(intent) {
+        if (!intent) return 0;
+        if (isBalanceDepositIntent(intent)) {
+            return Number(intent.requestedAmount || intent.exactAmount || 0);
+        }
+        return Number(intent.requestedWager || intent.exactAmount || 0);
     }
 
     function setFairnessPanel() {
@@ -484,25 +508,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         } catch (err) {
             console.warn("Audio play failed:", err);
-        }
-    }
-
-    function playNomSound() { safePlaySound(nomSound); }
-    function playStartSound() { safePlaySound(startSound); }
-    function playPoisonSound() { safePlaySound(poisonSound); }
-    function playBaseCashoutSound() { safePlaySound(cashoutSound); }
-    function playJackpotCashoutSound() { safePlaySound(jackpotSound); }
-    function playWowSound() { safePlaySound(wowSound); }
-
-    function playCashoutTierSound() {
-        if (safeFoundCount >= 10) {
-            playJackpotCashoutSound();
-            setTimeout(() => playWowSound(), 250);
-        } else if (multiplier >= 2.0) {
-            playJackpotCashoutSound();
-        } else {
-            playBaseCashoutSound();
-        }
+                    }
     }
 
     function playIntroSequence() {
@@ -752,6 +758,17 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function highlightSelectedBalanceFundButtons() {
+        balanceFundButtons.forEach((btn) => {
+            const amt = Number(btn.dataset.amount || 0);
+            if (amt === Number(selectedBalanceFundAmount || 0)) {
+                btn.classList.add("selected");
+            } else {
+                btn.classList.remove("selected");
+            }
+        });
+    }
+
     function setSelectedWager(amount) {
         const next = Math.max(1000, Math.min(50000, Math.floor(Number(amount || DEFAULT_WAGER))));
         selectedWager = next;
@@ -759,13 +776,55 @@ document.addEventListener("DOMContentLoaded", function () {
         fillText(selectedWagerValue, `${formatNumber(next)} PHAT`);
         fillText(selectedWagerBalanceView, `${formatNumber(next)} PHAT`);
 
-        if (customWagerInput && String(customWagerInput.value || "").trim() !== String(next)) {
+        if (customWagerInput && document.activeElement !== customWagerInput) {
             customWagerInput.value = String(next);
         }
 
         highlightSelectedWagerButtons();
         updateBalanceMode();
         syncStartButtonState();
+        syncFundingButtons();
+    }
+
+    function setSelectedBalanceFundAmount(amount) {
+        const next = Math.max(MIN_BALANCE_FUND, Math.min(MAX_BALANCE_FUND, Math.floor(Number(amount || DEFAULT_BALANCE_FUND))));
+        selectedBalanceFundAmount = next;
+
+        fillText(selectedBalanceFundValue, `${formatNumber(next)} PHAT`);
+
+        if (balanceFundCustomInput && document.activeElement !== balanceFundCustomInput) {
+            balanceFundCustomInput.value = String(next);
+        }
+
+        highlightSelectedBalanceFundButtons();
+        syncFundingButtons();
+    }
+
+    function setFundingMode(mode) {
+        fundingMode = mode === "deposit_balance" ? "deposit_balance" : "single_round";
+
+        if (singleRoundModeBtn) {
+            singleRoundModeBtn.classList.toggle("active", fundingMode === "single_round");
+        }
+        if (depositBalanceModeBtn) {
+            depositBalanceModeBtn.classList.toggle("active", fundingMode === "deposit_balance");
+        }
+        if (singleRoundSection) {
+            singleRoundSection.classList.toggle("hidden", fundingMode !== "single_round");
+        }
+        if (balanceFundSection) {
+            balanceFundSection.classList.toggle("hidden", fundingMode !== "deposit_balance");
+        }
+
+        if (fundingMode === "deposit_balance") {
+            if (balanceFundHelpEl) {
+                balanceFundHelpEl.textContent = "Choose how much PHAT to add to your internal balance.";
+            }
+            if (balanceFundLimitNoteEl) {
+                balanceFundLimitNoteEl.textContent = `Balance deposits can be ${formatNumber(MIN_BALANCE_FUND)} to ${formatNumber(MAX_BALANCE_FUND)} PHAT.`;
+            }
+        }
+
         syncFundingButtons();
     }
 
@@ -829,7 +888,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (fundingPanel) {
-            if (balanceCoversWager) {
+            if (balanceCoversWager && fundingMode === "single_round") {
                 fundingPanel.classList.add("balance-covered");
             } else {
                 fundingPanel.classList.remove("balance-covered");
@@ -858,6 +917,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function renderIntent(intent) {
         currentIntent = normalizeIntent(intent);
+
+        if (currentIntent?.requestedWager) {
+            setSelectedWager(Number(currentIntent.requestedWager));
+        }
+
+        if (isBalanceDepositIntent(currentIntent)) {
+            const amt = getActiveIntentDisplayBaseAmount(currentIntent);
+            if (amt > 0) {
+                setSelectedBalanceFundAmount(amt);
+            }
+        }
 
         if (intentStatusEl) {
             if (!currentIntent) {
@@ -888,7 +958,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (fundingHelpEl) {
-            if (balanceCoversWager) {
+            if (fundingMode === "deposit_balance") {
+                fundingHelpEl.textContent = currentIntent
+                    ? "Use Copy Amount and Copy Wallet, then send the exact PHAT amount shown."
+                    : "Choose a balance deposit amount to generate funding.";
+            } else if (balanceCoversWager) {
                 fundingHelpEl.textContent = "Your internal balance covers this wager. Funding is not required.";
             } else if (!currentIntent) {
                 fundingHelpEl.textContent = "Choose a wager to generate a funding amount.";
@@ -906,12 +980,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (fundingPollingNoteEl) {
-            if (balanceCoversWager) {
+            if (fundingMode === "deposit_balance" && !currentIntent) {
+                fundingPollingNoteEl.textContent = "Waiting for balance deposit selection.";
+            } else if (balanceCoversWager && fundingMode === "single_round") {
                 fundingPollingNoteEl.textContent = "Using internal balance.";
             } else if (!currentIntent) {
                 fundingPollingNoteEl.textContent = "Waiting for selection.";
             } else if (currentIntent.status === "funded") {
-                fundingPollingNoteEl.textContent = "Deposit confirmed.";
+                fundingPollingNoteEl.textContent = isBalanceDepositIntent(currentIntent)
+                    ? "Deposit confirmed. Balance should update shortly."
+                    : "Deposit confirmed.";
             } else if (currentIntent.status === "pending") {
                 fundingPollingNoteEl.textContent = "Waiting for deposit…";
             } else if (currentIntent.status === "expired") {
@@ -925,16 +1003,12 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        if (currentIntent?.requestedWager) {
-            setSelectedWager(Number(currentIntent.requestedWager));
-        }
-
         if (copyAmountBtn) {
-            copyAmountBtn.disabled = !currentIntent?.exactAmount || balanceCoversWager;
+            copyAmountBtn.disabled = !currentIntent?.exactAmount || (balanceCoversWager && fundingMode === "single_round");
         }
 
         if (copyWalletBtn) {
-            copyWalletBtn.disabled = !currentIntent?.depositWallet || balanceCoversWager;
+            copyWalletBtn.disabled = !currentIntent?.depositWallet || (balanceCoversWager && fundingMode === "single_round");
         }
 
         syncFundingButtons();
@@ -952,13 +1026,12 @@ document.addEventListener("DOMContentLoaded", function () {
         const hasIntent = !!currentIntent;
         const intentStatus = String(currentIntent?.status || "");
         const pendingOrFunded = intentStatus === "pending" || intentStatus === "funded";
-        const shouldDisableFunding = balanceCoversWager;
+        const shouldDisableSingleFunding = balanceCoversWager && fundingMode === "single_round";
 
         if (cancelIntentBtn) {
             cancelIntentBtn.disabled =
                 !authReady ||
                 intentBusy ||
-                shouldDisableFunding ||
                 !hasIntent ||
                 !(intentStatus === "pending" || intentStatus === "funded");
         }
@@ -971,12 +1044,37 @@ document.addEventListener("DOMContentLoaded", function () {
             btn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
         });
 
+        balanceFundButtons.forEach((btn) => {
+            btn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
+        });
+
+        if (balanceFundCustomInput) {
+            balanceFundCustomInput.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
+        }
+
+        if (singleRoundModeBtn) {
+            singleRoundModeBtn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
+        }
+
+        if (depositBalanceModeBtn) {
+            depositBalanceModeBtn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
+        }
+
+        if (createBalanceIntentBtn) {
+            createBalanceIntentBtn.disabled =
+                !authReady ||
+                intentBusy ||
+                hasStartedRound ||
+                roundStarting ||
+                fundingMode !== "deposit_balance";
+        }
+
         if (copyWalletBtn) {
-            copyWalletBtn.disabled = shouldDisableFunding || !pendingOrFunded || !currentIntent?.depositWallet;
+            copyWalletBtn.disabled = shouldDisableSingleFunding || !pendingOrFunded || !currentIntent?.depositWallet;
         }
 
         if (copyAmountBtn) {
-            copyAmountBtn.disabled = shouldDisableFunding || !pendingOrFunded || !currentIntent?.exactAmount;
+            copyAmountBtn.disabled = shouldDisableSingleFunding || !pendingOrFunded || !currentIntent?.exactAmount;
         }
 
         if (openWithdrawBtn) {
@@ -1024,6 +1122,12 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        if (fundingMode === "deposit_balance") {
+            startGameBtn.disabled = true;
+            startGameBtn.textContent = "Deposit To Balance";
+            return;
+        }
+
         if (balanceCoversWager) {
             startGameBtn.disabled = false;
             startGameBtn.textContent = "Play From Balance";
@@ -1048,7 +1152,8 @@ document.addEventListener("DOMContentLoaded", function () {
         startGameBtn.disabled = false;
         startGameBtn.textContent = "Start Round";
     }
-        async function refreshJackpot() {
+
+    async function refreshJackpot() {
         try {
             const data = await fetch(`${BACKEND_URL}/greed/jackpot`, { method: "GET" }).then(async (res) => {
                 const json = await res.json().catch(() => ({}));
@@ -1079,8 +1184,20 @@ document.addEventListener("DOMContentLoaded", function () {
             const intent = normalizeIntent(data?.intent || null);
             renderIntent(intent);
 
+            if (intent && isBalanceDepositIntent(intent)) {
+                setFundingMode("deposit_balance");
+            }
+
             if (showStatus) {
-                if (balanceCoversWager) {
+                if (fundingMode === "deposit_balance") {
+                    if (!intent) {
+                        status.innerText = "Choose a balance deposit amount.";
+                    } else if (intent.status === "pending") {
+                        status.innerText = "Waiting for your balance deposit.";
+                    } else if (intent.status === "funded") {
+                        status.innerText = "Balance deposit received.";
+                    }
+                } else if (balanceCoversWager) {
                     status.innerText = "Balance covers this wager. Start when ready.";
                 } else if (!intent) {
                     status.innerText = "Choose a wager to begin.";
@@ -1093,7 +1210,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
 
-            if (!balanceCoversWager && intent && (intent.status === "pending" || intent.status === "funded")) {
+            if (intent && (intent.status === "pending" || intent.status === "funded")) {
                 startIntentPolling();
             } else {
                 stopIntentPolling();
@@ -1111,8 +1228,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function createDepositIntent() {
-        if (!authReady || intentBusy || hasStartedRound || roundStarting || balanceCoversWager) return null;
+    async function createDepositIntent(intentType = "single_round", amountOverride = null) {
+        if (!authReady || intentBusy || hasStartedRound || roundStarting) return null;
+
+        if (
+            intentType === "single_round" &&
+            balanceCoversWager &&
+            fundingMode === "single_round"
+        ) {
+            return null;
+        }
+
         if (currentIntent && (currentIntent.status === "pending" || currentIntent.status === "funded")) {
             return currentIntent;
         }
@@ -1120,25 +1246,42 @@ document.addEventListener("DOMContentLoaded", function () {
         intentBusy = true;
         syncFundingButtons();
         syncStartButtonState();
-        status.innerText = "Creating deposit request...";
+        status.innerText = intentType === "balance_deposit"
+            ? "Creating balance deposit request..."
+            : "Creating deposit request...";
 
         try {
+            const payload =
+                intentType === "balance_deposit"
+                    ? {
+                        intentType: "balance_deposit",
+                        amount: Number(amountOverride || selectedBalanceFundAmount || DEFAULT_BALANCE_FUND)
+                    }
+                    : {
+                        intentType: "single_round",
+                        wager: Number(selectedWager || DEFAULT_WAGER)
+                    };
+
             const data = await apiFetch("/greed/deposit-intent", {
                 method: "POST",
-                body: JSON.stringify({ wager: selectedWager })
+                body: JSON.stringify(payload)
             });
 
             const nextIntent = normalizeIntent(data?.intent || null);
             renderIntent(nextIntent);
 
             if (currentIntent?.status === "pending") {
-                status.innerText = "Waiting for your deposit...";
+                status.innerText = intentType === "balance_deposit"
+                    ? "Waiting for your balance deposit..."
+                    : "Waiting for your deposit...";
                 startIntentPolling();
             } else if (currentIntent?.status === "funded") {
-                status.innerText = "Deposit received. Start your round.";
+                status.innerText = intentType === "balance_deposit"
+                    ? "Balance deposit received."
+                    : "Deposit received. Start your round.";
                 startIntentPolling();
             } else {
-                status.innerText = "Round funding ready.";
+                status.innerText = "Funding ready.";
             }
 
             return currentIntent;
@@ -1210,7 +1353,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         await refreshBalance(true);
 
-        if (balanceCoversWager) {
+        if (balanceCoversWager && fundingMode === "single_round") {
             stopIntentPolling();
             status.innerText = "Balance covers this wager. No funding needed.";
             renderIntent(null);
@@ -1221,7 +1364,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const existingWager = Number(currentIntent?.requestedWager || 0);
 
         if (currentIntent && (existingStatus === "pending" || existingStatus === "funded")) {
-            if (existingWager === Number(selectedWager)) {
+            if (
+                !isBalanceDepositIntent(currentIntent) &&
+                existingWager === Number(selectedWager)
+            ) {
                 if (existingStatus === "funded") {
                     status.innerText = "Deposit received. Start your round.";
                 } else {
@@ -1233,9 +1379,33 @@ document.addEventListener("DOMContentLoaded", function () {
             await cancelDepositIntent(true);
         }
 
-        await createDepositIntent();
+        await createDepositIntent("single_round");
     }
 
+async function replaceIntentForBalanceDeposit() {
+    if (!authReady || intentBusy || hasStartedRound || roundStarting) return;
+
+    const amount = Number(selectedBalanceFundAmount || DEFAULT_BALANCE_FUND);
+
+    if (currentIntent && ["pending", "funded"].includes(String(currentIntent.status || ""))) {
+        const currentBase = getActiveIntentDisplayBaseAmount(currentIntent);
+
+        if (isBalanceDepositIntent(currentIntent) && currentBase === amount) {
+            if (String(currentIntent.status) === "funded") {
+                status.innerText = "Balance deposit received.";
+            } else {
+                status.innerText = "Waiting for your balance deposit...";
+            }
+            return;
+        }
+
+        await cancelDepositIntent(true);
+    }
+
+    await createDepositIntent("balance_deposit");
+}
+
+      
     async function refreshIntentById(intentId, quiet = false) {
         if (!authReady || !intentId) return null;
 
@@ -1246,13 +1416,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
             renderIntent(nextIntent);
 
+            if (nextIntent && isBalanceDepositIntent(nextIntent)) {
+                setFundingMode("deposit_balance");
+            }
+
             if (!quiet) {
                 if (nextIntent?.status === "funded") {
-                    status.innerText = "Deposit received. Start your round.";
+                    status.innerText = isBalanceDepositIntent(nextIntent)
+                        ? "Balance deposit received."
+                        : "Deposit received. Start your round.";
                 } else if (nextIntent?.status === "pending") {
-                    status.innerText = "Waiting for your deposit...";
+                    status.innerText = isBalanceDepositIntent(nextIntent)
+                        ? "Waiting for your balance deposit..."
+                        : "Waiting for your deposit...";
                 } else if (nextIntent?.status === "expired") {
-                    status.innerText = "Funding expired. Choose a wager to begin again.";
+                    status.innerText = "Funding expired. Choose an amount again.";
                 } else if (nextIntent?.status === "cancelled") {
                     status.innerText = "Funding cancelled.";
                 }
@@ -1260,6 +1438,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (previousStatus !== "funded" && nextIntent?.status === "funded") {
                 playStartSound();
+
+                if (isBalanceDepositIntent(nextIntent)) {
+                    await refreshBalance(true);
+                }
             }
 
             if (!nextIntent || !["pending", "funded"].includes(String(nextIntent.status || ""))) {
@@ -1280,12 +1462,20 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!["pending", "funded"].includes(String(currentIntent.status || ""))) return;
 
         intentPollInterval = setInterval(async () => {
-            if (!currentIntent?.id || hasStartedRound || roundStarting || balanceCoversWager) return;
+            if (!currentIntent?.id || hasStartedRound || roundStarting) return;
 
             await refreshIntentById(currentIntent.id, true);
 
-            if (currentIntent?.status === "funded" && fundingPollingNoteEl) {
-                fundingPollingNoteEl.textContent = "Deposit confirmed.";
+            if (currentIntent?.status === "funded") {
+                if (fundingPollingNoteEl) {
+                    fundingPollingNoteEl.textContent = isBalanceDepositIntent(currentIntent)
+                        ? "Balance deposit confirmed."
+                        : "Deposit confirmed.";
+                }
+
+                if (isBalanceDepositIntent(currentIntent)) {
+                    await refreshBalance(true);
+                }
             } else if (currentIntent?.status === "pending" && fundingPollingNoteEl) {
                 fundingPollingNoteEl.textContent = "Waiting for deposit…";
             }
@@ -1322,12 +1512,452 @@ document.addEventListener("DOMContentLoaded", function () {
         stopIntentPolling();
 
         const refreshedBalance = data?.wallet?.remainingEstimated;
-        if (refreshedBalance != null && balanceCoversWager) {
+        if (refreshedBalance != null) {
             availableBalance = Number(refreshedBalance || 0);
             updateBalanceMode();
         } else {
-            renderIntent(null);
+            await refreshBalance(true);
         }
+
+        renderIntent(null);
+
+        const jackpotCurrent =
+            Number(data?.jackpot?.currentAmount) ||
+            Number(data?.jackpot?.current_amount) ||
+            0;
+
+        if (jackpotCurrent > 0) {
+            jackpotAmount.textContent = `${formatNumber(jackpotCurrent)} PHAT`;
+            animateJackpotPop();
+        }
+
+        return data;
+    }
+
+    function updateCashoutButton() {
+        if (safeFoundCount > 0 && !isGameOver && !pickInFlight && !interactionCooldownActive()) {
+            cashoutButton.disabled = false;
+            cashoutButton.classList.add("active");
+            cashoutButton.textContent = `Cash Out x${multiplier.toFixed(2)}`;
+
+            if (safeFoundCount >= 9) {
+                cashoutButton.classList.add("final-push");
+            } else {
+                cashoutButton.classList.remove("final-push");
+            }
+        } else {
+            cashoutButton.disabled = true;
+            cashoutButton.classList.remove("active", "final-push");
+            cashoutButton.textContent = safeFoundCount > 0 ? `Cash Out x${multiplier.toFixed(2)}` : "Cash Out";
+        }
+    }
+
+    function popMultiplier() {
+        multiplierDisplay.classList.remove("multiplier-pop");
+        void multiplierDisplay.offsetWidth;
+        multiplierDisplay.classList.add("multiplier-pop");
+    }
+
+    function updateLadder() {
+        multiplierLadder.innerHTML = "";
+
+        const verticalSteps = [...multipliers].reverse();
+
+        verticalSteps.forEach((value) => {
+            const originalIndex = multipliers.indexOf(value);
+            const step = document.createElement("div");
+            step.className = "ladder-step";
+            step.textContent = `x${value.toFixed(2)}`;
+
+            if (originalIndex === multipliers.length - 1) {
+                step.classList.add("final-step");
+            }
+
+            if (safeFoundCount >= 10) {
+                step.classList.add("done");
+                if (originalIndex === multipliers.length - 1) step.classList.add("current");
+            } else if (safeFoundCount === 0) {
+                if (originalIndex === 0) step.classList.add("next");
+            } else {
+                if (originalIndex < safeFoundCount - 1) step.classList.add("done");
+                if (originalIndex === safeFoundCount - 1) step.classList.add("current");
+                if (originalIndex === safeFoundCount) step.classList.add("next");
+            }
+
+            multiplierLadder.appendChild(step);
+        });
+
+        if (safeFoundCount >= 10) {
+            ladderStepLabel.textContent = "Step 10 of 10";
+            ladderNextLabel.textContent = "Jackpot cleared";
+        } else if (safeFoundCount === 9) {
+            ladderStepLabel.textContent = "Step 9 of 10";
+            ladderNextLabel.textContent = "Top step live";
+        } else if (safeFoundCount > 0) {
+            ladderStepLabel.textContent = `Step ${safeFoundCount} of 10`;
+            ladderNextLabel.textContent = `Next x${multipliers[safeFoundCount].toFixed(2)}`;
+        } else {
+            ladderStepLabel.textContent = "Step 0 of 10";
+            ladderNextLabel.textContent = `Next x${multipliers[0].toFixed(2)}`;
+        }
+    }
+
+    function setBoardPointerState(mode) {
+        const hitboxes = container.querySelectorAll(".donut-hitbox");
+        hitboxes.forEach((hitbox) => {
+            if (mode === "none") {
+                hitbox.style.pointerEvents = "none";
+                return;
+            }
+
+            if (mode === "active") {
+                if (!isGameOver && hasStartedRound && !pickInFlight && !interactionCooldownActive() && hitbox.dataset.clicked !== "true") {
+                    hitbox.style.pointerEvents = "auto";
+                } else {
+                    hitbox.style.pointerEvents = "none";
+                }
+            }
+        });
+    }
+
+    function lockBoard() {
+        isGameOver = true;
+        setBoardPointerState("none");
+        updateCashoutButton();
+        updateLadder();
+    }
+
+    function unlockBoard() {
+        if (isGameOver || !hasStartedRound || pickInFlight || interactionCooldownActive()) return;
+        setBoardPointerState("active");
+    }
+
+    function beginPickLock() {
+        pickInFlight = true;
+        setBoardPointerState("none");
+        updateCashoutButton();
+    }
+
+    function endPickLock() {
+        pickInFlight = false;
+        updateCashoutButton();
+        unlockBoard();
+    }
+
+    function showPoisonOverlay() {
+        poisonOverlay.style.display = "flex";
+
+        if (poisonVideo) {
+            try {
+                poisonVideo.pause();
+                poisonVideo.currentTime = 0;
+                const playPromise = poisonVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch((err) => {
+                        console.warn("Poison video autoplay failed:", err);
+                    });
+                }
+            } catch (err) {
+                console.warn("Poison video error:", err);
+            }
+        }
+    }
+
+    function showWinOverlay() {
+        const isPerfect = safeFoundCount >= 10;
+        if (winTitle) winTitle.innerText = isPerfect ? "PERFECT RUN" : "YOU FED THE GREED";
+
+        if (winSubtitle) {
+            if (commitHash && revealedServerSeed) {
+                winSubtitle.innerText = isPerfect ? "Legendary Cash Out • Hash Revealed" : "Cashed Out • Hash Revealed";
+            } else if (commitHash) {
+                winSubtitle.innerText = isPerfect ? "Legendary Cash Out • Locked" : "Cashed Out • Locked";
+            } else {
+                winSubtitle.innerText = isPerfect ? "Legendary Cash Out" : "Cashed Out";
+            }
+        }
+
+        if (winMultiplier) winMultiplier.innerText = `x${multiplier.toFixed(2)}`;
+        winOverlay.style.display = "flex";
+
+        if (winVideo) {
+            try {
+                winVideo.pause();
+                winVideo.currentTime = 0;
+                const playPromise = winVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch((err) => {
+                        console.warn("Win video autoplay failed:", err);
+                    });
+                }
+            } catch (err) {
+                console.warn("Win video error:", err);
+            }
+        }
+    }
+
+    function hideOverlays() {
+        poisonOverlay.style.display = "none";
+        winOverlay.style.display = "none";
+    }
+
+    function applyRevealData(provablyFair) {
+        if (!provablyFair) return;
+
+        if (provablyFair.commitHash) commitHash = provablyFair.commitHash;
+        if (provablyFair.serverSeed) revealedServerSeed = provablyFair.serverSeed;
+        if (provablyFair.nonce != null) fairnessNonce = String(provablyFair.nonce);
+        if (Array.isArray(provablyFair.poisonIndices)) {
+            revealedPoisonIndices = provablyFair.poisonIndices;
+        }
+
+        setFairnessPanel();
+    }
+
+    function hideIntroOverlay() {
+        if (introVideo) {
+            try {
+                introVideo.pause();
+                introVideo.currentTime = 0;
+            } catch (err) {
+                console.warn("Intro video stop error:", err);
+            }
+        }
+
+        introOverlay.classList.add("hidden");
+    }
+
+    function showIntroOverlay() {
+        introOverlay.classList.remove("hidden");
+    }
+
+    function resetBoardVisuals() {
+        const hitboxes = container.querySelectorAll(".donut-hitbox");
+        hitboxes.forEach((hitbox) => {
+            hitbox.dataset.clicked = "false";
+            hitbox.classList.remove("selected", "revealed");
+            hitbox.style.backgroundColor = "transparent";
+            hitbox.style.pointerEvents = "none";
+            hitbox.style.opacity = "1";
+        });
+    }
+
+    function resetRoundStateForFreshStart() {
+        stopLockingStatus();
+
+        multiplier = 1.0;
+        safeFoundCount = 0;
+        isGameOver = false;
+        hasStartedRound = false;
+        roundStarting = false;
+        roundId = null;
+        currentRoundWager = 0;
+        commitHash = "";
+        fairnessNonce = "";
+        revealedServerSeed = "";
+        revealedPoisonIndices = [];
+        pickInFlight = false;
+        interactionLockedUntil = 0;
+
+        multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+        updateLadder();
+        updateCashoutButton();
+        resetBoardVisuals();
+        setFairnessPanel();
+
+        syncFundingButtons();
+        syncStartButtonState();
+    }
+
+    function openWithdrawModal() {
+        if (!authReady || !withdrawModal) return;
+        withdrawModal.classList.remove("hidden");
+        fillText(withdrawAvailable, formatBalance(availableBalance));
+        fillText(withdrawStatus, "Ready.");
+        if (withdrawAmountInput) withdrawAmountInput.value = "";
+        if (withdrawWalletInput) withdrawWalletInput.value = "";
+        syncFundingButtons();
+    }
+
+    function closeWithdrawModal() {
+        if (!withdrawModal) return;
+        withdrawModal.classList.add("hidden");
+        fillText(withdrawStatus, "Ready.");
+        syncFundingButtons();
+    }
+
+    function openModal(modal) {
+        if (!modal) return;
+        modal.classList.remove("hidden");
+    }
+
+    function closeModal(modal) {
+        if (!modal) return;
+        modal.classList.add("hidden");
+    }
+
+    function renderBoardList(targetEl, rows, type = "phat") {
+        if (!targetEl) return;
+        const list = Array.isArray(rows) ? rows : [];
+
+        if (!list.length) {
+            targetEl.innerHTML = `<div class="leaderboard-empty">No entries yet.</div>`;
+            return;
+        }
+
+        targetEl.innerHTML = list.map((row, idx) => {
+            const rank = Number(row.rank || idx + 1);
+            const displayName = row.displayName || row.display_name || row.address || "Unknown";
+
+            const rawValue =
+                row.value ??
+                row.totalWon ??
+                row.total_won ??
+                row.greedScore ??
+                row.greed_score ??
+                row.totalWagered ??
+                row.total_wagered ??
+                row.netProfit ??
+                row.net_profit ??
+                row.perfectRuns ??
+                row.perfect_runs ??
+                row.biggestCashout ??
+                row.biggest_cashout ??
+                0;
+
+            let formattedValue = "";
+            if (type === "count") {
+                formattedValue = formatNumber(rawValue);
+            } else if (type === "score") {
+                formattedValue = formatNumber(rawValue);
+            } else {
+                formattedValue = formatPhat(rawValue);
+            }
+
+            return `
+                <div class="leaderboard-item">
+                    <div class="leaderboard-rank">#${rank}</div>
+                    <div class="leaderboard-name">${displayName}</div>
+                    <div class="leaderboard-value">${formattedValue}</div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    async function refreshIntentById(intentId, quiet = false) {
+        if (!authReady || !intentId) return null;
+
+        try {
+            const data = await apiFetch(`/greed/deposit-intent/${intentId}`, { method: "GET" });
+            const nextIntent = normalizeIntent(data?.intent || null);
+            const previousStatus = String(currentIntent?.status || "");
+
+            renderIntent(nextIntent);
+
+            if (nextIntent && isBalanceDepositIntent(nextIntent)) {
+                setFundingMode("deposit_balance");
+            }
+
+            if (!quiet) {
+                if (nextIntent?.status === "funded") {
+                    status.innerText = isBalanceDepositIntent(nextIntent)
+                        ? "Balance deposit received."
+                        : "Deposit received. Start your round.";
+                } else if (nextIntent?.status === "pending") {
+                    status.innerText = isBalanceDepositIntent(nextIntent)
+                        ? "Waiting for your balance deposit..."
+                        : "Waiting for your deposit...";
+                } else if (nextIntent?.status === "expired") {
+                    status.innerText = "Funding expired. Choose an amount again.";
+                } else if (nextIntent?.status === "cancelled") {
+                    status.innerText = "Funding cancelled.";
+                }
+            }
+
+            if (previousStatus !== "funded" && nextIntent?.status === "funded") {
+                playStartSound();
+
+                if (isBalanceDepositIntent(nextIntent)) {
+                    await refreshBalance(true);
+                }
+            }
+
+            if (!nextIntent || !["pending", "funded"].includes(String(nextIntent.status || ""))) {
+                stopIntentPolling();
+            }
+
+            return nextIntent;
+        } catch (err) {
+            console.warn("Funding poll failed:", err);
+            return null;
+        }
+    }
+
+    function startIntentPolling() {
+        stopIntentPolling();
+
+        if (!currentIntent?.id) return;
+        if (!["pending", "funded"].includes(String(currentIntent.status || ""))) return;
+
+        intentPollInterval = setInterval(async () => {
+            if (!currentIntent?.id || hasStartedRound || roundStarting) return;
+
+            await refreshIntentById(currentIntent.id, true);
+
+            if (currentIntent?.status === "funded") {
+                if (fundingPollingNoteEl) {
+                    fundingPollingNoteEl.textContent = isBalanceDepositIntent(currentIntent)
+                        ? "Balance deposit confirmed."
+                        : "Deposit confirmed.";
+                }
+
+                if (isBalanceDepositIntent(currentIntent)) {
+                    await refreshBalance(true);
+                }
+            } else if (currentIntent?.status === "pending" && fundingPollingNoteEl) {
+                fundingPollingNoteEl.textContent = "Waiting for deposit…";
+            }
+
+            if (intentExpiryEl && currentIntent?.expiresAt) {
+                intentExpiryEl.textContent = formatExpiry(currentIntent.expiresAt);
+            }
+        }, 2500);
+    }
+
+    async function startBackendRound() {
+        const token = authToken || getAuthToken();
+        if (!token) {
+            throw new Error("Missing auth token");
+        }
+
+        authToken = token;
+
+        const wagerToUse = Number(selectedWager || DEFAULT_WAGER);
+
+        const data = await apiFetch("/greed/start", {
+            method: "POST",
+            body: JSON.stringify({ wager: wagerToUse })
+        });
+
+        roundId = data.roundId;
+        currentRoundWager = Number(data.fundedExactAmount || data.wager || wagerToUse || 0);
+        commitHash = data?.provablyFair?.commitHash || "";
+        fairnessNonce = String(data?.provablyFair?.nonce || "");
+        revealedServerSeed = "";
+        revealedPoisonIndices = [];
+        setFairnessPanel();
+
+        stopIntentPolling();
+
+        const refreshedBalance = data?.wallet?.remainingEstimated;
+        if (refreshedBalance != null) {
+            availableBalance = Number(refreshedBalance || 0);
+            updateBalanceMode();
+        } else {
+            await refreshBalance(true);
+        }
+
+        renderIntent(null);
 
         const jackpotCurrent =
             Number(data?.jackpot?.currentAmount) ||
@@ -1744,10 +2374,7 @@ document.addEventListener("DOMContentLoaded", function () {
             fillText(gcTier, card.tier);
             fillText(gcTotalWagered, card.total_wagered, formatPhat);
             fillText(gcTotalRounds, card.total_rounds, formatNumber);
-
-            // PHAT STACKS should be total won, not net profit
             fillText(gcNetProfit, card.total_won, formatPhat);
-
             fillText(gcCashoutRate, card.cashout_rate, formatPct);
             fillText(gcPerfectRuns, card.perfect_runs, formatNumber);
             fillText(gcTotalLost, card.total_lost, formatPhat);
@@ -1821,6 +2448,11 @@ document.addEventListener("DOMContentLoaded", function () {
     async function beginRoundFromIntro() {
         if (!authReady) {
             status.innerText = "Session required. Reopen from Telegram.";
+            return;
+        }
+
+        if (fundingMode === "deposit_balance") {
+            status.innerText = "Switch to Single Round mode to start a round.";
             return;
         }
 
@@ -1918,7 +2550,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 : msg;
         }
     }
-        async function startFreshRoundFromOverlay() {
+
+    async function startFreshRoundFromOverlay() {
         hideOverlays();
         resetRoundStateForFreshStart();
         showIntroOverlay();
@@ -1931,7 +2564,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         playIntroSequence();
 
-        if (balanceCoversWager) {
+        if (fundingMode === "deposit_balance") {
+            status.innerText = currentIntent?.status === "funded"
+                ? "Balance deposit received."
+                : "Choose a balance deposit amount.";
+        } else if (balanceCoversWager) {
             status.innerText = "Balance covers this wager. Start your round.";
         } else if (currentIntent?.status === "funded") {
             status.innerText = "Deposit received. Start your round.";
@@ -2217,6 +2854,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             stopIntentPolling();
             renderIntent(null);
+            setFundingMode("single_round");
             return true;
         } catch (err) {
             console.warn("Restore active round failed:", err);
@@ -2249,6 +2887,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const amount = Number(btn.dataset.wager || 0);
             if (amount > 0) {
                 setSelectedWager(amount);
+                setFundingMode("single_round");
                 await refreshBalance(true);
 
                 if (balanceCoversWager) {
@@ -2263,17 +2902,38 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    balanceFundButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            if (btn.disabled) return;
+            const amount = Number(btn.dataset.amount || 0);
+            if (amount > 0) {
+                setSelectedBalanceFundAmount(amount);
+                setFundingMode("deposit_balance");
+                status.innerText = `Selected ${formatNumber(amount)} PHAT for balance deposit.`;
+            }
+        });
+    });
+
     if (customWagerInput) {
+        customWagerInput.addEventListener("input", () => {
+            const cleaned = String(customWagerInput.value || "").replace(/[^\d]/g, "");
+            if (cleaned === "") return;
+            const raw = Number(cleaned);
+            if (!Number.isFinite(raw)) return;
+            setSelectedWager(raw);
+        });
+
         customWagerInput.addEventListener("change", async () => {
             if (customWagerInput.disabled) return;
 
-            const raw = Number(customWagerInput.value || 0);
+            const raw = Number(String(customWagerInput.value || "").replace(/[^\d]/g, ""));
             if (!Number.isFinite(raw) || raw < 1000 || raw > 50000) {
                 status.innerText = "Custom wager must be between 1,000 and 50,000 PHAT.";
                 return;
             }
 
             setSelectedWager(raw);
+            setFundingMode("single_round");
             await refreshBalance(true);
 
             if (balanceCoversWager) {
@@ -2291,6 +2951,65 @@ document.addEventListener("DOMContentLoaded", function () {
                 e.preventDefault();
                 customWagerInput.blur();
             }
+        });
+    }
+
+    if (balanceFundCustomInput) {
+        balanceFundCustomInput.addEventListener("input", () => {
+            const cleaned = String(balanceFundCustomInput.value || "").replace(/[^\d]/g, "");
+            if (cleaned === "") return;
+            const raw = Number(cleaned);
+            if (!Number.isFinite(raw)) return;
+            setSelectedBalanceFundAmount(raw);
+        });
+
+        balanceFundCustomInput.addEventListener("change", () => {
+            if (balanceFundCustomInput.disabled) return;
+
+            const raw = Number(String(balanceFundCustomInput.value || "").replace(/[^\d]/g, ""));
+            if (!Number.isFinite(raw) || raw < MIN_BALANCE_FUND || raw > MAX_BALANCE_FUND) {
+                status.innerText = `Balance deposit must be between ${formatNumber(MIN_BALANCE_FUND)} and ${formatNumber(MAX_BALANCE_FUND)} PHAT.`;
+                return;
+            }
+
+            setSelectedBalanceFundAmount(raw);
+            setFundingMode("deposit_balance");
+            status.innerText = `Selected ${formatNumber(selectedBalanceFundAmount)} PHAT for balance deposit.`;
+        });
+
+        balanceFundCustomInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                balanceFundCustomInput.blur();
+            }
+        });
+    }
+
+    if (singleRoundModeBtn) {
+        singleRoundModeBtn.addEventListener("click", () => {
+            if (singleRoundModeBtn.disabled) return;
+            setFundingMode("single_round");
+            status.innerText = balanceCoversWager
+                ? "Balance covers this wager. Start when ready."
+                : "Single round funding selected.";
+            syncStartButtonState();
+        });
+    }
+
+    if (depositBalanceModeBtn) {
+        depositBalanceModeBtn.addEventListener("click", () => {
+            if (depositBalanceModeBtn.disabled) return;
+            setFundingMode("deposit_balance");
+            status.innerText = "Balance deposit mode selected.";
+            syncStartButtonState();
+        });
+    }
+
+    if (createBalanceIntentBtn) {
+        createBalanceIntentBtn.addEventListener("click", async () => {
+            if (createBalanceIntentBtn.disabled) return;
+            setFundingMode("deposit_balance");
+            await replaceIntentForBalanceDeposit();
         });
     }
 
@@ -2393,7 +3112,27 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    function playNomSound() { safePlaySound(nomSound); }
+    function playStartSound() { safePlaySound(startSound); }
+    function playPoisonSound() { safePlaySound(poisonSound); }
+    function playBaseCashoutSound() { safePlaySound(cashoutSound); }
+    function playJackpotCashoutSound() { safePlaySound(jackpotSound); }
+    function playWowSound() { safePlaySound(wowSound); }
+
+    function playCashoutTierSound() {
+        if (safeFoundCount >= 10) {
+            playJackpotCashoutSound();
+            setTimeout(() => playWowSound(), 250);
+        } else if (multiplier >= 2.0) {
+            playJackpotCashoutSound();
+        } else {
+            playBaseCashoutSound();
+        }
+    }
+
     setSelectedWager(DEFAULT_WAGER);
+    setSelectedBalanceFundAmount(DEFAULT_BALANCE_FUND);
+    setFundingMode("single_round");
     multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
     updateCashoutButton();
     updateLadder();
@@ -2417,16 +3156,30 @@ document.addEventListener("DOMContentLoaded", function () {
         const restored = await restoreActiveRoundIfAny();
         if (restored) return;
 
-        if (balanceCoversWager) {
+        await loadOpenIntent(false);
+
+        if (currentIntent && isBalanceDepositIntent(currentIntent)) {
+            setFundingMode("deposit_balance");
+        }
+
+        if (fundingMode === "deposit_balance") {
+            if (currentIntent?.status === "funded") {
+                status.innerText = "Balance deposit received.";
+            } else if (currentIntent?.status === "pending") {
+                status.innerText = "Waiting for your balance deposit.";
+            } else {
+                status.innerText = "Choose a balance deposit amount.";
+            }
+        } else if (balanceCoversWager) {
             renderIntent(null);
             stopIntentPolling();
             status.innerText = "Balance covers this wager. Start when ready.";
+        } else if (currentIntent?.status === "funded") {
+            status.innerText = "Deposit received. Start your round.";
+        } else if (currentIntent?.status === "pending") {
+            status.innerText = "Waiting for your deposit.";
         } else {
-            await loadOpenIntent(true);
-
-            if (!currentIntent) {
-                status.innerText = "Choose a wager to begin.";
-            }
+            status.innerText = "Choose a wager to begin.";
         }
 
         syncFundingButtons();
