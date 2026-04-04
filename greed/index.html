@@ -40,32 +40,91 @@
 
             <!-- Funding Panel -->
             <div id="funding-panel">
-                <div id="funding-title">Place Your Wager</div>
+                <div id="funding-title">Choose Funding Mode</div>
 
-                <div id="quick-wager-grid">
-                    <button class="quick-wager-btn" type="button" data-wager="1000">1K</button>
-                    <button class="quick-wager-btn" type="button" data-wager="5000">5K</button>
-                    <button class="quick-wager-btn" type="button" data-wager="10000">10K</button>
-                    <button class="quick-wager-btn" type="button" data-wager="25000">25K</button>
-                    <button class="quick-wager-btn" type="button" data-wager="50000">50K</button>
+                <div id="funding-mode-switch">
+                    <button id="single-round-mode-btn" class="funding-mode-btn active" type="button">
+                        <span class="funding-mode-title">Single Round</span>
+                        <span class="funding-mode-subtitle">Fund one locked wager</span>
+                    </button>
+
+                    <button id="balance-fund-mode-btn" class="funding-mode-btn" type="button">
+                        <span class="funding-mode-title">Deposit Balance</span>
+                        <span class="funding-mode-subtitle">Fund up to 250K PHAT</span>
+                    </button>
                 </div>
 
-                <div id="custom-wager-wrap">
-                    <label for="custom-wager-input">Custom Wager</label>
-                    <input
-                        id="custom-wager-input"
-                        type="number"
-                        inputmode="numeric"
-                        min="1000"
-                        max="50000"
-                        step="1"
-                        placeholder="Enter PHAT amount"
-                    />
+                <!-- SINGLE ROUND MODE -->
+                <div id="single-round-section" class="funding-mode-section">
+                    <div id="quick-wager-grid">
+                        <button class="quick-wager-btn" type="button" data-wager="1000">1K</button>
+                        <button class="quick-wager-btn" type="button" data-wager="5000">5K</button>
+                        <button class="quick-wager-btn" type="button" data-wager="10000">10K</button>
+                        <button class="quick-wager-btn" type="button" data-wager="25000">25K</button>
+                        <button class="quick-wager-btn" type="button" data-wager="50000">50K</button>
+                    </div>
+
+                    <div id="custom-wager-wrap">
+                        <label for="custom-wager-input">Custom Wager</label>
+                        <input
+                            id="custom-wager-input"
+                            type="number"
+                            inputmode="numeric"
+                            min="1000"
+                            max="50000"
+                            step="1"
+                            placeholder="Enter PHAT amount"
+                        />
+                    </div>
+
+                    <div id="selected-wager-wrap">
+                        <span class="funding-label">Selected Wager</span>
+                        <span id="selected-wager-value">1,000 PHAT</span>
+                    </div>
+
+                    <div id="funding-help">
+                        Tap a wager button to generate a single-round funding amount.
+                    </div>
                 </div>
 
-                <div id="selected-wager-wrap">
-                    <span class="funding-label">Selected Wager</span>
-                    <span id="selected-wager-value">1,000 PHAT</span>
+                <!-- BALANCE FUND MODE -->
+                <div id="balance-fund-section" class="funding-mode-section hidden">
+                    <div id="balance-fund-grid">
+                        <button class="balance-fund-btn" type="button" data-amount="1000">1K</button>
+                        <button class="balance-fund-btn" type="button" data-amount="5000">5K</button>
+                        <button class="balance-fund-btn" type="button" data-amount="10000">10K</button>
+                        <button class="balance-fund-btn" type="button" data-amount="25000">25K</button>
+                        <button class="balance-fund-btn" type="button" data-amount="50000">50K</button>
+                        <button class="balance-fund-btn" type="button" data-amount="100000">100K</button>
+                        <button class="balance-fund-btn" type="button" data-amount="150000">150K</button>
+                        <button class="balance-fund-btn" type="button" data-amount="250000">250K</button>
+                    </div>
+
+                    <div id="balance-fund-custom-wrap">
+                        <label for="balance-fund-custom-input">Custom Fund</label>
+                        <input
+                            id="balance-fund-custom-input"
+                            type="number"
+                            inputmode="numeric"
+                            min="1000"
+                            max="250000"
+                            step="1"
+                            placeholder="Enter PHAT amount"
+                        />
+                    </div>
+
+                    <div id="selected-balance-fund-wrap">
+                        <span class="funding-label">Selected Deposit</span>
+                        <span id="selected-balance-fund-value">1,000 PHAT</span>
+                    </div>
+
+                    <div id="balance-fund-help">
+                        Deposit PHAT into internal balance for future rounds.
+                    </div>
+
+                    <div id="balance-fund-limit-note">
+                        Max balance deposit: 250,000 PHAT
+                    </div>
                 </div>
 
                 <div id="intent-actions">
@@ -120,10 +179,6 @@
                     </div>
                 </div>
 
-                <div id="funding-help">
-                    Tap a wager button to generate a funding amount.
-                </div>
-
                 <div id="funding-polling-note">
                     Waiting for selection.
                 </div>
@@ -131,6 +186,10 @@
 
             <button id="start-game-btn" type="button" disabled>
                 Start Round
+            </button>
+
+            <button id="create-balance-intent-btn" type="button" disabled style="display:none;">
+                Create Balance Deposit
             </button>
         </div>
     </div>
@@ -209,26 +268,26 @@
         </div>
     </div>
 
-<!-- Fairness Panel (hidden during gameplay; shown only in overlays) -->
-<div id="fairness-panel" style="display:none;">
-    <div class="fairness-title">Provably Fair</div>
-    <div class="fairness-row">
-        <span class="fairness-label">Commit Hash</span>
-        <span id="fairness-commit">—</span>
+    <!-- Fairness Panel (hidden during gameplay; shown only in overlays) -->
+    <div id="fairness-panel" style="display:none;">
+        <div class="fairness-title">Provably Fair</div>
+        <div class="fairness-row">
+            <span class="fairness-label">Commit Hash</span>
+            <span id="fairness-commit">—</span>
+        </div>
+        <div class="fairness-row">
+            <span class="fairness-label">Server Seed</span>
+            <span id="fairness-seed">—</span>
+        </div>
+        <div class="fairness-row">
+            <span class="fairness-label">Nonce</span>
+            <span id="fairness-nonce">—</span>
+        </div>
+        <div class="fairness-row">
+            <span class="fairness-label">Poison Indices</span>
+            <span id="fairness-poison">—</span>
+        </div>
     </div>
-    <div class="fairness-row">
-        <span class="fairness-label">Server Seed</span>
-        <span id="fairness-seed">—</span>
-    </div>
-    <div class="fairness-row">
-        <span class="fairness-label">Nonce</span>
-        <span id="fairness-nonce">—</span>
-    </div>
-    <div class="fairness-row">
-        <span class="fairness-label">Poison Indices</span>
-        <span id="fairness-poison">—</span>
-    </div>
-</div>
 
     <!-- Cashout -->
     <div id="cashout-wrap">
