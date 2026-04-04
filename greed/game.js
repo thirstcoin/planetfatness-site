@@ -2903,16 +2903,19 @@ async function replaceIntentForBalanceDeposit() {
     });
 
     balanceFundButtons.forEach((btn) => {
-        btn.addEventListener("click", () => {
-            if (btn.disabled) return;
-            const amount = Number(btn.dataset.amount || 0);
-            if (amount > 0) {
-                setSelectedBalanceFundAmount(amount);
-                setFundingMode("deposit_balance");
-                status.innerText = `Selected ${formatNumber(amount)} PHAT for balance deposit.`;
-            }
-        });
+    btn.addEventListener("click", async () => {
+        if (btn.disabled) return;
+
+        const amount = Number(btn.dataset.amount || 0);
+        if (amount > 0) {
+            setSelectedBalanceFundAmount(amount);
+            setFundingMode("deposit_balance");
+            status.innerText = `Selected ${formatNumber(amount)} PHAT for balance deposit.`;
+
+            await replaceIntentForBalanceDeposit();
+        }
     });
+});
 
     if (customWagerInput) {
         customWagerInput.addEventListener("input", () => {
@@ -2954,36 +2957,41 @@ async function replaceIntentForBalanceDeposit() {
         });
     }
 
-    if (balanceFundCustomInput) {
-        balanceFundCustomInput.addEventListener("input", () => {
-            const cleaned = String(balanceFundCustomInput.value || "").replace(/[^\d]/g, "");
-            if (cleaned === "") return;
-            const raw = Number(cleaned);
-            if (!Number.isFinite(raw)) return;
-            setSelectedBalanceFundAmount(raw);
-        });
+if (balanceFundCustomInput) {
+    balanceFundCustomInput.addEventListener("input", () => {
+        const cleaned = String(balanceFundCustomInput.value || "").replace(/[^\d]/g, "");
+        if (cleaned === "") return;
 
-        balanceFundCustomInput.addEventListener("change", () => {
-            if (balanceFundCustomInput.disabled) return;
+        const raw = Number(cleaned);
+        if (!Number.isFinite(raw)) return;
 
-            const raw = Number(String(balanceFundCustomInput.value || "").replace(/[^\d]/g, ""));
-            if (!Number.isFinite(raw) || raw < MIN_BALANCE_FUND || raw > MAX_BALANCE_FUND) {
-                status.innerText = `Balance deposit must be between ${formatNumber(MIN_BALANCE_FUND)} and ${formatNumber(MAX_BALANCE_FUND)} PHAT.`;
-                return;
-            }
+        setSelectedBalanceFundAmount(raw);
+        setFundingMode("deposit_balance");
+    });
 
-            setSelectedBalanceFundAmount(raw);
-            setFundingMode("deposit_balance");
-            status.innerText = `Selected ${formatNumber(selectedBalanceFundAmount)} PHAT for balance deposit.`;
-        });
+    balanceFundCustomInput.addEventListener("change", async () => {
+        if (balanceFundCustomInput.disabled) return;
 
-        balanceFundCustomInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                balanceFundCustomInput.blur();
-            }
-        });
-    }
+        const raw = Number(String(balanceFundCustomInput.value || "").replace(/[^\d]/g, ""));
+        if (!Number.isFinite(raw) || raw < MIN_BALANCE_FUND || raw > MAX_BALANCE_FUND) {
+            status.innerText = `Balance deposit must be between ${formatNumber(MIN_BALANCE_FUND)} and ${formatNumber(MAX_BALANCE_FUND)} PHAT.`;
+            return;
+        }
+
+        setSelectedBalanceFundAmount(raw);
+        setFundingMode("deposit_balance");
+        status.innerText = `Selected ${formatNumber(selectedBalanceFundAmount)} PHAT for balance deposit.`;
+
+        await replaceIntentForBalanceDeposit();
+    });
+
+    balanceFundCustomInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            balanceFundCustomInput.blur(); // triggers change → triggers intent
+        }
+    });
+}
 
     if (singleRoundModeBtn) {
         singleRoundModeBtn.addEventListener("click", () => {
