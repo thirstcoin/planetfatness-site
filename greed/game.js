@@ -1091,14 +1091,6 @@ document.addEventListener("DOMContentLoaded", function () {
             depositBalanceModeBtn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
         }
 
-        if (createBalanceIntentBtn) {
-            createBalanceIntentBtn.disabled =
-                !authReady ||
-                intentBusy ||
-                hasStartedRound ||
-                roundStarting ||
-                fundingMode !== "deposit_balance";
-        }
 
         if (copyWalletBtn) {
             copyWalletBtn.disabled = shouldDisableSingleFunding || !pendingOrFunded || !currentIntent?.depositWallet;
@@ -3065,34 +3057,34 @@ if (balanceFundCustomInput) {
         });
     }
 
-    if (createBalanceIntentBtn) {
-        createBalanceIntentBtn.addEventListener("click", async () => {
-            if (createBalanceIntentBtn.disabled) return;
-            setFundingMode("deposit_balance");
-            await replaceIntentForBalanceDeposit();
-        });
-    }
 
-    if (cancelIntentBtn) {
-        cancelIntentBtn.addEventListener("click", async () => {
-    if (cancelIntentBtn.disabled) return;
+   if (cancelIntentBtn) {
+    cancelIntentBtn.addEventListener("click", async () => {
+        if (cancelIntentBtn.disabled) return;
 
-    const hasLiveIntent =
-        currentIntent &&
-        (currentIntent.status === "pending" || currentIntent.status === "funded");
+        const hasLiveIntent =
+            currentIntent &&
+            (currentIntent.status === "pending" || currentIntent.status === "funded");
 
-    if (hasLiveIntent) {
-        // 👉 behaves as CANCEL
-        await cancelDepositIntent(false);
-        return;
-    }
+        if (hasLiveIntent) {
+            // CANCEL
+            await cancelDepositIntent(false);
+            return;
+        }
 
-    if (fundingMode === "deposit_balance") {
-        // 👉 behaves as START FUNDING
-        await replaceIntentForBalanceDeposit();
-    }
-});
-    }
+        if (fundingMode === "deposit_balance") {
+            // START FUNDING (force create intent)
+            status.innerText = `Creating ${formatNumber(selectedBalanceFundAmount)} PHAT balance deposit...`;
+            await createDepositIntent("balance_deposit", selectedBalanceFundAmount);
+            return;
+        }
+
+        if (fundingMode === "single_round" && !balanceCoversWager) {
+            status.innerText = `Creating ${formatNumber(selectedWager)} PHAT round deposit...`;
+            await replaceIntentForSelectedWager();
+        }
+    });
+}
 
     if (copyWalletBtn) {
         copyWalletBtn.addEventListener("click", copyWalletAddress);
