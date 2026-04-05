@@ -754,7 +754,60 @@ body {
     text-align: center;
     line-height: 1.05;
 }
+/* Live fairness badge */
+#live-fairness-badge {
+    position: absolute;
+    top: 205px;
+    right: 18px;
+    z-index: 533;
+    display: none;
+    min-width: 120px;
+    max-width: 180px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(8, 8, 12, 0.84);
+    border: 1px solid rgba(255, 215, 0, 0.16);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.42);
+    pointer-events: none;
+}
 
+.live-fairness-title {
+    font-size: 10px;
+    font-weight: 900;
+    color: #FFD700;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    text-align: center;
+    margin-bottom: 6px;
+}
+
+.live-fairness-line {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 3px;
+}
+
+.live-fairness-line:last-child {
+    margin-bottom: 0;
+}
+
+.live-fairness-label {
+    font-size: 9px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.72);
+    text-transform: uppercase;
+}
+
+#live-fairness-commit,
+#live-fairness-nonce {
+    font-size: 10px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+    word-break: break-all;
+}
 /* 2. Game Container - The Board */
 #game-container {
     position: absolute;
