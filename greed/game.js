@@ -1031,13 +1031,41 @@ document.addEventListener("DOMContentLoaded", function () {
         const pendingOrFunded = intentStatus === "pending" || intentStatus === "funded";
         const shouldDisableSingleFunding = balanceCoversWager && fundingMode === "single_round";
 
-        if (cancelIntentBtn) {
-            cancelIntentBtn.disabled =
-                !authReady ||
-                intentBusy ||
-                !hasIntent ||
-                !(intentStatus === "pending" || intentStatus === "funded");
-        }
+       if (cancelIntentBtn) {
+    const canCancel =
+        hasIntent &&
+        (intentStatus === "pending" || intentStatus === "funded");
+
+    const noIntentInDepositMode =
+        fundingMode === "deposit_balance" && !hasIntent;
+
+    if (noIntentInDepositMode) {
+        // 👉 No intent yet → this should act as "Start Funding"
+        cancelIntentBtn.disabled =
+            !authReady ||
+            intentBusy ||
+            hasStartedRound ||
+            roundStarting;
+
+        cancelIntentBtn.textContent = "Start Funding";
+
+    } else if (canCancel) {
+        // 👉 Active intent → this should act as "Cancel Funding"
+        cancelIntentBtn.disabled =
+            !authReady ||
+            intentBusy;
+
+        cancelIntentBtn.textContent = "Cancel Funding";
+
+    } else {
+        // fallback safety
+        cancelIntentBtn.disabled = true;
+        cancelIntentBtn.textContent =
+            fundingMode === "deposit_balance"
+                ? "Start Funding"
+                : "Cancel Funding";
+    }
+}
 
         if (customWagerInput) {
             customWagerInput.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
@@ -1326,13 +1354,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 body: JSON.stringify({})
             });
 
-            const nextIntent = normalizeIntent(data?.intent || null);
-            renderIntent(nextIntent);
-            stopIntentPolling();
+       const nextIntent = normalizeIntent(data?.intent || null);
+stopIntentPolling();
 
-            if (!silent) {
-                status.innerText = "Funding cancelled.";
-            }
+if (nextIntent?.status === "cancelled" || !nextIntent) {
+    // 🔥 clear the UI completely
+    renderIntent(null);
+
+    if (!silent) {
+        status.innerText =
+            fundingMode === "deposit_balance"
+                ? "Funding cancelled. Choose a balance deposit amount."
+                : "Funding cancelled. Choose a wager again.";
+    }
+} else {
+    renderIntent(nextIntent);
+
+    if (!silent) {
+        status.innerText = "Funding cancelled.";
+    }
+}
 
             return currentIntent;
         } catch (err) {
@@ -2905,17 +2946,21 @@ async function replaceIntentForBalanceDeposit() {
         });
     });
 
-    balanceFundButtons.forEach((btn) => {
-    btn.addEventListener("click", async () => {
+ balanceFundButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
         if (btn.disabled) return;
 
         const amount = Number(btn.dataset.amount || 0);
         if (amount > 0) {
             setSelectedBalanceFundAmount(amount);
             setFundingMode("deposit_balance");
-            status.innerText = `Selected ${formatNumber(amount)} PHAT for balance deposit.`;
 
-            await replaceIntentForBalanceDeposit();
+            if (!currentIntent) {
+                renderIntent(null);
+            }
+
+            status.innerText = `Selected ${formatNumber(amount)} PHAT for balance deposit. Tap Start Funding to generate wallet + amount.`;
+            syncFundingButtons();
         }
     });
 });
@@ -2972,7 +3017,7 @@ if (balanceFundCustomInput) {
         setFundingMode("deposit_balance");
     });
 
-    balanceFundCustomInput.addEventListener("change", async () => {
+    balanceFundCustomInput.addEventListener("change", () => {
         if (balanceFundCustomInput.disabled) return;
 
         const raw = Number(String(balanceFundCustomInput.value || "").replace(/[^\d]/g, ""));
@@ -2983,17 +3028,22 @@ if (balanceFundCustomInput) {
 
         setSelectedBalanceFundAmount(raw);
         setFundingMode("deposit_balance");
-        status.innerText = `Selected ${formatNumber(selectedBalanceFundAmount)} PHAT for balance deposit.`;
 
-        await replaceIntentForBalanceDeposit();
+        if (!currentIntent) {
+            renderIntent(null);
+        }
+
+        status.innerText = `Selected ${formatNumber(selectedBalanceFundAmount)} PHAT for balance deposit. Tap Start Funding to generate wallet + amount.`;
+        syncFundingButtons();
     });
 
     balanceFundCustomInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
             e.preventDefault();
-            balanceFundCustomInput.blur(); // triggers change → triggers intent
+            balanceFundCustomInput.blur();
         }
     });
+}
 }
 
     if (singleRoundModeBtn) {
@@ -3025,7 +3075,24 @@ if (balanceFundCustomInput) {
     }
 
     if (cancelIntentBtn) {
-        cancelIntentBtn.addEventListener("click", () => cancelDepositIntent(false));
+        cancelIntentBtn.addEventListener("click", async () => {
+    if (cancelIntentBtn.disabled) return;
+
+    const hasLiveIntent =
+        currentIntent &&
+        (currentIntent.status === "pending" || currentIntent.status === "funded");
+
+    if (hasLiveIntent) {
+        // 👉 behaves as CANCEL
+        await cancelDepositIntent(false);
+        return;
+    }
+
+    if (fundingMode === "deposit_balance") {
+        // 👉 behaves as START FUNDING
+        await replaceIntentForBalanceDeposit();
+    }
+});
     }
 
     if (copyWalletBtn) {
