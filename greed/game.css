@@ -654,21 +654,22 @@ body {
 /* Top UI cluster */
 #top-ui {
     position: absolute;
-    top: 7.2%;
+    top: 24px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 530;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     pointer-events: none;
 }
 
 /* Top action buttons */
 #top-action-buttons {
     position: absolute;
-    top: 15.3%;
+    top: 205px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 531;
@@ -676,6 +677,7 @@ body {
     gap: 8px;
     align-items: center;
     justify-content: center;
+    width: min(92vw, 700px);
 }
 
 .top-action-btn {
@@ -708,11 +710,11 @@ body {
 /* Compact global stats strip */
 #global-stats {
     position: absolute;
-    top: 21.8%;
+    top: 268px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 532;
-    width: min(82vw, 620px);
+    width: min(92vw, 620px);
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
@@ -1005,10 +1007,11 @@ body {
 /* 5. Multiplier Display */
 #multiplier-display {
     color: #FFD700;
-    font-size: clamp(54px, 6vw, 86px);
+    font-size: clamp(62px, 7vw, 92px);
     font-weight: 900;
     line-height: 1;
     letter-spacing: 1px;
+    margin: 0;
     text-shadow:
         0 3px 10px rgba(0,0,0,0.9),
         0 0 18px rgba(255, 215, 0, 0.28);
@@ -1029,20 +1032,21 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0;
+    gap: 2px;
+    margin-top: -2px;
 }
 
 #jackpot-label {
-    font-size: clamp(10px, 0.9vw, 13px);
+    font-size: clamp(12px, 1vw, 15px);
     font-weight: 800;
-    color: rgba(255,255,255,0.90);
+    color: rgba(255,255,255,0.92);
     text-shadow: 0 2px 10px rgba(0,0,0,0.9);
     letter-spacing: 0.2px;
     line-height: 1.05;
 }
 
 #jackpot-amount {
-    font-size: clamp(17px, 1.45vw, 22px);
+    font-size: clamp(20px, 1.7vw, 28px);
     font-weight: 900;
     color: #FFD700;
     text-shadow:
