@@ -1163,11 +1163,13 @@ const noIntentInDepositMode =
             return;
         }
 
-        if (fundingMode === "deposit_balance") {
-            startGameBtn.disabled = true;
-            startGameBtn.textContent = "Deposit To Balance";
-            return;
-        }
+    if (fundingMode === "deposit_balance") {
+    startGameBtn.disabled = true;
+    startGameBtn.style.display = "none";
+    return;
+} else {
+    startGameBtn.style.display = "";
+}
 
         if (balanceCoversWager) {
             startGameBtn.disabled = false;
