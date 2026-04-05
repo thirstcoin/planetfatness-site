@@ -25,6 +25,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const ladderNextLabel = document.getElementById("ladder-next-label");
     const jackpotAmount = document.getElementById("jackpot-amount");
 
+    const liveFairnessBadge = document.getElementById("live-fairness-badge");
+    const liveFairnessCommit = document.getElementById("live-fairness-commit");
+    const liveFairnessNonce = document.getElementById("live-fairness-nonce");
+    
     const poisonOverlay = document.getElementById("poison-overlay");
     const poisonVideo = document.getElementById("poison-video");
     const poisonNewRoundBtn = document.getElementById("poison-new-round-btn");
@@ -430,24 +434,33 @@ document.addEventListener("DOMContentLoaded", function () {
         return Number(intent.requestedWager || intent.exactAmount || 0);
     }
 
-    function setFairnessPanel() {
-        const poisonText = formatPoisonIndices(revealedPoisonIndices);
+   function setFairnessPanel() {
+    const poisonText = formatPoisonIndices(revealedPoisonIndices);
 
-        fillText(fairnessCommitEl, commitHash || "—");
-        fillText(fairnessSeedEl, revealedServerSeed || "—");
-        fillText(fairnessNonceEl, fairnessNonce || "—");
-        fillText(fairnessPoisonEl, poisonText);
+    fillText(fairnessCommitEl, commitHash || "—");
+    fillText(fairnessSeedEl, revealedServerSeed || "—");
+    fillText(fairnessNonceEl, fairnessNonce || "—");
+    fillText(fairnessPoisonEl, poisonText);
 
-        fillText(poisonFairnessCommitEl, commitHash || "—");
-        fillText(poisonFairnessSeedEl, revealedServerSeed || "—");
-        fillText(poisonFairnessNonceEl, fairnessNonce || "—");
-        fillText(poisonFairnessPoisonEl, poisonText);
+    fillText(poisonFairnessCommitEl, commitHash || "—");
+    fillText(poisonFairnessSeedEl, revealedServerSeed || "—");
+    fillText(poisonFairnessNonceEl, fairnessNonce || "—");
+    fillText(poisonFairnessPoisonEl, poisonText);
 
-        fillText(winFairnessCommitEl, commitHash || "—");
-        fillText(winFairnessSeedEl, revealedServerSeed || "—");
-        fillText(winFairnessNonceEl, fairnessNonce || "—");
-        fillText(winFairnessPoisonEl, poisonText);
+    fillText(winFairnessCommitEl, commitHash || "—");
+    fillText(winFairnessSeedEl, revealedServerSeed || "—");
+    fillText(winFairnessNonceEl, fairnessNonce || "—");
+    fillText(winFairnessPoisonEl, poisonText);
+
+    // ✅ LIVE BADGE UPDATE
+    fillText(liveFairnessCommit, commitHash ? shortHash(commitHash) : "—");
+    fillText(liveFairnessNonce, fairnessNonce || "—");
+
+    if (liveFairnessBadge) {
+        const showBadge = !!commitHash && hasStartedRound && !isGameOver;
+        liveFairnessBadge.style.display = showBadge ? "block" : "none";
     }
+}
 
     function startLockingStatus(message = "Locking round") {
         stopLockingStatus();
