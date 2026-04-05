@@ -2519,92 +2519,93 @@ async function replaceIntentForBalanceDeposit() {
     }
 
     async function beginRoundFromIntro() {
-        if (!authReady) {
-            status.innerText = "Session required. Reopen from Telegram.";
-            return;
-        }
+    if (!authReady) {
+        status.innerText = "Session required. Reopen from Telegram.";
+        return;
+    }
 
-        if (fundingMode === "deposit_balance") {
-            status.innerText = "Switch to Single Round mode to start a round.";
-            return;
-        }
+    if (fundingMode === "deposit_balance") {
+        status.innerText = "Switch to Single Round mode to start a round.";
+        return;
+    }
 
+    await refreshBalance(true);
+
+    if (!balanceCoversWager && (!currentIntent || currentIntent.status !== "funded")) {
+        status.innerText = "Fund your round first.";
+        syncStartButtonState();
+        return;
+    }
+
+    if (hasStartedRound || isGameOver || roundStarting) return;
+
+    roundStarting = true;
+    pickInFlight = true;
+    setInteractionCooldown(START_LOCK_MIN_MS);
+    setBoardPointerState("none");
+    updateCashoutButton();
+
+    startGameBtn.disabled = true;
+    startGameBtn.textContent = "Starting Round...";
+
+    playIntroSequence();
+    startLockingStatus("Locking wager");
+
+    const startTs = Date.now();
+
+    try {
+        await startBackendRound();
         await refreshBalance(true);
+        await refreshGreedGlobalStats();
+        await refreshLeaderboards();
 
-        if (!balanceCoversWager && (!currentIntent || currentIntent.status !== "funded")) {
-            status.innerText = "Fund your round first.";
-            syncStartButtonState();
-            return;
+        const elapsed = Date.now() - startTs;
+        const remaining = Math.max(0, START_LOCK_MIN_MS - elapsed);
+        if (remaining > 0) {
+            await sleep(remaining);
         }
 
-        if (hasStartedRound || isGameOver || roundStarting) return;
+        hasStartedRound = true;
+        roundStarting = false;
+        pickInFlight = false;
+        setFairnessPanel();
 
-        roundStarting = true;
-        pickInFlight = true;
-        setInteractionCooldown(START_LOCK_MIN_MS);
-        setBoardPointerState("none");
+        hideIntroOverlay();
+        multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+        updateLadder();
         updateCashoutButton();
 
-        startGameBtn.disabled = true;
-        startGameBtn.textContent = "Starting Round...";
+        stopLockingStatus("Choose wisely...");
+        unlockBoard();
+        syncFundingButtons();
+        syncStartButtonState();
+    } catch (err) {
+        console.warn("Backend round start failed:", err);
 
-        playIntroSequence();
-        startLockingStatus("Locking wager");
+        roundStarting = false;
+        pickInFlight = false;
+        hasStartedRound = false;
+        roundId = null;
+        currentRoundWager = 0;
+        commitHash = "";
+        fairnessNonce = "";
+        revealedServerSeed = "";
+        revealedPoisonIndices = [];
+        interactionLockedUntil = 0;
+        setFairnessPanel();
 
-        const startTs = Date.now();
+        const msg = String(err?.message || "Round failed to start");
+        stopLockingStatus(msg);
 
-        try {
-            await startBackendRound();
-            await refreshBalance(true);
-            await refreshGreedGlobalStats();
-            await refreshLeaderboards();
-
-            const elapsed = Date.now() - startTs;
-            const remaining = Math.max(0, START_LOCK_MIN_MS - elapsed);
-            if (remaining > 0) {
-                await sleep(remaining);
-            }
-
-            hasStartedRound = true;
-            roundStarting = false;
-            pickInFlight = false;
-
-            hideIntroOverlay();
-            multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
-            updateLadder();
-            updateCashoutButton();
-
-            stopLockingStatus("Choose wisely...");
-            unlockBoard();
+        if (msg.toLowerCase().includes("invalid token") || msg.toLowerCase().includes("missing auth token")) {
+            clearStoredTokens();
+            authReady = false;
+            renderIntent(null);
+            status.innerText = "Session expired. Reopen from Telegram.";
             syncFundingButtons();
             syncStartButtonState();
-        } catch (err) {
-            console.warn("Backend round start failed:", err);
-
-            roundStarting = false;
-            pickInFlight = false;
-            hasStartedRound = false;
-            roundId = null;
-            currentRoundWager = 0;
-            commitHash = "";
-            fairnessNonce = "";
-            revealedServerSeed = "";
-            revealedPoisonIndices = [];
-            interactionLockedUntil = 0;
-            setFairnessPanel();
-
-            const msg = String(err?.message || "Round failed to start");
-            stopLockingStatus(msg);
-
-            if (msg.toLowerCase().includes("invalid token") || msg.toLowerCase().includes("missing auth token")) {
-                clearStoredTokens();
-                authReady = false;
-                renderIntent(null);
-                status.innerText = "Session expired. Reopen from Telegram.";
-                syncFundingButtons();
-                syncStartButtonState();
-                return;
-            }
+            return;
+        }
 
             if (
                 msg.toLowerCase().includes("funding required") ||
