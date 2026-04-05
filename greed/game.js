@@ -1812,31 +1812,35 @@ async function replaceIntentForBalanceDeposit() {
     }
 
     function resetRoundStateForFreshStart() {
-        stopLockingStatus();
+    stopLockingStatus();
 
-        multiplier = 1.0;
-        safeFoundCount = 0;
-        isGameOver = false;
-        hasStartedRound = false;
-        roundStarting = false;
-        roundId = null;
-        currentRoundWager = 0;
-        commitHash = "";
-        fairnessNonce = "";
-        revealedServerSeed = "";
-        revealedPoisonIndices = [];
-        pickInFlight = false;
-        interactionLockedUntil = 0;
+    multiplier = 1.0;
+    safeFoundCount = 0;
+    isGameOver = false;
+    hasStartedRound = false;
+    roundStarting = false;
+    roundId = null;
+    currentRoundWager = 0;
+    commitHash = "";
+    fairnessNonce = "";
+    revealedServerSeed = "";
+    revealedPoisonIndices = [];
+    pickInFlight = false;
+    interactionLockedUntil = 0;
 
-        multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
-        updateLadder();
-        updateCashoutButton();
-        resetBoardVisuals();
-        setFairnessPanel();
+    multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+    updateLadder();
+    updateCashoutButton();
+    resetBoardVisuals();
+    setFairnessPanel();
 
-        syncFundingButtons();
-        syncStartButtonState();
+    if (liveFairnessBadge) {
+        liveFairnessBadge.style.display = "none";
     }
+
+    syncFundingButtons();
+    syncStartButtonState();
+}
 
     function openWithdrawModal() {
         if (!authReady || !withdrawModal) return;
