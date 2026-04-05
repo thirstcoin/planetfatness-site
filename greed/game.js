@@ -104,7 +104,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const balanceFundButtons = Array.from(document.querySelectorAll(".balance-fund-btn"));
     const balanceFundCustomInput = document.getElementById("balance-fund-custom-input");
     const selectedBalanceFundValue = document.getElementById("selected-balance-fund-value");
-    const createBalanceIntentBtn = document.getElementById("create-balance-intent-btn");
     const balanceFundHelpEl = document.getElementById("balance-fund-help");
     const balanceFundLimitNoteEl = document.getElementById("balance-fund-limit-note");
 
