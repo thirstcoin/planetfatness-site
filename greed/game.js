@@ -408,10 +408,20 @@ document.addEventListener("DOMContentLoaded", function () {
         };
     }
 
-    function isBalanceDepositIntent(intent) {
-        const t = String(intent?.intentType || "").toLowerCase();
-        return t === "balance_deposit" || t === "deposit_balance";
-    }
+   function isBalanceDepositIntent(intent) {
+    const t = String(
+        intent?.intentType ||
+        intent?.intent_type ||
+        ""
+    ).toLowerCase().trim();
+
+    return (
+        t === "balance_fund" ||
+        t === "balance_deposit" ||
+        t === "deposit_balance" ||
+        t === "balance"
+    );
+}
 
     function getActiveIntentDisplayBaseAmount(intent) {
         if (!intent) return 0;
