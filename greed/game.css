@@ -1914,6 +1914,32 @@ body {
         font-size: 18px;
     }
 
+    #live-fairness-badge {
+        top: 178px;
+        right: 10px;
+        min-width: 104px;
+        max-width: 140px;
+        padding: 7px 8px;
+    }
+
+    .live-fairness-title {
+        font-size: 9px;
+        margin-bottom: 5px;
+    }
+
+    .live-fairness-line {
+        grid-template-columns: 34px 1fr;
+        gap: 5px;
+    }
+
+    .live-fairness-label {
+        font-size: 8px;
+    }
+
+    #live-fairness-commit,
+    #live-fairness-nonce {
+        font-size: 9px;
+    }
     #funding-title {
         font-size: 16px;
     }
