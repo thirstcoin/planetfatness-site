@@ -1032,12 +1032,21 @@ document.addEventListener("DOMContentLoaded", function () {
         const shouldDisableSingleFunding = balanceCoversWager && fundingMode === "single_round";
 
        if (cancelIntentBtn) {
-    const canCancel =
-        hasIntent &&
-        (intentStatus === "pending" || intentStatus === "funded");
+    const liveIntent =
+    hasIntent &&
+    (intentStatus === "pending" || intentStatus === "funded");
 
-    const noIntentInDepositMode =
-        fundingMode === "deposit_balance" && !hasIntent;
+const liveIntentMatchesMode =
+    liveIntent &&
+    (
+        (fundingMode === "deposit_balance" && isBalanceDepositIntent(currentIntent)) ||
+        (fundingMode === "single_round" && !isBalanceDepositIntent(currentIntent))
+    );
+
+const canCancel = liveIntentMatchesMode;
+
+const noIntentInDepositMode =
+    fundingMode === "deposit_balance" && !liveIntentMatchesMode;
 
     if (noIntentInDepositMode) {
         // 👉 No intent yet → this should act as "Start Funding"
@@ -3058,22 +3067,27 @@ if (balanceFundCustomInput) {
     }
 
 
-   if (cancelIntentBtn) {
+  if (cancelIntentBtn) {
     cancelIntentBtn.addEventListener("click", async () => {
         if (cancelIntentBtn.disabled) return;
 
-        const hasLiveIntent =
+        const liveIntent =
             currentIntent &&
             (currentIntent.status === "pending" || currentIntent.status === "funded");
 
-        if (hasLiveIntent) {
-            // CANCEL
+        const liveIntentMatchesMode =
+            liveIntent &&
+            (
+                (fundingMode === "deposit_balance" && isBalanceDepositIntent(currentIntent)) ||
+                (fundingMode === "single_round" && !isBalanceDepositIntent(currentIntent))
+            );
+
+        if (liveIntentMatchesMode) {
             await cancelDepositIntent(false);
             return;
         }
 
         if (fundingMode === "deposit_balance") {
-            // START FUNDING (force create intent)
             status.innerText = `Creating ${formatNumber(selectedBalanceFundAmount)} PHAT balance deposit...`;
             await createDepositIntent("balance_deposit", selectedBalanceFundAmount);
             return;
