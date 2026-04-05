@@ -3044,7 +3044,6 @@ if (balanceFundCustomInput) {
         }
     });
 }
-}
 
     if (singleRoundModeBtn) {
         singleRoundModeBtn.addEventListener("click", () => {
