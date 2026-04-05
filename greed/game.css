@@ -2304,3 +2304,207 @@ body {
         font-size: 14px;
     }
 }
+/* =========================
+   FINAL GREED LAYOUT PATCH v2
+   REPLACE the old bottom patch with this
+   ========================= */
+
+/* Base */
+#top-ui {
+    position: absolute !important;
+    top: 10px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 530 !important;
+    width: min(92vw, 700px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0 !important;
+    pointer-events: none !important;
+}
+
+#multiplier-display {
+    font-size: clamp(64px, 8vw, 96px) !important;
+    line-height: 0.92 !important;
+    margin: 0 !important;
+    text-align: center !important;
+}
+
+#jackpot-wrap {
+    margin-top: -6px !important;
+    gap: 0 !important;
+}
+
+#jackpot-label {
+    font-size: clamp(10px, 0.9vw, 13px) !important;
+    line-height: 1 !important;
+}
+
+#jackpot-amount {
+    font-size: clamp(18px, 1.5vw, 24px) !important;
+    line-height: 1 !important;
+}
+
+#top-action-buttons {
+    position: absolute !important;
+    top: 118px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 531 !important;
+    width: min(88vw, 620px) !important;
+    display: flex !important;
+    gap: 8px !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+#global-stats {
+    position: absolute !important;
+    top: 170px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 532 !important;
+    width: min(82vw, 560px) !important;
+}
+
+#live-fairness-badge {
+    position: absolute !important;
+    top: 240px !important;
+    right: 12px !important;
+    left: auto !important;
+    z-index: 533 !important;
+    min-width: 102px !important;
+    max-width: 138px !important;
+    padding: 6px 7px !important;
+}
+
+.live-fairness-title {
+    font-size: 8px !important;
+    margin-bottom: 4px !important;
+}
+
+.live-fairness-line {
+    grid-template-columns: 30px 1fr !important;
+    gap: 4px !important;
+    margin-bottom: 2px !important;
+}
+
+.live-fairness-label {
+    font-size: 7px !important;
+}
+
+#live-fairness-commit,
+#live-fairness-nonce {
+    font-size: 8px !important;
+    line-height: 1.1 !important;
+}
+
+#game-container {
+    top: 57% !important;
+}
+
+#leaderboard-panel {
+    top: 24% !important;
+    max-height: 50vh !important;
+}
+
+#cashout-wrap {
+    bottom: 12.8% !important;
+}
+
+#cashout-button {
+    min-width: 300px !important;
+    max-width: 70vw !important;
+}
+
+#status {
+    bottom: 3.4% !important;
+}
+
+/* Mobile / Telegram */
+@media (max-width: 768px) {
+    #top-ui {
+        top: 14px !important;
+        width: min(92vw, 390px) !important;
+        gap: 0 !important;
+    }
+
+    #multiplier-display {
+        font-size: clamp(56px, 10.8vw, 74px) !important;
+        line-height: 0.92 !important;
+    }
+
+    #jackpot-wrap {
+        margin-top: -8px !important;
+    }
+
+    #jackpot-label {
+        font-size: 9px !important;
+    }
+
+    #jackpot-amount {
+        font-size: 14px !important;
+    }
+
+    #top-action-buttons {
+        top: 100px !important;
+        width: min(92vw, 390px) !important;
+        gap: 6px !important;
+    }
+
+    .top-action-btn {
+        min-height: 34px !important;
+        font-size: 11px !important;
+        padding: 0 8px !important;
+    }
+
+    #global-stats {
+        top: 148px !important;
+        width: min(88vw, 360px) !important;
+        gap: 6px !important;
+        padding: 8px !important;
+    }
+
+    .gs-row {
+        min-height: 40px !important;
+        padding: 6px 4px !important;
+    }
+
+    .gs-row span:first-child {
+        font-size: 8px !important;
+    }
+
+    .gs-row span:last-child {
+        font-size: 11px !important;
+    }
+
+    #live-fairness-badge {
+        top: 196px !important;
+        right: 8px !important;
+        min-width: 88px !important;
+        max-width: 122px !important;
+        padding: 5px 6px !important;
+    }
+
+    #game-container {
+        top: 58.5% !important;
+        width: 92vw !important;
+    }
+
+    #cashout-wrap {
+        bottom: 11.2% !important;
+    }
+
+    #cashout-button {
+        min-width: 260px !important;
+        max-width: 84vw !important;
+        font-size: 17px !important;
+    }
+
+    #status {
+        bottom: 2.6% !important;
+        width: min(92vw, 410px) !important;
+        font-size: clamp(16px, 4.6vw, 23px) !important;
+    }
+}
