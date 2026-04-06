@@ -1256,6 +1256,54 @@ body {
     bottom: 18.2%;
     transform: translateX(-50%);
     z-index: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: min(92vw, 420px);
+}
+
+#cashout-meta {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(8, 8, 12, 0.78);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.36);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.cashout-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.cashout-meta-label {
+    font-size: 11px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.74);
+    text-transform: uppercase;
+    letter-spacing: 0.22px;
+}
+
+#round-locked-amount,
+#cashout-now-amount {
+    font-size: 16px;
+    font-weight: 900;
+    color: #FFD700;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.85);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.cashout-meta-row-live #cashout-now-amount {
+    color: #fff3a6;
 }
 
 #cashout-button {
@@ -1264,6 +1312,7 @@ body {
     border-radius: 14px;
     padding: 15px 24px;
     min-width: 220px;
+    width: 100%;
     font-size: 22px;
     font-weight: 900;
     line-height: 1;
@@ -1312,7 +1361,6 @@ body {
     50% { transform: scale(1.075); }
     100% { transform: scale(1); }
 }
-
 /* 6. Overlays */
 #poison-overlay,
 #win-overlay {
@@ -1940,6 +1988,7 @@ body {
     #live-fairness-nonce {
         font-size: 9px;
     }
+
     #funding-title {
         font-size: 16px;
     }
@@ -2165,10 +2214,29 @@ body {
 
     #cashout-wrap {
         bottom: 16.9%;
+        width: min(88vw, 340px);
+        gap: 6px;
+    }
+
+    #cashout-meta {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 12px;
+        gap: 5px;
+    }
+
+    .cashout-meta-label {
+        font-size: 10px;
+    }
+
+    #round-locked-amount,
+    #cashout-now-amount {
+        font-size: 14px;
     }
 
     #cashout-button {
         min-width: 200px;
+        width: 100%;
         font-size: 18px;
         padding: 14px 20px;
     }
