@@ -984,29 +984,41 @@ document.addEventListener("DOMContentLoaded", function () {
             intentTxEl.title = currentIntent?.txSignature || "";
         }
 
-        if (fundingHelpEl) {
-            if (fundingMode === "deposit_balance") {
-                fundingHelpEl.textContent = currentIntent
-                    ? "Use Copy Amount and Copy Wallet, then send the exact PHAT amount shown."
-                    : "Choose a balance deposit amount to generate funding.";
-            } else if (balanceCoversWager) {
-                fundingHelpEl.textContent = "Your internal balance covers this wager. Funding is not required.";
-            } else if (!currentIntent) {
-                fundingHelpEl.textContent = "Choose a wager to generate a funding amount.";
-            } else if (currentIntent.status === "funded") {
-    fundingHelpEl.textContent = isBalanceDepositIntent(currentIntent)
-        ? "PHAT added to your balance. Tap Play With Balance below."
-        : "Deposit received. Your round is ready.";
-} else if (currentIntent.status === "pending") {
-    fundingHelpEl.textContent = "Use Copy Amount and Copy Wallet, then send the exact PHAT amount shown.";
-} else if (currentIntent.status === "expired") {
-    fundingHelpEl.textContent = "Funding expired. Pick a wager again.";
-} else if (currentIntent.status === "cancelled") {
-    fundingHelpEl.textContent = "Funding cancelled.";
-} else {
-    fundingHelpEl.textContent = "Round funding updated.";
-}
+if (fundingHelpEl) {
+    if (fundingMode === "deposit_balance") {
+        if (!currentIntent) {
+            fundingHelpEl.textContent = "Choose a balance deposit amount to generate funding.";
+        } else if (currentIntent.status === "pending") {
+            fundingHelpEl.textContent = "Use Copy Amount and Copy Wallet, then send the exact PHAT amount shown.";
+        } else if (currentIntent.status === "funded") {
+            fundingHelpEl.textContent = "Deposit received. Updating your internal balance...";
+        } else if (currentIntent.status === "consumed") {
+            fundingHelpEl.textContent = balanceCoversWager
+                ? "PHAT added to your balance. Tap Play With Balance below."
+                : "PHAT added to your balance. Add more PHAT or switch to Single Round.";
+        } else if (currentIntent.status === "expired") {
+            fundingHelpEl.textContent = "Funding expired. Choose a new balance deposit amount.";
+        } else if (currentIntent.status === "cancelled") {
+            fundingHelpEl.textContent = "Funding cancelled.";
+        } else {
+            fundingHelpEl.textContent = "Balance funding updated.";
         }
+    } else if (balanceCoversWager) {
+        fundingHelpEl.textContent = "Your internal balance covers this wager. Funding is not required.";
+    } else if (!currentIntent) {
+        fundingHelpEl.textContent = "Choose a wager to generate a funding amount.";
+    } else if (currentIntent.status === "funded") {
+        fundingHelpEl.textContent = "Deposit received. Your round is ready.";
+    } else if (currentIntent.status === "pending") {
+        fundingHelpEl.textContent = "Use Copy Amount and Copy Wallet, then send the exact PHAT amount shown.";
+    } else if (currentIntent.status === "expired") {
+        fundingHelpEl.textContent = "Funding expired. Pick a wager again.";
+    } else if (currentIntent.status === "cancelled") {
+        fundingHelpEl.textContent = "Funding cancelled.";
+    } else {
+        fundingHelpEl.textContent = "Round funding updated.";
+    }
+}
 
         if (fundingPollingNoteEl) {
             if (fundingMode === "deposit_balance" && !currentIntent) {
