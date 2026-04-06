@@ -965,11 +965,13 @@ document.addEventListener("DOMContentLoaded", function () {
         intentStatusEl.textContent = "EXPIRED";
     } else if (currentIntent.status === "cancelled") {
         intentStatusEl.textContent = "CANCELLED";
-    } else if (currentIntent.status === "consumed") {
-        intentStatusEl.textContent = "USED";
-    } else {
-        intentStatusEl.textContent = String(currentIntent.status || "").toUpperCase();
-    }
+  } else if (currentIntent.status === "consumed") {
+    intentStatusEl.textContent = isBalanceDepositIntent(currentIntent)
+        ? "BALANCE LOADED"
+        : "USED";
+} else {
+    intentStatusEl.textContent = String(currentIntent.status || "").toUpperCase();
+}
 }
 
         fillText(intentAmountEl, currentIntent?.exactAmount ? `${formatIntentAmount(currentIntent.exactAmount)} PHAT` : "—");
@@ -992,16 +994,18 @@ document.addEventListener("DOMContentLoaded", function () {
             } else if (!currentIntent) {
                 fundingHelpEl.textContent = "Choose a wager to generate a funding amount.";
             } else if (currentIntent.status === "funded") {
-                fundingHelpEl.textContent = "Deposit received. Your round is ready.";
-            } else if (currentIntent.status === "pending") {
-                fundingHelpEl.textContent = "Use Copy Amount and Copy Wallet, then send the exact PHAT amount shown.";
-            } else if (currentIntent.status === "expired") {
-                fundingHelpEl.textContent = "Funding expired. Pick a wager again.";
-            } else if (currentIntent.status === "cancelled") {
-                fundingHelpEl.textContent = "Funding cancelled.";
-            } else {
-                fundingHelpEl.textContent = "Round funding updated.";
-            }
+    fundingHelpEl.textContent = isBalanceDepositIntent(currentIntent)
+        ? "PHAT added to your balance. Tap Play With Balance below."
+        : "Deposit received. Your round is ready.";
+} else if (currentIntent.status === "pending") {
+    fundingHelpEl.textContent = "Use Copy Amount and Copy Wallet, then send the exact PHAT amount shown.";
+} else if (currentIntent.status === "expired") {
+    fundingHelpEl.textContent = "Funding expired. Pick a wager again.";
+} else if (currentIntent.status === "cancelled") {
+    fundingHelpEl.textContent = "Funding cancelled.";
+} else {
+    fundingHelpEl.textContent = "Round funding updated.";
+}
         }
 
         if (fundingPollingNoteEl) {
@@ -1022,10 +1026,12 @@ document.addEventListener("DOMContentLoaded", function () {
             } else if (currentIntent.status === "cancelled") {
                 fundingPollingNoteEl.textContent = "Funding cancelled.";
             } else if (currentIntent.status === "consumed") {
-                fundingPollingNoteEl.textContent = "Round funded.";
-            } else {
-                fundingPollingNoteEl.textContent = "Funding updated.";
-            }
+    fundingPollingNoteEl.textContent = isBalanceDepositIntent(currentIntent)
+        ? "Balance updated. Ready to play."
+        : "Round funded.";
+} else {
+    fundingPollingNoteEl.textContent = "Funding updated.";
+}
         }
 
         if (copyAmountBtn) {
@@ -1176,9 +1182,17 @@ const noIntentInDepositMode =
             return;
         }
 
-    if (fundingMode === "deposit_balance") {
-    startGameBtn.disabled = true;
-    startGameBtn.style.display = "none";
+if (fundingMode === "deposit_balance") {
+    startGameBtn.style.display = "";
+
+    if (currentIntent && currentIntent.status === "funded") {
+        startGameBtn.disabled = false;
+        startGameBtn.textContent = "Play With Balance";
+    } else {
+        startGameBtn.disabled = true;
+        startGameBtn.textContent = "Fund Balance First";
+    }
+
     return;
 } else {
     startGameBtn.style.display = "";
