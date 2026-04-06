@@ -2084,24 +2084,6 @@ async function replaceIntentForBalanceDeposit() {
 
     
 
-    function updateCashoutButton() {
-        if (safeFoundCount > 0 && !isGameOver && !pickInFlight && !interactionCooldownActive()) {
-            cashoutButton.disabled = false;
-            cashoutButton.classList.add("active");
-            cashoutButton.textContent = `Cash Out x${multiplier.toFixed(2)}`;
-
-            if (safeFoundCount >= 9) {
-                cashoutButton.classList.add("final-push");
-            } else {
-                cashoutButton.classList.remove("final-push");
-            }
-        } else {
-            cashoutButton.disabled = true;
-            cashoutButton.classList.remove("active", "final-push");
-            cashoutButton.textContent = safeFoundCount > 0 ? `Cash Out x${multiplier.toFixed(2)}` : "Cash Out";
-        }
-    }
-
     function popMultiplier() {
         multiplierDisplay.classList.remove("multiplier-pop");
         void multiplierDisplay.offsetWidth;
