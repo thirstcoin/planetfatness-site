@@ -2584,18 +2584,22 @@ async function replaceIntentForBalanceDeposit() {
         }
     }
 
-    async function beginRoundFromIntro() {
+async function beginRoundFromIntro() {
     if (!authReady) {
         status.innerText = "Session required. Reopen from Telegram.";
         return;
     }
 
-    if (fundingMode === "deposit_balance") {
-        status.innerText = "Switch to Single Round mode to start a round.";
-        return;
-    }
-
     await refreshBalance(true);
+
+    if (fundingMode === "deposit_balance") {
+        if (!balanceCoversWager) {
+            status.innerText = "Add PHAT to your balance first.";
+            syncStartButtonState();
+            return;
+        }
+        // balance is enough, so allow play even while still on deposit mode
+    }
 
     if (!balanceCoversWager && (!currentIntent || currentIntent.status !== "funded")) {
         status.innerText = "Fund your round first.";
@@ -2673,23 +2677,23 @@ async function replaceIntentForBalanceDeposit() {
             return;
         }
 
-            if (
-                msg.toLowerCase().includes("funding required") ||
-                msg.toLowerCase().includes("funding_required") ||
-                msg.toLowerCase().includes("intent") ||
-                msg.toLowerCase().includes("funded")
-            ) {
-                await loadOpenIntent(false);
-            }
-
-            await refreshBalance(true);
-            syncFundingButtons();
-            syncStartButtonState();
-            status.innerText = msg.includes("Insufficient")
-                ? "Deposit PHAT and try again."
-                : msg;
+        if (
+            msg.toLowerCase().includes("funding required") ||
+            msg.toLowerCase().includes("funding_required") ||
+            msg.toLowerCase().includes("intent") ||
+            msg.toLowerCase().includes("funded")
+        ) {
+            await loadOpenIntent(false);
         }
+
+        await refreshBalance(true);
+        syncFundingButtons();
+        syncStartButtonState();
+        status.innerText = msg.includes("Insufficient")
+            ? "Deposit PHAT and try again."
+            : msg;
     }
+}
 
     async function startFreshRoundFromOverlay() {
         hideOverlays();
