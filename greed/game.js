@@ -1185,9 +1185,20 @@ const noIntentInDepositMode =
 if (fundingMode === "deposit_balance") {
     startGameBtn.style.display = "";
 
-    if (currentIntent && currentIntent.status === "funded") {
+    const depositIntentReady =
+        currentIntent &&
+        isBalanceDepositIntent(currentIntent) &&
+        (currentIntent.status === "funded" || currentIntent.status === "consumed");
+
+    if (balanceCoversWager) {
         startGameBtn.disabled = false;
         startGameBtn.textContent = "Play With Balance";
+    } else if (depositIntentReady && currentIntent.status === "funded") {
+        startGameBtn.disabled = true;
+        startGameBtn.textContent = "Updating Balance...";
+    } else if (depositIntentReady && currentIntent.status === "consumed") {
+        startGameBtn.disabled = true;
+        startGameBtn.textContent = "Add More PHAT or Switch Mode";
     } else {
         startGameBtn.disabled = true;
         startGameBtn.textContent = "Fund Balance First";
@@ -1490,53 +1501,67 @@ async function replaceIntentForBalanceDeposit() {
 
       
     async function refreshIntentById(intentId, quiet = false) {
-        if (!authReady || !intentId) return null;
+    if (!authReady || !intentId) return null;
 
-        try {
-            const data = await apiFetch(`/greed/deposit-intent/${intentId}`, { method: "GET" });
-            const nextIntent = normalizeIntent(data?.intent || null);
-            const previousStatus = String(currentIntent?.status || "");
+    try {
+        const data = await apiFetch(`/greed/deposit-intent/${intentId}`, { method: "GET" });
+        const nextIntent = normalizeIntent(data?.intent || null);
+        const previousStatus = String(currentIntent?.status || "");
 
-            renderIntent(nextIntent);
+        renderIntent(nextIntent);
 
-            if (nextIntent && isBalanceDepositIntent(nextIntent)) {
-                setFundingMode("deposit_balance");
-            }
-
-            if (!quiet) {
-                if (nextIntent?.status === "funded") {
-                    status.innerText = isBalanceDepositIntent(nextIntent)
-                        ? "Balance deposit received."
-                        : "Deposit received. Start your round.";
-                } else if (nextIntent?.status === "pending") {
-                    status.innerText = isBalanceDepositIntent(nextIntent)
-                        ? "Waiting for your balance deposit..."
-                        : "Waiting for your deposit...";
-                } else if (nextIntent?.status === "expired") {
-                    status.innerText = "Funding expired. Choose an amount again.";
-                } else if (nextIntent?.status === "cancelled") {
-                    status.innerText = "Funding cancelled.";
-                }
-            }
-
-            if (previousStatus !== "funded" && nextIntent?.status === "funded") {
-                playStartSound();
-
-                if (isBalanceDepositIntent(nextIntent)) {
-                    await refreshBalance(true);
-                }
-            }
-
-            if (!nextIntent || !["pending", "funded"].includes(String(nextIntent.status || ""))) {
-                stopIntentPolling();
-            }
-
-            return nextIntent;
-        } catch (err) {
-            console.warn("Funding poll failed:", err);
-            return null;
+        if (nextIntent && isBalanceDepositIntent(nextIntent)) {
+            setFundingMode("deposit_balance");
         }
+
+        if (!quiet) {
+            if (nextIntent?.status === "funded") {
+                status.innerText = isBalanceDepositIntent(nextIntent)
+                    ? "Balance deposit received."
+                    : "Deposit received. Start your round.";
+            } else if (nextIntent?.status === "consumed") {
+                status.innerText = isBalanceDepositIntent(nextIntent)
+                    ? "Balance updated. Ready to play."
+                    : "Round funded.";
+            } else if (nextIntent?.status === "pending") {
+                status.innerText = isBalanceDepositIntent(nextIntent)
+                    ? "Waiting for your balance deposit..."
+                    : "Waiting for your deposit...";
+            } else if (nextIntent?.status === "expired") {
+                status.innerText = "Funding expired. Choose an amount again.";
+            } else if (nextIntent?.status === "cancelled") {
+                status.innerText = "Funding cancelled.";
+            }
+        }
+
+        if (previousStatus !== "funded" && nextIntent?.status === "funded") {
+            playStartSound();
+
+            if (isBalanceDepositIntent(nextIntent)) {
+                await refreshBalance(true);
+            }
+        }
+
+        if (
+            previousStatus !== "consumed" &&
+            nextIntent?.status === "consumed" &&
+            isBalanceDepositIntent(nextIntent)
+        ) {
+            await refreshBalance(true);
+            syncFundingButtons();
+            syncStartButtonState();
+        }
+
+        if (!nextIntent || !["pending", "funded"].includes(String(nextIntent.status || ""))) {
+            stopIntentPolling();
+        }
+
+        return nextIntent;
+    } catch (err) {
+        console.warn("Funding poll failed:", err);
+        return null;
     }
+}
 
     function startIntentPolling() {
         stopIntentPolling();
@@ -1931,54 +1956,69 @@ async function replaceIntentForBalanceDeposit() {
         }).join("");
     }
 
-    async function refreshIntentById(intentId, quiet = false) {
-        if (!authReady || !intentId) return null;
+   async function refreshIntentById(intentId, quiet = false) {
+    if (!authReady || !intentId) return null;
 
-        try {
-            const data = await apiFetch(`/greed/deposit-intent/${intentId}`, { method: "GET" });
-            const nextIntent = normalizeIntent(data?.intent || null);
-            const previousStatus = String(currentIntent?.status || "");
+    try {
+        const data = await apiFetch(`/greed/deposit-intent/${intentId}`, { method: "GET" });
+        const nextIntent = normalizeIntent(data?.intent || null);
+        const previousStatus = String(currentIntent?.status || "");
 
-            renderIntent(nextIntent);
+        renderIntent(nextIntent);
 
-            if (nextIntent && isBalanceDepositIntent(nextIntent)) {
-                setFundingMode("deposit_balance");
-            }
-
-            if (!quiet) {
-                if (nextIntent?.status === "funded") {
-                    status.innerText = isBalanceDepositIntent(nextIntent)
-                        ? "Balance deposit received."
-                        : "Deposit received. Start your round.";
-                } else if (nextIntent?.status === "pending") {
-                    status.innerText = isBalanceDepositIntent(nextIntent)
-                        ? "Waiting for your balance deposit..."
-                        : "Waiting for your deposit...";
-                } else if (nextIntent?.status === "expired") {
-                    status.innerText = "Funding expired. Choose an amount again.";
-                } else if (nextIntent?.status === "cancelled") {
-                    status.innerText = "Funding cancelled.";
-                }
-            }
-
-            if (previousStatus !== "funded" && nextIntent?.status === "funded") {
-                playStartSound();
-
-                if (isBalanceDepositIntent(nextIntent)) {
-                    await refreshBalance(true);
-                }
-            }
-
-            if (!nextIntent || !["pending", "funded"].includes(String(nextIntent.status || ""))) {
-                stopIntentPolling();
-            }
-
-            return nextIntent;
-        } catch (err) {
-            console.warn("Funding poll failed:", err);
-            return null;
+        if (nextIntent && isBalanceDepositIntent(nextIntent)) {
+            setFundingMode("deposit_balance");
         }
+
+        if (!quiet) {
+            if (nextIntent?.status === "funded") {
+                status.innerText = isBalanceDepositIntent(nextIntent)
+                    ? "Balance deposit received."
+                    : "Deposit received. Start your round.";
+            } else if (nextIntent?.status === "consumed") {
+                status.innerText = isBalanceDepositIntent(nextIntent)
+                    ? "Balance updated. Ready to play."
+                    : "Round funded.";
+            } else if (nextIntent?.status === "pending") {
+                status.innerText = isBalanceDepositIntent(nextIntent)
+                    ? "Waiting for your balance deposit..."
+                    : "Waiting for your deposit...";
+            } else if (nextIntent?.status === "expired") {
+                status.innerText = "Funding expired. Choose an amount again.";
+            } else if (nextIntent?.status === "cancelled") {
+                status.innerText = "Funding cancelled.";
+            }
+        }
+
+        if (previousStatus !== "funded" && nextIntent?.status === "funded") {
+            playStartSound();
+
+            if (isBalanceDepositIntent(nextIntent)) {
+                await refreshBalance(true);
+            }
+        }
+
+        // 🔥 THIS IS THE KEY FIX
+        if (
+            previousStatus !== "consumed" &&
+            nextIntent?.status === "consumed" &&
+            isBalanceDepositIntent(nextIntent)
+        ) {
+            await refreshBalance(true);
+            syncFundingButtons();
+            syncStartButtonState();
+        }
+
+        if (!nextIntent || !["pending", "funded"].includes(String(nextIntent.status || ""))) {
+            stopIntentPolling();
+        }
+
+        return nextIntent;
+    } catch (err) {
+        console.warn("Funding poll failed:", err);
+        return null;
     }
+}
 
     function startIntentPolling() {
         stopIntentPolling();
