@@ -2598,7 +2598,10 @@ async function beginRoundFromIntro() {
             syncStartButtonState();
             return;
         }
-        // balance is enough, so allow play even while still on deposit mode
+
+        setFundingMode("single_round");
+        renderIntent(null);
+        stopIntentPolling();
     }
 
     if (!balanceCoversWager && (!currentIntent || currentIntent.status !== "funded")) {
