@@ -1252,24 +1252,24 @@ body {
 /* 5.5 Cash Out */
 #cashout-wrap {
     position: absolute;
-    left: 50%;
+    left: 56%;
     bottom: 18.2%;
     transform: translateX(-50%);
     z-index: 600;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    width: min(92vw, 420px);
+    gap: 6px;
+    width: min(72vw, 340px);
 }
 
 #cashout-meta {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 10px 12px;
-    border-radius: 14px;
+    gap: 4px;
+    padding: 8px 10px;
+    border-radius: 12px;
     background: rgba(8, 8, 12, 0.78);
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow: 0 8px 22px rgba(0,0,0,0.36);
@@ -2212,11 +2212,12 @@ body {
         font-size: clamp(18px, 4.6vw, 28px);
     }
 
-    #cashout-wrap {
-        bottom: 16.9%;
-        width: min(88vw, 340px);
-        gap: 6px;
-    }
+  #cashout-wrap {
+    left: 58%;
+    bottom: 16.9%;
+    width: min(66vw, 270px);
+    gap: 5px;
+}
 
     #cashout-meta {
         width: 100%;
@@ -2478,7 +2479,9 @@ body {
 }
 
 #cashout-wrap {
+    left: 56% !important;
     bottom: 12.8% !important;
+    width: min(72vw, 340px) !important;
 }
 
 #cashout-button {
@@ -2561,14 +2564,18 @@ body {
     }
 
     #cashout-wrap {
-        bottom: 11.2% !important;
-    }
+    left: 58% !important;
+    bottom: 11.2% !important;
+    width: min(66vw, 270px) !important;
+}
 
     #cashout-button {
-        min-width: 260px !important;
-        max-width: 84vw !important;
-        font-size: 17px !important;
-    }
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 270px !important;
+    font-size: 16px !important;
+    padding: 13px 14px !important;
+}
 
     #status {
         bottom: 2.6% !important;
