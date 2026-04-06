@@ -52,6 +52,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const introVideo = document.getElementById("intro-video");
     const startGameBtn = document.getElementById("start-game-btn");
     const cashoutButton = document.getElementById("cashout-button");
+    const roundLockedAmountEl = document.getElementById("round-locked-amount");
+    const cashoutNowAmountEl = document.getElementById("cashout-now-amount");
 
     const availableBalanceValue = document.getElementById("available-balance-value");
     const selectedWagerBalanceView = document.getElementById("selected-wager-balance-view");
@@ -243,6 +245,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let roundId = null;
     let currentRoundWager = 0;
+    let currentRoundNetStake = 0;
     let commitHash = "";
     let fairnessNonce = "";
     let revealedServerSeed = "";
@@ -322,7 +325,11 @@ document.addEventListener("DOMContentLoaded", function () {
             maximumFractionDigits: 3
         })} PHAT`;
     }
-
+    function getExactLiveCashoutAmount() {
+        if (!Number.isFinite(currentRoundNetStake) || currentRoundNetStake <= 0) return 0;
+        if (!Number.isFinite(multiplier) || multiplier <= 0) return 0;
+        return Number((currentRoundNetStake * multiplier).toFixed(3));
+    }
     function formatIntentAmount(n) {
         const num = Number(n || 0);
         if (!Number.isFinite(num) || num <= 0) return "—";
@@ -1623,6 +1630,7 @@ async function replaceIntentForBalanceDeposit() {
 
         roundId = data.roundId;
         currentRoundWager = Number(data.fundedExactAmount || data.wager || wagerToUse || 0);
+        currentRoundNetStake = Number(data.netStake || 0);
         commitHash = data?.provablyFair?.commitHash || "";
         fairnessNonce = String(data?.provablyFair?.nonce || "");
         revealedServerSeed = "";
@@ -1655,10 +1663,16 @@ async function replaceIntentForBalanceDeposit() {
     }
 
     function updateCashoutButton() {
+        const getExactLiveCashoutAmount = () => {
+            const baseStake = Number(currentRoundNetStake || 0);
+            if (!baseStake || safeFoundCount < 1) return 0;
+            return Number((baseStake * multiplier).toFixed(3));
+        };
+
         if (safeFoundCount > 0 && !isGameOver && !pickInFlight && !interactionCooldownActive()) {
             cashoutButton.disabled = false;
             cashoutButton.classList.add("active");
-            cashoutButton.textContent = `Cash Out x${multiplier.toFixed(2)}`;
+            cashoutButton.textContent = `Cash Out • ${formatPhat(getExactLiveCashoutAmount())}`;
 
             if (safeFoundCount >= 9) {
                 cashoutButton.classList.add("final-push");
@@ -1668,7 +1682,7 @@ async function replaceIntentForBalanceDeposit() {
         } else {
             cashoutButton.disabled = true;
             cashoutButton.classList.remove("active", "final-push");
-            cashoutButton.textContent = safeFoundCount > 0 ? `Cash Out x${multiplier.toFixed(2)}` : "Cash Out";
+            cashoutButton.textContent = "Cash Out";
         }
     }
 
@@ -1872,6 +1886,7 @@ async function replaceIntentForBalanceDeposit() {
     roundStarting = false;
     roundId = null;
     currentRoundWager = 0;
+    currentRoundNetStake = 0;
     commitHash = "";
     fairnessNonce = "";
     revealedServerSeed = "";
