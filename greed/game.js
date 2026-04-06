@@ -2934,53 +2934,68 @@ async function beginRoundFromIntro() {
         });
     }
 
-    async function restoreActiveRoundIfAny() {
-        if (!authReady) return false;
+  async function restoreActiveRoundIfAny() {
+    if (!authReady) return false;
 
-        try {
-            const data = await apiFetch("/greed/active", { method: "GET" });
-            if (!data?.active || !data?.round) {
-                return false;
-            }
-
-            const round = data.round;
-            roundId = Number(round.id);
-            currentRoundWager = Number(round.wager || 0);
-            hasStartedRound = true;
-            roundStarting = false;
-            isGameOver = false;
-            pickInFlight = false;
-            multiplier = Number(round.currentMultiplier || 1.0);
-            safeFoundCount = Number(round.safeClicks || 0);
-            commitHash = round?.provablyFair?.commitHash || "";
-            fairnessNonce = String(round?.provablyFair?.nonce || "");
-            revealedServerSeed = "";
-            revealedPoisonIndices = [];
-            setFairnessPanel();
-
-            applyPickedIndicesToBoard(Array.isArray(round.pickedIndices) ? round.pickedIndices : []);
-            multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
-            updateLadder();
-            updateCashoutButton();
-            hideIntroOverlay();
-            unlockBoard();
-
-            if (data?.wallet?.balance) {
-                availableBalance = getBalanceValue(data.wallet.balance);
-                updateBalanceMode();
-            }
-
-            status.innerText = safeFoundCount > 0 ? "Round restored." : "Choose wisely...";
-
-            stopIntentPolling();
-            renderIntent(null);
-            setFundingMode("single_round");
-            return true;
-        } catch (err) {
-            console.warn("Restore active round failed:", err);
+    try {
+        const data = await apiFetch("/greed/active", { method: "GET" });
+        if (!data?.active || !data?.round) {
             return false;
         }
+
+        const round = data.round;
+        roundId = Number(round.id);
+        currentRoundWager = Number(round.wager || 0);
+
+        // 🔥 THIS IS THE MISSING PIECE
+        currentRoundNetStake = Number(
+            round.netStake ??
+            round.net_stake ??
+            round.wager ??
+            0
+        );
+
+        hasStartedRound = true;
+        roundStarting = false;
+        isGameOver = false;
+        pickInFlight = false;
+
+        multiplier = Number(round.currentMultiplier || 1.0);
+        safeFoundCount = Number(round.safeClicks || 0);
+
+        commitHash = round?.provablyFair?.commitHash || "";
+        fairnessNonce = String(round?.provablyFair?.nonce || "");
+        revealedServerSeed = "";
+        revealedPoisonIndices = [];
+
+        setFairnessPanel();
+
+        applyPickedIndicesToBoard(Array.isArray(round.pickedIndices) ? round.pickedIndices : []);
+        multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+
+        updateLadder();
+        updateCashoutButton();
+
+        hideIntroOverlay();
+        unlockBoard();
+
+        if (data?.wallet?.balance) {
+            availableBalance = getBalanceValue(data.wallet.balance);
+            updateBalanceMode();
+        }
+
+        status.innerText = safeFoundCount > 0 ? "Round restored." : "Choose wisely...";
+
+        stopIntentPolling();
+        renderIntent(null);
+        setFundingMode("single_round");
+
+        return true;
+    } catch (err) {
+        console.warn("Restore active round failed:", err);
+        return false;
     }
+}
 
     async function openGreedCardModal() {
         if (!authReady) {
