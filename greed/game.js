@@ -1662,29 +1662,33 @@ async function replaceIntentForBalanceDeposit() {
         return data;
     }
 
-    function updateCashoutButton() {
-        const getExactLiveCashoutAmount = () => {
-            const baseStake = Number(currentRoundNetStake || 0);
-            if (!baseStake || safeFoundCount < 1) return 0;
-            return Number((baseStake * multiplier).toFixed(3));
-        };
+  function updateCashoutButton() {
+    const liveCashout = getExactLiveCashoutAmount();
 
-        if (safeFoundCount > 0 && !isGameOver && !pickInFlight && !interactionCooldownActive()) {
-            cashoutButton.disabled = false;
-            cashoutButton.classList.add("active");
-            cashoutButton.textContent = `Cash Out • ${formatPhat(getExactLiveCashoutAmount())}`;
-
-            if (safeFoundCount >= 9) {
-                cashoutButton.classList.add("final-push");
-            } else {
-                cashoutButton.classList.remove("final-push");
-            }
-        } else {
-            cashoutButton.disabled = true;
-            cashoutButton.classList.remove("active", "final-push");
-            cashoutButton.textContent = "Cash Out";
-        }
+    if (roundLockedAmountEl) {
+        roundLockedAmountEl.textContent = formatPhat(currentRoundNetStake || 0);
     }
+
+    if (cashoutNowAmountEl) {
+        cashoutNowAmountEl.textContent = formatPhat(liveCashout || 0);
+    }
+
+    if (safeFoundCount > 0 && !isGameOver && !pickInFlight && !interactionCooldownActive()) {
+        cashoutButton.disabled = false;
+        cashoutButton.classList.add("active");
+        cashoutButton.textContent = `Cash Out • ${formatPhat(liveCashout)}`;
+
+        if (safeFoundCount >= 9) {
+            cashoutButton.classList.add("final-push");
+        } else {
+            cashoutButton.classList.remove("final-push");
+        }
+    } else {
+        cashoutButton.disabled = true;
+        cashoutButton.classList.remove("active", "final-push");
+        cashoutButton.textContent = "Cash Out";
+    }
+}
 
     function popMultiplier() {
         multiplierDisplay.classList.remove("multiplier-pop");
@@ -2078,53 +2082,7 @@ async function replaceIntentForBalanceDeposit() {
         }, 2500);
     }
 
-    async function startBackendRound() {
-        const token = authToken || getAuthToken();
-        if (!token) {
-            throw new Error("Missing auth token");
-        }
-
-        authToken = token;
-
-        const wagerToUse = Number(selectedWager || DEFAULT_WAGER);
-
-        const data = await apiFetch("/greed/start", {
-            method: "POST",
-            body: JSON.stringify({ wager: wagerToUse })
-        });
-
-        roundId = data.roundId;
-        currentRoundWager = Number(data.fundedExactAmount || data.wager || wagerToUse || 0);
-        commitHash = data?.provablyFair?.commitHash || "";
-        fairnessNonce = String(data?.provablyFair?.nonce || "");
-        revealedServerSeed = "";
-        revealedPoisonIndices = [];
-        setFairnessPanel();
-
-        stopIntentPolling();
-
-        const refreshedBalance = data?.wallet?.remainingEstimated;
-        if (refreshedBalance != null) {
-            availableBalance = Number(refreshedBalance || 0);
-            updateBalanceMode();
-        } else {
-            await refreshBalance(true);
-        }
-
-        renderIntent(null);
-
-        const jackpotCurrent =
-            Number(data?.jackpot?.currentAmount) ||
-            Number(data?.jackpot?.current_amount) ||
-            0;
-
-        if (jackpotCurrent > 0) {
-            jackpotAmount.textContent = `${formatNumber(jackpotCurrent)} PHAT`;
-            animateJackpotPop();
-        }
-
-        return data;
-    }
+    
 
     function updateCashoutButton() {
         if (safeFoundCount > 0 && !isGameOver && !pickInFlight && !interactionCooldownActive()) {
