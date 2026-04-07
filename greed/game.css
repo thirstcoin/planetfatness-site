@@ -623,8 +623,8 @@ body {
 }
 
 .mini-copy-btn.copied {
-    background: linear-gradient(180deg, #20d37a 0%, #139a57 100%);
-    color: #fff;
+    background: linear-gradient(180deg, #20d37a 0%, #139a57 100%) !important;
+    color: #fff !important;
 }
 
 #funding-help,
