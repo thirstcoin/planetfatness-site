@@ -890,14 +890,23 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function copyIntentAmount() {
-        if (!currentIntent?.exactAmount) return;
+    const rawText = String(intentAmountEl?.textContent || "").trim();
+    if (!rawText || rawText === "—") return;
 
-        await copyTextToClipboard(
-            formatIntentAmount(currentIntent.exactAmount),
-            "Amount copied. Send that exact PHAT amount.",
-            "Copy failed. Copy the amount manually."
-        );
-    }
+    // strip commas + "PHAT"
+    const rawAmount = rawText
+        .replace(/,/g, "")
+        .replace(/\s*PHAT\s*/gi, "")
+        .trim();
+
+    if (!rawAmount) return;
+
+    await copyTextToClipboard(
+        rawAmount,
+        "Amount copied. Send that exact PHAT amount.",
+        "Copy failed. Copy the amount manually."
+    );
+}
 
     function updateBalanceMode() {
         balanceCoversWager = Number(availableBalance || 0) >= Number(selectedWager || 0);
