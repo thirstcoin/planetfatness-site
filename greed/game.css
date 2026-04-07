@@ -588,10 +588,6 @@ body {
     border-radius: 10px;
 }
 
-#intent-wallet.copied {
-    background: rgba(0, 255, 120, 0.18);
-    box-shadow: 0 0 0 1px rgba(0,255,120,0.18) inset;
-}
 
 .mini-copy-btn {
     appearance: none;
