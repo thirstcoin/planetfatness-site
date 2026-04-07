@@ -233,7 +233,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (introVideo) introVideo.load();
     if (winVideo) winVideo.load();
 
-    const multipliers = [1.02, 1.07, 1.15, 1.30, 1.48, 1.70, 1.98, 2.28, 2.70, 3.50];
+    const multipliers = [1.10, 1.24, 1.40, 1.58, 1.80, 2.08, 2.42, 2.85, 3.50, 5.00];
 
     let multiplier = 1.0;
     let safeFoundCount = 0;
@@ -1288,13 +1288,13 @@ if (fundingMode === "deposit_balance") {
                 Number(data?.jackpot?.current_amount) ||
                 0;
 
-            jackpotAmount.textContent = `${formatNumber(currentAmount || 5000)} PHAT`;
+            jackpotAmount.textContent = `${formatNumber(currentAmount || 25000)} PHAT`;
             animateJackpotPop();
         } catch (err) {
             console.warn("Jackpot fetch failed:", err);
-            if (!jackpotAmount.textContent.trim()) {
-                jackpotAmount.textContent = "5,000 PHAT";
-            }
+           if (!jackpotAmount.textContent.trim()) {
+    jackpotAmount.textContent = "25,000 PHAT";
+}
         }
     }
 
@@ -2885,7 +2885,7 @@ async function beginRoundFromIntro() {
                     }
 
                     if (data.finalDonutLive || safeFoundCount === 9) {
-                        stopLockingStatus("FINAL DONUT • 33% shot at x3.50");
+                        stopLockingStatus("MAX GREED • FINAL DONUT • 33% shot at x5.00");
                     } else {
                         stopLockingStatus(getRandomHypeLine());
                     }
