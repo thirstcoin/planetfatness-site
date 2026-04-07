@@ -893,7 +893,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const rawText = String(intentAmountEl?.textContent || "").trim();
     if (!rawText || rawText === "—") return;
 
-    // strip commas + "PHAT"
     const rawAmount = rawText
         .replace(/,/g, "")
         .replace(/\s*PHAT\s*/gi, "")
@@ -901,11 +900,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!rawAmount) return;
 
-    await copyTextToClipboard(
+    const ok = await copyTextToClipboard(
         rawAmount,
         "Amount copied. Send that exact PHAT amount.",
         "Copy failed. Copy the amount manually."
     );
+
+    // 🔥 THIS IS WHAT YOU WERE MISSING
+    if (ok && copyAmountBtn) {
+        copyAmountBtn.classList.add("copied");
+        copyAmountBtn.textContent = "Copied";
+
+        setTimeout(() => {
+            copyAmountBtn.classList.remove("copied");
+            copyAmountBtn.textContent = "Copy Amount";
+        }, 1200);
+    }
 }
 
     function updateBalanceMode() {
