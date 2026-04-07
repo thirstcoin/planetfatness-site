@@ -873,21 +873,24 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function copyWalletAddress() {
-        if (!intentWalletEl) return;
+    if (!intentWalletEl) return;
 
-        const ok = await copyTextToClipboard(
-            intentWalletEl.textContent || "",
-            "Wallet copied. Send the exact PHAT amount shown.",
-            "Copy failed. Tap and hold the wallet address to copy."
-        );
+    const ok = await copyTextToClipboard(
+        intentWalletEl.textContent || "",
+        "Wallet copied. Send the exact PHAT amount shown.",
+        "Copy failed. Tap and hold the wallet address to copy."
+    );
 
-        if (ok && intentWalletEl) {
-            intentWalletEl.classList.add("copied");
-            setTimeout(() => {
-                intentWalletEl.classList.remove("copied");
-            }, 1200);
-        }
+    if (ok && copyWalletBtn) {
+        copyWalletBtn.classList.add("copied");
+        copyWalletBtn.textContent = "Copied";
+
+        setTimeout(() => {
+            copyWalletBtn.classList.remove("copied");
+            copyWalletBtn.textContent = "Copy Wallet";
+        }, 1200);
     }
+}
 
     async function copyIntentAmount() {
     const rawText = String(intentAmountEl?.textContent || "").trim();
