@@ -622,6 +622,11 @@ body {
     filter: saturate(0.9);
 }
 
+.mini-copy-btn.copied {
+    background: linear-gradient(180deg, #20d37a 0%, #139a57 100%);
+    color: #fff;
+}
+
 #funding-help,
 #funding-polling-note,
 #balance-fund-help,
