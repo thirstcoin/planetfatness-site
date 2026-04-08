@@ -1628,6 +1628,53 @@ body {
     outline: none;
 }
 
+.withdraw-wallet-warning {
+    margin: 4px 0 2px 0;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 210, 70, 0.10);
+    border: 1px solid rgba(255, 210, 70, 0.32);
+    box-sizing: border-box;
+}
+
+.withdraw-wallet-warning-title {
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1.25;
+    color: #FFD700;
+    margin-bottom: 4px;
+}
+
+.withdraw-wallet-warning-text {
+    font-size: 12px;
+    line-height: 1.35;
+    color: rgba(255,255,255,0.92);
+}
+
+.withdraw-wallet-warning-helper {
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.35;
+    color: rgba(255,255,255,0.78);
+}
+
+.withdraw-confirm-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.35;
+    color: rgba(255,255,255,0.92);
+    cursor: pointer;
+}
+
+.withdraw-confirm-row input[type="checkbox"] {
+    margin-top: 2px;
+    flex: 0 0 auto;
+    accent-color: #FFD700;
+}
+
 #withdraw-note {
     font-size: 12px;
     color: rgba(255,255,255,0.74);
@@ -2213,12 +2260,12 @@ body {
         font-size: clamp(18px, 4.6vw, 28px);
     }
 
-  #cashout-wrap {
-    left: 58%;
-    bottom: 16.9%;
-    width: min(66vw, 270px);
-    gap: 5px;
-}
+    #cashout-wrap {
+        left: 58%;
+        bottom: 16.9%;
+        width: min(66vw, 270px);
+        gap: 5px;
+    }
 
     #cashout-meta {
         width: 100%;
@@ -2317,6 +2364,22 @@ body {
     .withdraw-form input {
         height: 42px;
         font-size: 13px;
+    }
+
+    /* ✅ ADDED WARNING STYLES */
+    .withdraw-wallet-warning {
+        padding: 9px 10px;
+        border-radius: 10px;
+    }
+
+    .withdraw-wallet-warning-title {
+        font-size: 12px;
+    }
+
+    .withdraw-wallet-warning-text,
+    .withdraw-wallet-warning-helper,
+    .withdraw-confirm-row {
+        font-size: 11px;
     }
 
     .withdraw-actions {
