@@ -427,8 +427,21 @@
             <div class="withdraw-form">
                 <label for="withdraw-amount-input">Amount</label>
                 <input id="withdraw-amount-input" type="number" inputmode="decimal" min="0" step="0.001" placeholder="Enter PHAT amount"/>
+
                 <label for="withdraw-wallet-input">Destination Wallet</label>
+
+                <div id="withdraw-wallet-warning" class="withdraw-wallet-warning">
+                    <div class="withdraw-wallet-warning-title">Do not withdraw PHAT to Coinbase.</div>
+                    <div class="withdraw-wallet-warning-text">Use an SPL-compatible wallet like Phantom or Solflare.</div>
+                    <div class="withdraw-wallet-warning-helper">Using Coinbase? You need Phantom or Solflare to receive PHAT.</div>
+                </div>
+
                 <input id="withdraw-wallet-input" type="text" placeholder="Leave blank to use your linked address"/>
+
+                <label class="withdraw-confirm-row" for="withdraw-wallet-confirm">
+                    <input id="withdraw-wallet-confirm" type="checkbox" />
+                    <span>I confirm this wallet supports SPL tokens and is not a Coinbase deposit wallet.</span>
+                </label>
             </div>
 
             <div id="withdraw-note">Withdraw requests use your internal balance.</div>
@@ -628,7 +641,7 @@
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="game.js?v=33#"></script>
+    <script src="game.js?v=34#"></script>
 
 </body>
 </html>
