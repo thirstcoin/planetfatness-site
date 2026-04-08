@@ -82,6 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const withdrawMaxBtn = document.getElementById("withdraw-max-btn");
     const withdrawAmountInput = document.getElementById("withdraw-amount-input");
     const withdrawWalletInput = document.getElementById("withdraw-wallet-input");
+    const withdrawWalletConfirm = document.getElementById("withdraw-wallet-confirm");
     const withdrawAvailable = document.getElementById("withdraw-available");
     const withdrawStatus = document.getElementById("withdraw-status");
 
@@ -1183,8 +1184,8 @@ const noIntentInDepositMode =
         }
 
         if (withdrawSubmitBtn) {
-            withdrawSubmitBtn.disabled = withdrawBusy || !authReady;
-        }
+    withdrawSubmitBtn.disabled = withdrawBusy || !authReady || !withdrawWalletConfirm?.checked;
+}
 
         if (withdrawMaxBtn) {
             withdrawMaxBtn.disabled = withdrawBusy || !authReady;
@@ -1935,21 +1936,23 @@ async function replaceIntentForBalanceDeposit() {
 }
 
     function openWithdrawModal() {
-        if (!authReady || !withdrawModal) return;
-        withdrawModal.classList.remove("hidden");
-        fillText(withdrawAvailable, formatBalance(availableBalance));
-        fillText(withdrawStatus, "Ready.");
-        if (withdrawAmountInput) withdrawAmountInput.value = "";
-        if (withdrawWalletInput) withdrawWalletInput.value = "";
-        syncFundingButtons();
-    }
+    if (!authReady || !withdrawModal) return;
+    withdrawModal.classList.remove("hidden");
+    fillText(withdrawAvailable, formatBalance(availableBalance));
+    fillText(withdrawStatus, "Ready.");
+    if (withdrawAmountInput) withdrawAmountInput.value = "";
+    if (withdrawWalletInput) withdrawWalletInput.value = "";
+    if (withdrawWalletConfirm) withdrawWalletConfirm.checked = false;
+    syncFundingButtons();
+}
 
     function closeWithdrawModal() {
-        if (!withdrawModal) return;
-        withdrawModal.classList.add("hidden");
-        fillText(withdrawStatus, "Ready.");
-        syncFundingButtons();
-    }
+    if (!withdrawModal) return;
+    withdrawModal.classList.add("hidden");
+    fillText(withdrawStatus, "Ready.");
+    if (withdrawWalletConfirm) withdrawWalletConfirm.checked = false;
+    syncFundingButtons();
+}
 
     function openModal(modal) {
         if (!modal) return;
@@ -2324,21 +2327,23 @@ async function replaceIntentForBalanceDeposit() {
     }
 
     function openWithdrawModal() {
-        if (!authReady || !withdrawModal) return;
-        withdrawModal.classList.remove("hidden");
-        fillText(withdrawAvailable, formatBalance(availableBalance));
-        fillText(withdrawStatus, "Ready.");
-        if (withdrawAmountInput) withdrawAmountInput.value = "";
-        if (withdrawWalletInput) withdrawWalletInput.value = "";
-        syncFundingButtons();
-    }
+    if (!authReady || !withdrawModal) return;
+    withdrawModal.classList.remove("hidden");
+    fillText(withdrawAvailable, formatBalance(availableBalance));
+    fillText(withdrawStatus, "Ready.");
+    if (withdrawAmountInput) withdrawAmountInput.value = "";
+    if (withdrawWalletInput) withdrawWalletInput.value = "";
+    if (withdrawWalletConfirm) withdrawWalletConfirm.checked = false;
+    syncFundingButtons();
+}
 
     function closeWithdrawModal() {
-        if (!withdrawModal) return;
-        withdrawModal.classList.add("hidden");
-        fillText(withdrawStatus, "Ready.");
-        syncFundingButtons();
-    }
+    if (!withdrawModal) return;
+    withdrawModal.classList.add("hidden");
+    fillText(withdrawStatus, "Ready.");
+    if (withdrawWalletConfirm) withdrawWalletConfirm.checked = false;
+    syncFundingButtons();
+}
 
     function openModal(modal) {
         if (!modal) return;
@@ -2399,48 +2404,53 @@ async function replaceIntentForBalanceDeposit() {
     }
 
     async function submitWithdraw() {
-        if (withdrawBusy || !authReady) return;
+    if (withdrawBusy || !authReady) return;
 
-        const amount = Number(withdrawAmountInput?.value || 0);
-        const destinationWallet = String(withdrawWalletInput?.value || "").trim();
+    const amount = Number(withdrawAmountInput?.value || 0);
+    const destinationWallet = String(withdrawWalletInput?.value || "").trim();
 
-        if (!Number.isFinite(amount) || amount <= 0) {
-            fillText(withdrawStatus, "Enter a valid amount.");
-            return;
-        }
-
-        if (amount > availableBalance) {
-            fillText(withdrawStatus, "Amount exceeds available balance.");
-            return;
-        }
-
-        withdrawBusy = true;
-        syncFundingButtons();
-        fillText(withdrawStatus, "Submitting withdrawal...");
-
-        try {
-            await apiFetch("/wallet/withdraw", {
-                method: "POST",
-                body: JSON.stringify({
-                    amount,
-                    destinationWallet: destinationWallet || undefined
-                })
-            });
-
-            await refreshBalance(true);
-            fillText(withdrawStatus, "Withdrawal request submitted.");
-
-            setTimeout(() => {
-                closeWithdrawModal();
-            }, 900);
-        } catch (err) {
-            console.warn("Withdraw failed:", err);
-            fillText(withdrawStatus, String(err?.message || "Withdrawal failed."));
-        } finally {
-            withdrawBusy = false;
-            syncFundingButtons();
-        }
+    if (!Number.isFinite(amount) || amount <= 0) {
+        fillText(withdrawStatus, "Enter a valid amount.");
+        return;
     }
+
+    if (amount > availableBalance) {
+        fillText(withdrawStatus, "Amount exceeds available balance.");
+        return;
+    }
+
+    if (!withdrawWalletConfirm?.checked) {
+        fillText(withdrawStatus, "Confirm your wallet supports SPL tokens.");
+        return;
+    }
+
+    withdrawBusy = true;
+    syncFundingButtons();
+    fillText(withdrawStatus, "Submitting withdrawal...");
+
+    try {
+        await apiFetch("/wallet/withdraw", {
+            method: "POST",
+            body: JSON.stringify({
+                amount,
+                destinationWallet: destinationWallet || undefined
+            })
+        });
+
+        await refreshBalance(true);
+        fillText(withdrawStatus, "Withdrawal request submitted.");
+
+        setTimeout(() => {
+            closeWithdrawModal();
+        }, 900);
+    } catch (err) {
+        console.warn("Withdraw failed:", err);
+        fillText(withdrawStatus, String(err?.message || "Withdrawal failed."));
+    } finally {
+        withdrawBusy = false;
+        syncFundingButtons();
+    }
+}
 
     async function refreshGreedGlobalStats() {
         if (globalStatsBusy) return null;
@@ -3215,16 +3225,20 @@ if (balanceFundCustomInput) {
     }
 
     if (withdrawMaxBtn) {
-        withdrawMaxBtn.addEventListener("click", () => {
-            if (withdrawAmountInput) {
-                withdrawAmountInput.value = String(availableBalance || 0);
-            }
-        });
-    }
+    withdrawMaxBtn.addEventListener("click", () => {
+        if (withdrawAmountInput) {
+            withdrawAmountInput.value = String(availableBalance || 0);
+        }
+    });
+}
 
-    if (withdrawSubmitBtn) {
-        withdrawSubmitBtn.addEventListener("click", submitWithdraw);
-    }
+if (withdrawWalletConfirm) {
+    withdrawWalletConfirm.addEventListener("change", syncFundingButtons);
+}
+
+if (withdrawSubmitBtn) {
+    withdrawSubmitBtn.addEventListener("click", submitWithdraw);
+}
 
     if (openGreedCardBtn) {
         openGreedCardBtn.addEventListener("click", openGreedCardModal);
