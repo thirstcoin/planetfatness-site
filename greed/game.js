@@ -3095,9 +3095,10 @@ async function beginRoundFromIntro() {
                 renderIntent(null);
                 stopIntentPolling();
             } else {
-                status.innerText = `Selected ${formatNumber(amount)} PHAT. Creating deposit request...`;
-                await replaceIntentForSelectedWager();
-            }
+    renderIntent(null);
+    stopIntentPolling();
+    status.innerText = `Selected ${formatNumber(amount)} PHAT. Tap Start Funding to generate wallet + amount.`;
+}
         }
     });
 });
@@ -3148,9 +3149,10 @@ async function beginRoundFromIntro() {
         renderIntent(null);
         stopIntentPolling();
     } else {
-        status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Creating deposit request...`;
-        await replaceIntentForSelectedWager();
-    }
+    renderIntent(null);
+    stopIntentPolling();
+    status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Tap Start Funding to generate wallet + amount.`;
+}
 });
 
         customWagerInput.addEventListener("keydown", (e) => {
