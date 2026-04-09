@@ -79,7 +79,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const withdrawBackdrop = document.getElementById("withdraw-backdrop");
     const withdrawCancelBtn = document.getElementById("withdraw-cancel-btn");
     const withdrawSubmitBtn = document.getElementById("withdraw-submit-btn");
-    const withdrawMaxBtn = document.getElementById("withdraw-max-btn");
     const withdrawAmountInput = document.getElementById("withdraw-amount-input");
     const withdrawWalletInput = document.getElementById("withdraw-wallet-input");
     const withdrawWalletConfirm = document.getElementById("withdraw-wallet-confirm");
@@ -1192,9 +1191,6 @@ document.addEventListener("DOMContentLoaded", function () {
             Number(availableBalance || 0) <= 0;
     }
 
-    if (withdrawMaxBtn) {
-        withdrawMaxBtn.disabled = withdrawBusy || !authReady;
-    }
 
     if (withdrawCancelBtn) {
         withdrawCancelBtn.disabled = withdrawBusy;
@@ -3290,15 +3286,6 @@ if (balanceFundCustomInput) {
         withdrawBackdrop.addEventListener("click", closeWithdrawModal);
     }
 
-    if (withdrawMaxBtn) {
-    withdrawMaxBtn.addEventListener("click", () => {
-        if (withdrawAmountInput) {
-            withdrawAmountInput.value = String(Number(availableBalance || 0).toFixed(3).replace(/\.?0+$/, ""));
-        }
-        fillText(withdrawStatus, `Full balance selected: ${formatPhat(availableBalance || 0)}`);
-        syncFundingButtons();
-    });
-}
 
 if (withdrawWalletInput) {
     withdrawWalletInput.addEventListener("input", syncFundingButtons);
