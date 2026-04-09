@@ -414,46 +414,61 @@
     </div>
 
     <!-- Withdraw Modal -->
-    <div id="withdraw-modal" class="withdraw-modal hidden">
-        <div id="withdraw-backdrop" class="withdraw-backdrop"></div>
-        <div class="withdraw-card">
-            <div class="withdraw-title">Withdraw PHAT</div>
+<div id="withdraw-modal" class="withdraw-modal hidden">
+    <div id="withdraw-backdrop" class="withdraw-backdrop"></div>
+    <div class="withdraw-card">
+        <div class="withdraw-title">Withdraw PHAT</div>
 
-            <div class="withdraw-row">
-                <span class="withdraw-label">Available</span>
-                <span id="withdraw-available">0 PHAT</span>
+        <div class="withdraw-row">
+            <span class="withdraw-label">Available</span>
+            <span id="withdraw-available">0 PHAT</span>
+        </div>
+
+        <div class="withdraw-form">
+            <label for="withdraw-amount-input">Full Balance Withdrawal</label>
+            <input
+                id="withdraw-amount-input"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="0.001"
+                placeholder="Full balance only"
+                readonly
+            />
+
+            <div id="withdraw-full-note" class="withdraw-full-note">
+                Your full available balance will be withdrawn.
             </div>
 
-            <div class="withdraw-form">
-                <label for="withdraw-amount-input">Amount</label>
-                <input id="withdraw-amount-input" type="number" inputmode="decimal" min="0" step="0.001" placeholder="Full balance only"/>
+            <label for="withdraw-wallet-input">Destination Wallet (Required)</label>
 
-                <label for="withdraw-wallet-input">Destination Wallet (Required)</label>
-
-                <div id="withdraw-wallet-warning" class="withdraw-wallet-warning">
-                    <div class="withdraw-wallet-warning-title">⚠️ Only withdraw PHAT to a wallet that supports PHAT (SPL tokens).</div>
-                    <div class="withdraw-wallet-warning-text">Do not use a generic Coinbase or exchange SOL deposit address.</div>
-                    <div class="withdraw-wallet-warning-helper">If you are unsure, withdraw to Phantom or Solflare first.</div>
-                </div>
-
-                <input id="withdraw-wallet-input" type="text" placeholder="Enter your PHAT-compatible wallet address"/>
-
-                <label class="withdraw-confirm-row" for="withdraw-wallet-confirm">
-                    <input id="withdraw-wallet-confirm" type="checkbox" />
-                    <span>I confirm this wallet supports PHAT (SPL tokens) and is not an exchange deposit address.</span>
-                </label>
+            <div id="withdraw-wallet-warning" class="withdraw-wallet-warning">
+                <div class="withdraw-wallet-warning-title">⚠️ Only withdraw PHAT to a wallet that supports PHAT (SPL tokens).</div>
+                <div class="withdraw-wallet-warning-text">Do not use a generic Coinbase or exchange SOL deposit address.</div>
+                <div class="withdraw-wallet-warning-helper">If you are unsure, withdraw to Phantom or Solflare first.</div>
             </div>
 
-            <div id="withdraw-note">Withdraw requests use your internal balance.</div>
-            <div id="withdraw-status">Ready.</div>
+            <input
+                id="withdraw-wallet-input"
+                type="text"
+                placeholder="Enter your PHAT-compatible wallet address"
+            />
 
-            <div class="withdraw-actions">
-                <button id="withdraw-max-btn" type="button">Max</button>
-                <button id="withdraw-cancel-btn" type="button">Cancel</button>
-                <button id="withdraw-submit-btn" type="button">Request Withdraw</button>
-            </div>
+            <label class="withdraw-confirm-row" for="withdraw-wallet-confirm">
+                <input id="withdraw-wallet-confirm" type="checkbox" />
+                <span>I confirm this wallet supports PHAT (SPL tokens) and is not an exchange deposit address.</span>
+            </label>
+        </div>
+
+        <div id="withdraw-note">Withdraw requests use your internal balance.</div>
+        <div id="withdraw-status">Enter a PHAT-compatible wallet and confirm below.</div>
+
+        <div class="withdraw-actions">
+            <button id="withdraw-cancel-btn" type="button">Cancel</button>
+            <button id="withdraw-submit-btn" type="button">Withdraw Full Balance</button>
         </div>
     </div>
+</div>
 
     <!-- Greed Card Modal -->
     <div id="greed-card-modal" class="greed-modal hidden">
