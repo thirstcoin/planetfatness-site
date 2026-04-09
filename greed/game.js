@@ -1575,15 +1575,6 @@ async function replaceIntentForBalanceDeposit() {
             }
         }
 
-        if (
-            previousStatus !== "consumed" &&
-            nextIntent?.status === "consumed" &&
-            isBalanceDepositIntent(nextIntent)
-        ) {
-            await refreshBalance(true);
-            syncFundingButtons();
-            syncStartButtonState();
-        }
 
         if (!nextIntent || !["pending", "funded"].includes(String(nextIntent.status || ""))) {
             stopIntentPolling();
@@ -2077,14 +2068,22 @@ function closeWithdrawModal() {
 
         // 🔥 THIS IS THE KEY FIX
         if (
-            previousStatus !== "consumed" &&
-            nextIntent?.status === "consumed" &&
-            isBalanceDepositIntent(nextIntent)
-        ) {
-            await refreshBalance(true);
-            syncFundingButtons();
-            syncStartButtonState();
-        }
+    previousStatus !== "consumed" &&
+    nextIntent?.status === "consumed" &&
+    isBalanceDepositIntent(nextIntent)
+) {
+    await refreshBalance(true);
+
+    setFundingMode("single_round");
+    setSelectedWager(1000);
+    renderIntent(null);
+    stopIntentPolling();
+
+    status.innerText = "Balance loaded. You are now in Play One Round mode with a 1,000 PHAT wager selected. Tap a wager above to play bigger from your balance.";
+
+    syncFundingButtons();
+    syncStartButtonState();
+}
 
         if (!nextIntent || !["pending", "funded"].includes(String(nextIntent.status || ""))) {
             stopIntentPolling();
