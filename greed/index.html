@@ -16,8 +16,8 @@
 
         <div class="intro-content">
             <div id="rules-brief">
-                12 donuts • 2 poison • cash out after 1 safe pick
-            </div>
+    Pick donuts • 2 are poison • avoid them • cash out anytime after 1 safe pick
+</div>
 
             <!-- Balance Panel -->
             <div id="balance-panel">
@@ -40,17 +40,17 @@
 
             <!-- Funding Panel -->
             <div id="funding-panel">
-                <div id="funding-title">Choose Funding Mode</div>
+                <div id="funding-title">How do you want to play?</div>
 
                 <div id="funding-mode-switch">
                     <button id="single-round-mode-btn" class="funding-mode-btn active" type="button">
-                        <span class="funding-mode-title">Single Round</span>
-                        <span class="funding-mode-subtitle">Fund one locked wager</span>
+                        <span class="funding-mode-title">Play One Round</span>
+                        <span class="funding-mode-subtitle">Fund one wager and play now</span>
                     </button>
 
                     <button id="deposit-balance-mode-btn" class="funding-mode-btn" type="button">
-                        <span class="funding-mode-title">Deposit Balance</span>
-                        <span class="funding-mode-subtitle">Fund up to 250K PHAT</span>
+                        <span class="funding-mode-title">Load Balance</span>
+                        <span class="funding-mode-subtitle">Add PHAT once and play multiple rounds</span>
                     </button>
                 </div>
 
@@ -65,7 +65,7 @@
                     </div>
 
                     <div id="custom-wager-wrap">
-                        <label for="custom-wager-input">Custom Wager</label>
+                        <label for="custom-wager-input">Choose Your Wager</label>
                         <input
                             id="custom-wager-input"
                             type="number"
@@ -78,12 +78,12 @@
                     </div>
 
                     <div id="selected-wager-wrap">
-                        <span class="funding-label">Selected Wager</span>
+                        <span class="funding-label">You Are Playing</span>
                         <span id="selected-wager-value">1,000 PHAT</span>
                     </div>
 
                     <div id="funding-help">
-                        Tap a wager button to generate a single-round funding amount.
+                        Choose your wager, then send the exact PHAT amount shown below to get credited.
                     </div>
                 </div>
 
@@ -101,7 +101,7 @@
                     </div>
 
                     <div id="balance-fund-custom-wrap">
-                        <label for="balance-fund-custom-input">Custom Fund</label>
+                        <label for="balance-fund-custom-input">Choose Balance Amount</label>
                         <input
                             id="balance-fund-custom-input"
                             type="number"
@@ -114,16 +114,16 @@
                     </div>
 
                     <div id="selected-balance-fund-wrap">
-                        <span class="funding-label">Selected Deposit</span>
+                        <span class="funding-label">Selected Balance Deposit</span>
                         <span id="selected-balance-fund-value">1,000 PHAT</span>
                     </div>
 
                     <div id="balance-fund-help">
-                        Deposit PHAT into internal balance for future rounds.
+                        Load your balance once, then choose how much you want to risk each round.
                     </div>
 
                     <div id="balance-fund-limit-note">
-                        Max balance deposit: 250,000 PHAT
+                        Balance deposits can be 1,000 to 250,000 PHAT.
                     </div>
                 </div>
 
@@ -140,7 +140,7 @@
                     </div>
 
                     <div class="funding-row">
-                        <span class="funding-label">Exact Amount</span>
+                        <span class="funding-label">Send Exactly</span>
                         <span id="intent-amount">—</span>
                     </div>
 
@@ -180,7 +180,7 @@
                 </div>
 
                 <div id="funding-polling-note">
-                    Waiting for selection.
+                    Choose a mode and amount to continue.
                 </div>
             </div>
 
@@ -319,7 +319,7 @@
     </div>
 
     <!-- Status -->
-    <div id="status">Choose a wager to begin.</div>
+    <div id="status">Choose how you want to play.</div>
 
     <!-- Poison Overlay -->
     <div id="poison-overlay">
@@ -426,21 +426,21 @@
 
             <div class="withdraw-form">
                 <label for="withdraw-amount-input">Amount</label>
-                <input id="withdraw-amount-input" type="number" inputmode="decimal" min="0" step="0.001" placeholder="Enter PHAT amount"/>
+                <input id="withdraw-amount-input" type="number" inputmode="decimal" min="0" step="0.001" placeholder="Full balance only"/>
 
-                <label for="withdraw-wallet-input">Destination Wallet</label>
+                <label for="withdraw-wallet-input">Destination Wallet (Required)</label>
 
                 <div id="withdraw-wallet-warning" class="withdraw-wallet-warning">
-    <div class="withdraw-wallet-warning-title">⚠️ Only withdraw PHAT to a wallet that supports PHAT (SPL tokens).</div>
-    <div class="withdraw-wallet-warning-text">Do not use a generic Coinbase or exchange SOL deposit address.</div>
-    <div class="withdraw-wallet-warning-helper">If you are unsure, withdraw to Phantom or Solflare first.</div>
-</div>
+                    <div class="withdraw-wallet-warning-title">⚠️ Only withdraw PHAT to a wallet that supports PHAT (SPL tokens).</div>
+                    <div class="withdraw-wallet-warning-text">Do not use a generic Coinbase or exchange SOL deposit address.</div>
+                    <div class="withdraw-wallet-warning-helper">If you are unsure, withdraw to Phantom or Solflare first.</div>
+                </div>
 
-                <input id="withdraw-wallet-input" type="text" placeholder="Leave blank to use your linked address"/>
+                <input id="withdraw-wallet-input" type="text" placeholder="Enter your PHAT-compatible wallet address"/>
 
                 <label class="withdraw-confirm-row" for="withdraw-wallet-confirm">
                     <input id="withdraw-wallet-confirm" type="checkbox" />
-                    <span>I confirm this wallet supports SPL tokens and is not a Coinbase deposit wallet.</span>
+                    <span>I confirm this wallet supports PHAT (SPL tokens) and is not an exchange deposit address.</span>
                 </label>
             </div>
 
