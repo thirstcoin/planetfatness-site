@@ -3093,25 +3093,25 @@ async function beginRoundFromIntro() {
     }
 
     quickWagerButtons.forEach((btn) => {
-        btn.addEventListener("click", async () => {
-            if (btn.disabled) return;
-            const amount = Number(btn.dataset.wager || 0);
-            if (amount > 0) {
-                setSelectedWager(amount);
-                setFundingMode("single_round");
-                await refreshBalance(true);
+    btn.addEventListener("click", async () => {
+        if (btn.disabled) return;
+        const amount = Number(btn.dataset.wager || 0);
+        if (amount > 0) {
+            setSelectedWager(amount);
+            setFundingMode("single_round");
+            await refreshBalance(true);
 
-                if (balanceCoversWager) {
-                    status.innerText = `Selected ${formatNumber(amount)} PHAT. Balance covers this wager.`;
-                    renderIntent(null);
-                    stopIntentPolling();
-                } else {
-                    status.innerText = `Selected ${formatNumber(amount)} PHAT. Creating deposit request...`;
-                    await replaceIntentForSelectedWager();
-                }
+            if (balanceCoversWager) {
+                status.innerText = `Selected ${formatNumber(amount)} PHAT. Balance covers this wager.`;
+                renderIntent(null);
+                stopIntentPolling();
+            } else {
+                status.innerText = `Selected ${formatNumber(amount)} PHAT. Creating deposit request...`;
+                await replaceIntentForSelectedWager();
             }
-        });
+        }
     });
+});
 
  balanceFundButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -3142,27 +3142,27 @@ async function beginRoundFromIntro() {
         });
 
         customWagerInput.addEventListener("change", async () => {
-            if (customWagerInput.disabled) return;
+    if (customWagerInput.disabled) return;
 
-            const raw = Number(String(customWagerInput.value || "").replace(/[^\d]/g, ""));
-            if (!Number.isFinite(raw) || raw < 1000 || raw > 50000) {
-                status.innerText = "Custom wager must be between 1,000 and 50,000 PHAT.";
-                return;
-            }
+    const raw = Number(String(customWagerInput.value || "").replace(/[^\d]/g, ""));
+    if (!Number.isFinite(raw) || raw < 1000 || raw > 50000) {
+        status.innerText = "Custom wager must be between 1,000 and 50,000 PHAT.";
+        return;
+    }
 
-            setSelectedWager(raw);
-            setFundingMode("single_round");
-            await refreshBalance(true);
+    setSelectedWager(raw);
+    setFundingMode("single_round");
+    await refreshBalance(true);
 
-            if (balanceCoversWager) {
-                status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Balance covers this wager.`;
-                renderIntent(null);
-                stopIntentPolling();
-            } else {
-                status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Creating deposit request...`;
-                await replaceIntentForSelectedWager();
-            }
-        });
+    if (balanceCoversWager) {
+        status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Balance covers this wager.`;
+        renderIntent(null);
+        stopIntentPolling();
+    } else {
+        status.innerText = `Selected ${formatNumber(selectedWager)} PHAT. Creating deposit request...`;
+        await replaceIntentForSelectedWager();
+    }
+});
 
         customWagerInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
