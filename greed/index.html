@@ -431,10 +431,10 @@
                 <label for="withdraw-wallet-input">Destination Wallet</label>
 
                 <div id="withdraw-wallet-warning" class="withdraw-wallet-warning">
-                    <div class="withdraw-wallet-warning-title">Do not withdraw PHAT to Coinbase.</div>
-                    <div class="withdraw-wallet-warning-text">Use an SPL-compatible wallet like Phantom or Solflare.</div>
-                    <div class="withdraw-wallet-warning-helper">Using Coinbase? You need Phantom or Solflare to receive PHAT.</div>
-                </div>
+    <div class="withdraw-wallet-warning-title">⚠️ Only withdraw PHAT to a wallet that supports PHAT (SPL tokens).</div>
+    <div class="withdraw-wallet-warning-text">Do not use a generic Coinbase or exchange SOL deposit address.</div>
+    <div class="withdraw-wallet-warning-helper">If you are unsure, withdraw to Phantom or Solflare first.</div>
+</div>
 
                 <input id="withdraw-wallet-input" type="text" placeholder="Leave blank to use your linked address"/>
 
@@ -641,7 +641,7 @@
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="game.js?v=35#"></script>
+    <script src="game.js?v=36#"></script>
 
 </body>
 </html>
