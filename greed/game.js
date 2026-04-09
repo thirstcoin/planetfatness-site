@@ -923,30 +923,30 @@ document.addEventListener("DOMContentLoaded", function () {
 }
 
     function updateBalanceMode() {
-        balanceCoversWager = Number(availableBalance || 0) >= Number(selectedWager || 0);
+    balanceCoversWager = Number(availableBalance || 0) >= Number(selectedWager || 0);
 
-        fillText(availableBalanceValue, formatBalance(availableBalance));
-        fillText(withdrawAvailable, formatBalance(availableBalance));
-        fillText(selectedWagerBalanceView, `${formatNumber(selectedWager)} PHAT`);
+    fillText(availableBalanceValue, formatBalance(availableBalance));
+    fillText(withdrawAvailable, formatBalance(availableBalance));
+    fillText(selectedWagerBalanceView, `${formatNumber(selectedWager)} PHAT`);
 
-        if (balanceModeNote) {
-            if (!authReady) {
-                balanceModeNote.textContent = "Authenticating...";
-            } else if (balanceCoversWager) {
-                balanceModeNote.textContent = "Balance covers this wager. You can start instantly.";
-            } else {
-                balanceModeNote.textContent = "Balance is below this wager. Funding intent will be used.";
-            }
-        }
-
-        if (fundingPanel) {
-            if (balanceCoversWager && fundingMode === "single_round") {
-                fundingPanel.classList.add("balance-covered");
-            } else {
-                fundingPanel.classList.remove("balance-covered");
-            }
+    if (balanceModeNote) {
+        if (!authReady) {
+            balanceModeNote.textContent = "Authenticating...";
+        } else if (balanceCoversWager) {
+            balanceModeNote.textContent = `Balance covers ${formatNumber(selectedWager)} PHAT. Only your selected wager is used per round.`;
+        } else {
+            balanceModeNote.textContent = `Balance is below ${formatNumber(selectedWager)} PHAT. Send the exact amount shown to get credited.`;
         }
     }
+
+    if (fundingPanel) {
+        if (balanceCoversWager && fundingMode === "single_round") {
+            fundingPanel.classList.add("balance-covered");
+        } else {
+            fundingPanel.classList.remove("balance-covered");
+        }
+    }
+}
 
     async function refreshBalance(quiet = false) {
         if (!authReady) return 0;
@@ -967,126 +967,129 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function renderIntent(intent) {
-        currentIntent = normalizeIntent(intent);
+   function renderIntent(intent) {
+    currentIntent = normalizeIntent(intent);
 
-        if (currentIntent?.requestedWager) {
-            setSelectedWager(Number(currentIntent.requestedWager));
+    if (currentIntent?.requestedWager) {
+        setSelectedWager(Number(currentIntent.requestedWager));
+    }
+
+    if (isBalanceDepositIntent(currentIntent)) {
+        const amt = getActiveIntentDisplayBaseAmount(currentIntent);
+        if (amt > 0) {
+            setSelectedBalanceFundAmount(amt);
         }
+    }
 
-        if (isBalanceDepositIntent(currentIntent)) {
-            const amt = getActiveIntentDisplayBaseAmount(currentIntent);
-            if (amt > 0) {
-                setSelectedBalanceFundAmount(amt);
-            }
-        }
-
-        if (intentStatusEl) {
-    if (!currentIntent) {
-        intentStatusEl.textContent =
-            fundingMode === "deposit_balance"
-                ? "READY TO FUND"
-                : "NOT FUNDED";
-    } else if (currentIntent.status === "pending") {
-        intentStatusEl.textContent = "WAITING FOR DEPOSIT";
-    } else if (currentIntent.status === "funded") {
-        intentStatusEl.textContent = "DEPOSIT DETECTED";
-    } else if (currentIntent.status === "expired") {
-        intentStatusEl.textContent = "EXPIRED";
-    } else if (currentIntent.status === "cancelled") {
-        intentStatusEl.textContent = "CANCELLED";
-  } else if (currentIntent.status === "consumed") {
-    intentStatusEl.textContent = isBalanceDepositIntent(currentIntent)
-        ? "BALANCE LOADED"
-        : "USED";
-} else {
-    intentStatusEl.textContent = String(currentIntent.status || "").toUpperCase();
-}
-}
-
-        fillText(intentAmountEl, currentIntent?.exactAmount ? `${formatIntentAmount(currentIntent.exactAmount)} PHAT` : "—");
-        fillText(intentWalletEl, currentIntent?.depositWallet || "—");
-        fillText(intentTokenEl, currentIntent?.tokenMint || "PHAT");
-        fillText(intentExpiryEl, currentIntent ? formatExpiry(currentIntent.expiresAt) : "—");
-
-        if (intentTxEl) {
-            intentTxEl.textContent = currentIntent?.txSignature ? shortHash(currentIntent.txSignature) : "—";
-            intentTxEl.title = currentIntent?.txSignature || "";
-        }
-
-if (fundingHelpEl) {
-    if (fundingMode === "deposit_balance") {
+    if (intentStatusEl) {
         if (!currentIntent) {
-            fundingHelpEl.textContent = "Choose a balance deposit amount to generate funding.";
+            intentStatusEl.textContent =
+                fundingMode === "deposit_balance"
+                    ? "READY TO FUND"
+                    : "NOT FUNDED";
         } else if (currentIntent.status === "pending") {
-            fundingHelpEl.textContent = "Use Copy Amount and Copy Wallet, then send the exact PHAT amount shown.";
+            intentStatusEl.textContent = "WAITING FOR EXACT DEPOSIT";
         } else if (currentIntent.status === "funded") {
-            fundingHelpEl.textContent = "Deposit received. Updating your internal balance...";
-        } else if (currentIntent.status === "consumed") {
-            fundingHelpEl.textContent = balanceCoversWager
-                ? "PHAT added to your balance. Tap Play With Balance below."
-                : "PHAT added to your balance. Add more PHAT or switch to Single Round.";
+            intentStatusEl.textContent = "DEPOSIT DETECTED";
         } else if (currentIntent.status === "expired") {
-            fundingHelpEl.textContent = "Funding expired. Choose a new balance deposit amount.";
+            intentStatusEl.textContent = "EXPIRED";
         } else if (currentIntent.status === "cancelled") {
-            fundingHelpEl.textContent = "Funding cancelled.";
+            intentStatusEl.textContent = "CANCELLED";
+        } else if (currentIntent.status === "consumed") {
+            intentStatusEl.textContent = isBalanceDepositIntent(currentIntent)
+                ? "BALANCE LOADED"
+                : "USED";
         } else {
-            fundingHelpEl.textContent = "Balance funding updated.";
+            intentStatusEl.textContent = String(currentIntent.status || "").toUpperCase();
         }
-    } else if (balanceCoversWager) {
-        fundingHelpEl.textContent = "Your internal balance covers this wager. Funding is not required.";
-    } else if (!currentIntent) {
-        fundingHelpEl.textContent = "Choose a wager to generate a funding amount.";
-    } else if (currentIntent.status === "funded") {
-        fundingHelpEl.textContent = "Deposit received. Your round is ready.";
-    } else if (currentIntent.status === "pending") {
-        fundingHelpEl.textContent = "Use Copy Amount and Copy Wallet, then send the exact PHAT amount shown.";
-    } else if (currentIntent.status === "expired") {
-        fundingHelpEl.textContent = "Funding expired. Pick a wager again.";
-    } else if (currentIntent.status === "cancelled") {
-        fundingHelpEl.textContent = "Funding cancelled.";
-    } else {
-        fundingHelpEl.textContent = "Round funding updated.";
     }
-}
 
-        if (fundingPollingNoteEl) {
-            if (fundingMode === "deposit_balance" && !currentIntent) {
-                fundingPollingNoteEl.textContent = "Waiting for balance deposit selection.";
-            } else if (balanceCoversWager && fundingMode === "single_round") {
-                fundingPollingNoteEl.textContent = "Using internal balance.";
-            } else if (!currentIntent) {
-                fundingPollingNoteEl.textContent = "Waiting for selection.";
-            } else if (currentIntent.status === "funded") {
-                fundingPollingNoteEl.textContent = isBalanceDepositIntent(currentIntent)
-                    ? "Deposit confirmed. Balance should update shortly."
-                    : "Deposit confirmed.";
+    fillText(
+        intentAmountEl,
+        currentIntent?.exactAmount ? `${formatIntentAmount(currentIntent.exactAmount)} PHAT` : "—"
+    );
+    fillText(intentWalletEl, currentIntent?.depositWallet || "—");
+    fillText(intentTokenEl, currentIntent?.tokenMint || "PHAT");
+    fillText(intentExpiryEl, currentIntent ? formatExpiry(currentIntent.expiresAt) : "—");
+
+    if (intentTxEl) {
+        intentTxEl.textContent = currentIntent?.txSignature ? shortHash(currentIntent.txSignature) : "—";
+        intentTxEl.title = currentIntent?.txSignature || "";
+    }
+
+    if (fundingHelpEl) {
+        if (fundingMode === "deposit_balance") {
+            if (!currentIntent) {
+                fundingHelpEl.textContent = "Choose a balance amount, then tap Start Funding.";
             } else if (currentIntent.status === "pending") {
-                fundingPollingNoteEl.textContent = "Waiting for deposit…";
-            } else if (currentIntent.status === "expired") {
-                fundingPollingNoteEl.textContent = "Funding expired.";
-            } else if (currentIntent.status === "cancelled") {
-                fundingPollingNoteEl.textContent = "Funding cancelled.";
+                fundingHelpEl.textContent = "Must match exactly to be credited. Copy the amount and wallet, then send that exact PHAT amount.";
+            } else if (currentIntent.status === "funded") {
+                fundingHelpEl.textContent = "Exact deposit received. Updating your internal balance...";
             } else if (currentIntent.status === "consumed") {
-    fundingPollingNoteEl.textContent = isBalanceDepositIntent(currentIntent)
-        ? "Balance updated. Ready to play."
-        : "Round funded.";
-} else {
-    fundingPollingNoteEl.textContent = "Funding updated.";
-}
+                fundingHelpEl.textContent = balanceCoversWager
+                    ? `Balance loaded. You can now play ${formatNumber(selectedWager)} PHAT per round.`
+                    : "Balance loaded. Add more PHAT or lower your wager.";
+            } else if (currentIntent.status === "expired") {
+                fundingHelpEl.textContent = "This deposit amount expired. Choose a new balance amount.";
+            } else if (currentIntent.status === "cancelled") {
+                fundingHelpEl.textContent = "Balance funding cancelled.";
+            } else {
+                fundingHelpEl.textContent = "Balance funding updated.";
+            }
+        } else if (balanceCoversWager) {
+            fundingHelpEl.textContent = `Your balance covers ${formatNumber(selectedWager)} PHAT. Only this selected wager is used per round.`;
+        } else if (!currentIntent) {
+            fundingHelpEl.textContent = "Choose your wager, then tap Start Funding to generate the exact PHAT amount.";
+        } else if (currentIntent.status === "funded") {
+            fundingHelpEl.textContent = "Exact deposit received. Your round is ready.";
+        } else if (currentIntent.status === "pending") {
+            fundingHelpEl.textContent = "Must match exactly to be credited. Copy the amount and wallet, then send that exact PHAT amount.";
+        } else if (currentIntent.status === "expired") {
+            fundingHelpEl.textContent = "This deposit amount expired. Pick your wager again.";
+        } else if (currentIntent.status === "cancelled") {
+            fundingHelpEl.textContent = "Round funding cancelled.";
+        } else {
+            fundingHelpEl.textContent = "Round funding updated.";
         }
-
-        if (copyAmountBtn) {
-            copyAmountBtn.disabled = !currentIntent?.exactAmount || (balanceCoversWager && fundingMode === "single_round");
-        }
-
-        if (copyWalletBtn) {
-            copyWalletBtn.disabled = !currentIntent?.depositWallet || (balanceCoversWager && fundingMode === "single_round");
-        }
-
-        syncFundingButtons();
-        syncStartButtonState();
     }
+
+    if (fundingPollingNoteEl) {
+        if (fundingMode === "deposit_balance" && !currentIntent) {
+            fundingPollingNoteEl.textContent = "Choose a balance amount to continue.";
+        } else if (balanceCoversWager && fundingMode === "single_round") {
+            fundingPollingNoteEl.textContent = "Using internal balance.";
+        } else if (!currentIntent) {
+            fundingPollingNoteEl.textContent = "Choose a mode and amount to continue.";
+        } else if (currentIntent.status === "funded") {
+            fundingPollingNoteEl.textContent = isBalanceDepositIntent(currentIntent)
+                ? "Exact deposit confirmed. Balance should update shortly."
+                : "Exact deposit confirmed.";
+        } else if (currentIntent.status === "pending") {
+            fundingPollingNoteEl.textContent = "Waiting for exact deposit…";
+        } else if (currentIntent.status === "expired") {
+            fundingPollingNoteEl.textContent = "Deposit amount expired.";
+        } else if (currentIntent.status === "cancelled") {
+            fundingPollingNoteEl.textContent = "Funding cancelled.";
+        } else if (currentIntent.status === "consumed") {
+            fundingPollingNoteEl.textContent = isBalanceDepositIntent(currentIntent)
+                ? "Balance updated. Ready to play."
+                : "Round funded.";
+        } else {
+            fundingPollingNoteEl.textContent = "Funding updated.";
+        }
+    }
+
+    if (copyAmountBtn) {
+        copyAmountBtn.disabled = !currentIntent?.exactAmount || (balanceCoversWager && fundingMode === "single_round");
+    }
+
+    if (copyWalletBtn) {
+        copyWalletBtn.disabled = !currentIntent?.depositWallet || (balanceCoversWager && fundingMode === "single_round");
+    }
+
+    syncFundingButtons();
+    syncStartButtonState();
+}
 
     function stopIntentPolling() {
         if (intentPollInterval) {
@@ -1096,185 +1099,188 @@ if (fundingHelpEl) {
     }
 
     function syncFundingButtons() {
-        const hasIntent = !!currentIntent;
-        const intentStatus = String(currentIntent?.status || "");
-        const pendingOrFunded = intentStatus === "pending" || intentStatus === "funded";
-        const shouldDisableSingleFunding = balanceCoversWager && fundingMode === "single_round";
+    const hasIntent = !!currentIntent;
+    const intentStatus = String(currentIntent?.status || "");
+    const pendingOrFunded = intentStatus === "pending" || intentStatus === "funded";
+    const shouldDisableSingleFunding = balanceCoversWager && fundingMode === "single_round";
 
-       if (cancelIntentBtn) {
-    const liveIntent =
-    hasIntent &&
-    (intentStatus === "pending" || intentStatus === "funded");
+    if (cancelIntentBtn) {
+        const liveIntent =
+            hasIntent &&
+            (intentStatus === "pending" || intentStatus === "funded");
 
-const liveIntentMatchesMode =
-    liveIntent &&
-    (
-        (fundingMode === "deposit_balance" && isBalanceDepositIntent(currentIntent)) ||
-        (fundingMode === "single_round" && !isBalanceDepositIntent(currentIntent))
-    );
+        const liveIntentMatchesMode =
+            liveIntent &&
+            (
+                (fundingMode === "deposit_balance" && isBalanceDepositIntent(currentIntent)) ||
+                (fundingMode === "single_round" && !isBalanceDepositIntent(currentIntent))
+            );
 
-const canCancel = liveIntentMatchesMode;
+        const canCancel = liveIntentMatchesMode;
 
-const noIntentInDepositMode =
-    fundingMode === "deposit_balance" && !liveIntentMatchesMode;
+        const noIntentInDepositMode =
+            fundingMode === "deposit_balance" && !liveIntentMatchesMode;
 
-    if (noIntentInDepositMode) {
-        // 👉 No intent yet → this should act as "Start Funding"
-        cancelIntentBtn.disabled =
-            !authReady ||
-            intentBusy ||
-            hasStartedRound ||
-            roundStarting;
+        if (noIntentInDepositMode) {
+            cancelIntentBtn.disabled =
+                !authReady ||
+                intentBusy ||
+                hasStartedRound ||
+                roundStarting;
 
-        cancelIntentBtn.textContent = "Start Funding";
+            cancelIntentBtn.textContent = "Start Funding";
 
-    } else if (canCancel) {
-        // 👉 Active intent → this should act as "Cancel Funding"
-        cancelIntentBtn.disabled =
-            !authReady ||
-            intentBusy;
+        } else if (canCancel) {
+            cancelIntentBtn.disabled =
+                !authReady ||
+                intentBusy;
 
-        cancelIntentBtn.textContent = "Cancel Funding";
+            cancelIntentBtn.textContent = "Cancel Funding";
 
-    } else {
-        // fallback safety
-        cancelIntentBtn.disabled = true;
-        cancelIntentBtn.textContent =
-            fundingMode === "deposit_balance"
-                ? "Start Funding"
-                : "Cancel Funding";
+        } else {
+            cancelIntentBtn.disabled = true;
+            cancelIntentBtn.textContent =
+                fundingMode === "deposit_balance"
+                    ? "Start Funding"
+                    : "Cancel Funding";
+        }
     }
-}
 
-        if (customWagerInput) {
-            customWagerInput.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
-        }
-
-        quickWagerButtons.forEach((btn) => {
-            btn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
-        });
-
-        balanceFundButtons.forEach((btn) => {
-            btn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
-        });
-
-        if (balanceFundCustomInput) {
-            balanceFundCustomInput.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
-        }
-
-        if (singleRoundModeBtn) {
-            singleRoundModeBtn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
-        }
-
-        if (depositBalanceModeBtn) {
-            depositBalanceModeBtn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
-        }
-
-
-        if (copyWalletBtn) {
-            copyWalletBtn.disabled = shouldDisableSingleFunding || !pendingOrFunded || !currentIntent?.depositWallet;
-        }
-
-        if (copyAmountBtn) {
-            copyAmountBtn.disabled = shouldDisableSingleFunding || !pendingOrFunded || !currentIntent?.exactAmount;
-        }
-
-        if (openWithdrawBtn) {
-            openWithdrawBtn.disabled = !authReady || hasStartedRound || roundStarting || withdrawBusy;
-        }
-
-        if (withdrawSubmitBtn) {
-    withdrawSubmitBtn.disabled = withdrawBusy || !authReady || !withdrawWalletConfirm?.checked;
-}
-
-        if (withdrawMaxBtn) {
-            withdrawMaxBtn.disabled = withdrawBusy || !authReady;
-        }
-
-        if (withdrawCancelBtn) {
-            withdrawCancelBtn.disabled = withdrawBusy;
-        }
-
-        if (openGreedCardBtn) openGreedCardBtn.disabled = !authReady || greedCardBusy;
-        if (openGlobalStatsBtn) openGlobalStatsBtn.disabled = globalStatsBusy;
-        if (openLeaderboardsBtn) openLeaderboardsBtn.disabled = leaderboardsBusy;
-        if (gcRefreshBtn) gcRefreshBtn.disabled = greedCardBusy;
-        if (gsmRefreshBtn) gsmRefreshBtn.disabled = globalStatsBusy;
-        if (lbmRefreshBtn) lbmRefreshBtn.disabled = leaderboardsBusy;
+    if (customWagerInput) {
+        customWagerInput.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
     }
+
+    quickWagerButtons.forEach((btn) => {
+        btn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
+    });
+
+    balanceFundButtons.forEach((btn) => {
+        btn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
+    });
+
+    if (balanceFundCustomInput) {
+        balanceFundCustomInput.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
+    }
+
+    if (singleRoundModeBtn) {
+        singleRoundModeBtn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
+    }
+
+    if (depositBalanceModeBtn) {
+        depositBalanceModeBtn.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
+    }
+
+    if (copyWalletBtn) {
+        copyWalletBtn.disabled = shouldDisableSingleFunding || !pendingOrFunded || !currentIntent?.depositWallet;
+    }
+
+    if (copyAmountBtn) {
+        copyAmountBtn.disabled = shouldDisableSingleFunding || !pendingOrFunded || !currentIntent?.exactAmount;
+    }
+
+    if (openWithdrawBtn) {
+        openWithdrawBtn.disabled = !authReady || hasStartedRound || roundStarting || withdrawBusy;
+    }
+
+    if (withdrawSubmitBtn) {
+        const walletFilled = !!String(withdrawWalletInput?.value || "").trim();
+        withdrawSubmitBtn.disabled =
+            withdrawBusy ||
+            !authReady ||
+            !withdrawWalletConfirm?.checked ||
+            !walletFilled ||
+            Number(availableBalance || 0) <= 0;
+    }
+
+    if (withdrawMaxBtn) {
+        withdrawMaxBtn.disabled = withdrawBusy || !authReady;
+    }
+
+    if (withdrawCancelBtn) {
+        withdrawCancelBtn.disabled = withdrawBusy;
+    }
+
+    if (openGreedCardBtn) openGreedCardBtn.disabled = !authReady || greedCardBusy;
+    if (openGlobalStatsBtn) openGlobalStatsBtn.disabled = globalStatsBusy;
+    if (openLeaderboardsBtn) openLeaderboardsBtn.disabled = leaderboardsBusy;
+    if (gcRefreshBtn) gcRefreshBtn.disabled = greedCardBusy;
+    if (gsmRefreshBtn) gsmRefreshBtn.disabled = globalStatsBusy;
+    if (lbmRefreshBtn) lbmRefreshBtn.disabled = leaderboardsBusy;
+}
 
     function syncStartButtonState() {
-        if (!startGameBtn) return;
+    if (!startGameBtn) return;
 
-        if (!authReady) {
-            startGameBtn.disabled = true;
-            startGameBtn.textContent = "Open in Telegram";
-            return;
-        }
-
-        if (roundStarting) {
-            startGameBtn.disabled = true;
-            startGameBtn.textContent = "Starting Round...";
-            return;
-        }
-
-        if (hasStartedRound) {
-            startGameBtn.disabled = true;
-            startGameBtn.textContent = "Round Active";
-            return;
-        }
-
-if (fundingMode === "deposit_balance") {
-    startGameBtn.style.display = "";
-
-    const depositIntentReady =
-        currentIntent &&
-        isBalanceDepositIntent(currentIntent) &&
-        (currentIntent.status === "funded" || currentIntent.status === "consumed");
-
-    if (balanceCoversWager) {
-        startGameBtn.disabled = false;
-        startGameBtn.textContent = "Play With Balance";
-    } else if (depositIntentReady && currentIntent.status === "funded") {
+    if (!authReady) {
         startGameBtn.disabled = true;
-        startGameBtn.textContent = "Updating Balance...";
-    } else if (depositIntentReady && currentIntent.status === "consumed") {
-        startGameBtn.disabled = true;
-        startGameBtn.textContent = "Add More PHAT or Switch Mode";
-    } else {
-        startGameBtn.disabled = true;
-        startGameBtn.textContent = "Fund Balance First";
+        startGameBtn.textContent = "Open in Telegram";
+        return;
     }
 
-    return;
-} else {
-    startGameBtn.style.display = "";
-}
+    if (roundStarting) {
+        startGameBtn.disabled = true;
+        startGameBtn.textContent = "Starting Round...";
+        return;
+    }
+
+    if (hasStartedRound) {
+        startGameBtn.disabled = true;
+        startGameBtn.textContent = "Round Active";
+        return;
+    }
+
+    if (fundingMode === "deposit_balance") {
+        startGameBtn.style.display = "";
+
+        const depositIntentReady =
+            currentIntent &&
+            isBalanceDepositIntent(currentIntent) &&
+            (currentIntent.status === "funded" || currentIntent.status === "consumed");
 
         if (balanceCoversWager) {
             startGameBtn.disabled = false;
-            startGameBtn.textContent = "Play From Balance";
-            return;
-        }
-
-        if (!currentIntent) {
+            startGameBtn.textContent = `Play ${formatNumber(selectedWager)} PHAT`;
+        } else if (depositIntentReady && currentIntent.status === "funded") {
             startGameBtn.disabled = true;
-            startGameBtn.textContent = "Fund Wager First";
-            return;
-        }
-
-        const intentStatus = String(currentIntent.status || "");
-        if (intentStatus !== "funded") {
+            startGameBtn.textContent = "Updating Balance...";
+        } else if (depositIntentReady && currentIntent.status === "consumed") {
             startGameBtn.disabled = true;
-            startGameBtn.textContent = intentStatus === "pending"
-                ? "Waiting for Deposit"
-                : "Fund Wager First";
-            return;
+            startGameBtn.textContent = "Add More PHAT or Lower Wager";
+        } else {
+            startGameBtn.disabled = true;
+            startGameBtn.textContent = "Fund Balance First";
         }
 
-        startGameBtn.disabled = false;
-        startGameBtn.textContent = "Start Round";
+        return;
+    } else {
+        startGameBtn.style.display = "";
     }
+
+    if (balanceCoversWager) {
+        startGameBtn.disabled = false;
+        startGameBtn.textContent = `Play ${formatNumber(selectedWager)} PHAT`;
+        return;
+    }
+
+    if (!currentIntent) {
+        startGameBtn.disabled = true;
+        startGameBtn.textContent = "Fund Wager First";
+        return;
+    }
+
+    const intentStatus = String(currentIntent.status || "");
+    if (intentStatus !== "funded") {
+        startGameBtn.disabled = true;
+        startGameBtn.textContent = intentStatus === "pending"
+            ? "Waiting for Exact Deposit"
+            : "Fund Wager First";
+        return;
+    }
+
+    startGameBtn.disabled = false;
+    startGameBtn.textContent = `Play ${formatNumber(selectedWager)} PHAT`;
+}
+
 
     async function refreshJackpot() {
         try {
@@ -1316,7 +1322,7 @@ if (fundingMode === "deposit_balance") {
                     if (!intent) {
                         status.innerText = "Choose a balance deposit amount.";
                     } else if (intent.status === "pending") {
-                        status.innerText = "Waiting for your balance deposit.";
+                        status.innerText = "Waiting for your exact deposit.";
                     } else if (intent.status === "funded") {
                         status.innerText = "Balance deposit received.";
                     }
@@ -1325,7 +1331,7 @@ if (fundingMode === "deposit_balance") {
                 } else if (!intent) {
                     status.innerText = "Choose a wager to begin.";
                 } else if (intent.status === "pending") {
-                    status.innerText = "Waiting for your deposit.";
+                    status.innerText = "Waiting for your exact deposit.";
                 } else if (intent.status === "funded") {
                     status.innerText = "Deposit received. Start your round.";
                 } else {
@@ -1395,8 +1401,8 @@ if (fundingMode === "deposit_balance") {
 
             if (currentIntent?.status === "pending") {
                 status.innerText = intentType === "balance_deposit"
-                    ? "Waiting for your balance deposit..."
-                    : "Waiting for your deposit...";
+    ? "Waiting for your exact balance deposit..."
+    : "Waiting for your exact deposit...";
                 startIntentPolling();
             } else if (currentIntent?.status === "funded") {
                 status.innerText = intentType === "balance_deposit"
@@ -1567,8 +1573,8 @@ async function replaceIntentForBalanceDeposit() {
                     : "Round funded.";
             } else if (nextIntent?.status === "pending") {
                 status.innerText = isBalanceDepositIntent(nextIntent)
-                    ? "Waiting for your balance deposit..."
-                    : "Waiting for your deposit...";
+    ? "Waiting for your exact balance deposit..."
+    : "Waiting for your exact deposit...";
             } else if (nextIntent?.status === "expired") {
                 status.innerText = "Funding expired. Choose an amount again.";
             } else if (nextIntent?.status === "cancelled") {
@@ -1937,20 +1943,50 @@ async function replaceIntentForBalanceDeposit() {
 
     function openWithdrawModal() {
     if (!authReady || !withdrawModal) return;
+
     withdrawModal.classList.remove("hidden");
     fillText(withdrawAvailable, formatBalance(availableBalance));
-    fillText(withdrawStatus, "Ready.");
-    if (withdrawAmountInput) withdrawAmountInput.value = "";
-    if (withdrawWalletInput) withdrawWalletInput.value = "";
-    if (withdrawWalletConfirm) withdrawWalletConfirm.checked = false;
+
+    if (withdrawAmountInput) {
+        withdrawAmountInput.value = String(Number(availableBalance || 0).toFixed(3).replace(/\.?0+$/, ""));
+        withdrawAmountInput.readOnly = true;
+    }
+
+    if (withdrawWalletInput) {
+        withdrawWalletInput.value = "";
+    }
+
+    if (withdrawWalletConfirm) {
+        withdrawWalletConfirm.checked = false;
+    }
+
+    if (Number(availableBalance || 0) <= 0) {
+        fillText(withdrawStatus, "No balance available to withdraw.");
+    } else {
+        fillText(withdrawStatus, "Enter a PHAT-compatible wallet and confirm below.");
+    }
+
     syncFundingButtons();
 }
 
-    function closeWithdrawModal() {
+function closeWithdrawModal() {
     if (!withdrawModal) return;
+
     withdrawModal.classList.add("hidden");
     fillText(withdrawStatus, "Ready.");
-    if (withdrawWalletConfirm) withdrawWalletConfirm.checked = false;
+
+    if (withdrawWalletConfirm) {
+        withdrawWalletConfirm.checked = false;
+    }
+
+    if (withdrawWalletInput) {
+        withdrawWalletInput.value = "";
+    }
+
+    if (withdrawAmountInput) {
+        withdrawAmountInput.readOnly = false;
+    }
+
     syncFundingButtons();
 }
 
@@ -2037,8 +2073,8 @@ async function replaceIntentForBalanceDeposit() {
                     : "Round funded.";
             } else if (nextIntent?.status === "pending") {
                 status.innerText = isBalanceDepositIntent(nextIntent)
-                    ? "Waiting for your balance deposit..."
-                    : "Waiting for your deposit...";
+    ? "Waiting for your exact balance deposit..."
+    : "Waiting for your exact deposit...";
             } else if (nextIntent?.status === "expired") {
                 status.innerText = "Funding expired. Choose an amount again.";
             } else if (nextIntent?.status === "cancelled") {
@@ -2328,20 +2364,50 @@ async function replaceIntentForBalanceDeposit() {
 
     function openWithdrawModal() {
     if (!authReady || !withdrawModal) return;
+
     withdrawModal.classList.remove("hidden");
     fillText(withdrawAvailable, formatBalance(availableBalance));
-    fillText(withdrawStatus, "Ready.");
-    if (withdrawAmountInput) withdrawAmountInput.value = "";
-    if (withdrawWalletInput) withdrawWalletInput.value = "";
-    if (withdrawWalletConfirm) withdrawWalletConfirm.checked = false;
+
+    if (withdrawAmountInput) {
+        withdrawAmountInput.value = String(Number(availableBalance || 0).toFixed(3).replace(/\.?0+$/, ""));
+        withdrawAmountInput.readOnly = true;
+    }
+
+    if (withdrawWalletInput) {
+        withdrawWalletInput.value = "";
+    }
+
+    if (withdrawWalletConfirm) {
+        withdrawWalletConfirm.checked = false;
+    }
+
+    if (Number(availableBalance || 0) <= 0) {
+        fillText(withdrawStatus, "No balance available to withdraw.");
+    } else {
+        fillText(withdrawStatus, "Enter a PHAT-compatible wallet and confirm below.");
+    }
+
     syncFundingButtons();
 }
 
-    function closeWithdrawModal() {
+function closeWithdrawModal() {
     if (!withdrawModal) return;
+
     withdrawModal.classList.add("hidden");
     fillText(withdrawStatus, "Ready.");
-    if (withdrawWalletConfirm) withdrawWalletConfirm.checked = false;
+
+    if (withdrawWalletConfirm) {
+        withdrawWalletConfirm.checked = false;
+    }
+
+    if (withdrawWalletInput) {
+        withdrawWalletInput.value = "";
+    }
+
+    if (withdrawAmountInput) {
+        withdrawAmountInput.readOnly = false;
+    }
+
     syncFundingButtons();
 }
 
@@ -2406,34 +2472,34 @@ async function replaceIntentForBalanceDeposit() {
     async function submitWithdraw() {
     if (withdrawBusy || !authReady) return;
 
-    const amount = Number(withdrawAmountInput?.value || 0);
     const destinationWallet = String(withdrawWalletInput?.value || "").trim();
+    const amount = Number(availableBalance || 0);
 
     if (!Number.isFinite(amount) || amount <= 0) {
-        fillText(withdrawStatus, "Enter a valid amount.");
+        fillText(withdrawStatus, "No balance available to withdraw.");
         return;
     }
 
-    if (amount > availableBalance) {
-        fillText(withdrawStatus, "Amount exceeds available balance.");
+    if (!destinationWallet) {
+        fillText(withdrawStatus, "Enter a destination wallet.");
         return;
     }
 
     if (!withdrawWalletConfirm?.checked) {
-        fillText(withdrawStatus, "Confirm your wallet supports SPL tokens.");
+        fillText(withdrawStatus, "Confirm this wallet supports PHAT (SPL tokens).");
         return;
     }
 
     withdrawBusy = true;
     syncFundingButtons();
-    fillText(withdrawStatus, "Submitting withdrawal...");
+    fillText(withdrawStatus, `Submitting full balance withdrawal of ${formatPhat(amount)}...`);
 
     try {
         await apiFetch("/wallet/withdraw", {
             method: "POST",
             body: JSON.stringify({
                 amount,
-                destinationWallet: destinationWallet || undefined
+                destinationWallet
             })
         });
 
@@ -2580,16 +2646,16 @@ async function beginRoundFromIntro() {
     await refreshBalance(true);
 
     if (fundingMode === "deposit_balance") {
-        if (!balanceCoversWager) {
-            status.innerText = "Add PHAT to your balance first.";
-            syncStartButtonState();
-            return;
-        }
-
-        setFundingMode("single_round");
-        renderIntent(null);
-        stopIntentPolling();
+    if (!balanceCoversWager) {
+        status.innerText = `Add PHAT to your balance first, or lower your wager to ${formatNumber(selectedWager)} PHAT.`;
+        syncStartButtonState();
+        return;
     }
+
+    setFundingMode("single_round");
+    renderIntent(null);
+    stopIntentPolling();
+}
 
     if (!balanceCoversWager && (!currentIntent || currentIntent.status !== "funded")) {
         status.innerText = "Fund your round first.";
@@ -3227,9 +3293,15 @@ if (balanceFundCustomInput) {
     if (withdrawMaxBtn) {
     withdrawMaxBtn.addEventListener("click", () => {
         if (withdrawAmountInput) {
-            withdrawAmountInput.value = String(availableBalance || 0);
+            withdrawAmountInput.value = String(Number(availableBalance || 0).toFixed(3).replace(/\.?0+$/, ""));
         }
+        fillText(withdrawStatus, `Full balance selected: ${formatPhat(availableBalance || 0)}`);
+        syncFundingButtons();
     });
+}
+
+if (withdrawWalletInput) {
+    withdrawWalletInput.addEventListener("input", syncFundingButtons);
 }
 
 if (withdrawWalletConfirm) {
@@ -3354,24 +3426,24 @@ if (withdrawSubmitBtn) {
         }
 
         if (fundingMode === "deposit_balance") {
-            if (currentIntent?.status === "funded") {
-                status.innerText = "Balance deposit received.";
-            } else if (currentIntent?.status === "pending") {
-                status.innerText = "Waiting for your balance deposit.";
-            } else {
-                status.innerText = "Choose a balance deposit amount.";
-            }
-        } else if (balanceCoversWager) {
-            renderIntent(null);
-            stopIntentPolling();
-            status.innerText = "Balance covers this wager. Start when ready.";
-        } else if (currentIntent?.status === "funded") {
-            status.innerText = "Deposit received. Start your round.";
-        } else if (currentIntent?.status === "pending") {
-            status.innerText = "Waiting for your deposit.";
-        } else {
-            status.innerText = "Choose a wager to begin.";
-        }
+    if (currentIntent?.status === "funded") {
+        status.innerText = "Exact balance deposit received.";
+    } else if (currentIntent?.status === "pending") {
+        status.innerText = "Waiting for your exact balance deposit.";
+    } else {
+        status.innerText = "Choose a balance amount to continue.";
+    }
+} else if (balanceCoversWager) {
+    renderIntent(null);
+    stopIntentPolling();
+    status.innerText = `Balance covers ${formatNumber(selectedWager)} PHAT. Start when ready.`;
+} else if (currentIntent?.status === "funded") {
+    status.innerText = "Exact deposit received. Start your round.";
+} else if (currentIntent?.status === "pending") {
+    status.innerText = "Waiting for your exact deposit.";
+} else {
+    status.innerText = "Choose your wager to begin.";
+}
 
         syncFundingButtons();
         syncStartButtonState();
