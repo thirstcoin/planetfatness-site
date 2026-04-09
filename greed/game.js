@@ -1104,46 +1104,35 @@ document.addEventListener("DOMContentLoaded", function () {
     const shouldDisableSingleFunding = balanceCoversWager && fundingMode === "single_round";
 
     if (cancelIntentBtn) {
-        const liveIntent =
-            hasIntent &&
-            (intentStatus === "pending" || intentStatus === "funded");
+    const liveIntent =
+        hasIntent &&
+        (intentStatus === "pending" || intentStatus === "funded");
 
-        const liveIntentMatchesMode =
-            liveIntent &&
-            (
-                (fundingMode === "deposit_balance" && isBalanceDepositIntent(currentIntent)) ||
-                (fundingMode === "single_round" && !isBalanceDepositIntent(currentIntent))
-            );
+    const liveIntentMatchesMode =
+        liveIntent &&
+        (
+            (fundingMode === "deposit_balance" && isBalanceDepositIntent(currentIntent)) ||
+            (fundingMode === "single_round" && !isBalanceDepositIntent(currentIntent))
+        );
 
-        const canCancel = liveIntentMatchesMode;
+    if (liveIntentMatchesMode) {
+        cancelIntentBtn.disabled =
+            !authReady ||
+            intentBusy;
 
-        const noIntentInDepositMode =
-            fundingMode === "deposit_balance" && !liveIntentMatchesMode;
+        cancelIntentBtn.textContent = "Cancel Funding";
+    } else {
+        const canStartFunding =
+            authReady &&
+            !intentBusy &&
+            !hasStartedRound &&
+            !roundStarting &&
+            !(fundingMode === "single_round" && balanceCoversWager);
 
-        if (noIntentInDepositMode) {
-            cancelIntentBtn.disabled =
-                !authReady ||
-                intentBusy ||
-                hasStartedRound ||
-                roundStarting;
-
-            cancelIntentBtn.textContent = "Start Funding";
-
-        } else if (canCancel) {
-            cancelIntentBtn.disabled =
-                !authReady ||
-                intentBusy;
-
-            cancelIntentBtn.textContent = "Cancel Funding";
-
-        } else {
-            cancelIntentBtn.disabled = true;
-            cancelIntentBtn.textContent =
-                fundingMode === "deposit_balance"
-                    ? "Start Funding"
-                    : "Cancel Funding";
-        }
+        cancelIntentBtn.disabled = !canStartFunding;
+        cancelIntentBtn.textContent = "Start Funding";
     }
+}
 
     if (customWagerInput) {
         customWagerInput.disabled = !authReady || intentBusy || hasStartedRound || roundStarting;
