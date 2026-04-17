@@ -242,8 +242,41 @@
         <div id="ladder-next-label">Next x1.10</div>
     </div>
 
-    <!-- Game Board -->
+        <!-- Game Board -->
     <div id="game-container"></div>
+
+    <!-- Cashout -->
+    <div id="cashout-wrap">
+        <div id="cashout-meta">
+            <div class="cashout-meta-row">
+                <span class="cashout-meta-label">Round Locked</span>
+                <span id="round-locked-amount">0 PHAT</span>
+            </div>
+
+            <div class="cashout-meta-row cashout-meta-row-live">
+                <span class="cashout-meta-label">Cashout Now</span>
+                <span id="cashout-now-amount">0 PHAT</span>
+            </div>
+        </div>
+
+        <button id="cashout-button" type="button" disabled>
+            Cash Out
+        </button>
+    </div>
+
+    <!-- Spectator Strip -->
+    <div id="spectator-strip" class="hidden">
+        <div id="spectator-callout-row">
+            <span id="spectator-callout-badge">LIVE CROWD</span>
+            <span id="spectator-callout-text">Waiting for live round...</span>
+        </div>
+
+        <div id="spectator-stats-row">
+            <span id="spectator-hot-streak">🔥 Hot Streak: 0</span>
+            <span id="spectator-accuracy">🎯 Accuracy: 0%</span>
+            <span id="spectator-top-caller">👑 Top Caller Today: —</span>
+        </div>
+    </div>
 
     <!-- Right Rail / Mini Leaderboards -->
     <div id="leaderboard-panel">
@@ -277,7 +310,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Fairness Panel (hidden during gameplay; shown only in overlays) -->
     <div id="fairness-panel" style="display:none;">
         <div class="fairness-title">Provably Fair</div>
