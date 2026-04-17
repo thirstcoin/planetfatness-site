@@ -2601,14 +2601,13 @@ body {
 #spectator-strip {
     position: absolute !important;
     left: 50% !important;
-    bottom: 5.8% !important;
+    bottom: 4.8% !important;
     transform: translateX(-50%) !important;
     z-index: 590 !important;
     width: min(78vw, 520px) !important;
     margin: 0 !important;
     padding: 8px 10px !important;
     border-radius: 14px !important;
-    pointer-events: none !important;
 }
 
 #spectator-callout-row {
@@ -2625,6 +2624,9 @@ body {
 #spectator-callout-text {
     font-size: 12px !important;
     line-height: 1.2 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 }
 
 #spectator-stats-row {
@@ -2642,40 +2644,22 @@ body {
     line-height: 1.15 !important;
 }
 
-/* keep status under spectator strip */
+/* keep status fully below spectator strip */
 #status {
-    bottom: 1.8% !important;
-    pointer-events: none !important;
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    bottom: 0.8% !important;
+    width: min(92vw, 520px) !important;
+    text-align: center !important;
+    z-index: 585 !important;
+    line-height: 1.05 !important;
 }
 
 /* mobile tuning */
 @media (max-width: 768px) {
-    #cashout-wrap {
-        bottom: 12.6% !important;
-        width: min(64vw, 250px) !important;
-    }
-
-    #cashout-meta {
-        padding: 6px 8px !important;
-    }
-
-    .cashout-meta-label {
-        font-size: 8px !important;
-    }
-
-    #round-locked-amount,
-    #cashout-now-amount {
-        font-size: 11px !important;
-    }
-
-    #cashout-button {
-        max-width: 250px !important;
-        font-size: 14px !important;
-        padding: 10px 10px !important;
-    }
-
     #spectator-strip {
-        bottom: 5.2% !important;
+        bottom: 4.4% !important;
         width: min(88vw, 360px) !important;
         padding: 7px 8px !important;
         border-radius: 12px !important;
@@ -2715,7 +2699,8 @@ body {
     }
 
     #status {
-        bottom: 1.1% !important;
-        font-size: clamp(15px, 4.2vw, 22px) !important;
+        bottom: 0.4% !important;
+        width: min(92vw, 360px) !important;
+        font-size: clamp(14px, 4vw, 20px) !important;
     }
 }
