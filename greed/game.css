@@ -2549,6 +2549,7 @@ body {
 /* =========================
    GREED LOWER HUD PATCH
    keeps donut box + hitboxes untouched
+   fixes cashout tap layer
    ========================= */
 
 /* hide side rail on mobile / telegram play area */
@@ -2562,9 +2563,10 @@ body {
     left: 50% !important;
     bottom: 13.2% !important;
     transform: translateX(-50%) !important;
-    z-index: 600 !important;
+    z-index: 650 !important;
     width: min(62vw, 360px) !important;
     gap: 5px !important;
+    pointer-events: none !important;
 }
 
 #cashout-meta {
@@ -2572,6 +2574,7 @@ body {
     padding: 7px 9px !important;
     gap: 3px !important;
     border-radius: 10px !important;
+    pointer-events: none !important;
 }
 
 .cashout-meta-label {
@@ -2589,14 +2592,15 @@ body {
     min-width: 0 !important;
     font-size: 16px !important;
     padding: 12px 14px !important;
+    position: relative !important;
+    z-index: 2 !important;
+    pointer-events: auto !important;
 }
 
 /* spectator strip smaller and directly below cashout */
 #spectator-strip {
     position: absolute !important;
     left: 50% !important;
-    right: auto !important;
-    top: auto !important;
     bottom: 5.8% !important;
     transform: translateX(-50%) !important;
     z-index: 590 !important;
@@ -2604,58 +2608,26 @@ body {
     margin: 0 !important;
     padding: 8px 10px !important;
     border-radius: 14px !important;
-    border: 1px solid rgba(255, 214, 10, 0.22) !important;
-    background: linear-gradient(180deg, rgba(38, 18, 58, 0.92), rgba(24, 10, 39, 0.94)) !important;
-    box-shadow:
-        0 10px 28px rgba(0, 0, 0, 0.28),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-}
-
-#spectator-strip.hidden {
-    display: none !important;
+    pointer-events: none !important;
 }
 
 #spectator-callout-row {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
     min-height: 30px !important;
     padding-bottom: 6px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+    gap: 8px !important;
 }
 
 #spectator-callout-badge {
-    flex: 0 0 auto !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
     padding: 5px 9px !important;
-    border-radius: 999px !important;
     font-size: 10px !important;
-    font-weight: 800 !important;
-    letter-spacing: 0.08em !important;
-    text-transform: uppercase !important;
-    color: #1f1400 !important;
-    background: linear-gradient(180deg, #ffe36a, #ffca1f) !important;
-    box-shadow: 0 6px 16px rgba(255, 202, 31, 0.28) !important;
 }
 
 #spectator-callout-text {
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
     font-size: 12px !important;
-    font-weight: 700 !important;
     line-height: 1.2 !important;
-    color: #fff6d7 !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
 }
 
 #spectator-stats-row {
-    display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 6px !important;
     padding-top: 6px !important;
@@ -2664,24 +2636,16 @@ body {
 #spectator-hot-streak,
 #spectator-accuracy,
 #spectator-top-caller {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
     min-height: 30px !important;
     padding: 6px 8px !important;
-    border-radius: 10px !important;
-    background: rgba(255, 255, 255, 0.045) !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
-    color: #f7f0ff !important;
     font-size: 10px !important;
-    font-weight: 700 !important;
-    text-align: center !important;
     line-height: 1.15 !important;
 }
 
 /* keep status under spectator strip */
 #status {
     bottom: 1.8% !important;
+    pointer-events: none !important;
 }
 
 /* mobile tuning */
