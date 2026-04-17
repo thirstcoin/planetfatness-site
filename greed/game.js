@@ -176,6 +176,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const lbmJackpotButchers = document.getElementById("lbm-jackpot-butchers");
     const lbmGreedGods = document.getElementById("lbm-greed-gods");
 
+    const spectatorStrip = document.getElementById("spectator-strip");
+    const spectatorCalloutText = document.getElementById("spectator-callout-text");
+    const spectatorHotStreak = document.getElementById("spectator-hot-streak");
+    const spectatorAccuracy = document.getElementById("spectator-accuracy");
+    const spectatorTopCaller = document.getElementById("spectator-top-caller");
+       
     if (
         !container ||
         !status ||
@@ -270,6 +276,16 @@ document.addEventListener("DOMContentLoaded", function () {
     let globalStatsBusy = false;
     let leaderboardsBusy = false;
 
+        let spectatorStats = {
+        active: false,
+        callout: "Waiting for live round...",
+        hotStreak: 0,
+        picks: 0,
+        correct: 0,
+        accuracy: 0,
+        topCaller: "—"
+    };
+    
     const hypeLines = [
         "Phil says: take another bite.",
         "Feed your greed.",
@@ -362,6 +378,91 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function getRandomHypeLine() {
         return hypeLines[Math.floor(Math.random() * hypeLines.length)];
+    }
+    function setSpectatorVisibility(show) {
+        if (!spectatorStrip) return;
+        spectatorStrip.classList.toggle("hidden", !show);
+    }
+
+    function renderSpectatorStrip() {
+        if (!spectatorStrip) return;
+
+        fillText(
+            spectatorCalloutText,
+            spectatorStats.callout || "Waiting for live round..."
+        );
+
+        fillText(
+            spectatorHotStreak,
+            `🔥 Hot Streak: ${formatNumber(spectatorStats.hotStreak || 0)}`
+        );
+
+        fillText(
+            spectatorAccuracy,
+            `🎯 Accuracy: ${formatPct(spectatorStats.accuracy || 0)}`
+        );
+
+        fillText(
+            spectatorTopCaller,
+            `👑 Top Caller Today: ${spectatorStats.topCaller || "—"}`
+        );
+
+        setSpectatorVisibility(!!spectatorStats.active);
+    }
+
+    function resetSpectatorRoundStats(callout = "Waiting for live round...") {
+        spectatorStats.active = false;
+        spectatorStats.callout = callout;
+        spectatorStats.hotStreak = 0;
+        spectatorStats.picks = 0;
+        spectatorStats.correct = 0;
+        spectatorStats.accuracy = 0;
+        renderSpectatorStrip();
+    }
+
+    function beginSpectatorRound(callout = "Live round started. Crowd is watching...") {
+        spectatorStats.active = true;
+        spectatorStats.callout = callout;
+        spectatorStats.hotStreak = 0;
+        spectatorStats.picks = 0;
+        spectatorStats.correct = 0;
+        spectatorStats.accuracy = 0;
+        renderSpectatorStrip();
+    }
+
+    function updateSpectatorAfterSafePick(callout = "Safe pick locked in.") {
+        spectatorStats.active = true;
+        spectatorStats.picks += 1;
+        spectatorStats.correct += 1;
+        spectatorStats.hotStreak += 1;
+        spectatorStats.accuracy = spectatorStats.picks > 0
+            ? (spectatorStats.correct / spectatorStats.picks) * 100
+            : 0;
+        spectatorStats.callout = callout;
+        renderSpectatorStrip();
+    }
+
+    function updateSpectatorAfterPoison(callout = "Poison found. Crowd got smoked.") {
+        spectatorStats.active = true;
+        spectatorStats.picks += 1;
+        spectatorStats.hotStreak = 0;
+        spectatorStats.accuracy = spectatorStats.picks > 0
+            ? (spectatorStats.correct / spectatorStats.picks) * 100
+            : 0;
+        spectatorStats.callout = callout;
+        renderSpectatorStrip();
+    }
+
+    function updateSpectatorAfterCashout(callout = "Cashout secured.") {
+        spectatorStats.active = true;
+        spectatorStats.callout = callout;
+        renderSpectatorStrip();
+    }
+
+    function updateSpectatorTopCaller(name) {
+        const cleaned = String(name || "").trim();
+        spectatorStats.topCaller = cleaned || "—";
+        renderSpectatorStrip();
     }
 
     function fillText(el, value, formatter = null, fallback = "—") {
@@ -1913,6 +2014,8 @@ async function replaceIntentForBalanceDeposit() {
         liveFairnessBadge.style.display = "none";
     }
 
+    resetSpectatorRoundStats("Waiting for live round...");
+    
     syncFundingButtons();
     syncStartButtonState();
 }
@@ -2342,7 +2445,8 @@ function closeWithdrawModal() {
         resetBoardVisuals();
         setFairnessPanel();
 
-        syncFundingButtons();
+        resetSpectatorRoundStats("Waiting for live round...");
+         syncFundingButtons();
         syncStartButtonState();
     }
 
