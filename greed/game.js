@@ -2784,10 +2784,12 @@ async function beginRoundFromIntro() {
         pickInFlight = false;
         setFairnessPanel();
 
-        hideIntroOverlay();
-        multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
-        updateLadder();
-        updateCashoutButton();
+       beginSpectatorRound("Live round started. Crowd is watching...");
+
+       hideIntroOverlay();
+       multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+       updateLadder();
+       updateCashoutButton();
 
         stopLockingStatus("Choose wisely...");
         unlockBoard();
@@ -2839,18 +2841,18 @@ async function beginRoundFromIntro() {
     }
 }
 
-    async function startFreshRoundFromOverlay() {
-        hideOverlays();
-        resetRoundStateForFreshStart();
-        showIntroOverlay();
+async function startFreshRoundFromOverlay() {
+    hideOverlays();
+    resetRoundStateForFreshStart();
+    showIntroOverlay();
 
-        await ensureAuthReady(false);
-        await refreshBalance(true);
-        await loadOpenIntent(false);
-        await refreshGreedGlobalStats();
-        await refreshLeaderboards();
+    await ensureAuthReady(false);
+    await refreshBalance(true);
+    await loadOpenIntent(false);
+    await refreshGreedGlobalStats();
+    await refreshLeaderboards();
 
-        playIntroSequence();
+    playIntroSequence();
 
         if (fundingMode === "deposit_balance") {
             status.innerText = currentIntent?.status === "funded"
@@ -2923,12 +2925,14 @@ async function beginRoundFromIntro() {
 
             fillText(winPayout, formatPhat(data.payout || 0));
 
-            lockBoard();
-            playCashoutTierSound();
-            stopLockingStatus("Greed fed. Cash locked in.");
-            showWinOverlay();
-            pickInFlight = false;
-            updateCashoutButton();
+updateSpectatorAfterCashout("Cashout secured. Crowd approves.");
+
+lockBoard();
+playCashoutTierSound();
+stopLockingStatus("Greed fed. Cash locked in.");
+showWinOverlay();
+pickInFlight = false;
+updateCashoutButton();
         } catch (err) {
             console.warn("Backend cashout failed:", err);
             const msg = String(err?.message || "Cashout failed. Try again.");
@@ -3019,14 +3023,16 @@ async function beginRoundFromIntro() {
                         await refreshGreedGlobalStats();
                         await refreshLeaderboards();
 
-                        fillText(poisonResultLabel, "Bust");
-                        fillText(poisonResultMultiplier, `x${Number(data.currentMultiplier || 1).toFixed(2)}`);
-                        fillText(poisonResultLoss, formatPhat(currentRoundWager || selectedWager || 0));
+                      fillText(poisonResultLabel, "Bust");
+fillText(poisonResultMultiplier, `x${Number(data.currentMultiplier || 1).toFixed(2)}`);
+fillText(poisonResultLoss, formatPhat(currentRoundWager || selectedWager || 0));
 
-                        setTimeout(() => {
-                            showPoisonOverlay();
-                        }, OVERLAY_DELAY_MS);
-                        return;
+updateSpectatorAfterPoison("Poison found. Crowd got smoked.");
+
+setTimeout(() => {
+    showPoisonOverlay();
+}, OVERLAY_DELAY_MS);
+return;
                     }
 
                     playNomSound();
@@ -3044,15 +3050,20 @@ async function beginRoundFromIntro() {
                         await refreshLeaderboards();
 
                         fillText(winPayout, formatPhat(data.payout || 0));
-                        showWinOverlay();
-                        return;
+updateSpectatorAfterCashout("Perfect run. Crowd is losing its mind.");
+showWinOverlay();
+return;
                     }
 
                     if (data.finalDonutLive || safeFoundCount === 9) {
-                        stopLockingStatus("MAX GREED • FINAL DONUT • 33% shot at x5.00");
-                    } else {
-                        stopLockingStatus(getRandomHypeLine());
-                    }
+    const crowdLine = "Final donut live. Crowd is on edge.";
+    updateSpectatorAfterSafePick(crowdLine);
+    stopLockingStatus("MAX GREED • FINAL DONUT • 33% shot at x5.00");
+} else {
+    const crowdLine = getRandomHypeLine();
+    updateSpectatorAfterSafePick(crowdLine);
+    stopLockingStatus(crowdLine);
+}
 
                     setInteractionCooldown(PICK_COOLDOWN_MS);
                     await waitForCooldownIfNeeded();
@@ -3153,6 +3164,20 @@ async function beginRoundFromIntro() {
         }
 
         status.innerText = safeFoundCount > 0 ? "Round restored." : "Choose wisely...";
+
+beginSpectatorRound(
+    safeFoundCount > 0
+        ? `Round restored at x${multiplier.toFixed(2)}. Crowd jumped back in.`
+        : "Round restored. Crowd is watching..."
+);
+
+if (safeFoundCount > 0) {
+    spectatorStats.picks = safeFoundCount;
+    spectatorStats.correct = safeFoundCount;
+    spectatorStats.hotStreak = safeFoundCount;
+    spectatorStats.accuracy = 100;
+    renderSpectatorStrip();
+}
 
         stopIntentPolling();
         renderIntent(null);
@@ -3475,15 +3500,16 @@ if (withdrawSubmitBtn) {
     }
 
     setSelectedWager(DEFAULT_WAGER);
-    setSelectedBalanceFundAmount(DEFAULT_BALANCE_FUND);
-    setFundingMode("single_round");
-    multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
-    updateCashoutButton();
-    updateLadder();
-    setFairnessPanel();
-    refreshJackpot();
-    buildBoard();
-    playIntroSequence();
+setSelectedBalanceFundAmount(DEFAULT_BALANCE_FUND);
+setFundingMode("single_round");
+multiplierDisplay.innerText = `x${multiplier.toFixed(2)}`;
+updateCashoutButton();
+updateLadder();
+setFairnessPanel();
+resetSpectatorRoundStats("Waiting for live round...");
+refreshJackpot();
+buildBoard();
+playIntroSequence();
 
     (async function init() {
         syncFundingButtons();
@@ -3492,7 +3518,10 @@ if (withdrawSubmitBtn) {
 
         await ensureAuthReady(false);
         if (!authReady) return;
-
+const tgUser = getTelegramUserFromWebApp();
+if (tgUser?.username) {
+    updateSpectatorTopCaller(`@${tgUser.username}`);
+}
         await refreshBalance(true);
         await refreshGreedGlobalStats();
         await refreshLeaderboards();
