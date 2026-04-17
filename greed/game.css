@@ -2549,7 +2549,6 @@ body {
 /* =========================
    GREED LOWER HUD PATCH
    keeps donut box + hitboxes untouched
-   fixes cashout tap layer
    ========================= */
 
 /* hide side rail on mobile / telegram play area */
@@ -2561,12 +2560,11 @@ body {
 #cashout-wrap {
     position: absolute !important;
     left: 50% !important;
-    bottom: 13.2% !important;
+    bottom: 13.4% !important;
     transform: translateX(-50%) !important;
-    z-index: 650 !important;
+    z-index: 600 !important;
     width: min(62vw, 360px) !important;
-    gap: 5px !important;
-    pointer-events: none !important;
+    gap: 6px !important;
 }
 
 #cashout-meta {
@@ -2574,7 +2572,6 @@ body {
     padding: 7px 9px !important;
     gap: 3px !important;
     border-radius: 10px !important;
-    pointer-events: none !important;
 }
 
 .cashout-meta-label {
@@ -2592,38 +2589,41 @@ body {
     min-width: 0 !important;
     font-size: 16px !important;
     padding: 12px 14px !important;
-    position: relative !important;
-    z-index: 2 !important;
-    pointer-events: auto !important;
 }
 
-/* spectator strip smaller and directly below cashout */
+/* spectator strip directly below cashout */
 #spectator-strip {
     position: absolute !important;
     left: 50% !important;
-    bottom: 4.8% !important;
+    bottom: 5.2% !important;
     transform: translateX(-50%) !important;
     z-index: 590 !important;
-    width: min(78vw, 520px) !important;
+    width: min(82vw, 560px) !important;
     margin: 0 !important;
     padding: 8px 10px !important;
     border-radius: 14px !important;
 }
 
 #spectator-callout-row {
-    min-height: 30px !important;
-    padding-bottom: 6px !important;
+    display: flex !important;
+    align-items: center !important;
     gap: 8px !important;
+    min-height: 26px !important;
+    padding-bottom: 5px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
 }
 
 #spectator-callout-badge {
-    padding: 5px 9px !important;
-    font-size: 10px !important;
+    flex: 0 0 auto !important;
+    padding: 4px 8px !important;
+    font-size: 9px !important;
 }
 
 #spectator-callout-text {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    font-size: 11px !important;
+    line-height: 1.1 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -2631,52 +2631,82 @@ body {
 
 #spectator-stats-row {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 6px !important;
-    padding-top: 6px !important;
+    gap: 5px !important;
+    padding-top: 5px !important;
 }
 
 #spectator-hot-streak,
 #spectator-accuracy,
 #spectator-top-caller {
-    min-height: 30px !important;
-    padding: 6px 8px !important;
-    font-size: 10px !important;
-    line-height: 1.15 !important;
+    min-height: 28px !important;
+    padding: 5px 6px !important;
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+    justify-content: center !important;
+    text-align: center !important;
 }
 
-/* keep status fully below spectator strip */
+/* status sits fully below spectator strip */
 #status {
     position: absolute !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     bottom: 0.8% !important;
-    width: min(92vw, 520px) !important;
+    width: min(90vw, 420px) !important;
     text-align: center !important;
-    z-index: 585 !important;
+    z-index: 580 !important;
+    font-size: clamp(14px, 4vw, 22px) !important;
     line-height: 1.05 !important;
+    pointer-events: none !important;
 }
 
 /* mobile tuning */
 @media (max-width: 768px) {
+    #cashout-wrap {
+        bottom: 13.1% !important;
+        width: min(66vw, 260px) !important;
+    }
+
+    #cashout-meta {
+        padding: 6px 8px !important;
+    }
+
+    .cashout-meta-label {
+        font-size: 8px !important;
+    }
+
+    #round-locked-amount,
+    #cashout-now-amount {
+        font-size: 11px !important;
+    }
+
+    #cashout-button {
+        max-width: 260px !important;
+        font-size: 14px !important;
+        padding: 10px 10px !important;
+    }
+
     #spectator-strip {
-        bottom: 4.4% !important;
-        width: min(88vw, 360px) !important;
+        bottom: 4.6% !important;
+        width: min(92vw, 370px) !important;
         padding: 7px 8px !important;
         border-radius: 12px !important;
     }
 
     #spectator-callout-row {
-        min-height: 28px !important;
-        padding-bottom: 5px !important;
+        min-height: 24px !important;
+        padding-bottom: 4px !important;
+        gap: 6px !important;
     }
 
     #spectator-callout-badge {
-        font-size: 9px !important;
-        padding: 4px 8px !important;
+        font-size: 8px !important;
+        padding: 4px 7px !important;
     }
 
     #spectator-callout-text {
-        font-size: 11px !important;
+        font-size: 10px !important;
+        line-height: 1.05 !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
@@ -2684,23 +2714,24 @@ body {
 
     #spectator-stats-row {
         grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 5px !important;
-        padding-top: 5px !important;
+        gap: 4px !important;
+        padding-top: 4px !important;
     }
 
     #spectator-hot-streak,
     #spectator-accuracy,
     #spectator-top-caller {
-        min-height: 28px !important;
-        padding: 5px 6px !important;
-        font-size: 9px !important;
+        min-height: 26px !important;
+        padding: 4px 5px !important;
+        font-size: 8px !important;
         justify-content: center !important;
         text-align: center !important;
     }
 
     #status {
-        bottom: 0.4% !important;
+        bottom: 0.3% !important;
         width: min(92vw, 360px) !important;
-        font-size: clamp(14px, 4vw, 20px) !important;
+        font-size: clamp(13px, 3.9vw, 19px) !important;
+        line-height: 1.02 !important;
     }
 }
