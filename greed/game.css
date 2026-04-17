@@ -2551,18 +2551,17 @@ body {
    keeps donut box + hitboxes untouched
    ========================= */
 
-/* hide side rail on mobile / telegram play area */
 #leaderboard-panel {
     display: none !important;
 }
 
-/* move cashout panel directly under donut box */
+/* cashout block */
 #cashout-wrap {
     position: absolute !important;
     left: 50% !important;
-    bottom: 13.4% !important;
+    bottom: 13.8% !important;
     transform: translateX(-50%) !important;
-    z-index: 600 !important;
+    z-index: 900 !important;
     width: min(62vw, 360px) !important;
     gap: 6px !important;
 }
@@ -2584,52 +2583,61 @@ body {
 }
 
 #cashout-button {
+    position: relative !important;
+    z-index: 901 !important;
     width: 100% !important;
     max-width: 360px !important;
     min-width: 0 !important;
     font-size: 16px !important;
     padding: 12px 14px !important;
+    pointer-events: auto !important;
 }
 
-/* spectator strip directly below cashout */
+/* spectator strip below cashout */
 #spectator-strip {
     position: absolute !important;
     left: 50% !important;
-    bottom: 5.2% !important;
+    bottom: 4.8% !important;
     transform: translateX(-50%) !important;
-    z-index: 590 !important;
+    z-index: 700 !important;
     width: min(82vw, 560px) !important;
     margin: 0 !important;
     padding: 8px 10px !important;
     border-radius: 14px !important;
+    pointer-events: none !important;
 }
 
 #spectator-callout-row {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: auto 1fr !important;
     align-items: center !important;
     gap: 8px !important;
-    min-height: 26px !important;
+    min-height: 24px !important;
     padding-bottom: 5px !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
 }
 
 #spectator-callout-badge {
-    flex: 0 0 auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     padding: 4px 8px !important;
     font-size: 9px !important;
+    white-space: nowrap !important;
 }
 
 #spectator-callout-text {
-    flex: 1 1 auto !important;
+    display: block !important;
     min-width: 0 !important;
     font-size: 11px !important;
-    line-height: 1.1 !important;
+    line-height: 1.05 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
 }
 
 #spectator-stats-row {
+    display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 5px !important;
     padding-top: 5px !important;
@@ -2646,7 +2654,6 @@ body {
     text-align: center !important;
 }
 
-/* status sits fully below spectator strip */
 #status {
     position: absolute !important;
     left: 50% !important;
@@ -2654,16 +2661,15 @@ body {
     bottom: 0.8% !important;
     width: min(90vw, 420px) !important;
     text-align: center !important;
-    z-index: 580 !important;
+    z-index: 650 !important;
     font-size: clamp(14px, 4vw, 22px) !important;
     line-height: 1.05 !important;
     pointer-events: none !important;
 }
 
-/* mobile tuning */
 @media (max-width: 768px) {
     #cashout-wrap {
-        bottom: 13.1% !important;
+        bottom: 13.2% !important;
         width: min(66vw, 260px) !important;
     }
 
@@ -2687,14 +2693,15 @@ body {
     }
 
     #spectator-strip {
-        bottom: 4.6% !important;
+        bottom: 4.2% !important;
         width: min(92vw, 370px) !important;
         padding: 7px 8px !important;
         border-radius: 12px !important;
     }
 
     #spectator-callout-row {
-        min-height: 24px !important;
+        grid-template-columns: auto 1fr !important;
+        min-height: 22px !important;
         padding-bottom: 4px !important;
         gap: 6px !important;
     }
@@ -2706,7 +2713,7 @@ body {
 
     #spectator-callout-text {
         font-size: 10px !important;
-        line-height: 1.05 !important;
+        line-height: 1.02 !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
@@ -2729,7 +2736,7 @@ body {
     }
 
     #status {
-        bottom: 0.3% !important;
+        bottom: 0.2% !important;
         width: min(92vw, 360px) !important;
         font-size: clamp(13px, 3.9vw, 19px) !important;
         line-height: 1.02 !important;
