@@ -781,26 +781,22 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function ensureAuthReady(forceRefresh = false) {
-        if (authBootstrapPromise && !forceRefresh) {
-            return authBootstrapPromise;
+  async function ensureAuthReady(forceRefresh = false) {
+    if (authBootstrapPromise && !forceRefresh) {
+        return authBootstrapPromise;
+    }
+
+    authBootstrapPromise = (async () => {
+        if (forceRefresh) {
+            clearStoredTokens();
         }
 
-        authBootstrapPromise = (async () => {
-            if (forceRefresh) {
-                clearStoredTokens();
-            }
+        status.innerText = "Verifying session...";
 
-            authToken = getAuthToken();
+        const hasTelegramLaunchData = !!String(tgWebApp?.initData || "").trim();
 
-            if (authToken) {
-                authReady = true;
-                syncFundingButtons();
-                syncStartButtonState();
-                return true;
-            }
-
-            status.innerText = "Verifying session...";
+        // If we're inside Telegram and initData exists, always prefer fresh Telegram auth first.
+        if (hasTelegramLaunchData) {
             const tgAuthed = await bootstrapTelegramAuth();
             authToken = getAuthToken();
 
@@ -810,22 +806,33 @@ document.addEventListener("DOMContentLoaded", function () {
                 syncStartButtonState();
                 return true;
             }
+        }
 
-            authReady = false;
+        // Fallback to existing stored token only if Telegram auth did not succeed.
+        authToken = getAuthToken();
+
+        if (authToken) {
+            authReady = true;
             syncFundingButtons();
             syncStartButtonState();
-            status.innerText = tgWebApp
-                ? "Session failed. Reopen from the bot."
-                : "Launch from Telegram to play.";
-            return false;
-        })();
-
-        try {
-            return await authBootstrapPromise;
-        } finally {
-            authBootstrapPromise = null;
+            return true;
         }
+
+        authReady = false;
+        syncFundingButtons();
+        syncStartButtonState();
+        status.innerText = tgWebApp
+            ? "Session failed. Reopen from the bot."
+            : "Launch from Telegram to play.";
+        return false;
+    })();
+
+    try {
+        return await authBootstrapPromise;
+    } finally {
+        authBootstrapPromise = null;
     }
+}
 
     async function apiFetch(path, options = {}, retrying = false) {
         const token = authToken || getAuthToken();
