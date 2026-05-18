@@ -7,7 +7,6 @@
 <title>Planet Fatness ($PHAT)</title>
 
 <meta name="description" content="Planet Fatness ($PHAT) is a cinematic entertainment ecosystem on Solana built around games, rewards, Feed Your Greed, PHAT Kings, Telegram culture, and community." />
-
 <meta name="theme-color" content="#08030d" />
 <meta name="color-scheme" content="dark" />
 
@@ -159,42 +158,58 @@ img{display:block;max-width:100%}
 }
 
 .hero{
-  min-height:calc(100svh - 74px);
   position:relative;
-  display:flex;
-  align-items:center;
   overflow:hidden;
   border-bottom:1px solid rgba(255,255,255,.07);
+  padding:54px 0 44px;
 }
 
-.heroVisual{
+.hero::before{
+  content:"";
   position:absolute;
   inset:0;
-  z-index:-3;
   pointer-events:none;
-}
-
-.heroVisual img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  opacity:.46;
-  filter:saturate(1.12) contrast(1.08);
-}
-
-.heroGlow{
-  position:absolute;
-  inset:0;
   background:
-    linear-gradient(90deg,rgba(5,2,10,.92),rgba(5,2,10,.5) 48%,rgba(5,2,10,.75)),
-    linear-gradient(180deg,rgba(5,2,10,.15),rgba(5,2,10,.96)),
-    radial-gradient(750px 420px at 30% 38%,rgba(122,53,255,.32),transparent 65%),
-    radial-gradient(520px 340px at 68% 28%,rgba(255,210,79,.14),transparent 60%);
+    radial-gradient(780px 480px at 22% 30%,rgba(122,53,255,.28),transparent 65%),
+    radial-gradient(520px 340px at 76% 28%,rgba(255,210,79,.14),transparent 60%);
+}
+
+.heroGrid{
+  position:relative;
+  display:grid;
+  grid-template-columns:.92fr 1.08fr;
+  gap:26px;
+  align-items:center;
 }
 
 .heroContent{
-  width:min(790px,100%);
-  padding:84px 0 90px;
+  width:100%;
+  padding:22px 0;
+}
+
+.heroImageCard{
+  border-radius:34px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.035);
+  box-shadow:var(--shadow);
+  position:relative;
+}
+
+.heroImageCard img{
+  width:100%;
+  height:auto;
+  object-fit:cover;
+}
+
+.heroImageCard::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(5,2,10,.05),rgba(5,2,10,.18)),
+    radial-gradient(520px 260px at 40% 20%,rgba(255,210,79,.08),transparent 70%);
 }
 
 .kicker{
@@ -223,7 +238,7 @@ img{display:block;max-width:100%}
 
 h1{
   margin:16px 0 12px;
-  font-size:clamp(50px,8vw,108px);
+  font-size:clamp(48px,7vw,100px);
   line-height:.92;
   letter-spacing:-4px;
   font-weight:1000;
@@ -240,7 +255,7 @@ h1{
   margin:0;
   max-width:700px;
   color:rgba(255,255,255,.77);
-  font-size:clamp(16px,2.3vw,22px);
+  font-size:clamp(16px,2.2vw,21px);
   line-height:1.5;
   font-weight:760;
 }
@@ -257,7 +272,7 @@ h1{
   grid-template-columns:repeat(4,1fr);
   gap:10px;
   margin-top:24px;
-  max-width:840px;
+  max-width:900px;
 }
 
 .q{
@@ -304,7 +319,7 @@ section{padding:38px 0}
 
 .sectionHead p{
   margin:8px 0 0;
-  max-width:650px;
+  max-width:760px;
   color:var(--muted);
   font-weight:760;
   line-height:1.45;
@@ -405,18 +420,24 @@ section{padding:38px 0}
   font-weight:760;
 }
 
-.lockHero{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
+.lockProof{
   border:1px solid rgba(255,255,255,.1);
-  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.028));
+  background:
+    radial-gradient(700px 340px at 20% 0%,rgba(122,53,255,.22),transparent 55%),
+    radial-gradient(600px 320px at 90% 15%,rgba(255,210,79,.12),transparent 55%),
+    linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.028));
   border-radius:32px;
-  overflow:hidden;
+  padding:28px;
   box-shadow:var(--shadow);
 }
 
-.lockCopy{padding:28px}
+.lockTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  flex-wrap:wrap;
+}
 
 .livePill{
   display:inline-flex;
@@ -439,15 +460,16 @@ section{padding:38px 0}
   box-shadow:0 0 18px rgba(86,255,157,.75);
 }
 
-.lockCopy h3{
+.lockProof h3{
   margin:18px 0 10px;
   font-size:clamp(40px,5vw,72px);
   line-height:.92;
   letter-spacing:-2px;
 }
 
-.lockCopy p{
+.lockProof p{
   margin:0;
+  max-width:780px;
   color:var(--muted);
   font-size:17px;
   line-height:1.55;
@@ -456,7 +478,7 @@ section{padding:38px 0}
 
 .lockStats{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
+  grid-template-columns:repeat(4,1fr);
   gap:10px;
   margin:22px 0;
 }
@@ -483,21 +505,22 @@ section{padding:38px 0}
   color:var(--yellow);
 }
 
-.lockVisual{
-  position:relative;
-  min-height:420px;
+.chartFrame{
+  width:100%;
+  height:min(720px,78vh);
+  min-height:520px;
+  border-radius:32px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.35);
+  box-shadow:var(--shadow);
 }
 
-.lockVisual img{
+.chartFrame iframe{
   width:100%;
   height:100%;
-  object-fit:cover;
-}
-
-.lockOverlay{
-  position:absolute;
-  inset:0;
-  background:linear-gradient(180deg,rgba(5,2,10,.15),rgba(5,2,10,.72));
+  border:0;
+  display:block;
 }
 
 .roadmapRail{
@@ -509,14 +532,45 @@ section{padding:38px 0}
   -webkit-overflow-scrolling:touch;
 }
 
-.roadmapRail .eco{
+.roadmapRail .roadCard{
   flex:0 0 min(860px,88vw);
   scroll-snap-align:start;
+  overflow:hidden;
+  border-radius:var(--radius);
+  border:1px solid rgba(255,255,255,.1);
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  box-shadow:var(--shadow);
 }
 
-.roadmapRail .ecoImg{
-  height:auto;
+.roadImg{
+  width:100%;
   aspect-ratio:16/9;
+  background:center/cover no-repeat;
+}
+
+.roadCopy{
+  padding:18px;
+}
+
+.roadCopy small{
+  color:var(--yellow);
+  font-size:11px;
+  font-weight:1000;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+
+.roadCopy h3{
+  margin:8px 0 8px;
+  font-size:24px;
+  letter-spacing:-.6px;
+}
+
+.roadCopy p{
+  margin:0;
+  color:var(--muted);
+  font-weight:760;
+  line-height:1.45;
 }
 
 .futureCard{
@@ -598,9 +652,7 @@ footer{
   box-shadow:0 18px 60px rgba(0,0,0,.45);
 }
 
-.bottomNav .mini{
-  padding:10px 14px;
-}
+.bottomNav .mini{padding:10px 14px}
 
 .buyModal{
   position:fixed;
@@ -637,21 +689,25 @@ footer{
 }
 
 @media(max-width:980px){
+  .heroGrid{grid-template-columns:1fr}
+  .heroImageCard{order:-1}
   .ecoGrid{grid-template-columns:1fr}
   .marketGrid{grid-template-columns:repeat(2,1fr)}
-  .lockHero{grid-template-columns:1fr}
   .futureCard{grid-template-columns:1fr}
   .quickStats{grid-template-columns:repeat(2,1fr)}
+  .lockStats{grid-template-columns:repeat(2,1fr)}
 }
 
 @media(max-width:640px){
   .nav .chip{display:none}
+  .hero{padding:30px 0 34px}
+  .heroContent{padding:10px 0 0}
+  h1{letter-spacing:-2px}
   .quickStats{grid-template-columns:1fr}
   .marketGrid{grid-template-columns:1fr}
   .lockStats{grid-template-columns:1fr}
-  .heroContent{padding:70px 0 84px}
-  h1{letter-spacing:-2px}
   .bottomNav{width:calc(100% - 36px);justify-content:space-between}
+  .chartFrame{min-height:560px;height:72vh;border-radius:24px}
 }
 </style>
 </head>
@@ -671,7 +727,7 @@ footer{
 
 <div class="nav">
 <a class="chip" href="#ecosystem">Ecosystem</a>
-<a class="chip" href="#markets">Markets</a>
+<a class="chip" href="#chart">Chart</a>
 <a class="chip" href="#locks">Locks</a>
 <a class="chip" href="#roadmap">Roadmap</a>
 <button class="buyBtn" onclick="openBuy()">Buy $PHAT</button>
@@ -682,12 +738,8 @@ footer{
 
 <header class="hero">
 
-<div class="heroVisual">
-<img src="assets/hero.png" alt="Planet Fatness Hero">
-<div class="heroGlow"></div>
-</div>
+<div class="wrap heroGrid">
 
-<div class="wrap">
 <div class="heroContent">
 
 <div class="kicker">
@@ -718,7 +770,7 @@ Enter The Gym
 PHAT Kings
 </a>
 
-<a class="btn" href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS" target="_blank">
+<a class="btn" href="#chart">
 View Chart
 </a>
 
@@ -749,6 +801,11 @@ View Chart
 </div>
 
 </div>
+
+<div class="heroImageCard">
+<img src="assets/hero.png" alt="Planet Fatness Cinematic Ecosystem">
+</div>
+
 </div>
 
 </header>
@@ -828,6 +885,35 @@ and the only gym where tapping counts as cardio.
 </div>
 
 </section>
+<section id="chart">
+
+<div class="wrap">
+
+<div class="sectionHead">
+<div>
+<h2>Live chart.</h2>
+<p>
+Real-time $PHAT price action, liquidity, volume, holders,
+and market movement directly from DexScreener.
+</p>
+</div>
+</div>
+
+<div class="chartFrame">
+
+<iframe
+src="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS?embed=1&theme=dark"
+title="Planet Fatness DexScreener Chart"
+loading="lazy"
+allowfullscreen>
+</iframe>
+
+</div>
+
+</div>
+
+</section>
+
 <section id="markets">
 
 <div class="wrap">
@@ -902,9 +988,11 @@ Public ecosystem locks visible directly on-chain through Streamflow.
 </div>
 </div>
 
-<div class="lockHero">
+<div class="lockProof">
 
-<div class="lockCopy">
+<div class="lockTop">
+
+<div>
 
 <div class="livePill">
 <div class="liveDot"></div>
@@ -917,6 +1005,18 @@ LIVE LOCK DATA
 Planet Fatness currently maintains multiple active public Streamflow locks
 with transparent unlock schedules visible directly on-chain.
 </p>
+
+</div>
+
+<a class="btn btnGold"
+href="https://app.streamflow.finance/token-dashboard/solana/mainnet/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?type=lock"
+target="_blank">
+
+View Streamflow Locks
+
+</a>
+
+</div>
 
 <div class="lockStats">
 
@@ -935,17 +1035,11 @@ with transparent unlock schedules visible directly on-chain.
 <b>200M+</b>
 </div>
 
+<div class="lockStat">
+<small>Network</small>
+<b>Solana</b>
 </div>
 
-<a class="btn btnGold" href="https://app.streamflow.finance/token-dashboard/solana/mainnet/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?type=lock" target="_blank">
-View Streamflow Locks
-</a>
-
-</div>
-
-<div class="lockVisual">
-<img src="assets/roadmap-5.jpg" alt="Streamflow Locks">
-<div class="lockOverlay"></div>
 </div>
 
 </div>
@@ -962,35 +1056,86 @@ View Streamflow Locks
 <div>
 <h2>Visual roadmap.</h2>
 <p>
-Swipe through the expanding Planet Fatness entertainment universe.
+Planet Fatness launched the ecosystem foundation, public supply locks,
+community games, Feed Your Greed, and PHAT Kings.
+Next phases expand toward larger partnerships, major platform exposure,
+collectibles, merchandise, and deeper ecosystem rewards.
 </p>
 </div>
 </div>
 
 <div class="roadmapRail">
 
-<div class="eco">
-<div class="ecoImg" style="background-image:url('assets/roadmap-1.jpg')"></div>
+<div class="roadCard">
+<div class="roadImg" style="background-image:url('assets/roadmap-1.jpg')"></div>
+<div class="roadCopy">
+<small>PHASE 01</small>
+<h3>Launch & Community</h3>
+<p>
+Launch of Planet Fatness, Telegram growth,
+community rewards, and ecosystem identity.
+</p>
+</div>
 </div>
 
-<div class="eco">
-<div class="ecoImg" style="background-image:url('assets/roadmap-2.jpg')"></div>
+<div class="roadCard">
+<div class="roadImg" style="background-image:url('assets/roadmap-2.jpg')"></div>
+<div class="roadCopy">
+<small>PHASE 02</small>
+<h3>Supply Locks</h3>
+<p>
+Public Streamflow locks and transparent ecosystem structure
+built directly on-chain.
+</p>
+</div>
 </div>
 
-<div class="eco">
-<div class="ecoImg" style="background-image:url('assets/roadmap-3.jpg')"></div>
+<div class="roadCard">
+<div class="roadImg" style="background-image:url('assets/roadmap-3.jpg')"></div>
+<div class="roadCopy">
+<small>PHASE 03</small>
+<h3>Judgement Kitchen & Games</h3>
+<p>
+Expansion into mini-games, activity systems,
+and community competition mechanics.
+</p>
+</div>
 </div>
 
-<div class="eco">
-<div class="ecoImg" style="background-image:url('assets/roadmap-4.jpg')"></div>
+<div class="roadCard">
+<div class="roadImg" style="background-image:url('assets/roadmap-4.jpg')"></div>
+<div class="roadCopy">
+<small>PHASE 04</small>
+<h3>Feed Your Greed</h3>
+<p>
+Provably fair chaos, multipliers, jackpots,
+and Telegram spectator gameplay.
+</p>
+</div>
 </div>
 
-<div class="eco">
-<div class="ecoImg" style="background-image:url('assets/roadmap-5.jpg')"></div>
+<div class="roadCard">
+<div class="roadImg" style="background-image:url('assets/roadmap-5.jpg')"></div>
+<div class="roadCopy">
+<small>PHASE 05</small>
+<h3>PHAT Kings</h3>
+<p>
+Fantasy sportsbook competitions, bankroll systems,
+leaderboards, and PHAT holder perks.
+</p>
+</div>
 </div>
 
-<div class="eco">
-<div class="ecoImg" style="background-image:url('assets/roadmap-6.jpg')"></div>
+<div class="roadCard">
+<div class="roadImg" style="background-image:url('assets/roadmap-6.jpg')"></div>
+<div class="roadCopy">
+<small>NEXT PHASE</small>
+<h3>Expansion</h3>
+<p>
+Partnerships, platform growth, collectibles,
+merchandise, ecosystem rewards, and future launches.
+</p>
+</div>
 </div>
 
 </div>
@@ -1013,7 +1158,8 @@ Swipe through the expanding Planet Fatness entertainment universe.
 
 <p>
 Planet Fatness continues expanding through collectible drops,
-premium merch, ecosystem rewards, and future digital ownership experiences.
+premium merch, ecosystem rewards, future integrations,
+and long-term community-driven experiences.
 </p>
 
 <div class="tags">
@@ -1022,12 +1168,14 @@ premium merch, ecosystem rewards, and future digital ownership experiences.
 <span>Merch</span>
 <span>Rewards</span>
 <span>Community Drops</span>
+<span>Partnerships</span>
 
 </div>
 
 </div>
 
-<div class="futureVisual" style="background-image:url('assets/roadmap-6.jpg')"></div>
+<div class="futureVisual"
+style="background-image:url('assets/roadmap-6.jpg')"></div>
 
 </div>
 
@@ -1053,11 +1201,17 @@ premium merch, ecosystem rewards, and future digital ownership experiences.
 
 <div class="rowBtns">
 
-<a class="mini" href="https://x.com/planet_fatnessx" target="_blank">X / Twitter</a>
+<a class="mini" href="https://x.com/planet_fatnessx" target="_blank">
+X / Twitter
+</a>
 
-<a class="mini" href="https://t.me/GymIsOpen" target="_blank">Telegram</a>
+<a class="mini" href="https://t.me/GymIsOpen" target="_blank">
+Telegram
+</a>
 
-<a class="mini" href="mailto:admin@planetfatness.fit">admin@planetfatness.fit</a>
+<a class="mini" href="mailto:admin@planetfatness.fit">
+admin@planetfatness.fit
+</a>
 
 </div>
 
@@ -1069,8 +1223,11 @@ premium merch, ecosystem rewards, and future digital ownership experiences.
 Contract Address
 </div>
 
-<div id="ca" style="margin-top:10px;font-size:14px;line-height:1.5;word-break:break-all;font-weight:800;">
+<div id="ca"
+style="margin-top:10px;font-size:14px;line-height:1.5;word-break:break-all;font-weight:800;">
+
 DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump
+
 </div>
 
 <div class="heroActions">
@@ -1079,12 +1236,20 @@ DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump
 Copy Contract
 </button>
 
-<a class="btn" href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
+<a class="btn"
+href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
+target="_blank">
+
 Open Jupiter
+
 </a>
 
-<a class="btn" href="https://app.streamflow.finance/token-dashboard/solana/mainnet/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?type=lock" target="_blank">
+<a class="btn"
+href="https://app.streamflow.finance/token-dashboard/solana/mainnet/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?type=lock"
+target="_blank">
+
 View Locks
+
 </a>
 
 </div>
@@ -1157,16 +1322,6 @@ Buy $PHAT
 <a class="marketCard" href="https://web3.binance.com/en/token/sol/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?utm_source=hometokensearch&utm_medium=binance" target="_blank">
 <div class="marketTop"><span>🟨</span><h3>Binance Web3</h3></div>
 <p>Access through Binance Web3.</p>
-</a>
-
-<a class="marketCard" href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS" target="_blank">
-<div class="marketTop"><span>📈</span><h3>DexScreener</h3></div>
-<p>Live chart and liquidity.</p>
-</a>
-
-<a class="marketCard" href="https://solscan.io/token/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
-<div class="marketTop"><span>🔎</span><h3>Solscan</h3></div>
-<p>View on-chain activity.</p>
 </a>
 
 </div>
