@@ -14,63 +14,35 @@
 <meta property="og:title" content="Planet Fatness ($PHAT)" />
 <meta property="og:description" content="Games. Rewards. Chaos. Community." />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="https://planetfatness.fit/assets/hero.jpg" />
+<meta property="og:image" content="https://planetfatness.fit/assets/hero.png" />
 
 <meta name="twitter:card" content="summary_large_image" />
 
 <style>
-
 :root{
   --bg:#05020a;
   --bg2:#0b0612;
-
   --panel:rgba(255,255,255,.06);
   --panel2:rgba(255,255,255,.035);
-
   --line:rgba(255,255,255,.11);
-
   --text:rgba(255,255,255,.94);
   --muted:rgba(255,255,255,.66);
-
   --yellow:#ffd24f;
   --yellow2:#ffb800;
-
   --purple:#7a35ff;
   --purple2:#bc29ff;
-
   --shadow:0 24px 80px rgba(0,0,0,.55);
-
   --radius:28px;
-
   --max:1220px;
 }
 
-*{
-  box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent;
-}
-
-html{
-  scroll-behavior:smooth;
-}
-
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
 body{
   margin:0;
-
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    Segoe UI,
-    Roboto,
-    Arial,
-    sans-serif;
-
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   color:var(--text);
-
   overflow-x:hidden;
-
   background:
     radial-gradient(1000px 600px at 15% 0%, rgba(122,53,255,.32), transparent 60%),
     radial-gradient(900px 500px at 85% 10%, rgba(255,210,79,.14), transparent 58%),
@@ -79,63 +51,34 @@ body{
 
 body::before{
   content:"";
-
   position:fixed;
   inset:0;
-
   pointer-events:none;
   z-index:-2;
-
-  background-image:
-  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
-
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
   opacity:.05;
-
   mix-blend-mode:overlay;
 }
 
-a{
-  color:inherit;
-  text-decoration:none;
-}
-
-img{
-  display:block;
-  max-width:100%;
-}
-
-.wrap{
-  width:min(var(--max),calc(100% - 28px));
-  margin:0 auto;
-}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+.wrap{width:min(var(--max),calc(100% - 28px));margin:0 auto}
 
 .top{
   position:sticky;
   top:0;
   z-index:90;
-
   backdrop-filter:blur(18px);
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(5,2,10,.92),
-      rgba(5,2,10,.62)
-    );
-
-  border-bottom:
-    1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(5,2,10,.92),rgba(5,2,10,.62));
+  border-bottom:1px solid rgba(255,255,255,.08);
 }
 
 .topin{
   min-height:74px;
-
   display:flex;
   align-items:center;
   justify-content:space-between;
-
   gap:14px;
-
   padding:10px 0;
 }
 
@@ -148,122 +91,61 @@ img{
 .brand img{
   width:44px;
   height:44px;
-
   object-fit:contain;
-
-  filter:
-    drop-shadow(0 0 22px rgba(122,53,255,.45));
+  filter:drop-shadow(0 0 22px rgba(122,53,255,.45));
 }
 
-.brand b{
-  display:block;
-
-  font-size:14px;
-
-  letter-spacing:.3px;
-}
-
-.brand span{
-  display:block;
-
-  font-size:12px;
-
-  color:var(--muted);
-
-  font-weight:800;
-}
+.brand b{display:block;font-size:14px;letter-spacing:.3px}
+.brand span{display:block;font-size:12px;color:var(--muted);font-weight:800}
 
 .nav{
   display:flex;
   align-items:center;
   gap:10px;
-
   flex-wrap:wrap;
   justify-content:flex-end;
 }
 
-.chip,
-.btn,
-.mini{
-  border:
-    1px solid var(--line);
-
-  background:
-    rgba(255,255,255,.055);
-
-  color:
-    rgba(255,255,255,.9);
-
+.chip,.btn,.mini{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.055);
+  color:rgba(255,255,255,.9);
   font-weight:1000;
-
   transition:.16s ease;
 }
 
-.chip{
-  border-radius:999px;
-
-  padding:10px 13px;
-
-  font-size:13px;
-}
-
-.chip:hover,
-.btn:hover,
-.mini:hover{
+.chip{border-radius:999px;padding:10px 13px;font-size:13px}
+.chip:hover,.btn:hover,.mini:hover{
   transform:translateY(-2px);
-
-  border-color:
-    rgba(255,255,255,.22);
-
-  background:
-    rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.22);
+  background:rgba(255,255,255,.08);
 }
 
-.buyBtn,
-.btnGold{
+.buyBtn,.btnGold{
   border:none;
-
-  background:
-    linear-gradient(
-      180deg,
-      #ffe57d,
-      var(--yellow2)
-    );
-
+  background:linear-gradient(180deg,#ffe57d,var(--yellow2));
   color:#120800;
-
-  box-shadow:
-    0 14px 40px rgba(255,184,0,.25);
+  box-shadow:0 14px 40px rgba(255,184,0,.25);
 }
 
 .buyBtn{
   border-radius:999px;
-
   padding:12px 16px;
-
   font-size:13px;
   font-weight:1000;
-
   cursor:pointer;
-
   transition:.16s ease;
 }
 
-.buyBtn:hover{
-  transform:translateY(-2px);
-}
+.buyBtn:hover{transform:translateY(-2px)}
 
 .btn{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-
   padding:14px 18px;
-
   border-radius:18px;
-
   font-size:14px;
-
   backdrop-filter:blur(12px);
 }
 
@@ -271,84 +153,47 @@ img{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-
   padding:10px 12px;
-
   border-radius:999px;
-
   font-size:12px;
 }
 
 .hero{
   min-height:calc(100svh - 74px);
-
   position:relative;
-
   display:flex;
   align-items:center;
-
   overflow:hidden;
-
-  border-bottom:
-    1px solid rgba(255,255,255,.07);
+  border-bottom:1px solid rgba(255,255,255,.07);
 }
 
 .heroVisual{
   position:absolute;
   inset:0;
-
   z-index:-3;
-
   pointer-events:none;
 }
 
 .heroVisual img{
   width:100%;
   height:100%;
-
   object-fit:cover;
-
-  opacity:.38;
-
-  filter:
-    saturate(1.12)
-    contrast(1.06);
+  opacity:.46;
+  filter:saturate(1.12) contrast(1.08);
 }
 
 .heroGlow{
   position:absolute;
   inset:0;
-
   background:
-    linear-gradient(
-      90deg,
-      rgba(5,2,10,.94),
-      rgba(5,2,10,.48) 47%,
-      rgba(5,2,10,.78)
-    ),
-
-    linear-gradient(
-      180deg,
-      rgba(5,2,10,.2),
-      rgba(5,2,10,.94)
-    ),
-
-    radial-gradient(
-      750px 420px at 30% 38%,
-      rgba(122,53,255,.3),
-      transparent 65%
-    ),
-
-    radial-gradient(
-      520px 340px at 68% 28%,
-      rgba(255,210,79,.13),
-      transparent 60%
-    );
+    linear-gradient(90deg,rgba(5,2,10,.92),rgba(5,2,10,.5) 48%,rgba(5,2,10,.75)),
+    linear-gradient(180deg,rgba(5,2,10,.15),rgba(5,2,10,.96)),
+    radial-gradient(750px 420px at 30% 38%,rgba(122,53,255,.32),transparent 65%),
+    radial-gradient(520px 340px at 68% 28%,rgba(255,210,79,.14),transparent 60%);
 }
 
 .heroContent{
-  width:min(780px,100%);
-
+  width:min(790px,100%);
   padding:84px 0 90px;
 }
 
@@ -356,417 +201,191 @@ img{
   display:inline-flex;
   align-items:center;
   gap:10px;
-
   padding:9px 12px;
-
   border-radius:999px;
-
-  border:
-    1px solid rgba(255,255,255,.13);
-
-  background:
-    rgba(0,0,0,.3);
-
-  color:
-    rgba(255,255,255,.84);
-
+  border:1px solid rgba(255,255,255,.13);
+  background:rgba(0,0,0,.3);
+  color:rgba(255,255,255,.84);
   font-size:12px;
   font-weight:1000;
-
   text-transform:uppercase;
-
   letter-spacing:.45px;
-
   backdrop-filter:blur(12px);
 }
 
 .dot{
   width:8px;
   height:8px;
-
   border-radius:50%;
-
   background:var(--yellow);
-
-  box-shadow:
-    0 0 0 7px rgba(255,210,79,.12),
-    0 0 20px rgba(255,210,79,.5);
+  box-shadow:0 0 0 7px rgba(255,210,79,.12),0 0 20px rgba(255,210,79,.5);
 }
 
 h1{
   margin:16px 0 12px;
-
-  font-size:
-    clamp(50px,8vw,108px);
-
+  font-size:clamp(50px,8vw,108px);
   line-height:.92;
-
   letter-spacing:-4px;
-
   font-weight:1000;
 }
 
 .grad{
-  background:
-    linear-gradient(
-      90deg,
-      #fff 0%,
-      var(--yellow) 35%,
-      #fff 60%,
-      var(--purple2)
-    );
-
+  background:linear-gradient(90deg,#fff 0%,var(--yellow) 35%,#fff 60%,var(--purple2));
   -webkit-background-clip:text;
   background-clip:text;
-
   color:transparent;
 }
 
 .lead{
   margin:0;
-
   max-width:700px;
-
-  color:
-    rgba(255,255,255,.77);
-
-  font-size:
-    clamp(16px,2.3vw,22px);
-
+  color:rgba(255,255,255,.77);
+  font-size:clamp(16px,2.3vw,22px);
   line-height:1.5;
-
   font-weight:760;
 }
 
 .heroActions{
   display:flex;
   gap:12px;
-
   flex-wrap:wrap;
-
   margin-top:24px;
 }
 
 .quickStats{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-
   gap:10px;
-
   margin-top:24px;
-
   max-width:840px;
 }
 
 .q{
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    rgba(0,0,0,.28);
-
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(0,0,0,.28);
   backdrop-filter:blur(12px);
-
   border-radius:18px;
-
   padding:14px;
 }
 
 .q small{
   display:block;
-
   color:var(--muted);
-
   font-size:11px;
   font-weight:1000;
-
   text-transform:uppercase;
-
   letter-spacing:.35px;
 }
 
 .q b{
   display:block;
-
   margin-top:6px;
-
   color:var(--yellow);
-
   font-size:18px;
-
   letter-spacing:-.2px;
 }
 
-section{
-  padding:38px 0;
-}
+section{padding:38px 0}
 
 .sectionHead{
   display:flex;
   align-items:end;
   justify-content:space-between;
-
   gap:18px;
-
   margin-bottom:16px;
 }
 
 .sectionHead h2{
   margin:0;
-
-  font-size:
-    clamp(28px,4vw,54px);
-
+  font-size:clamp(28px,4vw,54px);
   line-height:1;
-
   letter-spacing:-2px;
 }
 
 .sectionHead p{
   margin:8px 0 0;
-
   max-width:650px;
-
   color:var(--muted);
-
   font-weight:760;
-
   line-height:1.45;
 }
 
 .ecoGrid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-
   gap:14px;
 }
 
 .eco{
   position:relative;
-
   overflow:hidden;
-
   border-radius:var(--radius);
-
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    linear-gradient(
-      180deg,
-      var(--panel),
-      var(--panel2)
-    );
-
+  border:1px solid rgba(255,255,255,.1);
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
   box-shadow:var(--shadow);
 }
 
 .eco::before{
   content:"";
-
   position:absolute;
   inset:-2px;
-
   background:
-    radial-gradient(
-      500px 260px at 15% 0%,
-      rgba(122,53,255,.24),
-      transparent 55%
-    ),
-
-    radial-gradient(
-      450px 240px at 90% 15%,
-      rgba(255,210,79,.12),
-      transparent 55%
-    );
-
+    radial-gradient(500px 260px at 15% 0%,rgba(122,53,255,.24),transparent 55%),
+    radial-gradient(450px 240px at 90% 15%,rgba(255,210,79,.12),transparent 55%);
   opacity:.9;
+  pointer-events:none;
 }
 
 .ecoImg{
   height:210px;
-
   background-position:center;
   background-size:cover;
-
-  border-bottom:
-    1px solid rgba(255,255,255,.08);
+  border-bottom:1px solid rgba(255,255,255,.08);
 }
 
 .ecoPad{
   position:relative;
-
   padding:18px;
 }
 
 .eco h3{
   margin:0;
-
   font-size:24px;
-
   letter-spacing:-.6px;
 }
 
 .eco p{
   margin:8px 0 16px;
-
   color:var(--muted);
-
   font-weight:760;
-
   line-height:1.45;
 }
 
 .rowBtns{
   display:flex;
   gap:10px;
-
   flex-wrap:wrap;
-}
-
-.showcase{
-  display:grid;
-  grid-template-columns:1.1fr .9fr;
-
-  gap:14px;
-
-  align-items:stretch;
-
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,.055),
-      rgba(255,255,255,.028)
-    );
-
-  border-radius:32px;
-
-  overflow:hidden;
-
-  box-shadow:var(--shadow);
-}
-
-.showCopy{
-  padding:28px;
-}
-
-.showCopy small{
-  color:var(--yellow);
-
-  font-size:11px;
-  font-weight:1000;
-
-  letter-spacing:.16em;
-
-  text-transform:uppercase;
-}
-
-.showCopy h2{
-  margin:10px 0 12px;
-
-  font-size:
-    clamp(34px,5vw,64px);
-
-  line-height:.96;
-
-  letter-spacing:-2px;
-}
-
-.showCopy p{
-  margin:0;
-
-  color:var(--muted);
-
-  font-size:17px;
-
-  line-height:1.55;
-
-  font-weight:760;
-}
-
-.showImage{
-  min-height:360px;
-
-  background:center/cover no-repeat;
-
-  position:relative;
-}
-
-.showImage::after{
-  content:"";
-
-  position:absolute;
-  inset:0;
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(5,2,10,.5),
-      transparent
-    );
-}
-
-.tags{
-  display:flex;
-  gap:10px;
-
-  flex-wrap:wrap;
-
-  margin-top:20px;
-}
-
-.tags span{
-  padding:10px 13px;
-
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    rgba(255,255,255,.05);
-
-  border-radius:999px;
-
-  font-size:12px;
-  font-weight:1000;
-
-  color:
-    rgba(255,255,255,.86);
 }
 
 .marketGrid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-
   gap:12px;
 }
 
 .marketCard{
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    rgba(255,255,255,.045);
-
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.045);
   border-radius:22px;
-
   padding:16px;
-
   min-height:128px;
-
   transition:.16s ease;
 }
 
 .marketCard:hover{
   transform:translateY(-2px);
-
-  border-color:
-    rgba(255,255,255,.18);
-
-  background:
-    rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.18);
+  background:rgba(255,255,255,.07);
 }
 
 .marketTop{
@@ -775,341 +394,332 @@ section{
   gap:10px;
 }
 
-.marketTop span{
-  font-size:26px;
-}
-
-.marketCard h3{
-  margin:0;
-
-  font-size:18px;
-}
+.marketTop span{font-size:26px}
+.marketCard h3{margin:0;font-size:18px}
 
 .marketCard p{
   margin:12px 0 0;
-
   color:var(--muted);
-
   line-height:1.45;
-
   font-size:14px;
-
   font-weight:760;
 }
 
 .lockHero{
   display:grid;
   grid-template-columns:1fr 1fr;
-
   gap:14px;
-
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,.055),
-      rgba(255,255,255,.028)
-    );
-
+  border:1px solid rgba(255,255,255,.1);
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.028));
   border-radius:32px;
-
   overflow:hidden;
-
   box-shadow:var(--shadow);
 }
 
-.lockCopy{
-  padding:28px;
-}
+.lockCopy{padding:28px}
 
 .livePill{
   display:inline-flex;
   align-items:center;
   gap:10px;
-
   padding:9px 12px;
-
   border-radius:999px;
-
-  background:
-    rgba(255,255,255,.05);
-
-  border:
-    1px solid rgba(255,255,255,.1);
-
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
   font-size:11px;
   font-weight:1000;
-
   letter-spacing:.15em;
 }
 
 .liveDot{
   width:8px;
   height:8px;
-
   border-radius:50%;
-
   background:#56ff9d;
-
-  box-shadow:
-    0 0 18px rgba(86,255,157,.75);
+  box-shadow:0 0 18px rgba(86,255,157,.75);
 }
 
 .lockCopy h3{
   margin:18px 0 10px;
-
-  font-size:
-    clamp(40px,5vw,72px);
-
+  font-size:clamp(40px,5vw,72px);
   line-height:.92;
-
   letter-spacing:-2px;
 }
 
 .lockCopy p{
   margin:0;
-
   color:var(--muted);
-
   font-size:17px;
-
   line-height:1.55;
-
   font-weight:760;
 }
 
 .lockStats{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-
   gap:10px;
-
   margin:22px 0;
 }
 
 .lockStat{
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    rgba(255,255,255,.045);
-
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.045);
   border-radius:18px;
-
   padding:14px;
 }
 
 .lockStat small{
   display:block;
-
   color:var(--muted);
-
   font-size:11px;
   font-weight:1000;
-
   text-transform:uppercase;
 }
 
 .lockStat b{
   display:block;
-
   margin-top:6px;
-
   font-size:22px;
-
   color:var(--yellow);
 }
 
 .lockVisual{
   position:relative;
-
   min-height:420px;
 }
 
 .lockVisual img{
   width:100%;
   height:100%;
-
   object-fit:cover;
 }
 
 .lockOverlay{
   position:absolute;
   inset:0;
+  background:linear-gradient(180deg,rgba(5,2,10,.15),rgba(5,2,10,.72));
+}
 
-  background:
-    linear-gradient(
-      180deg,
-      rgba(5,2,10,.15),
-      rgba(5,2,10,.72)
-    );
+.roadmapRail{
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  padding-bottom:14px;
+  -webkit-overflow-scrolling:touch;
+}
+
+.roadmapRail .eco{
+  flex:0 0 min(860px,88vw);
+  scroll-snap-align:start;
+}
+
+.roadmapRail .ecoImg{
+  height:auto;
+  aspect-ratio:16/9;
+}
+
+.futureCard{
+  display:grid;
+  grid-template-columns:1fr .9fr;
+  gap:14px;
+  border:1px solid rgba(255,255,255,.1);
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.028));
+  border-radius:32px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+
+.futureCopy{padding:28px}
+
+.futureCopy small{
+  color:var(--yellow);
+  font-size:11px;
+  font-weight:1000;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+
+.futureCopy h2{
+  margin:10px 0 12px;
+  font-size:clamp(34px,5vw,64px);
+  line-height:.96;
+  letter-spacing:-2px;
+}
+
+.futureCopy p{
+  margin:0;
+  color:var(--muted);
+  font-size:17px;
+  line-height:1.55;
+  font-weight:760;
+}
+
+.tags{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+
+.tags span{
+  padding:10px 13px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.05);
+  border-radius:999px;
+  font-size:12px;
+  font-weight:1000;
+  color:rgba(255,255,255,.86);
+}
+
+.futureVisual{
+  min-height:340px;
+  background:center/cover no-repeat;
+}
+
+footer{
+  padding:34px 0 118px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+
+.bottomNav{
+  position:fixed;
+  left:50%;
+  bottom:14px;
+  transform:translateX(-50%);
+  z-index:120;
+  display:flex;
+  gap:8px;
+  padding:8px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(10,5,18,.78);
+  backdrop-filter:blur(18px);
+  box-shadow:0 18px 60px rgba(0,0,0,.45);
+}
+
+.bottomNav .mini{
+  padding:10px 14px;
+}
+
+.buyModal{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(14px);
+  z-index:999;
+  padding:20px;
+}
+
+.buyPanel{
+  width:min(900px,100%);
+  max-height:90svh;
+  overflow:auto;
+  border-radius:32px;
+  border:1px solid rgba(255,255,255,.1);
+  background:linear-gradient(180deg,#12081d,#09040f);
+  padding:24px;
+  box-shadow:0 30px 90px rgba(0,0,0,.6);
+}
+
+.closeBtn{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:none;
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font-size:22px;
+  cursor:pointer;
 }
 
 @media(max-width:980px){
-
-  .ecoGrid{
-    grid-template-columns:1fr;
-  }
-
-  .showcase{
-    grid-template-columns:1fr;
-  }
-
-  .marketGrid{
-    grid-template-columns:repeat(2,1fr);
-  }
-
-  .lockHero{
-    grid-template-columns:1fr;
-  }
-
-  .quickStats{
-    grid-template-columns:repeat(2,1fr);
-  }
+  .ecoGrid{grid-template-columns:1fr}
+  .marketGrid{grid-template-columns:repeat(2,1fr)}
+  .lockHero{grid-template-columns:1fr}
+  .futureCard{grid-template-columns:1fr}
+  .quickStats{grid-template-columns:repeat(2,1fr)}
 }
 
 @media(max-width:640px){
-
-  .nav .chip{
-    display:none;
-  }
-
-  .quickStats{
-    grid-template-columns:1fr;
-  }
-
-  .marketGrid{
-    grid-template-columns:1fr;
-  }
-
-  .lockStats{
-    grid-template-columns:1fr;
-  }
-
-  .heroContent{
-    padding:70px 0 84px;
-  }
-
-  h1{
-    letter-spacing:-2px;
-  }
+  .nav .chip{display:none}
+  .quickStats{grid-template-columns:1fr}
+  .marketGrid{grid-template-columns:1fr}
+  .lockStats{grid-template-columns:1fr}
+  .heroContent{padding:70px 0 84px}
+  h1{letter-spacing:-2px}
+  .bottomNav{width:calc(100% - 36px);justify-content:space-between}
 }
-
 </style>
 </head>
 
 <body>
 
 <nav class="top">
-
 <div class="wrap topin">
 
 <a class="brand" href="#">
-
 <img src="assets/logo.png" alt="Planet Fatness">
-
 <div>
 <b>Planet Fatness</b>
 <span>$PHAT on Solana</span>
 </div>
-
 </a>
 
 <div class="nav">
-
-<a class="chip" href="#ecosystem">
-Ecosystem
-</a>
-
-<a class="chip" href="#markets">
-Markets
-</a>
-
-<a class="chip" href="#locks">
-Locks
-</a>
-
-<a class="chip" href="#roadmap">
-Roadmap
-</a>
-
-<button class="buyBtn" onclick="openBuy()">
-Buy $PHAT
-</button>
-
+<a class="chip" href="#ecosystem">Ecosystem</a>
+<a class="chip" href="#markets">Markets</a>
+<a class="chip" href="#locks">Locks</a>
+<a class="chip" href="#roadmap">Roadmap</a>
+<button class="buyBtn" onclick="openBuy()">Buy $PHAT</button>
 </div>
 
 </div>
-
 </nav>
 
 <header class="hero">
 
 <div class="heroVisual">
-
-<img src="assets/hero.jpg" alt="Planet Fatness Hero">
-
+<img src="assets/hero.png" alt="Planet Fatness Hero">
 <div class="heroGlow"></div>
-
 </div>
 
 <div class="wrap">
-
 <div class="heroContent">
 
 <div class="kicker">
-
 <span class="dot"></span>
-
 Games • Rewards • Chaos • Community
-
 </div>
 
 <h1>
-
 Welcome to
 <span class="grad">Planet Fatness</span>
-
 </h1>
 
 <p class="lead">
-
 A cinematic entertainment ecosystem built on Solana around games,
 leaderboards, Feed Your Greed, PHAT Kings, Telegram culture,
 and community-driven chaos.
-
 </p>
 
 <div class="heroActions">
 
-<button class="btn btnGold" onclick="openBuy()">
-Buy $PHAT
-</button>
+<button class="btn btnGold" onclick="openBuy()">Buy $PHAT</button>
 
-<a class="btn"
-href="https://t.me/GymIsOpen"
-target="_blank">
-
+<a class="btn" href="https://t.me/GymIsOpen" target="_blank">
 Enter The Gym
-
 </a>
 
-<a class="btn"
-href="https://kings.planetfatness.fit"
-target="_blank">
-
+<a class="btn" href="https://kings.planetfatness.fit" target="_blank">
 PHAT Kings
-
 </a>
 
-<a class="btn"
-href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS"
-target="_blank">
-
+<a class="btn" href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS" target="_blank">
 View Chart
-
 </a>
 
 </div>
@@ -1139,7 +749,6 @@ View Chart
 </div>
 
 </div>
-
 </div>
 
 </header>
@@ -1151,161 +760,68 @@ View Chart
 <div class="wrap">
 
 <div class="sectionHead">
-
 <div>
-
 <h2>The ecosystem.</h2>
-
 <p>
 Games, rewards, Telegram culture, Feed Your Greed, PHAT Kings,
 and a growing entertainment universe connected through $PHAT.
 </p>
-
 </div>
-
 </div>
 
 <div class="ecoGrid">
 
 <article class="eco">
 
-<div class="ecoImg"
-style="background-image:url('assets/feed-your-greed.jpg')"></div>
+<div class="ecoImg" style="background-image:url('assets/feed-your-greed.jpg')"></div>
 
 <div class="ecoPad">
-
 <h3>Feed Your Greed</h3>
-
 <p>
 Pick wisely. Dodge poison. Chase multipliers. Cash out before greed wins.
 </p>
-
 <div class="rowBtns">
-
-<a class="mini"
-href="https://t.me/GymIsOpen"
-target="_blank">
-
-Play In Telegram
-
-</a>
-
+<a class="mini" href="https://t.me/GymIsOpen" target="_blank">Play In Telegram</a>
 </div>
-
 </div>
 
 </article>
 
 <article class="eco">
 
-<div class="ecoImg"
-style="background-image:url('assets/phat-kings.jpg')"></div>
+<div class="ecoImg" style="background-image:url('assets/phat-kings.jpg')"></div>
 
 <div class="ecoPad">
-
 <h3>PHAT Kings</h3>
-
 <p>
 Fantasy sports competition built for PHAT holders with bankrolls,
 parlays, and leaderboard energy.
 </p>
-
 <div class="rowBtns">
-
-<a class="mini"
-href="https://kings.planetfatness.fit"
-target="_blank">
-
-Open PHAT Kings
-
-</a>
-
+<a class="mini" href="https://kings.planetfatness.fit" target="_blank">Open PHAT Kings</a>
+<a class="mini" href="https://t.me/PHATKingsBot" target="_blank">PHAT Kings Bot</a>
 </div>
-
 </div>
 
 </article>
 
 <article class="eco">
 
-<div class="ecoImg"
-style="background-image:url('assets/roadmap-3.jpg')"></div>
+<div class="ecoImg" style="background-image:url('assets/roadmap-3.jpg')"></div>
 
 <div class="ecoPad">
-
 <h3>The Gym</h3>
-
 <p>
 Mini games, activity, rewards, community culture,
 and the only gym where tapping counts as cardio.
 </p>
-
 <div class="rowBtns">
-
-<a class="mini"
-href="https://t.me/GymIsOpen"
-target="_blank">
-
-Open Gym Bot
-
-</a>
-
+<a class="mini" href="https://t.me/GymIsOpen" target="_blank">Open Gym Bot</a>
+<a class="mini" href="/gym/">Web Gym</a>
 </div>
-
 </div>
 
 </article>
-
-</div>
-
-</div>
-
-</section>
-
-<section>
-
-<div class="wrap">
-
-<div class="showcase">
-
-<div class="showCopy">
-
-<small>FLAGSHIP EXPERIENCE</small>
-
-<h2>Feed Your Greed.</h2>
-
-<p>
-
-Provably fair chaos built around multipliers, poison donuts,
-jackpots, Telegram spectators, and escalating greed.
-
-</p>
-
-<div class="tags">
-
-<span>Provably Fair</span>
-<span>Jackpots</span>
-<span>Multipliers</span>
-<span>Telegram</span>
-
-</div>
-
-<div class="heroActions">
-
-<a class="btn btnGold"
-href="https://t.me/GymIsOpen"
-target="_blank">
-
-Play Now
-
-</a>
-
-</div>
-
-</div>
-
-<div class="showImage"
-style="background-image:url('assets/feed-your-greed.jpg')"></div>
 
 </div>
 
@@ -1317,139 +833,54 @@ style="background-image:url('assets/feed-your-greed.jpg')"></div>
 <div class="wrap">
 
 <div class="sectionHead">
-
 <div>
-
 <h2>Available across the ecosystem.</h2>
-
 <p>
 Trade, track, and discover $PHAT across Solana platforms and wallets.
 </p>
-
 </div>
-
 </div>
 
 <div class="marketGrid">
 
-<a class="marketCard"
-href="https://join.pump.fun/HSag/u1f5raah"
-target="_blank">
-
-<div class="marketTop">
-<span>🚀</span>
-<h3>Pump.fun</h3>
-</div>
-
-<p>
-Original launch platform for Planet Fatness.
-</p>
-
+<a class="marketCard" href="https://join.pump.fun/HSag/u1f5raah" target="_blank">
+<div class="marketTop"><span>🚀</span><h3>Pump.fun</h3></div>
+<p>Original launch platform for Planet Fatness.</p>
 </a>
 
-<a class="marketCard"
-href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-
-<div class="marketTop">
-<span>👻</span>
-<h3>Phantom</h3>
-</div>
-
-<p>
-Swap and track $PHAT directly inside Phantom Wallet.
-</p>
-
+<a class="marketCard" href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
+<div class="marketTop"><span>👻</span><h3>Phantom</h3></div>
+<p>Swap and track $PHAT directly inside Phantom Wallet.</p>
 </a>
 
-<a class="marketCard"
-href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-
-<div class="marketTop">
-<span>🪐</span>
-<h3>Jupiter</h3>
-</div>
-
-<p>
-Deep liquidity routing across the Solana ecosystem.
-</p>
-
+<a class="marketCard" href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
+<div class="marketTop"><span>🪐</span><h3>Jupiter</h3></div>
+<p>Deep liquidity routing across the Solana ecosystem.</p>
 </a>
 
-<a class="marketCard"
-href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link"
-target="_blank">
-
-<div class="marketTop">
-<span>🔥</span>
-<h3>FOMO</h3>
-</div>
-
-<p>
-Social trading, trending discovery, and live activity.
-</p>
-
+<a class="marketCard" href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link" target="_blank">
+<div class="marketTop"><span>🔥</span><h3>FOMO</h3></div>
+<p>Social trading, trending discovery, and live activity.</p>
 </a>
 
-<a class="marketCard"
-href="https://www.coinbase.com/price/planet-fatness-solana-558200bd?q=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&searchTab=ASSET"
-target="_blank">
-
-<div class="marketTop">
-<span>🟦</span>
-<h3>Coinbase</h3>
-</div>
-
-<p>
-Track and discover Planet Fatness through Coinbase.
-</p>
-
+<a class="marketCard" href="https://www.coinbase.com/price/planet-fatness-solana-558200bd?q=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&searchTab=ASSET" target="_blank">
+<div class="marketTop"><span>🟦</span><h3>Coinbase</h3></div>
+<p>Track and discover Planet Fatness through Coinbase.</p>
 </a>
 
-<a class="marketCard"
-href="https://web3.binance.com/en/token/sol/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?utm_source=hometokensearch&utm_medium=binance"
-target="_blank">
-
-<div class="marketTop">
-<span>🟨</span>
-<h3>Binance Web3</h3>
-</div>
-
-<p>
-Access $PHAT using Binance Web3 wallet support.
-</p>
-
+<a class="marketCard" href="https://web3.binance.com/en/token/sol/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?utm_source=hometokensearch&utm_medium=binance" target="_blank">
+<div class="marketTop"><span>🟨</span><h3>Binance Web3</h3></div>
+<p>Access $PHAT using Binance Web3 wallet support.</p>
 </a>
 
-<a class="marketCard"
-href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS"
-target="_blank">
-
-<div class="marketTop">
-<span>📈</span>
-<h3>DexScreener</h3>
-</div>
-
-<p>
-Live charts, liquidity, holders, and market activity.
-</p>
-
+<a class="marketCard" href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS" target="_blank">
+<div class="marketTop"><span>📈</span><h3>DexScreener</h3></div>
+<p>Live charts, liquidity, holders, and market activity.</p>
 </a>
 
-<a class="marketCard"
-href="https://solscan.io/token/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-
-<div class="marketTop">
-<span>🔎</span>
-<h3>Solscan</h3>
-</div>
-
-<p>
-View on-chain transparency and token activity.
-</p>
-
+<a class="marketCard" href="https://solscan.io/token/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
+<div class="marketTop"><span>🔎</span><h3>Solscan</h3></div>
+<p>View on-chain transparency and token activity.</p>
 </a>
 
 </div>
@@ -1463,17 +894,12 @@ View on-chain transparency and token activity.
 <div class="wrap">
 
 <div class="sectionHead">
-
 <div>
-
 <h2>Transparent supply & Streamflow locks.</h2>
-
 <p>
 Public ecosystem locks visible directly on-chain through Streamflow.
 </p>
-
 </div>
-
 </div>
 
 <div class="lockHero">
@@ -1481,20 +907,15 @@ Public ecosystem locks visible directly on-chain through Streamflow.
 <div class="lockCopy">
 
 <div class="livePill">
-
 <div class="liveDot"></div>
-
 LIVE LOCK DATA
-
 </div>
 
 <h3>200M+ PHAT locked.</h3>
 
 <p>
-
 Planet Fatness currently maintains multiple active public Streamflow locks
 with transparent unlock schedules visible directly on-chain.
-
 </p>
 
 <div class="lockStats">
@@ -1516,22 +937,15 @@ with transparent unlock schedules visible directly on-chain.
 
 </div>
 
-<a class="btn btnGold"
-href="https://app.streamflow.finance/token-dashboard/solana/mainnet/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?type=lock"
-target="_blank">
-
+<a class="btn btnGold" href="https://app.streamflow.finance/token-dashboard/solana/mainnet/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?type=lock" target="_blank">
 View Streamflow Locks
-
 </a>
 
 </div>
 
 <div class="lockVisual">
-
 <img src="assets/roadmap-5.jpg" alt="Streamflow Locks">
-
 <div class="lockOverlay"></div>
-
 </div>
 
 </div>
@@ -1545,20 +959,15 @@ View Streamflow Locks
 <div class="wrap">
 
 <div class="sectionHead">
-
 <div>
-
 <h2>Visual roadmap.</h2>
-
 <p>
-The expanding Planet Fatness entertainment universe.
+Swipe through the expanding Planet Fatness entertainment universe.
 </p>
-
+</div>
 </div>
 
-</div>
-
-<div class="ecoGrid">
+<div class="roadmapRail">
 
 <div class="eco">
 <div class="ecoImg" style="background-image:url('assets/roadmap-1.jpg')"></div>
@@ -1594,19 +1003,17 @@ The expanding Planet Fatness entertainment universe.
 
 <div class="wrap">
 
-<div class="showcase">
+<div class="futureCard">
 
-<div class="showCopy">
+<div class="futureCopy">
 
 <small>EXPANDING THE ECOSYSTEM</small>
 
 <h2>Collectibles, merch, and future drops.</h2>
 
 <p>
-
 Planet Fatness continues expanding through collectible drops,
 premium merch, ecosystem rewards, and future digital ownership experiences.
-
 </p>
 
 <div class="tags">
@@ -1620,8 +1027,7 @@ premium merch, ecosystem rewards, and future digital ownership experiences.
 
 </div>
 
-<div class="showImage"
-style="background-image:url('assets/roadmap-6.jpg')"></div>
+<div class="futureVisual" style="background-image:url('assets/roadmap-6.jpg')"></div>
 
 </div>
 
@@ -1635,87 +1041,36 @@ style="background-image:url('assets/roadmap-6.jpg')"></div>
 
 <div class="wrap">
 
-<div style="
-display:flex;
-justify-content:space-between;
-gap:18px;
-flex-wrap:wrap;
-align-items:center;
-padding-bottom:18px;
-border-bottom:1px solid rgba(255,255,255,.08);
-">
+<div style="display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:center;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.08);">
 
 <div class="brand">
-
 <img src="assets/logo.png" alt="Planet Fatness">
-
 <div>
 <b>Planet Fatness</b>
 <span>$PHAT on Solana</span>
 </div>
-
 </div>
 
 <div class="rowBtns">
 
-<a class="mini"
-href="https://x.com/planet_fatnessx"
-target="_blank">
+<a class="mini" href="https://x.com/planet_fatnessx" target="_blank">X / Twitter</a>
 
-X / Twitter
+<a class="mini" href="https://t.me/GymIsOpen" target="_blank">Telegram</a>
 
-</a>
-
-<a class="mini"
-href="https://t.me/GymIsOpen"
-target="_blank">
-
-Telegram
-
-</a>
-
-<a class="mini"
-href="mailto:admin@planetfatness.fit">
-
-admin@planetfatness.fit
-
-</a>
+<a class="mini" href="mailto:admin@planetfatness.fit">admin@planetfatness.fit</a>
 
 </div>
 
 </div>
 
-<div style="
-margin-top:18px;
-padding:18px;
-border-radius:24px;
-border:1px solid rgba(255,255,255,.08);
-background:rgba(255,255,255,.035);
-">
+<div style="margin-top:18px;padding:18px;border-radius:24px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);">
 
-<div style="
-font-size:11px;
-letter-spacing:.18em;
-font-weight:1000;
-color:var(--muted);
-text-transform:uppercase;
-">
-
+<div style="font-size:11px;letter-spacing:.18em;font-weight:1000;color:var(--muted);text-transform:uppercase;">
 Contract Address
-
 </div>
 
-<div id="ca"
-style="
-margin-top:10px;
-font-size:14px;
-line-height:1.5;
-word-break:break-all;
-font-weight:800;
-">
-
+<div id="ca" style="margin-top:10px;font-size:14px;line-height:1.5;word-break:break-all;font-weight:800;">
 DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump
-
 </div>
 
 <div class="heroActions">
@@ -1724,29 +1079,19 @@ DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump
 Copy Contract
 </button>
 
-<a class="btn"
-href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-
+<a class="btn" href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
 Open Jupiter
+</a>
 
+<a class="btn" href="https://app.streamflow.finance/token-dashboard/solana/mainnet/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?type=lock" target="_blank">
+View Locks
 </a>
 
 </div>
 
 </div>
 
-<div style="
-margin-top:18px;
-padding:18px;
-border-radius:24px;
-border:1px solid rgba(255,255,255,.08);
-background:rgba(255,255,255,.03);
-color:rgba(255,255,255,.66);
-line-height:1.6;
-font-size:13px;
-font-weight:760;
-">
+<div style="margin-top:18px;padding:18px;border-radius:24px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:rgba(255,255,255,.66);line-height:1.6;font-size:13px;font-weight:760;">
 
 Planet Fatness ($PHAT) is a meme-based entertainment ecosystem built on Solana.
 
@@ -1758,132 +1103,70 @@ Always do your own research.
 
 </div>
 
-<div style="
-margin-top:18px;
-color:rgba(255,255,255,.45);
-font-size:12px;
-font-weight:800;
-text-align:center;
-padding-bottom:110px;
-">
-
+<div style="margin-top:18px;color:rgba(255,255,255,.45);font-size:12px;font-weight:800;text-align:center;padding-bottom:110px;">
 © 2026 Planet Fatness • All Rights Reserved
-
 </div>
 
 </div>
 
 </footer>
 
-<div id="buyModal"
-style="
-position:fixed;
-inset:0;
-display:none;
-align-items:center;
-justify-content:center;
-background:rgba(0,0,0,.72);
-backdrop-filter:blur(14px);
-z-index:999;
-padding:20px;
-">
+<div id="buyModal" class="buyModal">
 
-<div style="
-width:min(760px,100%);
-border-radius:32px;
-border:1px solid rgba(255,255,255,.1);
-background:linear-gradient(180deg,#12081d,#09040f);
-padding:24px;
-box-shadow:0 30px 90px rgba(0,0,0,.6);
-">
+<div class="buyPanel">
 
-<div style="
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:12px;
-">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
 
-<h3 style="
-margin:0;
-font-size:32px;
-letter-spacing:-1px;
-">
-
+<h3 style="margin:0;font-size:32px;letter-spacing:-1px;">
 Buy $PHAT
-
 </h3>
 
-<button onclick="closeBuy()"
-style="
-width:42px;
-height:42px;
-border-radius:50%;
-border:none;
-background:rgba(255,255,255,.08);
-color:#fff;
-font-size:22px;
-cursor:pointer;
-">
-
+<button class="closeBtn" onclick="closeBuy()">
 ×
-
 </button>
 
 </div>
 
 <div class="marketGrid" style="margin-top:20px;">
 
-<a class="marketCard"
-href="https://join.pump.fun/HSag/u1f5raah"
-target="_blank">
-
-<div class="marketTop">
-<span>🚀</span>
-<h3>Pump.fun</h3>
-</div>
-
+<a class="marketCard" href="https://join.pump.fun/HSag/u1f5raah" target="_blank">
+<div class="marketTop"><span>🚀</span><h3>Pump.fun</h3></div>
 <p>Original launch platform.</p>
-
 </a>
 
-<a class="marketCard"
-href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-
-<div class="marketTop">
-<span>👻</span>
-<h3>Phantom</h3>
-</div>
-
+<a class="marketCard" href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
+<div class="marketTop"><span>👻</span><h3>Phantom</h3></div>
 <p>Swap inside Phantom Wallet.</p>
-
 </a>
 
-<a class="marketCard"
-href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-
-<div class="marketTop">
-<span>🪐</span>
-<h3>Jupiter</h3>
-</div>
-
+<a class="marketCard" href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
+<div class="marketTop"><span>🪐</span><h3>Jupiter</h3></div>
 <p>Deep liquidity routing.</p>
-
 </a>
 
-<a class="marketCard"
-href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link"
-target="_blank">
-
-<div class="marketTop">
-<span>🔥</span>
-<h3>FOMO</h3>
-</div>
-
+<a class="marketCard" href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link" target="_blank">
+<div class="marketTop"><span>🔥</span><h3>FOMO</h3></div>
 <p>Trending and social discovery.</p>
+</a>
 
+<a class="marketCard" href="https://www.coinbase.com/price/planet-fatness-solana-558200bd?q=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&searchTab=ASSET" target="_blank">
+<div class="marketTop"><span>🟦</span><h3>Coinbase</h3></div>
+<p>Track Planet Fatness on Coinbase.</p>
+</a>
+
+<a class="marketCard" href="https://web3.binance.com/en/token/sol/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?utm_source=hometokensearch&utm_medium=binance" target="_blank">
+<div class="marketTop"><span>🟨</span><h3>Binance Web3</h3></div>
+<p>Access through Binance Web3.</p>
+</a>
+
+<a class="marketCard" href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS" target="_blank">
+<div class="marketTop"><span>📈</span><h3>DexScreener</h3></div>
+<p>Live chart and liquidity.</p>
+</a>
+
+<a class="marketCard" href="https://solscan.io/token/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
+<div class="marketTop"><span>🔎</span><h3>Solscan</h3></div>
+<p>View on-chain activity.</p>
 </a>
 
 </div>
@@ -1892,20 +1175,7 @@ target="_blank">
 
 </div>
 
-<div style="
-position:fixed;
-bottom:16px;
-left:50%;
-transform:translateX(-50%);
-z-index:120;
-display:flex;
-gap:10px;
-padding:10px;
-border-radius:999px;
-border:1px solid rgba(255,255,255,.1);
-background:rgba(10,5,18,.82);
-backdrop-filter:blur(18px);
-">
+<div class="bottomNav">
 
 <a class="mini" href="#">
 Home
@@ -1937,19 +1207,14 @@ function closeBuy(){
 
 window.addEventListener("click",(e)=>{
   const modal=document.getElementById("buyModal");
-
   if(e.target===modal){
     closeBuy();
   }
 });
 
 function copyCA(){
-
-  const ca=
-  "DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump";
-
+  const ca="DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump";
   navigator.clipboard.writeText(ca);
-
   alert("Contract copied.");
 }
 
