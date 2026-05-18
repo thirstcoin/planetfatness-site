@@ -6,7 +6,7 @@
 
 <title>Planet Fatness ($PHAT)</title>
 
-<meta name="description" content="Planet Fatness ($PHAT) is a gamified entertainment ecosystem on Solana built around games, rewards, Telegram activity, Feed Your Greed, PHAT Kings, and degen culture." />
+<meta name="description" content="Planet Fatness ($PHAT) is a cinematic entertainment ecosystem on Solana built around games, rewards, Feed Your Greed, PHAT Kings, Telegram culture, and community." />
 
 <meta name="theme-color" content="#08030d" />
 <meta name="color-scheme" content="dark" />
@@ -23,9 +23,12 @@
 :root{
   --bg:#05020a;
   --bg2:#0b0612;
+
   --panel:rgba(255,255,255,.06);
   --panel2:rgba(255,255,255,.035);
-  --line:rgba(255,255,255,.1);
+
+  --line:rgba(255,255,255,.11);
+
   --text:rgba(255,255,255,.94);
   --muted:rgba(255,255,255,.66);
 
@@ -71,19 +74,23 @@ body{
   background:
     radial-gradient(1000px 600px at 15% 0%, rgba(122,53,255,.32), transparent 60%),
     radial-gradient(900px 500px at 85% 10%, rgba(255,210,79,.14), transparent 58%),
-    linear-gradient(180deg, var(--bg), var(--bg2) 40%, #05020a);
+    linear-gradient(180deg,var(--bg),var(--bg2) 40%,#05020a);
 }
 
 body::before{
   content:"";
+
   position:fixed;
   inset:0;
+
   pointer-events:none;
   z-index:-2;
 
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
+  background-image:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
 
   opacity:.05;
+
   mix-blend-mode:overlay;
 }
 
@@ -98,7 +105,7 @@ img{
 }
 
 .wrap{
-  width:min(var(--max), calc(100% - 28px));
+  width:min(var(--max),calc(100% - 28px));
   margin:0 auto;
 }
 
@@ -112,11 +119,12 @@ img{
   background:
     linear-gradient(
       180deg,
-      rgba(5,2,10,.9),
-      rgba(5,2,10,.55)
+      rgba(5,2,10,.92),
+      rgba(5,2,10,.62)
     );
 
-  border-bottom:1px solid rgba(255,255,255,.08);
+  border-bottom:
+    1px solid rgba(255,255,255,.08);
 }
 
 .topin{
@@ -125,6 +133,7 @@ img{
   display:flex;
   align-items:center;
   justify-content:space-between;
+
   gap:14px;
 
   padding:10px 0;
@@ -139,6 +148,7 @@ img{
 .brand img{
   width:44px;
   height:44px;
+
   object-fit:contain;
 
   filter:
@@ -147,14 +157,19 @@ img{
 
 .brand b{
   display:block;
+
   font-size:14px;
+
   letter-spacing:.3px;
 }
 
 .brand span{
   display:block;
+
   font-size:12px;
+
   color:var(--muted);
+
   font-weight:800;
 }
 
@@ -162,40 +177,50 @@ img{
   display:flex;
   align-items:center;
   gap:10px;
+
   flex-wrap:wrap;
   justify-content:flex-end;
 }
 
-.chip{
-  border:1px solid var(--line);
+.chip,
+.btn,
+.mini{
+  border:
+    1px solid var(--line);
 
   background:
-    rgba(255,255,255,.05);
+    rgba(255,255,255,.055);
 
   color:
-    rgba(255,255,255,.88);
+    rgba(255,255,255,.9);
 
-  border-radius:999px;
-
-  padding:10px 13px;
-
-  font-size:13px;
   font-weight:1000;
 
   transition:.16s ease;
 }
 
-.chip:hover{
+.chip{
+  border-radius:999px;
+
+  padding:10px 13px;
+
+  font-size:13px;
+}
+
+.chip:hover,
+.btn:hover,
+.mini:hover{
   transform:translateY(-2px);
 
   border-color:
-    rgba(255,255,255,.18);
+    rgba(255,255,255,.22);
 
   background:
     rgba(255,255,255,.08);
 }
 
-.buyBtn{
+.buyBtn,
+.btnGold{
   border:none;
 
   background:
@@ -207,6 +232,11 @@ img{
 
   color:#120800;
 
+  box-shadow:
+    0 14px 40px rgba(255,184,0,.25);
+}
+
+.buyBtn{
   border-radius:999px;
 
   padding:12px 16px;
@@ -216,14 +246,37 @@ img{
 
   cursor:pointer;
 
-  box-shadow:
-    0 14px 40px rgba(255,184,0,.25);
-
   transition:.16s ease;
 }
 
 .buyBtn:hover{
   transform:translateY(-2px);
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:14px 18px;
+
+  border-radius:18px;
+
+  font-size:14px;
+
+  backdrop-filter:blur(12px);
+}
+
+.mini{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:10px 12px;
+
+  border-radius:999px;
+
+  font-size:12px;
 }
 
 .hero{
@@ -240,50 +293,62 @@ img{
     1px solid rgba(255,255,255,.07);
 }
 
-.heroBg{
+.heroVisual{
   position:absolute;
   inset:0;
 
   z-index:-3;
 
-  background:
-    linear-gradient(
-      90deg,
-      rgba(5,2,10,.9),
-      rgba(5,2,10,.42) 45%,
-      rgba(5,2,10,.82)
-    ),
-    url("assets/hero.jpg")
-    center/cover
-    no-repeat;
+  pointer-events:none;
 }
 
-.hero::after{
-  content:"";
+.heroVisual img{
+  width:100%;
+  height:100%;
 
+  object-fit:cover;
+
+  opacity:.38;
+
+  filter:
+    saturate(1.12)
+    contrast(1.06);
+}
+
+.heroGlow{
   position:absolute;
   inset:0;
 
-  pointer-events:none;
-
   background:
-    radial-gradient(
-      800px 420px at 30% 40%,
-      rgba(122,53,255,.24),
-      transparent 60%
+    linear-gradient(
+      90deg,
+      rgba(5,2,10,.94),
+      rgba(5,2,10,.48) 47%,
+      rgba(5,2,10,.78)
     ),
 
     linear-gradient(
       180deg,
-      transparent 50%,
-      rgba(5,2,10,.9)
-    );
+      rgba(5,2,10,.2),
+      rgba(5,2,10,.94)
+    ),
 
-  z-index:-2;
+    radial-gradient(
+      750px 420px at 30% 38%,
+      rgba(122,53,255,.3),
+      transparent 65%
+    ),
+
+    radial-gradient(
+      520px 340px at 68% 28%,
+      rgba(255,210,79,.13),
+      transparent 60%
+    );
 }
 
 .heroContent{
-  width:min(760px,100%);
+  width:min(780px,100%);
+
   padding:84px 0 90px;
 }
 
@@ -297,18 +362,19 @@ img{
   border-radius:999px;
 
   border:
-    1px solid rgba(255,255,255,.12);
+    1px solid rgba(255,255,255,.13);
 
   background:
-    rgba(0,0,0,.25);
+    rgba(0,0,0,.3);
 
   color:
-    rgba(255,255,255,.82);
+    rgba(255,255,255,.84);
 
   font-size:12px;
   font-weight:1000;
 
   text-transform:uppercase;
+
   letter-spacing:.45px;
 
   backdrop-filter:blur(12px);
@@ -317,6 +383,7 @@ img{
 .dot{
   width:8px;
   height:8px;
+
   border-radius:50%;
 
   background:var(--yellow);
@@ -330,7 +397,7 @@ h1{
   margin:16px 0 12px;
 
   font-size:
-    clamp(50px, 8vw, 108px);
+    clamp(50px,8vw,108px);
 
   line-height:.92;
 
@@ -358,13 +425,13 @@ h1{
 .lead{
   margin:0;
 
-  max-width:680px;
+  max-width:700px;
 
   color:
-    rgba(255,255,255,.76);
+    rgba(255,255,255,.77);
 
   font-size:
-    clamp(16px, 2.3vw, 22px);
+    clamp(16px,2.3vw,22px);
 
   line-height:1.5;
 
@@ -374,61 +441,10 @@ h1{
 .heroActions{
   display:flex;
   gap:12px;
+
   flex-wrap:wrap;
 
   margin-top:24px;
-}
-
-.btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-
-  padding:14px 18px;
-
-  border-radius:18px;
-
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    rgba(255,255,255,.06);
-
-  color:
-    rgba(255,255,255,.92);
-
-  font-size:14px;
-  font-weight:1000;
-
-  backdrop-filter:blur(12px);
-
-  transition:.16s ease;
-}
-
-.btn:hover{
-  transform:translateY(-2px);
-
-  border-color:
-    rgba(255,255,255,.2);
-
-  background:
-    rgba(255,255,255,.08);
-}
-
-.btnGold{
-  border:none;
-
-  background:
-    linear-gradient(
-      180deg,
-      #ffe57d,
-      var(--yellow2)
-    );
-
-  color:#120800;
-
-  box-shadow:
-    0 14px 40px rgba(255,184,0,.22);
 }
 
 .quickStats{
@@ -439,7 +455,7 @@ h1{
 
   margin-top:24px;
 
-  max-width:820px;
+  max-width:840px;
 }
 
 .q{
@@ -465,6 +481,7 @@ h1{
   font-weight:1000;
 
   text-transform:uppercase;
+
   letter-spacing:.35px;
 }
 
@@ -481,13 +498,14 @@ h1{
 }
 
 section{
-  padding:42px 0;
+  padding:38px 0;
 }
 
 .sectionHead{
   display:flex;
   align-items:end;
   justify-content:space-between;
+
   gap:18px;
 
   margin-bottom:16px;
@@ -577,6 +595,7 @@ section{
 
 .ecoPad{
   position:relative;
+
   padding:18px;
 }
 
@@ -584,6 +603,7 @@ section{
   margin:0;
 
   font-size:24px;
+
   letter-spacing:-.6px;
 }
 
@@ -600,30 +620,17 @@ section{
 .rowBtns{
   display:flex;
   gap:10px;
+
   flex-wrap:wrap;
 }
 
-.mini{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
+.showcase{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
 
-  padding:10px 12px;
+  gap:14px;
 
-  border-radius:999px;
-
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    rgba(255,255,255,.05);
-
-  font-size:12px;
-  font-weight:1000;
-}
-
-.collapser{
-  border-radius:24px;
+  align-items:stretch;
 
   border:
     1px solid rgba(255,255,255,.1);
@@ -631,43 +638,102 @@ section{
   background:
     linear-gradient(
       180deg,
-      rgba(255,255,255,.05),
-      rgba(255,255,255,.03)
+      rgba(255,255,255,.055),
+      rgba(255,255,255,.028)
     );
 
+  border-radius:32px;
+
   overflow:hidden;
+
+  box-shadow:var(--shadow);
 }
 
-.cHead{
-  width:100%;
+.showCopy{
+  padding:28px;
+}
 
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+.showCopy small{
+  color:var(--yellow);
 
-  gap:12px;
-
-  padding:18px;
-
-  border:none;
-
-  background:none;
-
-  color:var(--text);
-
-  cursor:pointer;
-
-  font-size:18px;
+  font-size:11px;
   font-weight:1000;
+
+  letter-spacing:.16em;
+
+  text-transform:uppercase;
 }
 
-.cBody{
-  display:none;
-  padding:0 18px 18px;
+.showCopy h2{
+  margin:10px 0 12px;
+
+  font-size:
+    clamp(34px,5vw,64px);
+
+  line-height:.96;
+
+  letter-spacing:-2px;
 }
 
-.cBody.open{
-  display:block;
+.showCopy p{
+  margin:0;
+
+  color:var(--muted);
+
+  font-size:17px;
+
+  line-height:1.55;
+
+  font-weight:760;
+}
+
+.showImage{
+  min-height:360px;
+
+  background:center/cover no-repeat;
+
+  position:relative;
+}
+
+.showImage::after{
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5,2,10,.5),
+      transparent
+    );
+}
+
+.tags{
+  display:flex;
+  gap:10px;
+
+  flex-wrap:wrap;
+
+  margin-top:20px;
+}
+
+.tags span{
+  padding:10px 13px;
+
+  border:
+    1px solid rgba(255,255,255,.1);
+
+  background:
+    rgba(255,255,255,.05);
+
+  border-radius:999px;
+
+  font-size:12px;
+  font-weight:1000;
+
+  color:
+    rgba(255,255,255,.86);
 }
 
 .marketGrid{
@@ -677,7 +743,7 @@ section{
   gap:12px;
 }
 
-.market{
+.marketCard{
   border:
     1px solid rgba(255,255,255,.1);
 
@@ -688,12 +754,12 @@ section{
 
   padding:16px;
 
-  min-height:122px;
+  min-height:128px;
 
   transition:.16s ease;
 }
 
-.market:hover{
+.marketCard:hover{
   transform:translateY(-2px);
 
   border-color:
@@ -703,52 +769,139 @@ section{
     rgba(255,255,255,.07);
 }
 
-.market span{
-  display:block;
-
-  font-size:28px;
-
-  margin-bottom:10px;
+.marketTop{
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
 
-.market b{
-  display:block;
-
-  font-size:15px;
+.marketTop span{
+  font-size:26px;
 }
 
-.market small{
-  display:block;
+.marketCard h3{
+  margin:0;
 
-  margin-top:6px;
+  font-size:18px;
+}
+
+.marketCard p{
+  margin:12px 0 0;
 
   color:var(--muted);
 
+  line-height:1.45;
+
+  font-size:14px;
+
   font-weight:760;
-
-  line-height:1.35;
 }
 
-.lockGrid{
+.lockHero{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:1fr 1fr;
 
-  gap:12px;
+  gap:14px;
+
+  border:
+    1px solid rgba(255,255,255,.1);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.055),
+      rgba(255,255,255,.028)
+    );
+
+  border-radius:32px;
+
+  overflow:hidden;
+
+  box-shadow:var(--shadow);
 }
 
-.lock{
+.lockCopy{
+  padding:28px;
+}
+
+.livePill{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+
+  padding:9px 12px;
+
+  border-radius:999px;
+
+  background:
+    rgba(255,255,255,.05);
+
+  border:
+    1px solid rgba(255,255,255,.1);
+
+  font-size:11px;
+  font-weight:1000;
+
+  letter-spacing:.15em;
+}
+
+.liveDot{
+  width:8px;
+  height:8px;
+
+  border-radius:50%;
+
+  background:#56ff9d;
+
+  box-shadow:
+    0 0 18px rgba(86,255,157,.75);
+}
+
+.lockCopy h3{
+  margin:18px 0 10px;
+
+  font-size:
+    clamp(40px,5vw,72px);
+
+  line-height:.92;
+
+  letter-spacing:-2px;
+}
+
+.lockCopy p{
+  margin:0;
+
+  color:var(--muted);
+
+  font-size:17px;
+
+  line-height:1.55;
+
+  font-weight:760;
+}
+
+.lockStats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+
+  gap:10px;
+
+  margin:22px 0;
+}
+
+.lockStat{
   border:
     1px solid rgba(255,255,255,.1);
 
   background:
     rgba(255,255,255,.045);
 
-  border-radius:24px;
+  border-radius:18px;
 
-  padding:18px;
+  padding:14px;
 }
 
-.lock small{
+.lockStat small{
   display:block;
 
   color:var(--muted);
@@ -757,391 +910,41 @@ section{
   font-weight:1000;
 
   text-transform:uppercase;
-  letter-spacing:.4px;
 }
 
-.lock b{
+.lockStat b{
   display:block;
 
-  margin-top:8px;
+  margin-top:6px;
 
-  font-size:28px;
+  font-size:22px;
 
-  letter-spacing:-1px;
+  color:var(--yellow);
 }
 
-.lock p{
-  margin:10px 0 0;
-
-  color:var(--muted);
-
-  font-size:13px;
-  line-height:1.4;
-  font-weight:760;
-}
-
-.roadWrap{
-  display:flex;
-  gap:16px;
-
-  overflow-x:auto;
-
-  scroll-snap-type:x mandatory;
-
-  padding-bottom:10px;
-
-  -webkit-overflow-scrolling:touch;
-}
-
-.road{
-  flex:0 0 min(820px,90vw);
-
-  overflow:hidden;
-
-  border-radius:28px;
-
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    rgba(255,255,255,.04);
-
-  scroll-snap-align:start;
-
-  box-shadow:var(--shadow);
-}
-
-.roadImg{
-  aspect-ratio:16/9;
-
-  background-position:center;
-  background-size:cover;
-
+.lockVisual{
   position:relative;
+
+  min-height:420px;
 }
 
-.roadImg::after{
-  content:"";
+.lockVisual img{
+  width:100%;
+  height:100%;
 
+  object-fit:cover;
+}
+
+.lockOverlay{
   position:absolute;
   inset:0;
 
   background:
     linear-gradient(
       180deg,
-      transparent 42%,
-      rgba(0,0,0,.78)
+      rgba(5,2,10,.15),
+      rgba(5,2,10,.72)
     );
-}
-
-.roadText{
-  margin-top:-92px;
-
-  position:relative;
-  z-index:2;
-
-  padding:0 22px 22px;
-}
-
-.phase{
-  color:var(--yellow);
-
-  font-size:12px;
-  font-weight:1000;
-
-  text-transform:uppercase;
-
-  letter-spacing:.45px;
-}
-
-.roadText h3{
-  margin:6px 0 6px;
-
-  font-size:
-    clamp(24px,3vw,38px);
-
-  letter-spacing:-1px;
-}
-
-.roadText p{
-  margin:0;
-
-  color:
-    rgba(255,255,255,.72);
-
-  font-weight:760;
-
-  line-height:1.4;
-}
-
-.footer{
-  padding:30px 0 100px;
-
-  border-top:
-    1px solid rgba(255,255,255,.08);
-}
-
-.footerTop{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-
-  gap:18px;
-  flex-wrap:wrap;
-
-  margin-bottom:16px;
-}
-
-.disclaimer{
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    rgba(255,255,255,.04);
-
-  border-radius:22px;
-
-  padding:16px;
-
-  color:
-    rgba(255,255,255,.68);
-
-  line-height:1.5;
-
-  font-size:14px;
-  font-weight:760;
-}
-
-.copyToast{
-  position:fixed;
-
-  left:50%;
-  bottom:18px;
-
-  transform:translateX(-50%);
-
-  z-index:999;
-
-  display:none;
-
-  padding:12px 14px;
-
-  border-radius:999px;
-
-  border:
-    1px solid rgba(255,255,255,.12);
-
-  background:
-    rgba(0,0,0,.72);
-
-  backdrop-filter:blur(14px);
-
-  font-size:13px;
-  font-weight:1000;
-
-  box-shadow:
-    0 16px 44px rgba(0,0,0,.45);
-}
-
-.bottomNav{
-  position:fixed;
-
-  left:50%;
-  bottom:14px;
-
-  transform:translateX(-50%);
-
-  z-index:95;
-
-  display:flex;
-  align-items:center;
-  gap:10px;
-
-  padding:10px;
-
-  border-radius:999px;
-
-  border:
-    1px solid rgba(255,255,255,.12);
-
-  background:
-    rgba(10,5,18,.84);
-
-  backdrop-filter:blur(18px);
-
-  box-shadow:
-    0 18px 60px rgba(0,0,0,.4);
-}
-
-.bottomNav a,
-.bottomNav button{
-  border:none;
-
-  background:
-    rgba(255,255,255,.06);
-
-  color:
-    rgba(255,255,255,.9);
-
-  border-radius:999px;
-
-  padding:11px 13px;
-
-  font-size:12px;
-  font-weight:1000;
-
-  cursor:pointer;
-}
-
-.buyModal{
-  position:fixed;
-  inset:0;
-
-  z-index:9999;
-
-  display:none;
-  align-items:center;
-  justify-content:center;
-
-  padding:18px;
-
-  background:
-    rgba(0,0,0,.72);
-
-  backdrop-filter:blur(14px);
-}
-
-.buyCard{
-  width:min(920px,100%);
-
-  max-height:90svh;
-
-  overflow:auto;
-
-  border-radius:30px;
-
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(18,10,28,.98),
-      rgba(10,5,18,.98)
-    );
-
-  box-shadow:
-    0 40px 120px rgba(0,0,0,.6);
-}
-
-.buyTop{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-
-  gap:12px;
-
-  padding:22px;
-
-  border-bottom:
-    1px solid rgba(255,255,255,.08);
-}
-
-.buyTop h3{
-  margin:0;
-
-  font-size:32px;
-  letter-spacing:-1px;
-}
-
-.close{
-  width:42px;
-  height:42px;
-
-  border-radius:50%;
-
-  border:
-    1px solid rgba(255,255,255,.12);
-
-  background:
-    rgba(255,255,255,.06);
-
-  color:#fff;
-
-  cursor:pointer;
-
-  font-size:20px;
-}
-
-.buyGrid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-
-  gap:14px;
-
-  padding:22px;
-}
-
-.buyOpt{
-  border:
-    1px solid rgba(255,255,255,.1);
-
-  background:
-    rgba(255,255,255,.045);
-
-  border-radius:24px;
-
-  padding:18px;
-
-  transition:.16s ease;
-}
-
-.buyOpt:hover{
-  transform:translateY(-2px);
-
-  border-color:
-    rgba(255,255,255,.18);
-
-  background:
-    rgba(255,255,255,.07);
-}
-
-.buyOpt h4{
-  margin:0;
-
-  font-size:20px;
-}
-
-.buyOpt p{
-  margin:8px 0 14px;
-
-  color:var(--muted);
-
-  font-size:14px;
-  line-height:1.45;
-  font-weight:760;
-}
-
-.buyOpt a{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-
-  padding:12px 14px;
-
-  border-radius:999px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #ffe57d,
-      var(--yellow2)
-    );
-
-  color:#120800;
-
-  font-size:13px;
-  font-weight:1000;
 }
 
 @media(max-width:980px){
@@ -1150,15 +953,15 @@ section{
     grid-template-columns:1fr;
   }
 
+  .showcase{
+    grid-template-columns:1fr;
+  }
+
   .marketGrid{
     grid-template-columns:repeat(2,1fr);
   }
 
-  .lockGrid{
-    grid-template-columns:repeat(2,1fr);
-  }
-
-  .buyGrid{
+  .lockHero{
     grid-template-columns:1fr;
   }
 
@@ -1181,7 +984,7 @@ section{
     grid-template-columns:1fr;
   }
 
-  .lockGrid{
+  .lockStats{
     grid-template-columns:1fr;
   }
 
@@ -1192,16 +995,6 @@ section{
   h1{
     letter-spacing:-2px;
   }
-
-  .bottomNav{
-    width:calc(100% - 20px);
-    justify-content:space-between;
-  }
-
-  .bottomNav a,
-  .bottomNav button{
-    flex:1;
-  }
 }
 
 </style>
@@ -1209,105 +1002,145 @@ section{
 
 <body>
 
-<div class="copyToast" id="toast">
-  Contract copied.
+<nav class="top">
+
+<div class="wrap topin">
+
+<a class="brand" href="#">
+
+<img src="assets/logo.png" alt="Planet Fatness">
+
+<div>
+<b>Planet Fatness</b>
+<span>$PHAT on Solana</span>
 </div>
 
-<nav class="top">
-  <div class="wrap topin">
+</a>
 
-    <a class="brand" href="#">
-      <img src="assets/logo.png" alt="Planet Fatness">
+<div class="nav">
 
-      <div>
-        <b>Planet Fatness</b>
-        <span>$PHAT on Solana</span>
-      </div>
-    </a>
+<a class="chip" href="#ecosystem">
+Ecosystem
+</a>
 
-    <div class="nav">
-      <a class="chip" href="#ecosystem">Ecosystem</a>
-      <a class="chip" href="#markets">Markets</a>
-      <a class="chip" href="#locks">Locks</a>
-      <a class="chip" href="#roadmap">Roadmap</a>
+<a class="chip" href="#markets">
+Markets
+</a>
 
-      <button class="buyBtn" onclick="openBuy()">
-        Buy $PHAT
-      </button>
-    </div>
+<a class="chip" href="#locks">
+Locks
+</a>
 
-  </div>
+<a class="chip" href="#roadmap">
+Roadmap
+</a>
+
+<button class="buyBtn" onclick="openBuy()">
+Buy $PHAT
+</button>
+
+</div>
+
+</div>
+
 </nav>
 
 <header class="hero">
 
-  <div class="heroBg"></div>
+<div class="heroVisual">
 
-  <div class="wrap">
+<img src="assets/hero.jpg" alt="Planet Fatness Hero">
 
-    <div class="heroContent">
+<div class="heroGlow"></div>
 
-      <div class="kicker">
-        <span class="dot"></span>
-        Games • Rewards • Chaos • Community
-      </div>
+</div>
 
-      <h1>
-        Welcome to
-        <span class="grad">Planet Fatness</span>
-      </h1>
+<div class="wrap">
 
-      <p class="lead">
-        A cinematic entertainment ecosystem built on Solana around games, Telegram culture, rewards, Feed Your Greed, PHAT Kings, and the belief that tapping counts as cardio.
-      </p>
+<div class="heroContent">
 
-      <div class="heroActions">
+<div class="kicker">
 
-        <button class="btn btnGold" onclick="openBuy()">
-          Buy $PHAT
-        </button>
+<span class="dot"></span>
 
-        <a class="btn" href="https://t.me/GymIsOpen" target="_blank">
-          Enter The Gym
-        </a>
+Games • Rewards • Chaos • Community
 
-        <a class="btn" href="https://kings.planetfatness.fit" target="_blank">
-          PHAT Kings
-        </a>
+</div>
 
-        <a class="btn" href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS" target="_blank">
-          View Chart
-        </a>
+<h1>
 
-      </div>
+Welcome to
+<span class="grad">Planet Fatness</span>
 
-      <div class="quickStats">
+</h1>
 
-        <div class="q">
-          <small>Supply</small>
-          <b>1B PHAT</b>
-        </div>
+<p class="lead">
 
-        <div class="q">
-          <small>Locked</small>
-          <b>200M+ PHAT</b>
-        </div>
+A cinematic entertainment ecosystem built on Solana around games,
+leaderboards, Feed Your Greed, PHAT Kings, Telegram culture,
+and community-driven chaos.
 
-        <div class="q">
-          <small>Locks</small>
-          <b>9 Active</b>
-        </div>
+</p>
 
-        <div class="q">
-          <small>Chain</small>
-          <b>Solana</b>
-        </div>
+<div class="heroActions">
 
-      </div>
+<button class="btn btnGold" onclick="openBuy()">
+Buy $PHAT
+</button>
 
-    </div>
+<a class="btn"
+href="https://t.me/GymIsOpen"
+target="_blank">
 
-  </div>
+Enter The Gym
+
+</a>
+
+<a class="btn"
+href="https://kings.planetfatness.fit"
+target="_blank">
+
+PHAT Kings
+
+</a>
+
+<a class="btn"
+href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS"
+target="_blank">
+
+View Chart
+
+</a>
+
+</div>
+
+<div class="quickStats">
+
+<div class="q">
+<small>Supply</small>
+<b>1B PHAT</b>
+</div>
+
+<div class="q">
+<small>Locked</small>
+<b>200M+</b>
+</div>
+
+<div class="q">
+<small>Locks</small>
+<b>9 Active</b>
+</div>
+
+<div class="q">
+<small>Chain</small>
+<b>Solana</b>
+</div>
+
+</div>
+
+</div>
+
+</div>
 
 </header>
 
@@ -1318,13 +1151,18 @@ section{
 <div class="wrap">
 
 <div class="sectionHead">
-  <div>
-    <h2>The ecosystem.</h2>
 
-    <p>
-      Games, rewards, leaderboards, Telegram culture, Feed Your Greed, PHAT Kings, and a growing universe connected through $PHAT.
-    </p>
-  </div>
+<div>
+
+<h2>The ecosystem.</h2>
+
+<p>
+Games, rewards, Telegram culture, Feed Your Greed, PHAT Kings,
+and a growing entertainment universe connected through $PHAT.
+</p>
+
+</div>
+
 </div>
 
 <div class="ecoGrid">
@@ -1339,7 +1177,7 @@ style="background-image:url('assets/feed-your-greed.jpg')"></div>
 <h3>Feed Your Greed</h3>
 
 <p>
-  Pick wisely. Dodge poison. Chase multipliers. Cash out before greed wins.
+Pick wisely. Dodge poison. Chase multipliers. Cash out before greed wins.
 </p>
 
 <div class="rowBtns">
@@ -1347,17 +1185,15 @@ style="background-image:url('assets/feed-your-greed.jpg')"></div>
 <a class="mini"
 href="https://t.me/GymIsOpen"
 target="_blank">
+
 Play In Telegram
-</a>
 
-<a class="mini"
-href="/greed/">
-Web Route
 </a>
 
 </div>
 
 </div>
+
 </article>
 
 <article class="eco">
@@ -1370,7 +1206,8 @@ style="background-image:url('assets/phat-kings.jpg')"></div>
 <h3>PHAT Kings</h3>
 
 <p>
-  Fantasy sports competition built for PHAT holders with bankrolls, parlays, and leaderboard energy.
+Fantasy sports competition built for PHAT holders with bankrolls,
+parlays, and leaderboard energy.
 </p>
 
 <div class="rowBtns">
@@ -1378,18 +1215,15 @@ style="background-image:url('assets/phat-kings.jpg')"></div>
 <a class="mini"
 href="https://kings.planetfatness.fit"
 target="_blank">
+
 Open PHAT Kings
-</a>
 
-<a class="mini"
-href="https://t.me/PHATKingsBot"
-target="_blank">
-Telegram Bot
 </a>
 
 </div>
 
 </div>
+
 </article>
 
 <article class="eco">
@@ -1402,7 +1236,8 @@ style="background-image:url('assets/roadmap-3.jpg')"></div>
 <h3>The Gym</h3>
 
 <p>
-  Mini games, daily activity, leaderboard grinding, snacks, chaos, and community culture.
+Mini games, activity, rewards, community culture,
+and the only gym where tapping counts as cardio.
 </p>
 
 <div class="rowBtns">
@@ -1410,154 +1245,217 @@ style="background-image:url('assets/roadmap-3.jpg')"></div>
 <a class="mini"
 href="https://t.me/GymIsOpen"
 target="_blank">
+
 Open Gym Bot
-</a>
 
-<a class="mini"
-href="/gym/">
-Web Gym
 </a>
 
 </div>
 
 </div>
+
 </article>
 
 </div>
+
 </div>
+
+</section>
+
+<section>
+
+<div class="wrap">
+
+<div class="showcase">
+
+<div class="showCopy">
+
+<small>FLAGSHIP EXPERIENCE</small>
+
+<h2>Feed Your Greed.</h2>
+
+<p>
+
+Provably fair chaos built around multipliers, poison donuts,
+jackpots, Telegram spectators, and escalating greed.
+
+</p>
+
+<div class="tags">
+
+<span>Provably Fair</span>
+<span>Jackpots</span>
+<span>Multipliers</span>
+<span>Telegram</span>
+
+</div>
+
+<div class="heroActions">
+
+<a class="btn btnGold"
+href="https://t.me/GymIsOpen"
+target="_blank">
+
+Play Now
+
+</a>
+
+</div>
+
+</div>
+
+<div class="showImage"
+style="background-image:url('assets/feed-your-greed.jpg')"></div>
+
+</div>
+
+</div>
+
 </section>
 <section id="markets">
 
 <div class="wrap">
 
-<div class="collapser">
+<div class="sectionHead">
 
-<button class="cHead" onclick="toggleCollapse('marketBody')">
-  <span>Available Across The Ecosystem</span>
-  <span>+</span>
-</button>
+<div>
 
-<div class="cBody open" id="marketBody">
+<h2>Available across the ecosystem.</h2>
+
+<p>
+Trade, track, and discover $PHAT across Solana platforms and wallets.
+</p>
+
+</div>
+
+</div>
 
 <div class="marketGrid">
 
-<a class="market"
-href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-
-<span>👻</span>
-
-<b>Phantom</b>
-
-<small>
-Trade $PHAT directly inside Phantom Wallet.
-</small>
-
-</a>
-
-<a class="market"
-href="https://www.coinbase.com/price/planet-fatness-solana-558200bd?q=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&searchTab=ASSET"
-target="_blank">
-
-<span>🟦</span>
-
-<b>Coinbase</b>
-
-<small>
-Track and discover $PHAT on Coinbase.
-</small>
-
-</a>
-
-<a class="market"
-href="https://web3.binance.com/en/token/sol/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?utm_source=hometokensearch&utm_medium=binance"
-target="_blank">
-
-<span>🟨</span>
-
-<b>Binance Web3</b>
-
-<small>
-Access $PHAT through Binance Web3.
-</small>
-
-</a>
-
-<a class="market"
-href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link"
-target="_blank">
-
-<span>🔥</span>
-
-<b>FOMO</b>
-
-<small>
-Social trading and discovery for $PHAT.
-</small>
-
-</a>
-
-<a class="market"
+<a class="marketCard"
 href="https://join.pump.fun/HSag/u1f5raah"
 target="_blank">
 
+<div class="marketTop">
 <span>🚀</span>
+<h3>Pump.fun</h3>
+</div>
 
-<b>Pump.fun</b>
-
-<small>
-The original launch platform for $PHAT.
-</small>
+<p>
+Original launch platform for Planet Fatness.
+</p>
 
 </a>
 
-<a class="market"
+<a class="marketCard"
+href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
+target="_blank">
+
+<div class="marketTop">
+<span>👻</span>
+<h3>Phantom</h3>
+</div>
+
+<p>
+Swap and track $PHAT directly inside Phantom Wallet.
+</p>
+
+</a>
+
+<a class="marketCard"
+href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
+target="_blank">
+
+<div class="marketTop">
+<span>🪐</span>
+<h3>Jupiter</h3>
+</div>
+
+<p>
+Deep liquidity routing across the Solana ecosystem.
+</p>
+
+</a>
+
+<a class="marketCard"
+href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link"
+target="_blank">
+
+<div class="marketTop">
+<span>🔥</span>
+<h3>FOMO</h3>
+</div>
+
+<p>
+Social trading, trending discovery, and live activity.
+</p>
+
+</a>
+
+<a class="marketCard"
+href="https://www.coinbase.com/price/planet-fatness-solana-558200bd?q=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&searchTab=ASSET"
+target="_blank">
+
+<div class="marketTop">
+<span>🟦</span>
+<h3>Coinbase</h3>
+</div>
+
+<p>
+Track and discover Planet Fatness through Coinbase.
+</p>
+
+</a>
+
+<a class="marketCard"
+href="https://web3.binance.com/en/token/sol/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?utm_source=hometokensearch&utm_medium=binance"
+target="_blank">
+
+<div class="marketTop">
+<span>🟨</span>
+<h3>Binance Web3</h3>
+</div>
+
+<p>
+Access $PHAT using Binance Web3 wallet support.
+</p>
+
+</a>
+
+<a class="marketCard"
 href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS"
 target="_blank">
 
+<div class="marketTop">
 <span>📈</span>
+<h3>DexScreener</h3>
+</div>
 
-<b>DexScreener</b>
-
-<small>
-Live chart, liquidity, and market activity.
-</small>
-
-</a>
-
-<a class="market"
-href="https://jup.ag"
-target="_blank">
-
-<span>🪐</span>
-
-<b>Jupiter</b>
-
-<small>
-Swap on Solana using Jupiter routing.
-</small>
+<p>
+Live charts, liquidity, holders, and market activity.
+</p>
 
 </a>
 
-<a class="market"
+<a class="marketCard"
 href="https://solscan.io/token/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
 target="_blank">
 
+<div class="marketTop">
 <span>🔎</span>
+<h3>Solscan</h3>
+</div>
 
-<b>Solscan</b>
-
-<small>
-View on-chain transparency and activity.
-</small>
+<p>
+View on-chain transparency and token activity.
+</p>
 
 </a>
 
 </div>
 
 </div>
-</div>
-</div>
+
 </section>
 
 <section id="locks">
@@ -1568,77 +1466,78 @@ View on-chain transparency and activity.
 
 <div>
 
-<h2>Transparency & locks.</h2>
+<h2>Transparent supply & Streamflow locks.</h2>
 
 <p>
-Public Streamflow locks, transparent supply structure, and ecosystem-first growth.
+Public ecosystem locks visible directly on-chain through Streamflow.
 </p>
 
 </div>
 
-<a class="btn"
-href="https://app.streamflow.finance/token-dashboard/solana/mainnet/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
+</div>
+
+<div class="lockHero">
+
+<div class="lockCopy">
+
+<div class="livePill">
+
+<div class="liveDot"></div>
+
+LIVE LOCK DATA
+
+</div>
+
+<h3>200M+ PHAT locked.</h3>
+
+<p>
+
+Planet Fatness currently maintains multiple active public Streamflow locks
+with transparent unlock schedules visible directly on-chain.
+
+</p>
+
+<div class="lockStats">
+
+<div class="lockStat">
+<small>Total Supply</small>
+<b>1B</b>
+</div>
+
+<div class="lockStat">
+<small>Active Locks</small>
+<b>9</b>
+</div>
+
+<div class="lockStat">
+<small>Locked</small>
+<b>200M+</b>
+</div>
+
+</div>
+
+<a class="btn btnGold"
+href="https://app.streamflow.finance/token-dashboard/solana/mainnet/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?type=lock"
 target="_blank">
 
-View Streamflow
+View Streamflow Locks
 
 </a>
 
 </div>
 
-<div class="lockGrid">
+<div class="lockVisual">
 
-<div class="lock">
+<img src="assets/roadmap-5.jpg" alt="Streamflow Locks">
 
-<small>Total Supply</small>
-
-<b>1B</b>
-
-<p>
-1,000,000,000 PHAT launched on Solana.
-</p>
-
-</div>
-
-<div class="lock">
-
-<small>Locked Supply</small>
-
-<b>200M+</b>
-
-<p>
-Major portions of supply publicly locked through Streamflow.
-</p>
-
-</div>
-
-<div class="lock">
-
-<small>Active Locks</small>
-
-<b>9</b>
-
-<p>
-Ongoing transparent Streamflow ecosystem locks.
-</p>
-
-</div>
-
-<div class="lock">
-
-<small>Launch</small>
-
-<b>Pump.fun</b>
-
-<p>
-Originally launched through Pump.fun on Solana.
-</p>
+<div class="lockOverlay"></div>
 
 </div>
 
 </div>
 
 </div>
+
 </section>
 
 <section id="roadmap">
@@ -1652,141 +1551,99 @@ Originally launched through Pump.fun on Solana.
 <h2>Visual roadmap.</h2>
 
 <p>
-A cinematic look at the expanding Planet Fatness ecosystem.
+The expanding Planet Fatness entertainment universe.
 </p>
 
 </div>
 
 </div>
 
-<div class="roadWrap">
+<div class="ecoGrid">
 
-<article class="road">
+<div class="eco">
+<div class="ecoImg" style="background-image:url('assets/roadmap-1.jpg')"></div>
+</div>
 
-<div class="roadImg"
-style="background-image:url('assets/roadmap-1.jpg')"></div>
+<div class="eco">
+<div class="ecoImg" style="background-image:url('assets/roadmap-2.jpg')"></div>
+</div>
 
-<div class="roadText">
+<div class="eco">
+<div class="ecoImg" style="background-image:url('assets/roadmap-3.jpg')"></div>
+</div>
 
-<div class="phase">Phase 1</div>
+<div class="eco">
+<div class="ecoImg" style="background-image:url('assets/roadmap-4.jpg')"></div>
+</div>
 
-<h3>The beginning.</h3>
+<div class="eco">
+<div class="ecoImg" style="background-image:url('assets/roadmap-5.jpg')"></div>
+</div>
+
+<div class="eco">
+<div class="ecoImg" style="background-image:url('assets/roadmap-6.jpg')"></div>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="future">
+
+<div class="wrap">
+
+<div class="showcase">
+
+<div class="showCopy">
+
+<small>EXPANDING THE ECOSYSTEM</small>
+
+<h2>Collectibles, merch, and future drops.</h2>
 
 <p>
-Planet Fatness enters the timeline with games, culture, memes, and community energy.
+
+Planet Fatness continues expanding through collectible drops,
+premium merch, ecosystem rewards, and future digital ownership experiences.
+
 </p>
+
+<div class="tags">
+
+<span>PHAT Collectibles</span>
+<span>Merch</span>
+<span>Rewards</span>
+<span>Community Drops</span>
 
 </div>
 
-</article>
-
-<article class="road">
-
-<div class="roadImg"
-style="background-image:url('assets/roadmap-2.jpg')"></div>
-
-<div class="roadText">
-
-<div class="phase">Phase 2</div>
-
-<h3>The gym expands.</h3>
-
-<p>
-Leaderboards, mini games, rewards, and Telegram activity evolve into a full ecosystem.
-</p>
-
 </div>
 
-</article>
-
-<article class="road">
-
-<div class="roadImg"
-style="background-image:url('assets/roadmap-3.jpg')"></div>
-
-<div class="roadText">
-
-<div class="phase">Phase 3</div>
-
-<h3>Community culture.</h3>
-
-<p>
-Daily engagement, memes, activity, and competition shape the Planet Fatness identity.
-</p>
-
-</div>
-
-</article>
-
-<article class="road">
-
-<div class="roadImg"
-style="background-image:url('assets/roadmap-4.jpg')"></div>
-
-<div class="roadText">
-
-<div class="phase">Phase 4</div>
-
-<h3>Feed Your Greed.</h3>
-
-<p>
-Provably fair chaos, multipliers, jackpots, poison donuts, and spectator energy.
-</p>
-
-</div>
-
-</article>
-
-<article class="road">
-
-<div class="roadImg"
-style="background-image:url('assets/roadmap-5.jpg')"></div>
-
-<div class="roadText">
-
-<div class="phase">Phase 5</div>
-
-<h3>PHAT Kings.</h3>
-
-<p>
-Fantasy sports competition, parlays, bankrolls, and leaderboard domination.
-</p>
-
-</div>
-
-</article>
-
-<article class="road">
-
-<div class="roadImg"
+<div class="showImage"
 style="background-image:url('assets/roadmap-6.jpg')"></div>
 
-<div class="roadText">
-
-<div class="phase">Final Phase</div>
-
-<h3>The ecosystem city.</h3>
-
-<p>
-Everything connected together through one evolving Planet Fatness universe.
-</p>
-
-</div>
-
-</article>
-
 </div>
 
 </div>
+
 </section>
 
 </main>
 
-<footer class="footer">
+<footer>
 
 <div class="wrap">
 
-<div class="footerTop">
+<div style="
+display:flex;
+justify-content:space-between;
+gap:18px;
+flex-wrap:wrap;
+align-items:center;
+padding-bottom:18px;
+border-bottom:1px solid rgba(255,255,255,.08);
+">
 
 <div class="brand">
 
@@ -1804,70 +1661,113 @@ Everything connected together through one evolving Planet Fatness universe.
 <a class="mini"
 href="https://x.com/planet_fatnessx"
 target="_blank">
+
 X / Twitter
+
 </a>
 
 <a class="mini"
 href="https://t.me/GymIsOpen"
 target="_blank">
-Telegram
-</a>
 
-<a class="mini"
-href="https://www.tiktok.com"
-target="_blank">
-TikTok
+Telegram
+
 </a>
 
 <a class="mini"
 href="mailto:admin@planetfatness.fit">
+
 admin@planetfatness.fit
+
 </a>
 
 </div>
 
 </div>
 
-<div class="disclaimer">
+<div style="
+margin-top:18px;
+padding:18px;
+border-radius:24px;
+border:1px solid rgba(255,255,255,.08);
+background:rgba(255,255,255,.035);
+">
 
-<b>Disclaimer:</b>
+<div style="
+font-size:11px;
+letter-spacing:.18em;
+font-weight:1000;
+color:var(--muted);
+text-transform:uppercase;
+">
 
-Planet Fatness ($PHAT) is a meme-based entertainment ecosystem built on Solana.
-
-Nothing on this website constitutes financial advice, investment advice, trading advice, legal advice, or a promise of future performance.
-
-Cryptocurrency markets involve risk and volatility. Always do your own research and make independent decisions.
-
-Planet Fatness products, games, rewards, leaderboards, and ecosystem experiences are provided for entertainment and community participation purposes.
+Contract Address
 
 </div>
 
-<div style="margin-top:18px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;">
+<div id="ca"
+style="
+margin-top:10px;
+font-size:14px;
+line-height:1.5;
+word-break:break-all;
+font-weight:800;
+">
 
-<div style="color:rgba(255,255,255,.58); font-size:13px; font-weight:800;">
-© 2026 Planet Fatness • All Rights Reserved
+DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump
+
 </div>
 
-<div class="rowBtns">
+<div class="heroActions">
 
-<button class="mini"
-onclick="copyCA()">
+<button class="btn btnGold" onclick="copyCA()">
 Copy Contract
 </button>
 
-<a class="mini"
-href="https://solscan.io/token/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
+<a class="btn"
+href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
 target="_blank">
-View Contract
-</a>
 
-<a class="mini"
-href="https://app.streamflow.finance/token-dashboard/solana/mainnet/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-Streamflow Locks
+Open Jupiter
+
 </a>
 
 </div>
+
+</div>
+
+<div style="
+margin-top:18px;
+padding:18px;
+border-radius:24px;
+border:1px solid rgba(255,255,255,.08);
+background:rgba(255,255,255,.03);
+color:rgba(255,255,255,.66);
+line-height:1.6;
+font-size:13px;
+font-weight:760;
+">
+
+Planet Fatness ($PHAT) is a meme-based entertainment ecosystem built on Solana.
+
+Nothing on this website constitutes financial advice, investment advice,
+legal advice, or guarantees of future performance.
+
+Cryptocurrency markets involve volatility and risk.
+Always do your own research.
+
+</div>
+
+<div style="
+margin-top:18px;
+color:rgba(255,255,255,.45);
+font-size:12px;
+font-weight:800;
+text-align:center;
+padding-bottom:110px;
+">
+
+© 2026 Planet Fatness • All Rights Reserved
 
 </div>
 
@@ -1875,181 +1775,182 @@ Streamflow Locks
 
 </footer>
 
-<div class="bottomNav">
+<div id="buyModal"
+style="
+position:fixed;
+inset:0;
+display:none;
+align-items:center;
+justify-content:center;
+background:rgba(0,0,0,.72);
+backdrop-filter:blur(14px);
+z-index:999;
+padding:20px;
+">
 
-<a href="#">
+<div style="
+width:min(760px,100%);
+border-radius:32px;
+border:1px solid rgba(255,255,255,.1);
+background:linear-gradient(180deg,#12081d,#09040f);
+padding:24px;
+box-shadow:0 30px 90px rgba(0,0,0,.6);
+">
+
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+">
+
+<h3 style="
+margin:0;
+font-size:32px;
+letter-spacing:-1px;
+">
+
+Buy $PHAT
+
+</h3>
+
+<button onclick="closeBuy()"
+style="
+width:42px;
+height:42px;
+border-radius:50%;
+border:none;
+background:rgba(255,255,255,.08);
+color:#fff;
+font-size:22px;
+cursor:pointer;
+">
+
+×
+
+</button>
+
+</div>
+
+<div class="marketGrid" style="margin-top:20px;">
+
+<a class="marketCard"
+href="https://join.pump.fun/HSag/u1f5raah"
+target="_blank">
+
+<div class="marketTop">
+<span>🚀</span>
+<h3>Pump.fun</h3>
+</div>
+
+<p>Original launch platform.</p>
+
+</a>
+
+<a class="marketCard"
+href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
+target="_blank">
+
+<div class="marketTop">
+<span>👻</span>
+<h3>Phantom</h3>
+</div>
+
+<p>Swap inside Phantom Wallet.</p>
+
+</a>
+
+<a class="marketCard"
+href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
+target="_blank">
+
+<div class="marketTop">
+<span>🪐</span>
+<h3>Jupiter</h3>
+</div>
+
+<p>Deep liquidity routing.</p>
+
+</a>
+
+<a class="marketCard"
+href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link"
+target="_blank">
+
+<div class="marketTop">
+<span>🔥</span>
+<h3>FOMO</h3>
+</div>
+
+<p>Trending and social discovery.</p>
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+<div style="
+position:fixed;
+bottom:16px;
+left:50%;
+transform:translateX(-50%);
+z-index:120;
+display:flex;
+gap:10px;
+padding:10px;
+border-radius:999px;
+border:1px solid rgba(255,255,255,.1);
+background:rgba(10,5,18,.82);
+backdrop-filter:blur(18px);
+">
+
+<a class="mini" href="#">
 Home
 </a>
 
-<a href="#ecosystem">
+<a class="mini" href="#ecosystem">
 Ecosystem
 </a>
 
-<a href="#roadmap">
+<a class="mini" href="#roadmap">
 Roadmap
 </a>
 
-<button onclick="openBuy()">
+<button class="buyBtn" onclick="openBuy()">
 Buy
 </button>
 
 </div>
 
-<div class="buyModal" id="buyModal">
-
-<div class="buyCard">
-
-<div class="buyTop">
-
-<h3>Buy $PHAT</h3>
-
-<button class="close" onclick="closeBuy()">
-×
-</button>
-
-</div>
-
-<div class="buyGrid">
-
-<div class="buyOpt">
-
-<h4>Pump.fun</h4>
-
-<p>
-Buy directly from the original launch platform.
-</p>
-
-<a href="https://join.pump.fun/HSag/u1f5raah"
-target="_blank">
-Open Pump.fun
-</a>
-
-</div>
-
-<div class="buyOpt">
-
-<h4>Phantom</h4>
-
-<p>
-Trade $PHAT directly inside Phantom Wallet.
-</p>
-
-<a href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-Open Phantom
-</a>
-
-</div>
-
-<div class="buyOpt">
-
-<h4>Coinbase</h4>
-
-<p>
-Track and discover Planet Fatness on Coinbase.
-</p>
-
-<a href="https://www.coinbase.com/price/planet-fatness-solana-558200bd?q=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&searchTab=ASSET"
-target="_blank">
-Open Coinbase
-</a>
-
-</div>
-
-<div class="buyOpt">
-
-<h4>Binance Web3</h4>
-
-<p>
-Access $PHAT through Binance Web3.
-</p>
-
-<a href="https://web3.binance.com/en/token/sol/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?utm_source=hometokensearch&utm_medium=binance"
-target="_blank">
-Open Binance
-</a>
-
-</div>
-
-<div class="buyOpt">
-
-<h4>FOMO</h4>
-
-<p>
-Social trading and discovery for $PHAT.
-</p>
-
-<a href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link"
-target="_blank">
-Open FOMO
-</a>
-
-</div>
-
-<div class="buyOpt">
-
-<h4>DexScreener</h4>
-
-<p>
-View the live chart, liquidity, and market activity.
-</p>
-
-<a href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS"
-target="_blank">
-Open DexScreener
-</a>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
 <script>
 
-function toggleCollapse(id){
-
-  const el = document.getElementById(id);
-
-  if(!el) return;
-
-  el.classList.toggle("open");
-}
-
 function openBuy(){
-  document.getElementById("buyModal").style.display = "flex";
+  document.getElementById("buyModal").style.display="flex";
 }
 
 function closeBuy(){
-  document.getElementById("buyModal").style.display = "none";
+  document.getElementById("buyModal").style.display="none";
 }
 
 window.addEventListener("click",(e)=>{
+  const modal=document.getElementById("buyModal");
 
-  const modal = document.getElementById("buyModal");
-
-  if(e.target === modal){
+  if(e.target===modal){
     closeBuy();
   }
 });
 
 function copyCA(){
 
-  navigator.clipboard.writeText(
-    "DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-  );
+  const ca=
+  "DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump";
 
-  const t = document.getElementById("toast");
+  navigator.clipboard.writeText(ca);
 
-  t.style.display = "block";
-
-  clearTimeout(window.__phatToast);
-
-  window.__phatToast = setTimeout(()=>{
-    t.style.display = "none";
-  },2200);
+  alert("Contract copied.");
 }
 
 </script>
