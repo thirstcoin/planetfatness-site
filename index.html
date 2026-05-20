@@ -454,33 +454,40 @@ h1{
   line-height:1.45;
 }
 
-.lunchWrap{
+.lunchTitle{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.lunchMark{
+  position:relative;
+  display:inline-block;
+  color:#cf73ff;
+  font-family:cursive;
+  font-size:24px;
+  font-weight:1000;
+  transform:rotate(-7deg);
+  text-shadow:0 0 18px rgba(188,41,255,.55);
+}
+
+.launchWord{
   position:relative;
   display:inline-block;
 }
 
-.launchCross{
-  position:absolute;
-  left:0;
-  top:-16px;
-  font-size:18px;
-  color:#cf73ff;
-  font-weight:1000;
-  transform:rotate(-8deg);
-  text-shadow:0 0 18px rgba(188,41,255,.55);
-  pointer-events:none;
-}
-
-.launchCross::after{
+.launchWord::after{
   content:"";
   position:absolute;
   left:-4px;
   right:-4px;
-  top:50%;
-  height:3px;
+  top:55%;
+  height:4px;
   background:#cf73ff;
-  transform:rotate(-6deg);
+  transform:rotate(-4deg);
   border-radius:999px;
+  box-shadow:0 0 12px rgba(188,41,255,.55);
 }
 
 .chartFrame{
