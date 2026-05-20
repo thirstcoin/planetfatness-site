@@ -455,21 +455,8 @@ h1{
 }
 
 .lunchTitle{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
-.lunchMark{
   position:relative;
   display:inline-block;
-  color:#cf73ff;
-  font-family:cursive;
-  font-size:24px;
-  font-weight:1000;
-  transform:rotate(-7deg);
-  text-shadow:0 0 18px rgba(188,41,255,.55);
 }
 
 .launchWord{
@@ -482,12 +469,26 @@ h1{
   position:absolute;
   left:-4px;
   right:-4px;
-  top:55%;
+  top:56%;
   height:4px;
   background:#cf73ff;
   transform:rotate(-4deg);
   border-radius:999px;
   box-shadow:0 0 12px rgba(188,41,255,.55);
+}
+
+.lunchMark{
+  position:absolute;
+  left:-6px;
+  top:-14px;
+  z-index:2;
+  color:#cf73ff;
+  font-family:cursive;
+  font-size:24px;
+  font-weight:1000;
+  transform:rotate(-7deg);
+  text-shadow:0 0 18px rgba(188,41,255,.55);
+  pointer-events:none;
 }
 
 .chartFrame{
@@ -1054,8 +1055,10 @@ style="background-image:url('assets/roadmap-1.jpg')">
 <small>PHASE 01</small>
 
 <h3 class="lunchTitle">
-<span class="lunchMark">Lunch</span>
-<span class="launchWord">Launch</span>
+<span class="launchWord">
+  Launch
+  <span class="lunchMark">Lunch</span>
+</span>
 <span>&amp; Community</span>
 </h3>
 
