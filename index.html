@@ -247,8 +247,6 @@ h1{
   font-size:18px;
   letter-spacing:-.2px;
 }
-section{padding:38px 0}
-
 .sectionHead{
   display:flex;
   align-items:end;
@@ -444,12 +442,45 @@ section{padding:38px 0}
   letter-spacing:.14em;
   text-transform:uppercase;
 }
-.roadCopy h3{margin:8px 0 8px;font-size:24px;letter-spacing:-.6px}
+.roadCopy h3{
+  margin:8px 0 8px;
+  font-size:24px;
+  letter-spacing:-.6px;
+}
 .roadCopy p{
   margin:0;
   color:var(--muted);
   font-weight:760;
   line-height:1.45;
+}
+
+.lunchWrap{
+  position:relative;
+  display:inline-block;
+}
+
+.launchCross{
+  position:absolute;
+  left:0;
+  top:-16px;
+  font-size:18px;
+  color:#cf73ff;
+  font-weight:1000;
+  transform:rotate(-8deg);
+  text-shadow:0 0 18px rgba(188,41,255,.55);
+  pointer-events:none;
+}
+
+.launchCross::after{
+  content:"";
+  position:absolute;
+  left:-4px;
+  right:-4px;
+  top:50%;
+  height:3px;
+  background:#cf73ff;
+  transform:rotate(-6deg);
+  border-radius:999px;
 }
 
 .chartFrame{
@@ -468,7 +499,6 @@ section{padding:38px 0}
   border:0;
   display:block;
 }
-
 footer{
   padding:34px 0 118px;
   border-top:1px solid rgba(255,255,255,.08);
@@ -489,6 +519,7 @@ footer{
   box-shadow:0 18px 60px rgba(0,0,0,.45);
 }
 .bottomNav .mini{padding:10px 14px}
+
 .buyModal{
   position:fixed;
   inset:0;
@@ -635,7 +666,7 @@ View Chart
 </div>
 
 <div class="heroImageCard">
-<img src="assets/hero.png" alt="Planet Fatness Cinematic Ecosystem">
+<img src="assets/treadmill-pizza.gif" alt="Planet Fatness Hero">
 </div>
 
 </div>
@@ -662,22 +693,6 @@ and a growing entertainment universe connected through $PHAT.
 
 <article class="eco">
 
-<div class="ecoImg" style="background-image:url('assets/feed-your-greed.jpg')"></div>
-
-<div class="ecoPad">
-<h3>Feed Your Greed</h3>
-<p>
-Pick wisely. Dodge poison. Chase multipliers. Cash out before greed wins.
-</p>
-<div class="rowBtns">
-<a class="mini" href="https://t.me/GymIsOpen" target="_blank">Play In Telegram</a>
-</div>
-</div>
-
-</article>
-
-<article class="eco">
-
 <div class="ecoImg"
 style="
 background-image:url('assets/phat-kings.jpg');
@@ -686,14 +701,65 @@ background-position:center 22%;
 
 <div class="ecoPad">
 <h3>PHAT Kings</h3>
+
 <p>
 Fantasy sports competition built for PHAT holders with bankrolls,
 parlays, and leaderboard energy.
 </p>
+
 <div class="rowBtns">
-<a class="mini" href="https://kings.planetfatness.fit" target="_blank">Open PHAT Kings</a>
-<a class="mini" href="https://t.me/PHATKingsBot" target="_blank">PHAT Kings Bot</a>
+
+<a class="mini"
+href="https://kings.planetfatness.fit"
+target="_blank">
+
+Open PHAT Kings
+
+</a>
+
+<a class="mini"
+href="https://t.me/PHATKingsBot"
+target="_blank">
+
+PHAT Kings Bot
+
+</a>
+
 </div>
+
+</div>
+
+</article>
+
+<article class="eco">
+
+<div class="ecoImg"
+style="
+background-image:url('assets/feed-your-greed.jpg');
+background-position:center;
+"></div>
+
+<div class="ecoPad">
+
+<h3>Feed Your Greed</h3>
+
+<p>
+Pick wisely. Dodge poison. Chase multipliers.
+Cash out before greed wins.
+</p>
+
+<div class="rowBtns">
+
+<a class="mini"
+href="https://t.me/GymIsOpen"
+target="_blank">
+
+Play In Telegram
+
+</a>
+
+</div>
+
 </div>
 
 </article>
@@ -703,19 +769,34 @@ parlays, and leaderboard energy.
 <div class="ecoImg"
 style="
 background-image:url('assets/gym.jpg');
-background-position:center 32%;
+background-position:center 42%;
 "></div>
-
 <div class="ecoPad">
+
 <h3>The Gym</h3>
+
 <p>
 Mini games, activity, rewards, community culture,
 and the only gym where tapping counts as cardio.
 </p>
+
 <div class="rowBtns">
-<a class="mini" href="https://t.me/GymIsOpen" target="_blank">Open Gym Bot</a>
-<a class="mini" href="/gym/">Web Gym</a>
+
+<a class="mini"
+href="https://t.me/GymIsOpen"
+target="_blank">
+
+Open Gym Bot
+
+</a>
+
+<a class="mini"
+href="/gym/">
+Web Gym
+</a>
+
 </div>
+
 </div>
 
 </article>
@@ -725,6 +806,7 @@ and the only gym where tapping counts as cardio.
 </div>
 
 </section>
+
 <section id="markets">
 
 <div class="wrap">
@@ -740,44 +822,124 @@ Trade, track, and discover $PHAT across Solana platforms and wallets.
 
 <div class="marketGrid">
 
-<a class="marketCard" href="https://join.pump.fun/HSag/u1f5raah" target="_blank">
-<div class="marketTop"><span>🚀</span><h3>Pump.fun</h3></div>
-<p>Original launch platform for Planet Fatness.</p>
+<a class="marketCard"
+href="https://join.pump.fun/HSag/u1f5raah"
+target="_blank">
+
+<div class="marketTop">
+<span>🚀</span>
+<h3>Pump.fun</h3>
+</div>
+
+<p>
+Original launch platform for Planet Fatness.
+</p>
+
 </a>
 
-<a class="marketCard" href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
-<div class="marketTop"><span>👻</span><h3>Phantom</h3></div>
-<p>Swap and track $PHAT directly inside Phantom Wallet.</p>
+<a class="marketCard"
+href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
+target="_blank">
+
+<div class="marketTop">
+<span>👻</span>
+<h3>Phantom</h3>
+</div>
+
+<p>
+Swap and track $PHAT directly inside Phantom Wallet.
+</p>
+
 </a>
 
-<a class="marketCard" href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
-<div class="marketTop"><span>🪐</span><h3>Jupiter</h3></div>
-<p>Deep liquidity routing across the Solana ecosystem.</p>
+<a class="marketCard"
+href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
+target="_blank">
+
+<div class="marketTop">
+<span>🪐</span>
+<h3>Jupiter</h3>
+</div>
+
+<p>
+Deep liquidity routing across the Solana ecosystem.
+</p>
+
 </a>
 
-<a class="marketCard" href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link" target="_blank">
-<div class="marketTop"><span>🔥</span><h3>FOMO</h3></div>
-<p>Social trading, trending discovery, and live activity.</p>
+<a class="marketCard"
+href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link"
+target="_blank">
+
+<div class="marketTop">
+<span>🔥</span>
+<h3>FOMO</h3>
+</div>
+
+<p>
+Social trading, trending discovery, and live activity.
+</p>
+
 </a>
 
-<a class="marketCard" href="https://www.coinbase.com/price/planet-fatness-solana-558200bd?q=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&searchTab=ASSET" target="_blank">
-<div class="marketTop"><span>🟦</span><h3>Coinbase</h3></div>
-<p>Track and discover Planet Fatness through Coinbase.</p>
+<a class="marketCard"
+href="https://www.coinbase.com/price/planet-fatness-solana-558200bd?q=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&searchTab=ASSET"
+target="_blank">
+
+<div class="marketTop">
+<span>🟦</span>
+<h3>Coinbase</h3>
+</div>
+
+<p>
+Track and discover Planet Fatness through Coinbase.
+</p>
+
 </a>
 
-<a class="marketCard" href="https://web3.binance.com/en/token/sol/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?utm_source=hometokensearch&utm_medium=binance" target="_blank">
-<div class="marketTop"><span>🟨</span><h3>Binance Web3</h3></div>
-<p>Access $PHAT using Binance Web3 wallet support.</p>
+<a class="marketCard"
+href="https://web3.binance.com/en/token/sol/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?utm_source=hometokensearch&utm_medium=binance"
+target="_blank">
+
+<div class="marketTop">
+<span>🟨</span>
+<h3>Binance Web3</h3>
+</div>
+
+<p>
+Access $PHAT using Binance Web3 wallet support.
+</p>
+
 </a>
 
-<a class="marketCard" href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS" target="_blank">
-<div class="marketTop"><span>📈</span><h3>DexScreener</h3></div>
-<p>Live charts, liquidity, holders, and market activity.</p>
+<a class="marketCard"
+href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS"
+target="_blank">
+
+<div class="marketTop">
+<span>📈</span>
+<h3>DexScreener</h3>
+</div>
+
+<p>
+Live charts, liquidity, holders, and market activity.
+</p>
+
 </a>
 
-<a class="marketCard" href="https://solscan.io/token/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
-<div class="marketTop"><span>🔎</span><h3>Solscan</h3></div>
-<p>View on-chain transparency and token activity.</p>
+<a class="marketCard"
+href="https://solscan.io/token/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
+target="_blank">
+
+<div class="marketTop">
+<span>🔎</span>
+<h3>Solscan</h3>
+</div>
+
+<p>
+View on-chain transparency and token activity.
+</p>
+
 </a>
 
 </div>
@@ -858,7 +1020,6 @@ View Streamflow Locks
 </div>
 
 </section>
-
 <section id="roadmap">
 
 <div class="wrap">
@@ -877,75 +1038,170 @@ and future entertainment layers.
 <div class="roadmapRail">
 
 <div class="roadCard">
-<div class="roadImg" style="background-image:url('assets/roadmap-1.jpg')"></div>
+
+<div class="roadImg"
+style="
+background-image:url('assets/roadmap-1.jpg');
+position:relative;
+">
+
+<div style="
+position:absolute;
+top:16px;
+left:16px;
+z-index:3;
+font-size:18px;
+font-weight:1000;
+color:#c76bff;
+transform:rotate(-8deg);
+text-shadow:0 2px 10px rgba(0,0,0,.5);
+font-family:cursive;
+">
+
+Lunch
+
+</div>
+
+<div style="
+position:absolute;
+top:28px;
+left:12px;
+width:120px;
+height:3px;
+background:#ff4f4f;
+transform:rotate(-7deg);
+border-radius:999px;
+box-shadow:0 0 12px rgba(255,79,79,.5);
+">
+
+</div>
+
+</div>
+
 <div class="roadCopy">
 <small>PHASE 01</small>
-<h3>Launch & Community</h3>
+
+<h3>
+Launch & Community
+</h3>
+
 <p>
 Planet Fatness launched on Solana with daily activity,
-community growth, and meme culture at the center.
+community growth, meme culture, and snack-fueled chaos at the center.
 </p>
+
 </div>
+
 </div>
 
 <div class="roadCard">
-<div class="roadImg" style="background-image:url('assets/roadmap-2.jpg')"></div>
+
+<div class="roadImg"
+style="background-image:url('assets/roadmap-2.jpg')">
+</div>
+
 <div class="roadCopy">
 <small>PHASE 02</small>
-<h3>Supply Locks</h3>
+
+<h3>
+Supply Locks
+</h3>
+
 <p>
 Public Streamflow locks established long-term ecosystem transparency
 and visible on-chain commitment.
 </p>
+
 </div>
+
 </div>
 
 <div class="roadCard">
-<div class="roadImg" style="background-image:url('assets/roadmap-3.jpg')"></div>
+
+<div class="roadImg"
+style="background-image:url('assets/roadmap-3.jpg')">
+</div>
+
 <div class="roadCopy">
 <small>PHASE 03</small>
-<h3>The Gym</h3>
+
+<h3>
+The Gym
+</h3>
+
 <p>
-Mini games, leaderboards, Telegram engagement,
-and reward systems expanded the ecosystem loop.
+Mini games, Telegram activity, daily airdrops,
+and leaderboard systems expanded the ecosystem loop.
 </p>
+
 </div>
+
 </div>
 
 <div class="roadCard">
-<div class="roadImg" style="background-image:url('assets/roadmap-4.jpg')"></div>
+
+<div class="roadImg"
+style="background-image:url('assets/roadmap-4.jpg')">
+</div>
+
 <div class="roadCopy">
 <small>PHASE 04</small>
-<h3>Feed Your Greed</h3>
+
+<h3>
+Feed Your Greed
+</h3>
+
 <p>
 Provably fair gameplay, jackpots, multipliers,
 and spectator chaos entered the Planet Fatness universe.
 </p>
+
 </div>
+
 </div>
 
 <div class="roadCard">
-<div class="roadImg" style="background-image:url('assets/roadmap-5.jpg')"></div>
+
+<div class="roadImg"
+style="background-image:url('assets/roadmap-5.jpg')">
+</div>
+
 <div class="roadCopy">
 <small>PHASE 05</small>
-<h3>PHAT Kings</h3>
+
+<h3>
+PHAT Kings
+</h3>
+
 <p>
 Fantasy sports competitions, bankroll systems,
 and leaderboard-driven experiences for PHAT holders.
 </p>
+
 </div>
+
 </div>
 
 <div class="roadCard">
-<div class="roadImg" style="background-image:url('assets/roadmap-6.jpg')"></div>
+
+<div class="roadImg"
+style="background-image:url('assets/roadmap-6.jpg')">
+</div>
+
 <div class="roadCopy">
 <small>COMING NEXT</small>
-<h3>Expansion</h3>
+
+<h3>
+Expansion
+</h3>
+
 <p>
 Partnerships, larger exchange visibility, collectibles,
-merchandise, and future ecosystem experiences.
+merchandise, creator collaborations, and future ecosystem experiences.
 </p>
+
 </div>
+
 </div>
 
 </div>
@@ -960,11 +1216,14 @@ merchandise, and future ecosystem experiences.
 
 <div class="sectionHead">
 <div>
+
 <h2>Live market activity.</h2>
+
 <p>
 Real-time price action, liquidity, trading activity,
 and holder momentum powered directly through DexScreener.
 </p>
+
 </div>
 </div>
 
@@ -1012,24 +1271,32 @@ border-bottom:1px solid rgba(255,255,255,.08);
 <a class="mini"
 href="https://x.com/planet_fatnessx"
 target="_blank">
+
 X / Twitter
+
 </a>
 
 <a class="mini"
 href="https://www.tiktok.com/@planet_fatness"
 target="_blank">
+
 TikTok
+
 </a>
 
 <a class="mini"
 href="https://t.me/GymIsOpen"
 target="_blank">
+
 Telegram
+
 </a>
 
 <a class="mini"
 href="mailto:admin@planetfatness.fit">
+
 admin@planetfatness.fit
+
 </a>
 
 </div>
@@ -1163,34 +1430,64 @@ Buy $PHAT
 
 <div class="marketGrid" style="margin-top:20px;">
 
-<a class="marketCard" href="https://join.pump.fun/HSag/u1f5raah" target="_blank">
-<div class="marketTop"><span>🚀</span><h3>Pump.fun</h3></div>
-<p>Original launch platform.</p>
+<a class="marketCard"
+href="https://join.pump.fun/HSag/u1f5raah"
+target="_blank">
+
+<div class="marketTop">
+<span>🚀</span>
+<h3>Pump.fun</h3>
+</div>
+
+<p>
+Original launch platform.
+</p>
+
 </a>
 
-<a class="marketCard" href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
-<div class="marketTop"><span>👻</span><h3>Phantom</h3></div>
-<p>Swap inside Phantom Wallet.</p>
+<a class="marketCard"
+href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
+target="_blank">
+
+<div class="marketTop">
+<span>👻</span>
+<h3>Phantom</h3>
+</div>
+
+<p>
+Swap inside Phantom Wallet.
+</p>
+
 </a>
 
-<a class="marketCard" href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
-<div class="marketTop"><span>🪐</span><h3>Jupiter</h3></div>
-<p>Deep liquidity routing.</p>
+<a class="marketCard"
+href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
+target="_blank">
+
+<div class="marketTop">
+<span>🪐</span>
+<h3>Jupiter</h3>
+</div>
+
+<p>
+Deep liquidity routing.
+</p>
+
 </a>
 
-<a class="marketCard" href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link" target="_blank">
-<div class="marketTop"><span>🔥</span><h3>FOMO</h3></div>
-<p>Trending and social discovery.</p>
-</a>
+<a class="marketCard"
+href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link"
+target="_blank">
 
-<a class="marketCard" href="https://www.coinbase.com/price/planet-fatness-solana-558200bd?q=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&searchTab=ASSET" target="_blank">
-<div class="marketTop"><span>🟦</span><h3>Coinbase</h3></div>
-<p>Track Planet Fatness on Coinbase.</p>
-</a>
+<div class="marketTop">
+<span>🔥</span>
+<h3>FOMO</h3>
+</div>
 
-<a class="marketCard" href="https://web3.binance.com/en/token/sol/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?utm_source=hometokensearch&utm_medium=binance" target="_blank">
-<div class="marketTop"><span>🟨</span><h3>Binance Web3</h3></div>
-<p>Access through Binance Web3.</p>
+<p>
+Trending and social discovery.
+</p>
+
 </a>
 
 </div>
@@ -1231,14 +1528,19 @@ function closeBuy(){
 
 window.addEventListener("click",(e)=>{
   const modal=document.getElementById("buyModal");
+
   if(e.target===modal){
     closeBuy();
   }
 });
 
 function copyCA(){
-  const ca="DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump";
+
+  const ca=
+  "DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump";
+
   navigator.clipboard.writeText(ca);
+
   alert("Contract copied.");
 }
 
