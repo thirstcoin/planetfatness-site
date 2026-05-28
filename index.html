@@ -28,6 +28,7 @@
   --yellow2:#ffb800;
   --purple:#7a35ff;
   --purple2:#bc29ff;
+  --cyan:#48e4ff;
   --shadow:0 24px 80px rgba(0,0,0,.55);
   --radius:28px;
   --max:1220px;
@@ -45,12 +46,13 @@ body{
     radial-gradient(900px 500px at 85% 10%, rgba(255,210,79,.14), transparent 58%),
     linear-gradient(180deg,var(--bg),var(--bg2) 40%,#05020a);
 }
+
 body::before{
   content:"";
   position:fixed;
   inset:0;
   pointer-events:none;
-  z-index:-2;
+  z-index:-4;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
   opacity:.05;
   mix-blend-mode:overlay;
@@ -60,6 +62,25 @@ a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%}
 .wrap{width:min(var(--max),calc(100% - 28px));margin:0 auto}
 
+#phatWebGL{
+  position:fixed;
+  inset:0;
+  z-index:-5;
+  pointer-events:none;
+  opacity:.72;
+}
+
+.universeFog{
+  position:fixed;
+  inset:0;
+  z-index:-3;
+  pointer-events:none;
+  background:
+    radial-gradient(720px 420px at 18% 28%,rgba(122,53,255,.22),transparent 65%),
+    radial-gradient(620px 420px at 82% 22%,rgba(72,228,255,.10),transparent 70%),
+    radial-gradient(800px 520px at 50% 90%,rgba(255,210,79,.10),transparent 70%);
+}
+
 .top{
   position:sticky;
   top:0;
@@ -68,6 +89,7 @@ img{display:block;max-width:100%}
   background:linear-gradient(180deg,rgba(5,2,10,.92),rgba(5,2,10,.62));
   border-bottom:1px solid rgba(255,255,255,.08);
 }
+
 .topin{
   min-height:74px;
   display:flex;
@@ -76,6 +98,7 @@ img{display:block;max-width:100%}
   gap:14px;
   padding:10px 0;
 }
+
 .brand{display:flex;align-items:center;gap:12px}
 .brand img{
   width:44px;
@@ -85,7 +108,14 @@ img{display:block;max-width:100%}
 }
 .brand b{display:block;font-size:14px;letter-spacing:.3px}
 .brand span{display:block;font-size:12px;color:var(--muted);font-weight:800}
-.nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+
+.nav{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
 
 .chip,.btn,.mini{
   border:1px solid var(--line);
@@ -94,18 +124,21 @@ img{display:block;max-width:100%}
   font-weight:1000;
   transition:.16s ease;
 }
+
 .chip{border-radius:999px;padding:10px 13px;font-size:13px}
 .chip:hover,.btn:hover,.mini:hover{
   transform:translateY(-2px);
   border-color:rgba(255,255,255,.22);
   background:rgba(255,255,255,.08);
 }
+
 .buyBtn,.btnGold{
   border:none;
   background:linear-gradient(180deg,#ffe57d,var(--yellow2));
   color:#120800;
   box-shadow:0 14px 40px rgba(255,184,0,.25);
 }
+
 .buyBtn{
   border-radius:999px;
   padding:12px 16px;
@@ -114,7 +147,9 @@ img{display:block;max-width:100%}
   cursor:pointer;
   transition:.16s ease;
 }
+
 .buyBtn:hover{transform:translateY(-2px)}
+
 .btn{
   display:inline-flex;
   align-items:center;
@@ -124,6 +159,7 @@ img{display:block;max-width:100%}
   font-size:14px;
   backdrop-filter:blur(12px);
 }
+
 .mini{
   display:inline-flex;
   align-items:center;
@@ -137,17 +173,19 @@ img{display:block;max-width:100%}
   position:relative;
   overflow:hidden;
   border-bottom:1px solid rgba(255,255,255,.07);
-  padding:54px 0 44px;
+  padding:66px 0 56px;
 }
+
 .hero::before{
   content:"";
   position:absolute;
   inset:0;
   pointer-events:none;
   background:
-    radial-gradient(780px 480px at 22% 30%,rgba(122,53,255,.28),transparent 65%),
-    radial-gradient(520px 340px at 76% 28%,rgba(255,210,79,.14),transparent 60%);
+    radial-gradient(780px 480px at 22% 30%,rgba(122,53,255,.30),transparent 65%),
+    radial-gradient(520px 340px at 76% 28%,rgba(255,210,79,.16),transparent 60%);
 }
+
 .heroGrid{
   position:relative;
   display:grid;
@@ -155,16 +193,24 @@ img{display:block;max-width:100%}
   gap:26px;
   align-items:center;
 }
+
 .heroContent{width:100%;padding:22px 0}
+
 .heroImageCard{
   border-radius:34px;
   overflow:hidden;
-  border:1px solid rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.14);
   background:rgba(255,255,255,.035);
-  box-shadow:var(--shadow);
+  box-shadow:var(--shadow),0 0 55px rgba(122,53,255,.18);
   position:relative;
 }
-.heroImageCard img{width:100%;height:auto;object-fit:cover}
+
+.heroImageCard img{
+  width:100%;
+  height:auto;
+  object-fit:cover;
+}
+
 .heroImageCard::after{
   content:"";
   position:absolute;
@@ -174,6 +220,7 @@ img{display:block;max-width:100%}
     linear-gradient(180deg,rgba(5,2,10,.05),rgba(5,2,10,.18)),
     radial-gradient(520px 260px at 40% 20%,rgba(255,210,79,.08),transparent 70%);
 }
+
 .kicker{
   display:inline-flex;
   align-items:center;
@@ -189,6 +236,7 @@ img{display:block;max-width:100%}
   letter-spacing:.45px;
   backdrop-filter:blur(12px);
 }
+
 .dot{
   width:8px;
   height:8px;
@@ -196,6 +244,7 @@ img{display:block;max-width:100%}
   background:var(--yellow);
   box-shadow:0 0 0 7px rgba(255,210,79,.12),0 0 20px rgba(255,210,79,.5);
 }
+
 h1{
   margin:16px 0 12px;
   font-size:clamp(48px,7vw,100px);
@@ -203,12 +252,14 @@ h1{
   letter-spacing:-4px;
   font-weight:1000;
 }
+
 .grad{
   background:linear-gradient(90deg,#fff 0%,var(--yellow) 35%,#fff 60%,var(--purple2));
   -webkit-background-clip:text;
   background-clip:text;
   color:transparent;
 }
+
 .lead{
   margin:0;
   max-width:700px;
@@ -217,7 +268,9 @@ h1{
   line-height:1.5;
   font-weight:760;
 }
+
 .heroActions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+
 .quickStats{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -225,6 +278,7 @@ h1{
   margin-top:24px;
   max-width:900px;
 }
+
 .q{
   border:1px solid rgba(255,255,255,.1);
   background:rgba(0,0,0,.28);
@@ -232,6 +286,7 @@ h1{
   border-radius:18px;
   padding:14px;
 }
+
 .q small{
   display:block;
   color:var(--muted);
@@ -240,6 +295,7 @@ h1{
   text-transform:uppercase;
   letter-spacing:.35px;
 }
+
 .q b{
   display:block;
   margin-top:6px;
@@ -247,6 +303,9 @@ h1{
   font-size:18px;
   letter-spacing:-.2px;
 }
+
+section{padding:42px 0}
+
 .sectionHead{
   display:flex;
   align-items:end;
@@ -254,12 +313,14 @@ h1{
   gap:18px;
   margin-bottom:16px;
 }
+
 .sectionHead h2{
   margin:0;
   font-size:clamp(28px,4vw,54px);
   line-height:1;
   letter-spacing:-2px;
 }
+
 .sectionHead p{
   margin:8px 0 0;
   max-width:760px;
@@ -273,6 +334,7 @@ h1{
   grid-template-columns:repeat(3,1fr);
   gap:14px;
 }
+
 .eco{
   position:relative;
   overflow:hidden;
@@ -281,6 +343,7 @@ h1{
   background:linear-gradient(180deg,var(--panel),var(--panel2));
   box-shadow:var(--shadow);
 }
+
 .eco::before{
   content:"";
   position:absolute;
@@ -291,12 +354,14 @@ h1{
   opacity:.9;
   pointer-events:none;
 }
+
 .ecoImg{
   height:210px;
   background-position:center;
   background-size:cover;
   border-bottom:1px solid rgba(255,255,255,.08);
 }
+
 .ecoPad{position:relative;padding:18px}
 .eco h3{margin:0;font-size:24px;letter-spacing:-.6px}
 .eco p{
@@ -305,13 +370,77 @@ h1{
   font-weight:760;
   line-height:1.45;
 }
+
 .rowBtns{display:flex;gap:10px;flex-wrap:wrap}
+
+.portalBand{
+  position:relative;
+  overflow:hidden;
+  border-radius:34px;
+  border:1px solid rgba(255,255,255,.12);
+  background:
+    radial-gradient(700px 280px at 20% 0%,rgba(188,41,255,.28),transparent 60%),
+    radial-gradient(700px 280px at 85% 20%,rgba(72,228,255,.14),transparent 62%),
+    rgba(255,255,255,.04);
+  box-shadow:var(--shadow);
+  padding:22px;
+}
+
+.portalBand::before{
+  content:"";
+  position:absolute;
+  inset:-80px;
+  background:conic-gradient(from 180deg,transparent,rgba(188,41,255,.25),rgba(255,210,79,.18),transparent);
+  filter:blur(22px);
+  opacity:.55;
+  animation:spinPortal 12s linear infinite;
+}
+
+@keyframes spinPortal{
+  to{transform:rotate(360deg)}
+}
+
+.portalInner{
+  position:relative;
+  display:grid;
+  grid-template-columns:1fr .85fr;
+  gap:18px;
+  align-items:center;
+}
+
+.portalCopy h2{
+  margin:0;
+  font-size:clamp(30px,4.8vw,60px);
+  line-height:.95;
+  letter-spacing:-2px;
+}
+
+.portalCopy p{
+  margin:12px 0 0;
+  max-width:680px;
+  color:var(--muted);
+  line-height:1.55;
+  font-weight:760;
+}
+
+.portalMedia{
+  overflow:hidden;
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.22);
+}
+
+.portalMedia img{
+  width:100%;
+  height:auto;
+}
 
 .marketGrid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:12px;
 }
+
 .marketCard{
   border:1px solid rgba(255,255,255,.1);
   background:rgba(255,255,255,.045);
@@ -320,14 +449,17 @@ h1{
   min-height:128px;
   transition:.16s ease;
 }
+
 .marketCard:hover{
   transform:translateY(-2px);
   border-color:rgba(255,255,255,.18);
   background:rgba(255,255,255,.07);
 }
+
 .marketTop{display:flex;align-items:center;gap:10px}
 .marketTop span{font-size:26px}
 .marketCard h3{margin:0;font-size:18px}
+
 .marketCard p{
   margin:12px 0 0;
   color:var(--muted);
@@ -353,6 +485,7 @@ h1{
   gap:18px;
   flex-wrap:wrap;
 }
+
 .livePill{
   display:inline-flex;
   align-items:center;
@@ -365,6 +498,7 @@ h1{
   font-weight:1000;
   letter-spacing:.15em;
 }
+
 .liveDot{
   width:8px;
   height:8px;
@@ -372,12 +506,14 @@ h1{
   background:#56ff9d;
   box-shadow:0 0 18px rgba(86,255,157,.75);
 }
+
 .lockProof h3{
   margin:18px 0 10px;
   font-size:clamp(40px,5vw,72px);
   line-height:.92;
   letter-spacing:-2px;
 }
+
 .lockProof p{
   margin:0;
   max-width:780px;
@@ -386,18 +522,21 @@ h1{
   line-height:1.55;
   font-weight:760;
 }
+
 .lockStats{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:10px;
   margin:22px 0 0;
 }
+
 .lockStat{
   border:1px solid rgba(255,255,255,.1);
   background:rgba(255,255,255,.045);
   border-radius:18px;
   padding:14px;
 }
+
 .lockStat small{
   display:block;
   color:var(--muted);
@@ -405,6 +544,7 @@ h1{
   font-weight:1000;
   text-transform:uppercase;
 }
+
 .lockStat b{
   display:block;
   margin-top:6px;
@@ -420,6 +560,7 @@ h1{
   padding-bottom:14px;
   -webkit-overflow-scrolling:touch;
 }
+
 .roadmapRail .roadCard{
   flex:0 0 min(860px,88vw);
   scroll-snap-align:start;
@@ -429,12 +570,15 @@ h1{
   background:linear-gradient(180deg,var(--panel),var(--panel2));
   box-shadow:var(--shadow);
 }
+
 .roadImg{
   width:100%;
   aspect-ratio:16/9;
   background:center/cover no-repeat;
 }
+
 .roadCopy{padding:18px}
+
 .roadCopy small{
   color:var(--yellow);
   font-size:11px;
@@ -442,11 +586,13 @@ h1{
   letter-spacing:.14em;
   text-transform:uppercase;
 }
+
 .roadCopy h3{
   margin:8px 0 8px;
   font-size:24px;
   letter-spacing:-.6px;
 }
+
 .roadCopy p{
   margin:0;
   color:var(--muted);
@@ -509,16 +655,19 @@ h1{
   background:rgba(0,0,0,.35);
   box-shadow:var(--shadow);
 }
+
 .chartFrame iframe{
   width:100%;
   height:100%;
   border:0;
   display:block;
 }
+
 footer{
   padding:34px 0 118px;
   border-top:1px solid rgba(255,255,255,.08);
 }
+
 .bottomNav{
   position:fixed;
   left:50%;
@@ -534,6 +683,7 @@ footer{
   backdrop-filter:blur(18px);
   box-shadow:0 18px 60px rgba(0,0,0,.45);
 }
+
 .bottomNav .mini{padding:10px 14px}
 
 .buyModal{
@@ -547,6 +697,7 @@ footer{
   z-index:999;
   padding:20px;
 }
+
 .buyPanel{
   width:min(900px,100%);
   max-height:90svh;
@@ -557,6 +708,7 @@ footer{
   padding:24px;
   box-shadow:0 30px 90px rgba(0,0,0,.6);
 }
+
 .closeBtn{
   width:42px;
   height:42px;
@@ -571,6 +723,7 @@ footer{
 @media(max-width:980px){
   .heroGrid{grid-template-columns:1fr}
   .heroImageCard{order:-1}
+  .portalInner{grid-template-columns:1fr}
   .ecoGrid{grid-template-columns:1fr}
   .marketGrid{grid-template-columns:repeat(2,1fr)}
   .quickStats{grid-template-columns:repeat(2,1fr)}
@@ -587,11 +740,21 @@ footer{
   .lockStats{grid-template-columns:1fr}
   .bottomNav{width:calc(100% - 36px);justify-content:space-between}
   .chartFrame{min-height:560px;height:72vh;border-radius:24px}
+  .portalBand{padding:14px;border-radius:26px}
 }
+
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
 </head>
 
 <body>
+
+<canvas id="phatWebGL"></canvas>
+<div class="universeFog"></div>
 
 <nav class="top">
 <div class="wrap topin">
@@ -787,6 +950,7 @@ style="
 background-image:url('assets/gym.jpg');
 background-position:center 42%;
 "></div>
+
 <div class="ecoPad">
 
 <h3>The Gym</h3>
@@ -823,6 +987,44 @@ Web Gym
 
 </section>
 
+<section>
+
+<div class="wrap">
+
+<div class="portalBand">
+
+<div class="portalInner">
+
+<div class="portalCopy">
+
+<h2>
+A living snack-powered universe.
+</h2>
+
+<p>
+Arcade games, gym parody, reward loops, leaderboards, Telegram culture,
+and degen chaos all orbit around the same PHAT world.
+</p>
+
+<div class="heroActions">
+<a class="btn btnGold" href="https://t.me/GymIsOpen" target="_blank">Enter The Gym</a>
+<a class="btn" href="#roadmap">Explore Roadmap</a>
+</div>
+
+</div>
+
+<div class="portalMedia">
+<img src="assets/hero.png" alt="Planet Fatness Universe">
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
 <section id="markets">
 
 <div class="wrap">
@@ -838,124 +1040,44 @@ Trade, track, and discover $PHAT across Solana platforms and wallets.
 
 <div class="marketGrid">
 
-<a class="marketCard"
-href="https://join.pump.fun/HSag/u1f5raah"
-target="_blank">
-
-<div class="marketTop">
-<span>🚀</span>
-<h3>Pump.fun</h3>
-</div>
-
-<p>
-Original launch platform for Planet Fatness.
-</p>
-
+<a class="marketCard" href="https://join.pump.fun/HSag/u1f5raah" target="_blank">
+<div class="marketTop"><span>🚀</span><h3>Pump.fun</h3></div>
+<p>Original launch platform for Planet Fatness.</p>
 </a>
 
-<a class="marketCard"
-href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-
-<div class="marketTop">
-<span>👻</span>
-<h3>Phantom</h3>
-</div>
-
-<p>
-Swap and track $PHAT directly inside Phantom Wallet.
-</p>
-
+<a class="marketCard" href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
+<div class="marketTop"><span>👻</span><h3>Phantom</h3></div>
+<p>Swap and track $PHAT directly inside Phantom Wallet.</p>
 </a>
 
-<a class="marketCard"
-href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-
-<div class="marketTop">
-<span>🪐</span>
-<h3>Jupiter</h3>
-</div>
-
-<p>
-Deep liquidity routing across the Solana ecosystem.
-</p>
-
+<a class="marketCard" href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
+<div class="marketTop"><span>🪐</span><h3>Jupiter</h3></div>
+<p>Deep liquidity routing across the Solana ecosystem.</p>
 </a>
 
-<a class="marketCard"
-href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link"
-target="_blank">
-
-<div class="marketTop">
-<span>🔥</span>
-<h3>FOMO</h3>
-</div>
-
-<p>
-Social trading, trending discovery, and live activity.
-</p>
-
+<a class="marketCard" href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link" target="_blank">
+<div class="marketTop"><span>🔥</span><h3>FOMO</h3></div>
+<p>Social trading, trending discovery, and live activity.</p>
 </a>
 
-<a class="marketCard"
-href="https://www.coinbase.com/price/planet-fatness-solana-558200bd?q=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&searchTab=ASSET"
-target="_blank">
-
-<div class="marketTop">
-<span>🟦</span>
-<h3>Coinbase</h3>
-</div>
-
-<p>
-Track and discover Planet Fatness through Coinbase.
-</p>
-
+<a class="marketCard" href="https://www.coinbase.com/price/planet-fatness-solana-558200bd?q=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&searchTab=ASSET" target="_blank">
+<div class="marketTop"><span>🟦</span><h3>Coinbase</h3></div>
+<p>Track and discover Planet Fatness through Coinbase.</p>
 </a>
 
-<a class="marketCard"
-href="https://web3.binance.com/en/token/sol/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?utm_source=hometokensearch&utm_medium=binance"
-target="_blank">
-
-<div class="marketTop">
-<span>🟨</span>
-<h3>Binance Web3</h3>
-</div>
-
-<p>
-Access $PHAT using Binance Web3 wallet support.
-</p>
-
+<a class="marketCard" href="https://web3.binance.com/en/token/sol/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?utm_source=hometokensearch&utm_medium=binance" target="_blank">
+<div class="marketTop"><span>🟨</span><h3>Binance Web3</h3></div>
+<p>Access $PHAT using Binance Web3 wallet support.</p>
 </a>
 
-<a class="marketCard"
-href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS"
-target="_blank">
-
-<div class="marketTop">
-<span>📈</span>
-<h3>DexScreener</h3>
-</div>
-
-<p>
-Live charts, liquidity, holders, and market activity.
-</p>
-
+<a class="marketCard" href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS" target="_blank">
+<div class="marketTop"><span>📈</span><h3>DexScreener</h3></div>
+<p>Live charts, liquidity, holders, and market activity.</p>
 </a>
 
-<a class="marketCard"
-href="https://solscan.io/token/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-
-<div class="marketTop">
-<span>🔎</span>
-<h3>Solscan</h3>
-</div>
-
-<p>
-View on-chain transparency and token activity.
-</p>
-
+<a class="marketCard" href="https://solscan.io/token/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
+<div class="marketTop"><span>🔎</span><h3>Solscan</h3></div>
+<p>View on-chain transparency and token activity.</p>
 </a>
 
 </div>
@@ -1036,6 +1158,7 @@ View Streamflow Locks
 </div>
 
 </section>
+
 <section id="roadmap">
 
 <div class="wrap">
@@ -1054,14 +1177,9 @@ and future entertainment layers.
 <div class="roadmapRail">
 
 <div class="roadCard">
-
-<div class="roadImg"
-style="background-image:url('assets/roadmap-1.jpg')">
-</div>
-
+<div class="roadImg" style="background-image:url('assets/roadmap-1.jpg')"></div>
 <div class="roadCopy">
 <small>PHASE 01</small>
-
 <h3 class="lunchTitle">
   <span class="launchWrap">
     <span class="launchWord">Launch</span>
@@ -1069,124 +1187,71 @@ style="background-image:url('assets/roadmap-1.jpg')">
   </span>
   <span>&amp; Community</span>
 </h3>
-
 <p>
 Planet Fatness launched on Solana with daily activity,
 community growth, meme culture, and snack-fueled chaos at the center.
 </p>
-
 </div>
-
 </div>
 
 <div class="roadCard">
-
-<div class="roadImg"
-style="background-image:url('assets/roadmap-2.jpg')">
-</div>
-
+<div class="roadImg" style="background-image:url('assets/roadmap-2.jpg')"></div>
 <div class="roadCopy">
 <small>PHASE 02</small>
-
-<h3>
-Supply Locks
-</h3>
-
+<h3>Supply Locks</h3>
 <p>
 Public Streamflow locks established long-term ecosystem transparency
 and visible on-chain commitment.
 </p>
-
 </div>
-
 </div>
 
 <div class="roadCard">
-
-<div class="roadImg"
-style="background-image:url('assets/roadmap-3.jpg')">
-</div>
-
+<div class="roadImg" style="background-image:url('assets/roadmap-3.jpg')"></div>
 <div class="roadCopy">
 <small>PHASE 03</small>
-
-<h3>
-The Gym
-</h3>
-
+<h3>The Gym</h3>
 <p>
 Mini games, Telegram activity, daily airdrops,
 and leaderboard systems expanded the ecosystem loop.
 </p>
-
 </div>
-
 </div>
 
 <div class="roadCard">
-
-<div class="roadImg"
-style="background-image:url('assets/roadmap-4.jpg')">
-</div>
-
+<div class="roadImg" style="background-image:url('assets/roadmap-4.jpg')"></div>
 <div class="roadCopy">
 <small>PHASE 04</small>
-
-<h3>
-Feed Your Greed
-</h3>
-
+<h3>Feed Your Greed</h3>
 <p>
 Provably fair gameplay, jackpots, multipliers,
 and spectator chaos entered the Planet Fatness universe.
 </p>
-
 </div>
-
 </div>
 
 <div class="roadCard">
-
-<div class="roadImg"
-style="background-image:url('assets/roadmap-5.jpg')">
-</div>
-
+<div class="roadImg" style="background-image:url('assets/roadmap-5.jpg')"></div>
 <div class="roadCopy">
 <small>PHASE 05</small>
-
-<h3>
-PHAT Kings
-</h3>
-
+<h3>PHAT Kings</h3>
 <p>
 Fantasy sports competitions, bankroll systems,
 and leaderboard-driven experiences for PHAT holders.
 </p>
-
 </div>
-
 </div>
 
 <div class="roadCard">
-
-<div class="roadImg"
-style="background-image:url('assets/roadmap-6.jpg')">
-</div>
-
+<div class="roadImg" style="background-image:url('assets/roadmap-6.jpg')"></div>
 <div class="roadCopy">
 <small>COMING NEXT</small>
-
-<h3>
-Expansion
-</h3>
-
+<h3>Expansion</h3>
 <p>
 Partnerships, larger exchange visibility, collectibles,
 merchandise, creator collaborations, and future ecosystem experiences.
 </p>
-
 </div>
-
 </div>
 
 </div>
@@ -1201,23 +1266,18 @@ merchandise, creator collaborations, and future ecosystem experiences.
 
 <div class="sectionHead">
 <div>
-
 <h2>Live market activity.</h2>
-
 <p>
 Real-time price action, liquidity, trading activity,
 and holder momentum powered directly through DexScreener.
 </p>
-
 </div>
 </div>
 
 <div class="chartFrame">
-
 <iframe
 src="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS?embed=1&theme=dark">
 </iframe>
-
 </div>
 
 </div>
@@ -1230,156 +1290,57 @@ src="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS
 
 <div class="wrap">
 
-<div style="
-display:flex;
-justify-content:space-between;
-gap:18px;
-flex-wrap:wrap;
-align-items:center;
-padding-bottom:18px;
-border-bottom:1px solid rgba(255,255,255,.08);
-">
+<div style="display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:center;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.08);">
 
 <div class="brand">
-
 <img src="assets/logo.png" alt="Planet Fatness">
-
 <div>
 <b>Planet Fatness</b>
 <span>$PHAT on Solana</span>
 </div>
-
 </div>
 
 <div class="rowBtns">
 
-<a class="mini"
-href="https://x.com/planet_fatnessx"
-target="_blank">
-
-X / Twitter
-
-</a>
-
-<a class="mini"
-href="https://www.tiktok.com/@planet_fatness"
-target="_blank">
-
-TikTok
-
-</a>
-
-<a class="mini"
-href="https://t.me/GymIsOpen"
-target="_blank">
-
-Telegram
-
-</a>
-
-<a class="mini"
-href="mailto:admin@planetfatness.fit">
-
-admin@planetfatness.fit
-
-</a>
+<a class="mini" href="https://x.com/planet_fatnessx" target="_blank">X / Twitter</a>
+<a class="mini" href="https://www.tiktok.com/@planet_fatness" target="_blank">TikTok</a>
+<a class="mini" href="https://t.me/GymIsOpen" target="_blank">Telegram</a>
+<a class="mini" href="mailto:admin@planetfatness.fit">admin@planetfatness.fit</a>
 
 </div>
 
 </div>
 
-<div style="
-margin-top:18px;
-padding:18px;
-border-radius:24px;
-border:1px solid rgba(255,255,255,.08);
-background:rgba(255,255,255,.035);
-">
+<div style="margin-top:18px;padding:18px;border-radius:24px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);">
 
-<div style="
-font-size:11px;
-letter-spacing:.18em;
-font-weight:1000;
-color:var(--muted);
-text-transform:uppercase;
-">
-
+<div style="font-size:11px;letter-spacing:.18em;font-weight:1000;color:var(--muted);text-transform:uppercase;">
 Contract Address
-
 </div>
 
-<div id="ca"
-style="
-margin-top:10px;
-font-size:14px;
-line-height:1.5;
-word-break:break-all;
-font-weight:800;
-">
-
+<div id="ca" style="margin-top:10px;font-size:14px;line-height:1.5;word-break:break-all;font-weight:800;">
 DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump
-
 </div>
 
 <div class="heroActions">
-
-<button class="btn btnGold" onclick="copyCA()">
-Copy Contract
-</button>
-
-<a class="btn"
-href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS"
-target="_blank">
-
-View Chart
-
-</a>
-
-<a class="btn"
-href="https://app.streamflow.finance/token-dashboard/solana/mainnet/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?type=lock"
-target="_blank">
-
-View Locks
-
-</a>
-
+<button class="btn btnGold" onclick="copyCA()">Copy Contract</button>
+<a class="btn" href="https://dexscreener.com/solana/6Pg8FPnq4RHqdwRvvPGDGkQfYu2kCG55oS7e75Ff9wMS" target="_blank">View Chart</a>
+<a class="btn" href="https://app.streamflow.finance/token-dashboard/solana/mainnet/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump?type=lock" target="_blank">View Locks</a>
 </div>
 
 </div>
 
-<div style="
-margin-top:18px;
-padding:18px;
-border-radius:24px;
-border:1px solid rgba(255,255,255,.08);
-background:rgba(255,255,255,.03);
-color:rgba(255,255,255,.66);
-line-height:1.6;
-font-size:13px;
-font-weight:760;
-">
-
+<div style="margin-top:18px;padding:18px;border-radius:24px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:rgba(255,255,255,.66);line-height:1.6;font-size:13px;font-weight:760;">
 Planet Fatness ($PHAT) is a meme-based entertainment ecosystem built on Solana.
-
+<br><br>
 Nothing on this website constitutes financial advice, investment advice,
 legal advice, or guarantees of future performance.
-
+<br><br>
 Cryptocurrency markets involve volatility and risk.
 Always do your own research.
-
 </div>
 
-<div style="
-margin-top:18px;
-color:rgba(255,255,255,.45);
-font-size:12px;
-font-weight:800;
-text-align:center;
-padding-bottom:110px;
-">
-
+<div style="margin-top:18px;color:rgba(255,255,255,.45);font-size:12px;font-weight:800;text-align:center;padding-bottom:110px;">
 © 2026 Planet Fatness • All Rights Reserved
-
 </div>
 
 </div>
@@ -1390,89 +1351,31 @@ padding-bottom:110px;
 
 <div class="buyPanel">
 
-<div style="
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:12px;
-">
-
-<h3 style="
-margin:0;
-font-size:32px;
-letter-spacing:-1px;
-">
-
-Buy $PHAT
-
-</h3>
-
-<button class="closeBtn" onclick="closeBuy()">
-×
-</button>
-
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+<h3 style="margin:0;font-size:32px;letter-spacing:-1px;">Buy $PHAT</h3>
+<button class="closeBtn" onclick="closeBuy()">×</button>
 </div>
 
 <div class="marketGrid" style="margin-top:20px;">
 
-<a class="marketCard"
-href="https://join.pump.fun/HSag/u1f5raah"
-target="_blank">
-
-<div class="marketTop">
-<span>🚀</span>
-<h3>Pump.fun</h3>
-</div>
-
-<p>
-Original launch platform.
-</p>
-
+<a class="marketCard" href="https://join.pump.fun/HSag/u1f5raah" target="_blank">
+<div class="marketTop"><span>🚀</span><h3>Pump.fun</h3></div>
+<p>Original launch platform.</p>
 </a>
 
-<a class="marketCard"
-href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-
-<div class="marketTop">
-<span>👻</span>
-<h3>Phantom</h3>
-</div>
-
-<p>
-Swap inside Phantom Wallet.
-</p>
-
+<a class="marketCard" href="https://phantom.com/tokens/solana/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
+<div class="marketTop"><span>👻</span><h3>Phantom</h3></div>
+<p>Swap inside Phantom Wallet.</p>
 </a>
 
-<a class="marketCard"
-href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump"
-target="_blank">
-
-<div class="marketTop">
-<span>🪐</span>
-<h3>Jupiter</h3>
-</div>
-
-<p>
-Deep liquidity routing.
-</p>
-
+<a class="marketCard" href="https://jup.ag/tokens/DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump" target="_blank">
+<div class="marketTop"><span>🪐</span><h3>Jupiter</h3></div>
+<p>Deep liquidity routing.</p>
 </a>
 
-<a class="marketCard"
-href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link"
-target="_blank">
-
-<div class="marketTop">
-<span>🔥</span>
-<h3>FOMO</h3>
-</div>
-
-<p>
-Trending and social discovery.
-</p>
-
+<a class="marketCard" href="https://fomo.family/coin?address=DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump&chainId=1399811149&r=CheapValidTick&source=share_link" target="_blank">
+<div class="marketTop"><span>🔥</span><h3>FOMO</h3></div>
+<p>Trending and social discovery.</p>
 </a>
 
 </div>
@@ -1482,27 +1385,13 @@ Trending and social discovery.
 </div>
 
 <div class="bottomNav">
-
-<a class="mini" href="#">
-Home
-</a>
-
-<a class="mini" href="#ecosystem">
-Ecosystem
-</a>
-
-<a class="mini" href="#roadmap">
-Roadmap
-</a>
-
-<button class="buyBtn" onclick="openBuy()">
-Buy
-</button>
-
+<a class="mini" href="#">Home</a>
+<a class="mini" href="#ecosystem">Ecosystem</a>
+<a class="mini" href="#roadmap">Roadmap</a>
+<button class="buyBtn" onclick="openBuy()">Buy</button>
 </div>
 
 <script>
-
 function openBuy(){
   document.getElementById("buyModal").style.display="flex";
 }
@@ -1513,22 +1402,229 @@ function closeBuy(){
 
 window.addEventListener("click",(e)=>{
   const modal=document.getElementById("buyModal");
-
   if(e.target===modal){
     closeBuy();
   }
 });
 
 function copyCA(){
-
-  const ca=
-  "DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump";
-
+  const ca="DGccJT39ZGLBBjAskSbY8oMoVYJRX79SxSZAXuPjpump";
   navigator.clipboard.writeText(ca);
-
   alert("Contract copied.");
 }
+</script>
 
+<script>
+(function(){
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if(window.Lenis && !reduced){
+    const lenis = new Lenis({duration:1.05,smoothWheel:true,smoothTouch:false});
+    function raf(time){
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+  }
+
+  if(window.gsap && window.ScrollTrigger && !reduced){
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.utils.toArray(".heroContent,.heroImageCard,.eco,.portalBand,.marketCard,.lockProof,.roadCard,.chartFrame").forEach((el,i)=>{
+      gsap.fromTo(el,
+        {y:34,opacity:0,rotateX:2},
+        {
+          y:0,
+          opacity:1,
+          rotateX:0,
+          duration:.9,
+          ease:"power3.out",
+          delay:Math.min(i*.025,.18),
+          scrollTrigger:{
+            trigger:el,
+            start:"top 86%"
+          }
+        }
+      );
+    });
+
+    gsap.to(".heroImageCard",{
+      y:-18,
+      ease:"none",
+      scrollTrigger:{
+        trigger:".hero",
+        start:"top top",
+        end:"bottom top",
+        scrub:true
+      }
+    });
+
+    gsap.to(".roadmapRail",{
+      filter:"drop-shadow(0 0 28px rgba(188,41,255,.18))",
+      scrollTrigger:{
+        trigger:"#roadmap",
+        start:"top 70%",
+        end:"bottom 40%",
+        scrub:true
+      }
+    });
+  }
+
+  if(!window.THREE || reduced) return;
+
+  const canvas = document.getElementById("phatWebGL");
+  if(!canvas) return;
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x08030d,0.045);
+
+  const camera = new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,.1,100);
+  camera.position.set(0,0,9);
+
+  const renderer = new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,1.8));
+
+  const group = new THREE.Group();
+  scene.add(group);
+
+  const purple = new THREE.MeshStandardMaterial({color:0x7a35ff,emissive:0x3b0f83,roughness:.34,metalness:.55});
+  const gold = new THREE.MeshStandardMaterial({color:0xffd24f,emissive:0x4f3300,roughness:.28,metalness:.72});
+  const cyan = new THREE.MeshStandardMaterial({color:0x00eaff,emissive:0x004a55,roughness:.22,metalness:.45});
+  const pink = new THREE.MeshStandardMaterial({color:0xbc29ff,emissive:0x3b0055,roughness:.3,metalness:.45});
+
+  function addDonut(x,y,z,s){
+    const mesh = new THREE.Mesh(new THREE.TorusGeometry(.55*s,.18*s,18,48),gold);
+    mesh.position.set(x,y,z);
+    mesh.rotation.set(Math.random()*2,Math.random()*2,Math.random()*2);
+    mesh.userData.spin=.006+Math.random()*.01;
+    group.add(mesh);
+    return mesh;
+  }
+
+  function addPizza(x,y,z,s){
+    const shape = new THREE.Shape();
+    shape.moveTo(0,.6*s);
+    shape.lineTo(-.46*s,-.42*s);
+    shape.lineTo(.46*s,-.42*s);
+    shape.lineTo(0,.6*s);
+    const geo = new THREE.ExtrudeGeometry(shape,{depth:.06*s,bevelEnabled:true,bevelSize:.015*s,bevelThickness:.015*s});
+    const mesh = new THREE.Mesh(geo,gold);
+    mesh.position.set(x,y,z);
+    mesh.rotation.set(Math.random(),Math.random(),Math.random());
+    mesh.userData.spin=.004+Math.random()*.008;
+    group.add(mesh);
+    return mesh;
+  }
+
+  function addPortal(x,y,z,s){
+    const mesh = new THREE.Mesh(new THREE.TorusGeometry(.82*s,.035*s,12,80),pink);
+    mesh.position.set(x,y,z);
+    mesh.rotation.set(Math.PI/2,0,0);
+    mesh.userData.spin=.01;
+    group.add(mesh);
+    return mesh;
+  }
+
+  function addArcade(x,y,z,s){
+    const body = new THREE.Mesh(new THREE.BoxGeometry(.72*s,1.05*s,.34*s),purple);
+    body.position.set(x,y,z);
+    body.rotation.y=Math.random()*.8-.4;
+    body.userData.spin=.002;
+    group.add(body);
+
+    const screen = new THREE.Mesh(new THREE.BoxGeometry(.45*s,.28*s,.035*s),cyan);
+    screen.position.set(x,y+.12*s,z+.18*s);
+    screen.rotation.copy(body.rotation);
+    group.add(screen);
+
+    return body;
+  }
+
+  function addChipBag(x,y,z,s){
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(.46*s,.65*s,.08*s),purple);
+    mesh.position.set(x,y,z);
+    mesh.rotation.set(Math.random(),Math.random(),Math.random());
+    mesh.userData.spin=.005+Math.random()*.006;
+    group.add(mesh);
+    return mesh;
+  }
+
+  const objects = [];
+
+  for(let i=0;i<7;i++){
+    objects.push(addDonut((Math.random()-.5)*11,(Math.random()-.5)*7,-Math.random()*8,.55+Math.random()*.8));
+    objects.push(addPizza((Math.random()-.5)*12,(Math.random()-.5)*7,-Math.random()*8,.55+Math.random()*.7));
+  }
+
+  for(let i=0;i<5;i++){
+    objects.push(addArcade((Math.random()-.5)*10,(Math.random()-.5)*6,-2-Math.random()*8,.65+Math.random()*.75));
+    objects.push(addPortal((Math.random()-.5)*11,(Math.random()-.5)*7,-3-Math.random()*8,.7+Math.random()*.7));
+    objects.push(addChipBag((Math.random()-.5)*11,(Math.random()-.5)*7,-2-Math.random()*8,.7+Math.random()*.65));
+  }
+
+  const lightA = new THREE.PointLight(0xbc29ff,2.5,18);
+  lightA.position.set(-3,3,5);
+  scene.add(lightA);
+
+  const lightB = new THREE.PointLight(0xffd24f,1.8,16);
+  lightB.position.set(4,-1,4);
+  scene.add(lightB);
+
+  scene.add(new THREE.AmbientLight(0xffffff,.42));
+
+  const particlesGeo = new THREE.BufferGeometry();
+  const particles = [];
+
+  for(let i=0;i<420;i++){
+    particles.push((Math.random()-.5)*18,(Math.random()-.5)*12,-Math.random()*14);
+  }
+
+  particlesGeo.setAttribute("position",new THREE.Float32BufferAttribute(particles,3));
+
+  const particleMesh = new THREE.Points(
+    particlesGeo,
+    new THREE.PointsMaterial({color:0xffffff,size:.018,transparent:true,opacity:.42})
+  );
+
+  scene.add(particleMesh);
+
+  let scrollY = window.scrollY || 0;
+
+  window.addEventListener("scroll",()=>{
+    scrollY = window.scrollY || 0;
+  },{passive:true});
+
+  function animate(){
+    requestAnimationFrame(animate);
+
+    const t = performance.now()*.001;
+    const scrollProgress = scrollY / Math.max(1,document.body.scrollHeight-window.innerHeight);
+
+    group.rotation.y = t*.045 + scrollProgress*1.8;
+    group.rotation.x = Math.sin(t*.22)*.08 + scrollProgress*.25;
+
+    camera.position.z = 9 - scrollProgress*2.2;
+    camera.position.y = Math.sin(t*.25)*.18;
+
+    objects.forEach((obj,i)=>{
+      obj.rotation.x += obj.userData.spin || .004;
+      obj.rotation.y += (obj.userData.spin || .004)*.8;
+      obj.position.y += Math.sin(t+i)*.0018;
+    });
+
+    particleMesh.rotation.y += .0008;
+    renderer.render(scene,camera);
+  }
+
+  animate();
+
+  window.addEventListener("resize",()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth,window.innerHeight);
+  });
+})();
 </script>
 
 </body>
