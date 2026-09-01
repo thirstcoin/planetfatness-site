@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+  <title>PHAT Holder Access</title>
+
+  <meta property="og:title" content="PHAT Holder Access" />
+  <meta property="og:description" content="Check your access before this goes public." />
+  <meta property="og:type" content="website" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="PHAT Holder Access" />
+  <meta name="twitter:description" content="Check your access before this goes public." />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #09050d;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #startScreen {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      padding: 24px;
+      text-align: center;
+
+      background:
+        radial-gradient(circle at center, rgba(120,40,180,.28), transparent 55%),
+        #09050d;
+    }
+
+    .logo {
+      font-size: clamp(32px, 8vw, 52px);
+      font-weight: 900;
+      color: #f6d51f;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: white;
+      opacity: .82;
+      margin-bottom: 30px;
+      font-size: 15px;
+      letter-spacing: 1px;
+    }
+
+    #enterButton {
+      width: min(340px, 88vw);
+      border: none;
+      border-radius: 16px;
+
+      padding: 18px 24px;
+
+      background: #f6d51f;
+      color: #38115d;
+
+      font-size: 18px;
+      font-weight: 900;
+
+      box-shadow:
+        0 0 20px rgba(246,213,31,.25),
+        0 8px 30px rgba(0,0,0,.45);
+    }
+
+    .small {
+      margin-top: 14px;
+      color: white;
+      opacity: .45;
+      font-size: 12px;
+    }
+
+    #videoWrap {
+      position: fixed;
+      inset: 0;
+      background: black;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #phatVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: black;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="videoWrap">
+    <video
+      id="phatVideo"
+      playsinline
+      webkit-playsinline
+      preload="auto"
+    >
+      <source src="./phat-roll.mp4" type="video/mp4" />
+    </video>
+  </div>
+
+  <div id="startScreen">
+    <div class="logo">PLANET FATNESS</div>
+
+    <div class="subtitle">
+      PRIVATE PHAT HOLDER ACCESS
+    </div>
+
+    <button id="enterButton">
+      CHECK ACCESS
+    </button>
+
+    <div class="small">
+      Tap to continue
+    </div>
+  </div>
+
+  <script>
+    const startScreen = document.getElementById("startScreen");
+    const enterButton = document.getElementById("enterButton");
+    const video = document.getElementById("phatVideo");
+
+    enterButton.addEventListener("click", async () => {
+      startScreen.style.display = "none";
+
+      video.currentTime = 0;
+      video.muted = false;
+      video.volume = 1;
+
+      try {
+        await video.play();
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  </script>
+
+</body>
+</html>
