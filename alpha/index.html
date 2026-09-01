@@ -6,13 +6,20 @@
 
   <title>PHAT Holder Access</title>
 
+  <!-- Open Graph / Social Preview -->
   <meta property="og:title" content="PHAT Holder Access" />
   <meta property="og:description" content="Check your access before this goes public." />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://planetfatness.fit/alpha/" />
+  <meta property="og:image" content="https://planetfatness.fit/assets/phat-alpha-preview.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
 
+  <!-- X / Twitter Preview -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="PHAT Holder Access" />
   <meta name="twitter:description" content="Check your access before this goes public." />
+  <meta name="twitter:image" content="https://planetfatness.fit/assets/phat-alpha-preview.jpg" />
 
   <style>
     * {
@@ -21,7 +28,8 @@
       padding: 0;
     }
 
-    html, body {
+    html,
+    body {
       width: 100%;
       height: 100%;
       background: #09050d;
@@ -43,7 +51,11 @@
       text-align: center;
 
       background:
-        radial-gradient(circle at center, rgba(120,40,180,.28), transparent 55%),
+        radial-gradient(
+          circle at center,
+          rgba(120, 40, 180, 0.28),
+          transparent 55%
+        ),
         #09050d;
     }
 
@@ -56,7 +68,7 @@
 
     .subtitle {
       color: white;
-      opacity: .82;
+      opacity: 0.82;
       margin-bottom: 30px;
       font-size: 15px;
       letter-spacing: 1px;
@@ -64,6 +76,7 @@
 
     #enterButton {
       width: min(340px, 88vw);
+
       border: none;
       border-radius: 16px;
 
@@ -75,21 +88,24 @@
       font-size: 18px;
       font-weight: 900;
 
+      cursor: pointer;
+
       box-shadow:
-        0 0 20px rgba(246,213,31,.25),
-        0 8px 30px rgba(0,0,0,.45);
+        0 0 20px rgba(246, 213, 31, 0.25),
+        0 8px 30px rgba(0, 0, 0, 0.45);
     }
 
     .small {
       margin-top: 14px;
       color: white;
-      opacity: .45;
+      opacity: 0.45;
       font-size: 12px;
     }
 
     #videoWrap {
       position: fixed;
       inset: 0;
+
       background: black;
 
       display: flex;
@@ -100,7 +116,9 @@
     #phatVideo {
       width: 100%;
       height: 100%;
+
       object-fit: contain;
+
       background: black;
     }
   </style>
@@ -120,7 +138,10 @@
   </div>
 
   <div id="startScreen">
-    <div class="logo">PLANET FATNESS</div>
+
+    <div class="logo">
+      PLANET FATNESS
+    </div>
 
     <div class="subtitle">
       PRIVATE PHAT HOLDER ACCESS
@@ -133,6 +154,7 @@
     <div class="small">
       Tap to continue
     </div>
+
   </div>
 
   <script>
@@ -150,7 +172,7 @@
       try {
         await video.play();
       } catch (err) {
-        console.error(err);
+        console.error("Video playback failed:", err);
       }
     });
   </script>
